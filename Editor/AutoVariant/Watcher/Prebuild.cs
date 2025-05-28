@@ -107,20 +107,39 @@ public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
     private List<string> CollectAvatarAssets(GameObject avatar)
     {
         List<string> assetPaths = new List<string>();
+        bool includeAllAssets = EditorPrefs.GetBool("Setting.AutoVariant_includeAllAssets", true);
 
         string avatarPrefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(avatar);
         if (!string.IsNullOrEmpty(avatarPrefabPath))
         {
-            assetPaths.Add(avatarPrefabPath);
-            
-            string[] dependencies = AssetDatabase.GetDependencies(avatarPrefabPath, true);
-            foreach (string dependency in dependencies)
+            if (includeAllAssets)
             {
-                if (dependency.StartsWith("Assets/") && !assetPaths.Contains(dependency))
+                assetPaths.Add(avatarPrefabPath);
+                
+                string[] dependencies = AssetDatabase.GetDependencies(avatarPrefabPath, true);
+                foreach (string dependency in dependencies)
                 {
-                    assetPaths.Add(dependency);
+                    if (dependency.StartsWith("Assets/") && !assetPaths.Contains(dependency))
+                    {
+                        assetPaths.Add(dependency);
+                    }
                 }
             }
+            else
+            {
+                assetPaths.Add(avatarPrefabPath);
+                
+                string[] dependencies = AssetDatabase.GetDependencies(avatarPrefabPath, true);
+                foreach (string dependency in dependencies)
+                {
+                    if (dependency.StartsWith("Assets/Untitled_Variants/") && !assetPaths.Contains(dependency))
+                    {
+                        assetPaths.Add(dependency);
+                    }
+                }
+            }
+            
+            Debug.Log($"[MyPreBuildProcess] Collected {assetPaths.Count} assets for {avatar.name} (includeAllAssets: {includeAllAssets})");
         }
         else
         {

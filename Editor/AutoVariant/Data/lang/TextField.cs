@@ -6,6 +6,7 @@ namespace Untitled.Data.Lang
         {
             public string AutoVariant_enableAutoVariant;
             public string AutoVariant_enablePrebuild;
+            public string AutoVariant_includeAllAssets;
         }
     }
 }

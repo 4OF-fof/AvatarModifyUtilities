@@ -11,7 +11,8 @@ namespace Untitled.Data.Setting
         {
             { "AutoVariant", new SettingItem[] {
                 new BoolSettingItem("AutoVariant_enableAutoVariant", true),
-                new BoolSettingItem("AutoVariant_enablePrebuild", true)
+                new BoolSettingItem("AutoVariant_enablePrebuild", true),
+                new BoolSettingItem("AutoVariant_includeAllAssets", false)
             } },
         };
     }
