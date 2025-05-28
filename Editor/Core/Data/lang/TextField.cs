@@ -7,6 +7,7 @@ namespace Untitled.Data.Lang
             public string Core_setting;
             public string Core_general;
             public string Core_language;
+            public string Core_dirPath;
         }
     }
 }

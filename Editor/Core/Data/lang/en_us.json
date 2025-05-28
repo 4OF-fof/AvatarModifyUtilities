@@ -1,5 +1,6 @@
 {
   "Core_setting": "Setting",
   "Core_general": "General",
-  "Core_language": "Language"
+  "Core_language": "Language",
+  "Core_dirPath": "Data Folder"
 }
