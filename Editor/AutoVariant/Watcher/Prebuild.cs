@@ -8,7 +8,10 @@ public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
     public int callbackOrder => 0;
     public bool OnBuildRequested(VRCSDKRequestedBuildType requestedBuildType)
     {
-        OptimizeMaterials();
+        if (EditorPrefs.GetBool("Setting.AutoVariant_enablePrebuild", true))
+        {
+            OptimizeMaterials();
+        }
         return true;
     }
 

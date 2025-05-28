@@ -1,3 +1,4 @@
 {
-  "AutoVariant_enableAutoVariant": "自動でVariantを作成する"
+  "AutoVariant_enableAutoVariant": "自動でVariantを作成する",
+  "AutoVariant_enablePrebuild": "ビルド前に現在のアバターを保存する"
 }

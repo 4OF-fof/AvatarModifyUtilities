@@ -5,6 +5,7 @@ namespace Untitled.Data.Lang
         private partial class LocalizationWrapper
         {
             public string AutoVariant_enableAutoVariant;
+            public string AutoVariant_enablePrebuild;
         }
     }
 }

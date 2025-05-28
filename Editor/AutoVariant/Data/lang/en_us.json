@@ -1,3 +1,4 @@
 {
-  "AutoVariant_enableAutoVariant": "Create Variants Automatically"
+  "AutoVariant_enableAutoVariant": "Create Variants Automatically",
+  "AutoVariant_enablePrebuild": "Save current avatar before building"
 }
