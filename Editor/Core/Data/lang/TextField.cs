@@ -4,9 +4,9 @@ namespace Untitled.Data.Lang
     {
         private partial class LocalizationWrapper
         {
-            public string setting;
-            public string general;
-            public string language;
+            public string Core_setting;
+            public string Core_general;
+            public string Core_language;
         }
     }
 }

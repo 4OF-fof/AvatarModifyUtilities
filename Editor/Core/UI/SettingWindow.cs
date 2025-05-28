@@ -22,9 +22,9 @@ public class SettingWindow : EditorWindow
     [MenuItem("Untitled/Setting")]
     public static void ShowWindow()
     {
-        string lang = EditorPrefs.GetString("Setting.language", "ja_jp");
+        string lang = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
         LocalizationManager.LoadLanguage(lang);
-        var window = GetWindow<SettingWindow>(LocalizationManager.GetText("setting"));
+        var window = GetWindow<SettingWindow>(LocalizationManager.GetText("Core_setting"));
         window.minSize = window.maxSize = new Vector2(960, 540);
         window.InitializeSettings();
     }
@@ -38,7 +38,7 @@ public class SettingWindow : EditorWindow
 
     void OnEnable()
     {
-        string lang = EditorPrefs.GetString("Setting.language", "ja_jp");
+        string lang = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
         LocalizationManager.LoadLanguage(lang);
         InitializeSettings();
     }
@@ -242,7 +242,7 @@ public class SettingWindow : EditorWindow
                             if (EditorGUI.EndChangeCheck())
                             {
                                 EditorPrefs.SetString(key, values[newIndex]);
-                                if (key == "Setting.language")
+                                if (key == "Setting.Core_language")
                                 {
                                     LocalizationManager.LoadLanguage(values[newIndex]);
                                     InitializeSettings();

@@ -8,8 +8,8 @@ namespace Untitled.Data.Setting
     {
         public static readonly Dictionary<string, SettingItem[]> SettingItems = new Dictionary<string, SettingItem[]>
         {
-            { "general", new SettingItem[] {
-                new ChoiceSettingItem("language", 
+            { "Core_general", new SettingItem[] {
+                new ChoiceSettingItem("Core_language", 
                     new Dictionary<string, string>
                     {
                         { "ja_jp", "日本語" },

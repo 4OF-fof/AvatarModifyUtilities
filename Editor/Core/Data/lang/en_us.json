@@ -1,5 +1,5 @@
 {
-  "setting": "Setting",
-  "general": "General",
-  "language": "Language"
+  "Core_setting": "Setting",
+  "Core_general": "General",
+  "Core_language": "Language"
 }

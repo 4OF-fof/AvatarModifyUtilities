@@ -19,7 +19,7 @@
     - return: 指定キーに対応するテキスト。該当がなければキー自体を返す。
 - **使い方例**:
   ```csharp
-  string lang = EditorPrefs.GetString("Setting.language", "ja_jp");
+  string lang = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
   LocalizationManager.LoadLanguage(lang);
   string label = LocalizationManager.GetText("setting");
   ```

@@ -8,15 +8,15 @@ Coreでは、Unityの`EditorPrefs`を利用してユーザーごとのエディ�
 ## 主な用途とキー
 
 ### 1. 言語設定
-- **キー:** `Setting.language`
+- **キー:** `Setting.Core_language`
 - **デフォルト値:** `ja_jp`
 - **取得例:**
   ```csharp
-  string lang = EditorPrefs.GetString("Setting.language", "ja_jp");
+  string lang = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
   ```
 - **設定例:**
   ```csharp
-  EditorPrefs.SetString("Setting.language", "en_us");
+  EditorPrefs.SetString("Setting.Core_language", "en_us");
   ```
 - **用途:** 設定画面（SettingWindow）での言語選択や多言語UIの切り替えに利用されています。
 
@@ -24,4 +24,4 @@ Coreでは、Unityの`EditorPrefs`を利用してユーザーごとのエディ�
 
 ## まとめ
 - Coreでは、ユーザーごとのエディタ設定を永続化するために`EditorPrefs`を活用しています。
-- 現状、キーが明確に定まっているのは「Setting.language」（言語設定）のみです。
+- 現状、キーが明確に定まっているのは「Setting.Core_language」（言語設定）のみです。
