@@ -15,6 +15,7 @@ Untitledプロジェクトの設定画面（SettingWindow）に新しい設定�
 - `BoolSettingItem`（真偽値）
 - `FloatSettingItem`（小数）
 - `ChoiceSettingItem`（選択肢）
+- `FilePathSettingItem`（ファイル・ディレクトリ選択用）
 
 必要に応じて、これらのクラスを使って設定項目を定義します。
 
@@ -48,6 +49,8 @@ namespace Untitled.Data.Setting
                         { "ja_jp", "日本語" },
                         { "en_us", "English" },
                     }, "ja_jp"),
+                // ファイル・ディレクトリ選択
+                new FilePathSettingItem("savePath", "", "cs", true),
             } },
         };
     }
@@ -65,7 +68,7 @@ namespace Untitled.Data.Setting
 例:
 ```json
 {
-  "user_name": "ユーザー名"
+  "user_name": "ユーザー名",
 }
 ```
 
@@ -150,6 +153,19 @@ string userName = EditorPrefs.GetString("Setting.user_name", "defaultUser");
   - `choices`: 選択肢（キー:値）
   - `defaultValue`: デフォルト値
   - **戻り値:** ChoiceSettingItemインスタンス
+
+### FilePathSettingItem
+- **用途:** ファイルまたはディレクトリのパスを選択する設定
+- **コンストラクタ:**
+  ```csharp
+  FilePathSettingItem(string name, string defaultValue = "", string extension = "", bool isDirectory = false)
+  ```
+  - `name`: 設定キー名
+  - `defaultValue`: デフォルト値
+  - `extension`: 拡張子フィルタ（例: "cs" など、空文字で全て許可）
+  - `isDirectory`: ディレクトリ選択の場合は `true`、ファイル選択の場合は `false`
+  - **注意:** `isDirectory` が `true` の場合は `extension` は無視されます。どちらも設定されていない場合はすべての拡張子のファイルが選択できます。
+  - **戻り値:** FilePathSettingItemインスタンス
 
 ---
 
