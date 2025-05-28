@@ -5,28 +5,20 @@ using System.IO;
 [InitializeOnLoad]
 public static class PrefabAdditionDetector
 {
-    static int _lastRootCount = 0;
-
     static PrefabAdditionDetector()
     {
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return;
         EditorApplication.hierarchyChanged += OnHierarchyChanged;
-        _lastRootCount = UnityEngine.SceneManagement.SceneManager.GetActiveScene().rootCount;
     }
 
     static void OnHierarchyChanged()
     {
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return;
-        int currentRootCount = UnityEngine.SceneManagement.SceneManager.GetActiveScene().rootCount;
-        if (currentRootCount > _lastRootCount)
+        var addedPrefabs = FindAddedPrefabRoots();
+        foreach (var go in addedPrefabs)
         {
-            var addedPrefabs = FindAddedPrefabRoots();
-            foreach (var go in addedPrefabs)
-            {
-                HandlePrefabAddition(go);
-            }
+            HandlePrefabAddition(go);
         }
-        _lastRootCount = currentRootCount;
     }
 
     static System.Collections.Generic.List<GameObject> FindAddedPrefabRoots()
