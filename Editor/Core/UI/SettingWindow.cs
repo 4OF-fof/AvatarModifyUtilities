@@ -32,7 +32,16 @@ public class SettingWindow : EditorWindow
     private void InitializeSettings()
     {
         settingItems = SettingDataHelper.GetAllSettingItems();
-        menuItems = settingItems.Keys.ToArray();
+        var keys = settingItems.Keys.ToList();
+        if (keys.Contains("Core_general"))
+        {
+            keys.Remove("Core_general");
+            menuItems = (new[] { "Core_general" }).Concat(keys).ToArray();
+        }
+        else
+        {
+            menuItems = keys.ToArray();
+        }
         selectedMenu = 0;
     }
 
@@ -158,6 +167,9 @@ public class SettingWindow : EditorWindow
     private void DrawSettingItems(Untitled.Data.Setting.SettingItem[] items)
     {
         bool hasResult = false;
+        float prevLabelWidth = EditorGUIUtility.labelWidth;
+        EditorGUIUtility.labelWidth = 260f;
+
         foreach (var item in items)
         {
             if (string.IsNullOrEmpty(menuSearch) || LocalizationManager.GetText(item.Name).Contains(menuSearch))
@@ -254,6 +266,8 @@ public class SettingWindow : EditorWindow
                 hasResult = true;
             }
         }
+        // ラベル幅を元に戻す
+        EditorGUIUtility.labelWidth = prevLabelWidth;
         if (!hasResult)
             GUILayout.Label(LocalizationManager.GetText("empty_result"));
     }
