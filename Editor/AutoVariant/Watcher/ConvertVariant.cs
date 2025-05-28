@@ -25,8 +25,11 @@ public static class PrefabAdditionDetector
     {
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return new System.Collections.Generic.List<GameObject>();
         var result = new System.Collections.Generic.List<GameObject>();
-        foreach (GameObject go in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+        foreach (GameObject go in Resources.FindObjectsOfTypeAll<GameObject>())
         {
+            if (!go.scene.IsValid()) continue;
+            if (go.transform.parent != null) continue;
+            if ((go.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
             if (!PrefabUtility.IsAnyPrefabInstanceRoot(go)) continue;
 
             var prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(go);
