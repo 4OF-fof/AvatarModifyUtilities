@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Untitled.Data.Setting
 {
-    public enum SettingType { String, Int, Bool, Float, Choice }
+    public enum SettingType { String, Int, Bool, Float, Choice, FilePath }
 
     public abstract class SettingItem
     {
@@ -67,6 +67,25 @@ namespace Untitled.Data.Setting
         {
             Choices = choices;
             DefaultValue = defaultValue;
+        }
+    }
+
+    public class FilePathSettingItem : SettingItem
+    {
+        public string DefaultValue { get; }
+        public string ExtensionFilter { get; }
+        public bool IsDirectory { get; }
+        public FilePathSettingItem(string name, string defaultValue = "", string extensionFilter = "*") : base(name, SettingType.FilePath)
+        {
+            DefaultValue = defaultValue;
+            ExtensionFilter = extensionFilter;
+            IsDirectory = false;
+        }
+        public FilePathSettingItem(string name, string defaultValue, bool isDirectory) : base(name, SettingType.FilePath)
+        {
+            DefaultValue = defaultValue;
+            ExtensionFilter = "*";
+            IsDirectory = isDirectory;
         }
     }
 }

@@ -155,30 +155,6 @@ public class SettingWindow : EditorWindow
         }
     }
 
-    private void ResetMenuToDefault(string menu)
-    {
-        var items = settingItems[menu];
-        foreach (var item in items)
-        {
-            string key = $"Setting.{item.Name}";
-            switch (item.Type)
-            {
-                case Untitled.Data.Setting.SettingType.String:
-                    EditorPrefs.SetString(key, ((StringSettingItem)item).DefaultValue);
-                    break;
-                case Untitled.Data.Setting.SettingType.Int:
-                    EditorPrefs.SetInt(key, ((IntSettingItem)item).DefaultValue);
-                    break;
-                case Untitled.Data.Setting.SettingType.Bool:
-                    EditorPrefs.SetBool(key, ((BoolSettingItem)item).DefaultValue);
-                    break;
-                case Untitled.Data.Setting.SettingType.Float:
-                    EditorPrefs.SetFloat(key, ((FloatSettingItem)item).DefaultValue);
-                    break;
-            }
-        }
-    }
-
     private void DrawSettingItems(Untitled.Data.Setting.SettingItem[] items)
     {
         bool hasResult = false;
@@ -249,6 +225,29 @@ public class SettingWindow : EditorWindow
                                     Repaint();
                                 }
                             }
+                            break;
+                        }
+                    case Untitled.Data.Setting.SettingType.FilePath:
+                        {
+                            var fileItem = (FilePathSettingItem)item;
+                            string value = EditorPrefs.GetString(key, fileItem.DefaultValue);
+                            string extension = fileItem.ExtensionFilter;
+                            EditorGUILayout.BeginHorizontal();
+                            EditorGUI.BeginChangeCheck();
+                            string newValue = EditorGUILayout.TextField(LocalizationManager.GetText(item.Name), value, GUILayout.Width(600));
+                            if (GUILayout.Button("...", GUILayout.Width(40)))
+                            {
+                                string path = fileItem.IsDirectory
+                                    ? EditorUtility.OpenFolderPanel(LocalizationManager.GetText(item.Name), value, "")
+                                    : EditorUtility.OpenFilePanel(LocalizationManager.GetText(item.Name), value, extension);
+                                if (!string.IsNullOrEmpty(path))
+                                {
+                                    newValue = path;
+                                }
+                            }
+                            if (EditorGUI.EndChangeCheck())
+                                EditorPrefs.SetString(key, newValue);
+                            EditorGUILayout.EndHorizontal();
                             break;
                         }
                 }
