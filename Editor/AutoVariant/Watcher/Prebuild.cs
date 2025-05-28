@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using VRC.SDKBase.Editor.BuildPipeline;
+using Untitled.Editor.Core.Helper;
 
 public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
 {
@@ -12,18 +13,17 @@ public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
     }
 
     private void OptimizeMaterials()
-    //TODO: アップロードするアバターを自動選択
     {
-        var selectedObject = Selection.activeGameObject;
-        
-        if (selectedObject != null)
+        GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
+        int optimizedCount = 0;
+
+        foreach (GameObject obj in allObjects)
         {
-            MaterialVariantOptimizer.OptimizeMaterials(selectedObject);
-            Debug.Log($"[MyPreBuildProcess] Optimized materials for selected object: {selectedObject.name}");
-        }
-        else
-        {
-            Debug.LogWarning("[MyPreBuildProcess] No GameObject selected for material optimization");
+            if (PipelineManagerHelper.isVRCAvatar(obj))
+            {
+                MaterialVariantOptimizer.OptimizeMaterials(obj);
+                Debug.Log($"[MyPreBuildProcess] Optimized materials for VRC Avatar: {obj.name}");
+            }
         }
     }
 }
