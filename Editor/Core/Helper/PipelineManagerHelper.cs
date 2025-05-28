@@ -42,5 +42,12 @@ namespace Untitled.Editor.Core.Helper
 
             return null;
         }
+
+        public static bool isVRCAvatar(GameObject obj)
+        {
+            if (obj == null) return false;
+            var pipelineManager = obj.GetComponent("PipelineManager");
+            return pipelineManager != null;
+        }
     }
 }
