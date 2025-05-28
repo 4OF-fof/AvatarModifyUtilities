@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using System.IO;
+using Untitled.Editor.Core.Helper;
 
 [InitializeOnLoad]
 public static class PrefabAdditionDetector
@@ -48,6 +49,10 @@ public static class PrefabAdditionDetector
     static void HandlePrefabAddition(GameObject go)
     {
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return;
+
+        var blueprintId = PipelineManagerHelper.GetBlueprintId(go);
+        if (!string.IsNullOrEmpty(blueprintId)) return;
+
         var prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(go);
         var prefabPath = AssetDatabase.GetAssetPath(prefabAsset);
 
