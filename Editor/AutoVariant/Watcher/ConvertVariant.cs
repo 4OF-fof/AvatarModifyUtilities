@@ -63,6 +63,11 @@ public static class PrefabAdditionDetector
         string variantDir = "Assets/Untitled_Variants";
         EnsureVariantDirectoryExists(variantDir);
 
+        string materialDir = Path.Combine(variantDir, "Material").Replace("\\", "/");
+        EnsureVariantDirectoryExists(materialDir);
+
+        CopyAndReplaceMaterials(go, materialDir);
+
         string variantName = "Untitled_" + go.name + ".prefab";
         string variantPath = Path.Combine(variantDir, variantName).Replace("\\", "/");
 
@@ -80,8 +85,47 @@ public static class PrefabAdditionDetector
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return;
         if (!AssetDatabase.IsValidFolder(variantDir))
         {
-            Directory.CreateDirectory(Path.Combine(Application.dataPath, "Untitled_Variants"));
+            Directory.CreateDirectory(Path.Combine(Application.dataPath, variantDir.Replace("Assets/", "")));
             AssetDatabase.Refresh();
+        }
+    }
+
+    // Materialコピー＆差し替え
+    static void CopyAndReplaceMaterials(GameObject go, string materialDir)
+    {
+        foreach (var renderer in go.GetComponentsInChildren<Renderer>(true))
+        {
+            var materials = renderer.sharedMaterials;
+            bool changed = false;
+            for (int i = 0; i < materials.Length; i++)
+            {
+                var mat = materials[i];
+                if (mat == null) continue;
+
+                string matPath = AssetDatabase.GetAssetPath(mat);
+                if (string.IsNullOrEmpty(matPath)) continue;
+
+                string matCopyPath = Path.Combine(materialDir, mat.name + ".mat").Replace("\\", "/");
+                if (!AssetDatabase.IsValidFolder(materialDir))
+                {
+                    Directory.CreateDirectory(Path.Combine(Application.dataPath, materialDir.Replace("Assets/", "")));
+                    AssetDatabase.Refresh();
+                }
+                if (!File.Exists(matCopyPath))
+                {
+                    AssetDatabase.CopyAsset(matPath, matCopyPath);
+                }
+                var matCopy = AssetDatabase.LoadAssetAtPath<Material>(matCopyPath);
+                if (matCopy != null)
+                {
+                    materials[i] = matCopy;
+                    changed = true;
+                }
+            }
+            if (changed)
+            {
+                renderer.sharedMaterials = materials;
+            }
         }
     }
 
