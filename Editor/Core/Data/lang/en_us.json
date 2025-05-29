@@ -2,5 +2,7 @@
   "Core_setting": "Setting",
   "Core_general": "General",
   "Core_language": "Language",
-  "Core_dirPath": "Data Folder"
+  "Core_dirPath": "Data Folder",
+  "Core_versionInfo": "Version",
+  "Core_repositoryUrl": "Repository URL"
 }

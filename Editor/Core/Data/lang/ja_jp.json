@@ -2,5 +2,7 @@
   "Core_setting": "設定",
   "Core_general": "一般",
   "Core_language": "表示言語",
-  "Core_dirPath": "データ保存フォルダ"
+  "Core_dirPath": "データ保存フォルダ",
+  "Core_versionInfo": "バージョン情報",
+  "Core_repositoryUrl": "リポジトリURL"
 }

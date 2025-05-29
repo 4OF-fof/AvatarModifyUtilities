@@ -18,9 +18,11 @@ namespace Untitled.Data.Setting
     public class StringSettingItem : SettingItem
     {
         public string DefaultValue { get; }
-        public StringSettingItem(string name, string defaultValue = "") : base(name, SettingType.String)
+        public bool IsReadOnly { get; }
+        public StringSettingItem(string name, string defaultValue = "", bool isReadOnly = false) : base(name, SettingType.String)
         {
             DefaultValue = defaultValue;
+            IsReadOnly = isReadOnly;
         }
     }
 

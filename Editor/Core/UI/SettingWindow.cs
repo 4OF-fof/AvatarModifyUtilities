@@ -175,15 +175,29 @@ public class SettingWindow : EditorWindow
             if (string.IsNullOrEmpty(menuSearch) || LocalizationManager.GetText(item.Name).Contains(menuSearch))
             {
                 string key = $"Setting.{item.Name}";
+                var labelStyle = new GUIStyle(EditorStyles.label);
+                labelStyle.fontSize = (int)(EditorStyles.label.fontSize * 1.2f);
                 switch (item.Type)
                 {
                     case Untitled.Data.Setting.SettingType.String:
                         {
-                            string value = EditorPrefs.GetString(key, ((StringSettingItem)item).DefaultValue);
+                            var stringItem = (StringSettingItem)item;
+                            string value = EditorPrefs.GetString(key, stringItem.DefaultValue);
                             EditorGUI.BeginChangeCheck();
-                            string newValue = EditorGUILayout.TextField(LocalizationManager.GetText(item.Name), value, GUILayout.Width(700));
-                            if (EditorGUI.EndChangeCheck())
-                                EditorPrefs.SetString(key, newValue);
+                            GUILayout.BeginHorizontal();
+                            GUILayout.Label(LocalizationManager.GetText(item.Name), labelStyle, GUILayout.Width(EditorGUIUtility.labelWidth));
+                            if (stringItem.IsReadOnly)
+                            {
+                                EditorGUILayout.TextField(value, GUI.skin.textField, GUILayout.Width(700 - EditorGUIUtility.labelWidth));
+                            }
+                            else
+                            {
+                                EditorGUI.BeginChangeCheck();
+                                string newValue = EditorGUILayout.TextField(value, GUILayout.Width(700 - EditorGUIUtility.labelWidth));
+                                if (EditorGUI.EndChangeCheck())
+                                    EditorPrefs.SetString(key, newValue);
+                            }
+                            GUILayout.EndHorizontal();
                             break;
                         }
                     case Untitled.Data.Setting.SettingType.Int:
@@ -191,9 +205,10 @@ public class SettingWindow : EditorWindow
                             var intItem = (IntSettingItem)item;
                             int value = EditorPrefs.GetInt(key, intItem.DefaultValue);
                             EditorGUI.BeginChangeCheck();
-                            EditorGUILayout.BeginHorizontal();
-                            int newValue = EditorGUILayout.IntField(LocalizationManager.GetText(item.Name), value, GUILayout.Width(300));
-                            EditorGUILayout.EndHorizontal();
+                            GUILayout.BeginHorizontal();
+                            GUILayout.Label(LocalizationManager.GetText(item.Name), labelStyle, GUILayout.Width(EditorGUIUtility.labelWidth));
+                            int newValue = EditorGUILayout.IntField(value, GUILayout.Width(300));
+                            GUILayout.EndHorizontal();
                             if (EditorGUI.EndChangeCheck())
                                 EditorPrefs.SetInt(key, newValue);
                             break;
@@ -202,7 +217,10 @@ public class SettingWindow : EditorWindow
                         {
                             bool value = EditorPrefs.GetBool(key, ((BoolSettingItem)item).DefaultValue);
                             EditorGUI.BeginChangeCheck();
-                            bool newValue = EditorGUILayout.Toggle(LocalizationManager.GetText(item.Name), value);
+                            GUILayout.BeginHorizontal();
+                            GUILayout.Label(LocalizationManager.GetText(item.Name), labelStyle, GUILayout.Width(EditorGUIUtility.labelWidth));
+                            bool newValue = EditorGUILayout.Toggle(value);
+                            GUILayout.EndHorizontal();
                             if (EditorGUI.EndChangeCheck())
                                 EditorPrefs.SetBool(key, newValue);
                             break;
@@ -212,7 +230,10 @@ public class SettingWindow : EditorWindow
                             var floatItem = (FloatSettingItem)item;
                             float value = EditorPrefs.GetFloat(key, floatItem.DefaultValue);
                             EditorGUI.BeginChangeCheck();
-                            float newValue = EditorGUILayout.Slider(LocalizationManager.GetText(item.Name), value, floatItem.MinValue, floatItem.MaxValue, GUILayout.Width(700));
+                            GUILayout.BeginHorizontal();
+                            GUILayout.Label(LocalizationManager.GetText(item.Name), labelStyle, GUILayout.Width(EditorGUIUtility.labelWidth));
+                            float newValue = EditorGUILayout.Slider(value, floatItem.MinValue, floatItem.MaxValue, GUILayout.Width(700 - EditorGUIUtility.labelWidth));
+                            GUILayout.EndHorizontal();
                             if (EditorGUI.EndChangeCheck())
                                 EditorPrefs.SetFloat(key, newValue);
                             break;
@@ -226,7 +247,10 @@ public class SettingWindow : EditorWindow
                             int selectedIndex = System.Array.IndexOf(values, value);
                             if (selectedIndex < 0) selectedIndex = 0;
                             EditorGUI.BeginChangeCheck();
-                            int newIndex = EditorGUILayout.Popup(LocalizationManager.GetText(item.Name), selectedIndex, displayNames, GUILayout.Width(700));
+                            GUILayout.BeginHorizontal();
+                            GUILayout.Label(LocalizationManager.GetText(item.Name), labelStyle, GUILayout.Width(EditorGUIUtility.labelWidth));
+                            int newIndex = EditorGUILayout.Popup(selectedIndex, displayNames, GUILayout.Width(700 - EditorGUIUtility.labelWidth));
+                            GUILayout.EndHorizontal();
                             if (EditorGUI.EndChangeCheck())
                             {
                                 EditorPrefs.SetString(key, values[newIndex]);
@@ -244,9 +268,10 @@ public class SettingWindow : EditorWindow
                             var fileItem = (FilePathSettingItem)item;
                             string value = EditorPrefs.GetString(key, fileItem.DefaultValue);
                             string extension = fileItem.ExtensionFilter;
-                            EditorGUILayout.BeginHorizontal();
+                            GUILayout.BeginHorizontal();
+                            GUILayout.Label(LocalizationManager.GetText(item.Name), labelStyle, GUILayout.Width(EditorGUIUtility.labelWidth));
                             EditorGUI.BeginChangeCheck();
-                            string newValue = EditorGUILayout.TextField(LocalizationManager.GetText(item.Name), value, GUILayout.Width(600));
+                            string newValue = EditorGUILayout.TextField(value, GUILayout.Width(700 - EditorGUIUtility.labelWidth - 48));
                             if (GUILayout.Button("...", GUILayout.Width(40)))
                             {
                                 string path = fileItem.IsDirectory
@@ -259,14 +284,13 @@ public class SettingWindow : EditorWindow
                             }
                             if (EditorGUI.EndChangeCheck())
                                 EditorPrefs.SetString(key, newValue);
-                            EditorGUILayout.EndHorizontal();
+                            GUILayout.EndHorizontal();
                             break;
                         }
                 }
                 hasResult = true;
             }
         }
-        // ラベル幅を元に戻す
         EditorGUIUtility.labelWidth = prevLabelWidth;
         if (!hasResult)
             GUILayout.Label(LocalizationManager.GetText("empty_result"));

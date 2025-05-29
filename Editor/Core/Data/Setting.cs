@@ -16,10 +16,12 @@ namespace Untitled.Data.Setting
                         { "ja_jp", "日本語" },
                         { "en_us", "English" },
                     }, "ja_jp"),
-                    new FilePathSettingItem(
-                        "Core_dirPath",
-                        System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Untitled"),
-                        true),
+                new FilePathSettingItem(
+                    "Core_dirPath",
+                    System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Untitled"),
+                    true),
+                new StringSettingItem("Core_versionInfo", "0.1.0-alpha", true),
+                new StringSettingItem("Core_repositoryUrl", "https://github.com/4OF-fof/Untitled", true),
             } },
         };
     }
