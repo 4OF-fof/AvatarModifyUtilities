@@ -8,6 +8,30 @@ using System;
 
 public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
 {
+    // マテリアル状態保存用の構造体
+    [System.Serializable]
+    private class RendererMaterialState
+    {
+        public Renderer renderer;
+        public Material[] originalMaterials;
+
+        public RendererMaterialState(Renderer renderer)
+        {
+            this.renderer = renderer;
+            this.originalMaterials = (Material[])renderer.sharedMaterials.Clone();
+        }
+
+        public void RestoreMaterials()
+        {
+            if (renderer != null)
+            {
+                renderer.sharedMaterials = originalMaterials;
+            }
+        }
+    }
+
+    private static List<RendererMaterialState> _materialStates = new List<RendererMaterialState>();
+
     public int callbackOrder => 0;
     public bool OnBuildRequested(VRCSDKRequestedBuildType requestedBuildType)
     {
@@ -23,10 +47,16 @@ public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
         GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
         List<GameObject> optimizedAvatars = new List<GameObject>();
 
+        // 既存の状態をクリア
+        _materialStates.Clear();
+
         foreach (GameObject obj in allObjects)
         {
             if (PipelineManagerHelper.isVRCAvatar(obj))
             {
+                // マテリアル状態を保存
+                SaveMaterialStates(obj);
+                
                 MaterialVariantOptimizer.OptimizeMaterials(obj);
                 optimizedAvatars.Add(obj);
                 Debug.Log($"[MyPreBuildProcess] Optimized materials for VRC Avatar: {obj.name}");
@@ -37,6 +67,37 @@ public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
         {
             ExportOptimizedAvatar(avatar);
         }
+
+        // Unity packageエクスポート後にマテリアルを元に戻す
+        RestoreMaterialStates();
+    }
+
+    private void SaveMaterialStates(GameObject avatar)
+    {
+        Renderer[] renderers = avatar.GetComponentsInChildren<Renderer>(true);
+        foreach (Renderer renderer in renderers)
+        {
+            if (renderer.sharedMaterials != null && renderer.sharedMaterials.Length > 0)
+            {
+                _materialStates.Add(new RendererMaterialState(renderer));
+            }
+        }
+        Debug.Log($"[MyPreBuildProcess] Saved material states for {renderers.Length} renderers in {avatar.name}");
+    }
+
+    private void RestoreMaterialStates()
+    {
+        int restoredCount = 0;
+        foreach (var state in _materialStates)
+        {
+            if (state.renderer != null)
+            {
+                state.RestoreMaterials();
+                restoredCount++;
+            }
+        }
+        Debug.Log($"[MyPreBuildProcess] Restored materials for {restoredCount} renderers");
+        _materialStates.Clear();
     }
 
     private void ExportOptimizedAvatar(GameObject avatar)
