@@ -3,6 +3,7 @@
         "IVRCSDK",
         "Prebuild",
         "Prefs",
+        "unitypackage",
         "VRCSDK"
     ]
 }
