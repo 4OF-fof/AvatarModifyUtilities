@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using System.IO;
 using Untitled.Editor.Core.Helper;
 
@@ -15,6 +16,12 @@ public static class PrefabAdditionDetector
     static void OnHierarchyChanged()
     {
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return;
+        
+        if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+        {
+            return;
+        }
+        
         var addedPrefabs = FindAddedPrefabRoots();
         foreach (var go in addedPrefabs)
         {
@@ -25,13 +32,23 @@ public static class PrefabAdditionDetector
     static System.Collections.Generic.List<GameObject> FindAddedPrefabRoots()
     {
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return new System.Collections.Generic.List<GameObject>();
+        
+        if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+        {
+            return new System.Collections.Generic.List<GameObject>();
+        }
+        
         var result = new System.Collections.Generic.List<GameObject>();
         foreach (GameObject go in Resources.FindObjectsOfTypeAll<GameObject>())
         {
             if (!go.scene.IsValid()) continue;
-            if (go.transform.parent != null) continue;
             if ((go.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
-            if (!PrefabUtility.IsAnyPrefabInstanceRoot(go)) continue;
+            
+            bool isPrefabRoot = go.transform.parent == null && PrefabUtility.IsAnyPrefabInstanceRoot(go);
+            bool isPrefabChild = go.transform.parent != null && PrefabUtility.IsPartOfAnyPrefab(go) && 
+                               PrefabUtility.IsAnyPrefabInstanceRoot(go);
+            
+            if (!isPrefabRoot && !isPrefabChild) continue;
 
             var prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(go);
             if (IsUntitled(go, prefabAsset)) continue;
@@ -66,18 +83,29 @@ public static class PrefabAdditionDetector
         string materialDir = Path.Combine(variantDir, "Material").Replace("\\", "/");
         EnsureVariantDirectoryExists(materialDir);
 
-        CopyAndReplaceMaterials(go, materialDir);
+        bool isPrefabChild = go.transform.parent != null && 
+                           PrefabUtility.IsPartOfAnyPrefab(go.transform.parent.gameObject);
 
-        string variantName = "Untitled_" + go.name + ".prefab";
-        string variantPath = Path.Combine(variantDir, variantName).Replace("\\", "/");
-
-        if (!File.Exists(variantPath))
+        if (isPrefabChild)
         {
-            PrefabUtility.SaveAsPrefabAssetAndConnect(go, variantPath, InteractionMode.UserAction);
-            Debug.Log($"Prefab Variant created: {variantPath}");
+            CopyAndReplaceMaterials(go, materialDir);
+            Debug.Log($"Materials processed for prefab child: {go.name}");
         }
+        else
+        {
+            CopyAndReplaceMaterials(go, materialDir);
 
-        ReplaceWithVariant(go, variantPath);
+            string variantName = "Untitled_" + go.name + ".prefab";
+            string variantPath = Path.Combine(variantDir, variantName).Replace("\\", "/");
+
+            if (!File.Exists(variantPath))
+            {
+                PrefabUtility.SaveAsPrefabAssetAndConnect(go, variantPath, InteractionMode.UserAction);
+                Debug.Log($"Prefab Variant created: {variantPath}");
+            }
+
+            ReplaceWithVariant(go, variantPath);
+        }
     }
 
     static void EnsureVariantDirectoryExists(string variantDir)
@@ -105,6 +133,8 @@ public static class PrefabAdditionDetector
                 string matPath = AssetDatabase.GetAssetPath(mat);
                 if (string.IsNullOrEmpty(matPath)) continue;
 
+                if (matPath.StartsWith("Assets/Untitled_Variants/")) continue;
+
                 string matCopyPath = Path.Combine(materialDir, mat.name + ".mat").Replace("\\", "/");
                 if (!AssetDatabase.IsValidFolder(materialDir))
                 {
@@ -114,17 +144,30 @@ public static class PrefabAdditionDetector
                 if (!File.Exists(matCopyPath))
                 {
                     AssetDatabase.CopyAsset(matPath, matCopyPath);
+                    Debug.Log($"Material copied: {matPath} -> {matCopyPath}");
                 }
                 var matCopy = AssetDatabase.LoadAssetAtPath<Material>(matCopyPath);
                 if (matCopy != null)
                 {
                     materials[i] = matCopy;
                     changed = true;
+                    Debug.Log($"Material replaced on {renderer.name}: {mat.name} -> {matCopy.name}");
                 }
             }
             if (changed)
             {
                 renderer.sharedMaterials = materials;
+                EditorUtility.SetDirty(renderer);
+                
+                if (PrefabUtility.IsPartOfAnyPrefab(renderer.gameObject))
+                {
+                    var prefabRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(renderer.gameObject);
+                    if (prefabRoot != null)
+                    {
+                        PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
+                        EditorUtility.SetDirty(prefabRoot);
+                    }
+                }
             }
         }
     }
