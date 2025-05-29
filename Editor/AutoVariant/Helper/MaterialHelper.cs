@@ -170,9 +170,6 @@ public static class MaterialVariantOptimizer
     }
 }
 
-/// <summary>
-/// マテリアルのハッシュ値計算を担当するクラス
-/// </summary>
 public static class MaterialHashCalculator
 {
     public static string Calculate(Material material)

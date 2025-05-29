@@ -8,7 +8,6 @@ using System;
 
 public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
 {
-    // マテリアル状態保存用の構造体
     [System.Serializable]
     private class RendererMaterialState
     {
@@ -47,19 +46,23 @@ public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
         GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
         List<GameObject> optimizedAvatars = new List<GameObject>();
 
-        // 既存の状態をクリア
         _materialStates.Clear();
 
         foreach (GameObject obj in allObjects)
         {
             if (PipelineManagerHelper.isVRCAvatar(obj))
             {
-                // マテリアル状態を保存
                 SaveMaterialStates(obj);
-                
                 MaterialVariantOptimizer.OptimizeMaterials(obj);
                 optimizedAvatars.Add(obj);
                 Debug.Log($"[MyPreBuildProcess] Optimized materials for VRC Avatar: {obj.name}");
+
+                string prefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(obj);
+                if (!string.IsNullOrEmpty(prefabPath))
+                {
+                    var visited = new HashSet<string>();
+                    OptimizeNestedPrefabsRecursive(prefabPath, visited);
+                }
             }
         }
 
@@ -68,8 +71,42 @@ public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
             ExportOptimizedAvatar(avatar);
         }
 
-        // Unity packageエクスポート後にマテリアルを元に戻す
         RestoreMaterialStates();
+    }
+
+    private void OptimizeNestedPrefabsRecursive(string prefabPath, HashSet<string> visited)
+    {
+        if (visited.Contains(prefabPath)) return;
+        visited.Add(prefabPath);
+
+        GameObject prefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        if (prefabAsset != null)
+        {
+            GameObject tempInstance = PrefabUtility.InstantiatePrefab(prefabAsset) as GameObject;
+            if (tempInstance != null)
+            {
+                OptimizeMaterialsForAllChildren(tempInstance);
+                PrefabUtility.ApplyPrefabInstance(tempInstance, InteractionMode.AutomatedAction);
+                GameObject.DestroyImmediate(tempInstance);
+            }
+        }
+
+        string[] dependencies = AssetDatabase.GetDependencies(prefabPath, true);
+        foreach (string dep in dependencies)
+        {
+            if (dep.EndsWith(".prefab") && dep != prefabPath)
+            {
+                OptimizeNestedPrefabsRecursive(dep, visited);
+            }
+        }
+    }
+    private void OptimizeMaterialsForAllChildren(GameObject root)
+    {
+        MaterialVariantOptimizer.OptimizeMaterials(root);
+        foreach (Transform child in root.transform)
+        {
+            OptimizeMaterialsForAllChildren(child.gameObject);
+        }
     }
 
     private void SaveMaterialStates(GameObject avatar)
