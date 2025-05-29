@@ -143,15 +143,19 @@ public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
         
         string basePath = EditorPrefs.GetString("Setting.Core_dirPath", 
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Untitled"));
-        
         if (!Directory.Exists(basePath))
         {
             Directory.CreateDirectory(basePath);
             Debug.Log($"[MyPreBuildProcess] Created base directory: {basePath}");
         }
-        
+        string autoVariantPath = Path.Combine(basePath, "AutoVariant");
+        if (!Directory.Exists(autoVariantPath))
+        {
+            Directory.CreateDirectory(autoVariantPath);
+            Debug.Log($"[MyPreBuildProcess] Created AutoVariant directory: {autoVariantPath}");
+        }
         string dirName = string.IsNullOrEmpty(blueprintId) ? "local" : blueprintId;
-        string avatarDir = Path.Combine(basePath, dirName);
+        string avatarDir = Path.Combine(autoVariantPath, dirName);
         
         if (string.IsNullOrEmpty(blueprintId))
         {
