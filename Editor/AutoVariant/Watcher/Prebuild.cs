@@ -126,7 +126,7 @@ public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
         }
 
         string dateString = DateTime.Now.ToString("yyMMdd");
-        string fileName = GenerateUniqueFileName(avatarDir, dateString);
+        string fileName = GenerateUniqueFileName(avatarDir, dateString, avatar.name, string.IsNullOrEmpty(blueprintId));
         string fullPath = Path.Combine(avatarDir, fileName);
 
         try
@@ -149,9 +149,18 @@ public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
         }
     }
 
-    private string GenerateUniqueFileName(string directory, string dateString)
+    private string GenerateUniqueFileName(string directory, string dateString, string avatarName, bool isLocal)
     {
-        string baseName = $"{dateString}-";
+        string baseName;
+        if (isLocal)
+        {
+            baseName = $"{dateString}-{avatarName}-";
+        }
+        else
+        {
+            baseName = $"{dateString}-";
+        }
+        
         int number = 1;
         string fileName;
 
