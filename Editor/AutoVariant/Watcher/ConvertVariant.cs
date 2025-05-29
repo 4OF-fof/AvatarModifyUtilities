@@ -7,6 +7,10 @@ using Untitled.Editor.Core.Helper;
 [InitializeOnLoad]
 public static class PrefabAdditionDetector
 {
+    static System.Collections.Generic.HashSet<int> recentlyHandled = new System.Collections.Generic.HashSet<int>();
+    static double lastClearTime = 0;
+    static double clearInterval = 1.0;
+
     static PrefabAdditionDetector()
     {
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return;
@@ -16,16 +20,21 @@ public static class PrefabAdditionDetector
     static void OnHierarchyChanged()
     {
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return;
-        
         if (PrefabStageUtility.GetCurrentPrefabStage() != null)
         {
             return;
         }
-        
+        if (EditorApplication.timeSinceStartup - lastClearTime > clearInterval)
+        {
+            recentlyHandled.Clear();
+            lastClearTime = EditorApplication.timeSinceStartup;
+        }
         var addedPrefabs = FindAddedPrefabRoots();
         foreach (var go in addedPrefabs)
         {
+            if (recentlyHandled.Contains(go.GetInstanceID())) continue;
             HandlePrefabAddition(go);
+            recentlyHandled.Add(go.GetInstanceID());
         }
     }
 
@@ -104,7 +113,15 @@ public static class PrefabAdditionDetector
                 Debug.Log($"Prefab Variant created: {variantPath}");
             }
 
-            ReplaceWithVariant(go, variantPath);
+            EditorApplication.hierarchyChanged -= OnHierarchyChanged;
+            try
+            {
+                ReplaceWithVariant(go, variantPath);
+            }
+            finally
+            {
+                EditorApplication.hierarchyChanged += OnHierarchyChanged;
+            }
         }
     }
 
@@ -118,7 +135,6 @@ public static class PrefabAdditionDetector
         }
     }
 
-    // Materialコピー＆差し替え
     static void CopyAndReplaceMaterials(GameObject go, string materialDir)
     {
         foreach (var renderer in go.GetComponentsInChildren<Renderer>(true))
