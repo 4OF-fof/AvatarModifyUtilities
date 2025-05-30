@@ -5,6 +5,7 @@ using AMU.Editor.Core.Helper;
 using System.IO;
 using System.Collections.Generic;
 using System;
+using AMU.Data.Lang;
 
 public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
 {
@@ -34,6 +35,35 @@ public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
     public int callbackOrder => 0;
     public bool OnBuildRequested(VRCSDKRequestedBuildType requestedBuildType)
     {
+        GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
+        int avatarCount = 0;
+        foreach (GameObject obj in allObjects)
+        {
+            if (obj.activeInHierarchy && PipelineManagerHelper.isVRCAvatar(obj))
+            {
+                avatarCount++;
+            }
+        }
+        if (avatarCount > 1)
+        {
+            string lang = EditorPrefs.GetString("Setting.Core_language", "en_us");
+            switch (lang)
+            {
+                case "ja_jp":
+                    EditorUtility.DisplayDialog("ビルド中止",
+                        "Hierarchy内に複数のアバターが検出されました。1体のみがアクティブな状態にしてください。", "OK");
+                    break;
+                case "en_us":
+                    EditorUtility.DisplayDialog("Build Cancelled",
+                        "Multiple avatars detected. Please activate only one avatar.", "OK");
+                    break;
+                default:
+                    EditorUtility.DisplayDialog("Build Cancelled",
+                        "Multiple avatars detected. Please activate only one avatar.", "OK");
+                    break;
+            }
+            return false;
+        }
         if (EditorPrefs.GetBool("Setting.AutoVariant_enablePrebuild", true))
         {
             OptimizeMaterials();
@@ -50,7 +80,7 @@ public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
 
         foreach (GameObject obj in allObjects)
         {
-            if (PipelineManagerHelper.isVRCAvatar(obj))
+            if (obj.activeInHierarchy && PipelineManagerHelper.isVRCAvatar(obj))
             {
                 SaveMaterialStates(obj);
                 MaterialVariantOptimizer.OptimizeMaterials(obj);

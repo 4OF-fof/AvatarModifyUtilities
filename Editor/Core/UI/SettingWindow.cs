@@ -22,7 +22,7 @@ public class SettingWindow : EditorWindow
     [MenuItem("AMU/Setting")]
     public static void ShowWindow()
     {
-        string lang = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
+        string lang = EditorPrefs.GetString("Setting.Core_language", "en_us");
         LocalizationManager.LoadLanguage(lang);
         var window = GetWindow<SettingWindow>(LocalizationManager.GetText("Core_setting"));
         window.minSize = window.maxSize = new Vector2(960, 540);
