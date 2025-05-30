@@ -7,34 +7,46 @@ using AMU.Editor.Core.Helper;
 [InitializeOnLoad]
 public static class PrefabAdditionDetector
 {
-    static System.Collections.Generic.HashSet<int> recentlyHandled = new System.Collections.Generic.HashSet<int>();
-    static double lastClearTime = 0;
-    static double clearInterval = 1.0;
-
-    static PrefabAdditionDetector()
+    static bool isProcessing = false;
+    static System.Collections.Generic.HashSet<int> processedInstanceIds = new System.Collections.Generic.HashSet<int>();    static PrefabAdditionDetector()
     {
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return;
         EditorApplication.hierarchyChanged += OnHierarchyChanged;
+        
+        EditorApplication.update += ClearProcessedIds;
     }
 
-    static void OnHierarchyChanged()
+    static double lastClearTime = 0;
+    static void ClearProcessedIds()
+    {
+        if (EditorApplication.timeSinceStartup - lastClearTime > 5.0)
+        {
+            processedInstanceIds.Clear();
+            lastClearTime = EditorApplication.timeSinceStartup;
+        }
+    }static void OnHierarchyChanged()
     {
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return;
+        if (isProcessing) return;
         if (PrefabStageUtility.GetCurrentPrefabStage() != null)
         {
             return;
         }
-        if (EditorApplication.timeSinceStartup - lastClearTime > clearInterval)
+        isProcessing = true;
+        try
         {
-            recentlyHandled.Clear();
-            lastClearTime = EditorApplication.timeSinceStartup;
+            var addedPrefabs = FindAddedPrefabRoots();
+            foreach (var go in addedPrefabs)
+            {
+                int instanceId = go.GetInstanceID();
+                if (processedInstanceIds.Contains(instanceId)) continue;
+                processedInstanceIds.Add(instanceId);
+                HandlePrefabAddition(go);
+            }
         }
-        var addedPrefabs = FindAddedPrefabRoots();
-        foreach (var go in addedPrefabs)
+        finally
         {
-            if (recentlyHandled.Contains(go.GetInstanceID())) continue;
-            HandlePrefabAddition(go);
-            recentlyHandled.Add(go.GetInstanceID());
+            isProcessing = false;
         }
     }
 
@@ -70,9 +82,7 @@ public static class PrefabAdditionDetector
     static bool IsAMU(GameObject go, Object prefabAsset)
     {
         return go.name.StartsWith("AMU_") || (prefabAsset != null && prefabAsset.name.StartsWith("AMU_"));
-    }
-
-    static void HandlePrefabAddition(GameObject go)
+    }    static void HandlePrefabAddition(GameObject go)
     {
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return;
 
@@ -113,15 +123,8 @@ public static class PrefabAdditionDetector
                 Debug.Log($"Prefab Variant created: {variantPath}");
             }
 
-            EditorApplication.hierarchyChanged -= OnHierarchyChanged;
-            try
-            {
-                ReplaceWithVariant(go, variantPath);
-            }
-            finally
-            {
-                EditorApplication.hierarchyChanged += OnHierarchyChanged;
-            }
+            // イベント一時停止せずに処理（既に処理中フラグで保護されている）
+            ReplaceWithVariant(go, variantPath);
         }
     }
 
@@ -186,20 +189,26 @@ public static class PrefabAdditionDetector
                 }
             }
         }
-    }
-
-    static void ReplaceWithVariant(GameObject original, string variantPath)
+    }    static void ReplaceWithVariant(GameObject original, string variantPath)
     {
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return;
         var variantPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(variantPath);
         if (variantPrefab == null) return;
 
-        GameObject newInstance = (GameObject)PrefabUtility.InstantiatePrefab(variantPrefab, original.scene);
-        newInstance.transform.SetPositionAndRotation(original.transform.position, original.transform.rotation);
-        newInstance.transform.localScale = original.transform.localScale;
-        newInstance.transform.SetSiblingIndex(original.transform.GetSiblingIndex());
+        var originalTransform = original.transform;
+        var position = originalTransform.position;
+        var rotation = originalTransform.rotation;
+        var scale = originalTransform.localScale;
+        var siblingIndex = originalTransform.GetSiblingIndex();
+        var scene = original.scene;
 
         Object.DestroyImmediate(original);
+
+        GameObject newInstance = (GameObject)PrefabUtility.InstantiatePrefab(variantPrefab, scene);
+        newInstance.transform.SetPositionAndRotation(position, rotation);
+        newInstance.transform.localScale = scale;
+        newInstance.transform.SetSiblingIndex(siblingIndex);
+
         Debug.Log($"Scene object replaced with variant: {variantPrefab.name}");
     }
 }
