@@ -20,8 +20,8 @@
 - **Variant自動作成プロセス:**
   1. シーンヒエラルキーの変更監視
   2. 新規追加されたプレハブの検出
-  3. マテリアルの`Assets/Untitled_Variants/Material/`へのコピー
-  4. Variantプレハブの`Assets/Untitled_Variants/`への作成
+  3. マテリアルの`Assets/AMU_Variants/Material/`へのコピー
+  4. Variantプレハブの`Assets/AMU_Variants/`への作成
   5. シーン内オブジェクトのVariantへの置き換え
 
 - **利用例（設定による制御）:**
@@ -50,7 +50,7 @@
    {
        // プレハブステージでの処理をスキップ
        // 各GameObjectのプレハブ状態をチェック
-       // Untitledプレハブの除外
+       // AMUプレハブの除外
        // 新規追加されたプレハブのリストを返す
    }
    ```
@@ -145,7 +145,7 @@
 - **デフォルト値:** `true`
 - **影響範囲:**
   - `true`：全依存関係を含む完全なパッケージ
-  - `false`：Untitled_Variants配下のみの軽量パッケージ
+  - `false`：AMU_Variants配下のみの軽量パッケージ
 
 ---
 
@@ -154,9 +154,9 @@
 ### Variantファイルの配置
 ```
 Assets/
-├── Untitled_Variants/
+├── AMU_Variants/
 │   ├── Material/           # コピーされたマテリアル
-│   ├── Untitled_*.prefab   # 作成されたVariantプレハブ
+│   ├── AMU_*.prefab   # 作成されたVariantプレハブ
 │   └── ...
 ```
 
@@ -208,10 +208,10 @@ private class RendererMaterialState
 1. **Variantが自動作成されない**
    - `Setting.AutoVariant_enableAutoVariant`の設定確認
    - プレハブステージでの作業でないかチェック
-   - 既にUntitledプレハブでないかの確認
+   - 既にAMUプレハブでないかの確認
 
 2. **マテリアルがコピーされない**
-   - `Assets/Untitled_Variants/`ディレクトリの権限確認
+   - `Assets/AMU_Variants/`ディレクトリの権限確認
    - 元マテリアルの存在とパス確認
    - プレハブのRenderer構成確認
 
@@ -237,7 +237,7 @@ private class RendererMaterialState
 static bool ShouldProcessPrefab(GameObject go)
 {
     // カスタム条件を追加
-    return go.name.Contains("Avatar") && !IsUntitled(go, prefabAsset);
+    return go.name.Contains("Avatar") && !IsAMU(go, prefabAsset);
 }
 ```
 

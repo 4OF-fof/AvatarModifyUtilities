@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-namespace Untitled.Data.Lang
+namespace AMU.Data.Lang
 {
     public static partial class LocalizationManager
     {
@@ -11,7 +11,7 @@ namespace Untitled.Data.Lang
 
         public static void LoadLanguage(string languageCode)
         {
-            var rootDir = Path.Combine(Application.dataPath, "Untitled/Editor");
+            var rootDir = Path.Combine(Application.dataPath, "AMU/Editor");
             var searchPattern = $"{languageCode}.json";
             var langFiles = Directory.GetFiles(rootDir, searchPattern, SearchOption.AllDirectories);
             var mergedDict = new Dictionary<string, string>();

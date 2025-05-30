@@ -18,7 +18,7 @@ CoreではUnityの`EditorPrefs`を活用し、ユーザーごとのエディタ�
 
 ### 2. データ保存フォルダ
 - **キー:** `Setting.Core_dirPath`
-- **デフォルト値:** `System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Untitled")`
+- **デフォルト値:** `System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities")`
 - **用途:** 各種データやエクスポートファイルの保存先ディレクトリ。
 
 ### 3. バージョン情報（表示専用/readonly）
@@ -28,7 +28,7 @@ CoreではUnityの`EditorPrefs`を活用し、ユーザーごとのエディタ�
 
 ### 4. リポジトリURL（表示専用/readonly）
 - **キー:** `Setting.Core_repositoryUrl`
-- **デフォルト値:** `"https://github.com/4OF-fof/Untitled"`
+- **デフォルト値:** `"https://github.com/4OF-fof/AvatarModifyUtilities"`
 - **用途:** 設定画面でのリポジトリURL表示。
 
 ---

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using VRC.SDKBase.Editor.BuildPipeline;
-using Untitled.Editor.Core.Helper;
+using AMU.Editor.Core.Helper;
 using System.IO;
 using System.Collections.Generic;
 using System;
@@ -142,7 +142,7 @@ public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
         string blueprintId = PipelineManagerHelper.GetBlueprintId(avatar);
         
         string basePath = EditorPrefs.GetString("Setting.Core_dirPath", 
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Untitled"));
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
         if (!Directory.Exists(basePath))
         {
             Directory.CreateDirectory(basePath);
@@ -243,7 +243,7 @@ public class MyPreBuildProcess : IVRCSDKBuildRequestedCallback
                 string[] dependencies = AssetDatabase.GetDependencies(avatarPrefabPath, true);
                 foreach (string dependency in dependencies)
                 {
-                    if (dependency.StartsWith("Assets/Untitled_Variants/") && !assetPaths.Contains(dependency))
+                    if (dependency.StartsWith("Assets/AMU_Variants/") && !assetPaths.Contains(dependency))
                     {
                         assetPaths.Add(dependency);
                     }

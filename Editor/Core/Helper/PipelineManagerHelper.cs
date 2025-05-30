@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Reflection;
 
-namespace Untitled.Editor.Core.Helper
+namespace AMU.Editor.Core.Helper
 {
     public static class PipelineManagerHelper
     {

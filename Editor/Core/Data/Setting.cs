@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System;
-using Untitled.Data.Lang;
-using Untitled.Data.Setting;
+using AMU.Data.Lang;
+using AMU.Data.Setting;
 
-namespace Untitled.Data.Setting
+namespace AMU.Data.Setting
 {
     public static class SettingData
     {
@@ -18,10 +18,10 @@ namespace Untitled.Data.Setting
                     }, "ja_jp"),
                 new FilePathSettingItem(
                     "Core_dirPath",
-                    System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Untitled"),
+                    System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"),
                     true),
                 new StringSettingItem("Core_versionInfo", "0.1.0-alpha", true),
-                new StringSettingItem("Core_repositoryUrl", "https://github.com/4OF-fof/Untitled", true),
+                new StringSettingItem("Core_repositoryUrl", "https://github.com/4OF-fof/AvatarModifyUtilities", true),
             } },
         };
     }

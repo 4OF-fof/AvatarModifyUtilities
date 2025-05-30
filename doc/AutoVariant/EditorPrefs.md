@@ -34,7 +34,7 @@ AutoVariantモジュールではUnityの`EditorPrefs`を活用し、自動Varian
   ```
 - **用途:** 
   - `true`: アバターの全ての依存関係を含めてエクスポート
-  - `false`: `Assets/Untitled_Variants/`配下のアセットのみを含めてエクスポート
+  - `false`: `Assets/AMU_Variants/`配下のアセットのみを含めてエクスポート
 
 ---
 
@@ -42,8 +42,8 @@ AutoVariantモジュールではUnityの`EditorPrefs`を活用し、自動Varian
 
 ### 自動Variant作成機能 (`AutoVariant_enableAutoVariant`)
 - **有効時:** プレハブがシーンに追加されると自動的に以下の処理を実行
-  - マテリアルを`Assets/Untitled_Variants/Material/`にコピー
-  - Variantプレハブを`Assets/Untitled_Variants/`に作成
+  - マテリアルを`Assets/AMU_Variants/Material/`にコピー
+  - Variantプレハブを`Assets/AMU_Variants/`に作成
   - シーン内のオブジェクトをVariantに置き換え
 - **無効時:** 自動処理は実行されず、手動でVariant作成が必要
 
@@ -56,7 +56,7 @@ AutoVariantモジュールではUnityの`EditorPrefs`を活用し、自動Varian
 
 ### アセット包含設定 (`AutoVariant_includeAllAssets`)
 - **有効時:** アバターの全依存関係（テクスチャ、シェーダー、アニメーション等）を含む
-- **無効時:** Untitled_Variants配下のファイルのみを含む軽量パッケージを作成
+- **無効時:** AMU_Variants配下のファイルのみを含む軽量パッケージを作成
 
 ---
 
@@ -83,7 +83,7 @@ bool includeAllAssets = EditorPrefs.GetBool("Setting.AutoVariant_includeAllAsset
 ---
 
 ## 設定変更方法
-これらの設定は`SettingWindow`（Untitled > Setting）から変更可能です。設定画面では以下のように表示されます：
+これらの設定は`SettingWindow`（AMU > Setting）から変更可能です。設定画面では以下のように表示されます：
 
 - **自動でVariantを作成する** (AutoVariant_enableAutoVariant)
 - **ビルド前に現在のアバターを保存する** (AutoVariant_enablePrebuild)  

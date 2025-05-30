@@ -1,7 +1,7 @@
 # 設定項目の追加・管理方法
 
 ## 概要
-Untitledプロジェクトの設定画面（SettingWindow）に新しい設定項目を追加・管理する手順をまとめます。型安全・多言語対応・自動UI生成・EditorPrefsによる永続化など、拡張性と保守性を重視した設計です。
+AMUプロジェクトの設定画面（SettingWindow）に新しい設定項目を追加・管理する手順をまとめます。型安全・多言語対応・自動UI生成・EditorPrefsによる永続化など、拡張性と保守性を重視した設計です。
 
 ---
 
@@ -18,9 +18,9 @@ Untitledプロジェクトの設定画面（SettingWindow）に新しい設定�
 ---
 
 ## 2. 設定データへの追加
-`Untitled.Data.Setting` namespace内の`SettingData.SettingItems`辞書に、追加したい設定項目を登録します。
+`AMU.Data.Setting` namespace内の`SettingData.SettingItems`辞書に、追加したい設定項目を登録します。
 ```csharp
-namespace Untitled.Data.Setting
+namespace AMU.Data.Setting
 {
     public static class SettingData
     {

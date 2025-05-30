@@ -1,4 +1,4 @@
-namespace Untitled.Data.Lang
+namespace AMU.Data.Lang
 {
     public static partial class LocalizationManager
     {

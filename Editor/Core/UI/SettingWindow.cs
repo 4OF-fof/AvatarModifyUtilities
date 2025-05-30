@@ -3,9 +3,9 @@ using UnityEngine;
 using UnityEditor;
 using System.Linq;
 using System.Reflection;
-using Untitled.Data;
-using Untitled.Data.Setting;
-using Untitled.Data.Lang;
+using AMU.Data;
+using AMU.Data.Setting;
+using AMU.Data.Lang;
 
 public class SettingWindow : EditorWindow
 {
@@ -17,9 +17,9 @@ public class SettingWindow : EditorWindow
     private string[] menuItems;
     private int selectedMenu = 0;
     private string menuSearch = "";
-    private Dictionary<string, Untitled.Data.Setting.SettingItem[]> settingItems;
+    private Dictionary<string, AMU.Data.Setting.SettingItem[]> settingItems;
 
-    [MenuItem("Untitled/Setting")]
+    [MenuItem("AMU/Setting")]
     public static void ShowWindow()
     {
         string lang = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
@@ -164,7 +164,7 @@ public class SettingWindow : EditorWindow
         }
     }
 
-    private void DrawSettingItems(Untitled.Data.Setting.SettingItem[] items)
+    private void DrawSettingItems(AMU.Data.Setting.SettingItem[] items)
     {
         bool hasResult = false;
         float prevLabelWidth = EditorGUIUtility.labelWidth;
@@ -179,7 +179,7 @@ public class SettingWindow : EditorWindow
                 labelStyle.fontSize = (int)(EditorStyles.label.fontSize * 1.2f);
                 switch (item.Type)
                 {
-                    case Untitled.Data.Setting.SettingType.String:
+                    case AMU.Data.Setting.SettingType.String:
                         {
                             var stringItem = (StringSettingItem)item;
                             string value = EditorPrefs.GetString(key, stringItem.DefaultValue);
@@ -200,7 +200,7 @@ public class SettingWindow : EditorWindow
                             GUILayout.EndHorizontal();
                             break;
                         }
-                    case Untitled.Data.Setting.SettingType.Int:
+                    case AMU.Data.Setting.SettingType.Int:
                         {
                             var intItem = (IntSettingItem)item;
                             int value = EditorPrefs.GetInt(key, intItem.DefaultValue);
@@ -213,7 +213,7 @@ public class SettingWindow : EditorWindow
                                 EditorPrefs.SetInt(key, newValue);
                             break;
                         }
-                    case Untitled.Data.Setting.SettingType.Bool:
+                    case AMU.Data.Setting.SettingType.Bool:
                         {
                             bool value = EditorPrefs.GetBool(key, ((BoolSettingItem)item).DefaultValue);
                             EditorGUI.BeginChangeCheck();
@@ -225,7 +225,7 @@ public class SettingWindow : EditorWindow
                                 EditorPrefs.SetBool(key, newValue);
                             break;
                         }
-                    case Untitled.Data.Setting.SettingType.Float:
+                    case AMU.Data.Setting.SettingType.Float:
                         {
                             var floatItem = (FloatSettingItem)item;
                             float value = EditorPrefs.GetFloat(key, floatItem.DefaultValue);
@@ -238,7 +238,7 @@ public class SettingWindow : EditorWindow
                                 EditorPrefs.SetFloat(key, newValue);
                             break;
                         }
-                    case Untitled.Data.Setting.SettingType.Choice:
+                    case AMU.Data.Setting.SettingType.Choice:
                         {
                             var choiceItem = (ChoiceSettingItem)item;
                             string value = EditorPrefs.GetString(key, choiceItem.DefaultValue);
@@ -263,7 +263,7 @@ public class SettingWindow : EditorWindow
                             }
                             break;
                         }
-                    case Untitled.Data.Setting.SettingType.FilePath:
+                    case AMU.Data.Setting.SettingType.FilePath:
                         {
                             var fileItem = (FilePathSettingItem)item;
                             string value = EditorPrefs.GetString(key, fileItem.DefaultValue);
@@ -299,17 +299,17 @@ public class SettingWindow : EditorWindow
 
 public static class SettingDataHelper
 {
-    public static Dictionary<string, Untitled.Data.Setting.SettingItem[]> GetAllSettingItems()
+    public static Dictionary<string, AMU.Data.Setting.SettingItem[]> GetAllSettingItems()
     {
-        var dictList = new List<Dictionary<string, Untitled.Data.Setting.SettingItem[]>>();
+        var dictList = new List<Dictionary<string, AMU.Data.Setting.SettingItem[]>>();
         var asm = typeof(SettingWindow).Assembly;
-        var types = asm.GetTypes().Where(t => t.IsClass && t.IsAbstract && t.IsSealed && t.Namespace == "Untitled.Data.Setting");
+        var types = asm.GetTypes().Where(t => t.IsClass && t.IsAbstract && t.IsSealed && t.Namespace == "AMU.Data.Setting");
         foreach (var type in types)
         {
             var field = type.GetField("SettingItems", BindingFlags.Public | BindingFlags.Static);
-            if (field != null && field.FieldType == typeof(Dictionary<string, Untitled.Data.Setting.SettingItem[]>))
+            if (field != null && field.FieldType == typeof(Dictionary<string, AMU.Data.Setting.SettingItem[]>))
             {
-                var dict = field.GetValue(null) as Dictionary<string, Untitled.Data.Setting.SettingItem[]>;
+                var dict = field.GetValue(null) as Dictionary<string, AMU.Data.Setting.SettingItem[]>;
                 if (dict != null) dictList.Add(dict);
             }
         }

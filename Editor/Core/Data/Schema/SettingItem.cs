@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Untitled.Data.Setting
+namespace AMU.Data.Setting
 {
     public enum SettingType { String, Int, Bool, Float, Choice, FilePath }
 

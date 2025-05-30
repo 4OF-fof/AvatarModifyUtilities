@@ -21,7 +21,7 @@
   string label = LocalizationManager.GetText("setting");
   ```
 - **注意点:**
-  - `Assets/Untitled/Editor`配下の全ての`{lang}.json`ファイルを自動で検出します。
+  - `Assets/AMU/Editor`配下の全ての`{lang}.json`ファイルを自動で検出します。
   - 言語ファイルの形式やキーの重複に注意してください。
   - 言語設定を反映したUIを正しく表示するため、`LoadLanguage()`は`OnEnable()`内で呼び出してください。
 

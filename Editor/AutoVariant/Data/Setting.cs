@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System;
-using Untitled.Data.Lang;
-using Untitled.Data.Setting;
+using AMU.Data.Lang;
+using AMU.Data.Setting;
 
-namespace Untitled.Data.Setting
+namespace AMU.Data.Setting
 {
     public static class AutoVariantSettingData
     {

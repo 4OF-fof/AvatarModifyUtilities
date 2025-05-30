@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using System.IO;
-using Untitled.Editor.Core.Helper;
+using AMU.Editor.Core.Helper;
 
 [InitializeOnLoad]
 public static class PrefabAdditionDetector
@@ -60,16 +60,16 @@ public static class PrefabAdditionDetector
             if (!isPrefabRoot && !isPrefabChild) continue;
 
             var prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(go);
-            if (IsUntitled(go, prefabAsset)) continue;
+            if (IsAMU(go, prefabAsset)) continue;
 
             result.Add(go);
         }
         return result;
     }
 
-    static bool IsUntitled(GameObject go, Object prefabAsset)
+    static bool IsAMU(GameObject go, Object prefabAsset)
     {
-        return go.name.StartsWith("Untitled_") || (prefabAsset != null && prefabAsset.name.StartsWith("Untitled_"));
+        return go.name.StartsWith("AMU_") || (prefabAsset != null && prefabAsset.name.StartsWith("AMU_"));
     }
 
     static void HandlePrefabAddition(GameObject go)
@@ -86,7 +86,7 @@ public static class PrefabAdditionDetector
 
         if (string.IsNullOrEmpty(prefabPath)) return;
 
-        string variantDir = "Assets/Untitled_Variants";
+        string variantDir = "Assets/AMU_Variants";
         EnsureVariantDirectoryExists(variantDir);
 
         string materialDir = Path.Combine(variantDir, "Material").Replace("\\", "/");
@@ -104,7 +104,7 @@ public static class PrefabAdditionDetector
         {
             CopyAndReplaceMaterials(go, materialDir);
 
-            string variantName = "Untitled_" + go.name + ".prefab";
+            string variantName = "AMU_" + go.name + ".prefab";
             string variantPath = Path.Combine(variantDir, variantName).Replace("\\", "/");
 
             if (!File.Exists(variantPath))
@@ -149,7 +149,7 @@ public static class PrefabAdditionDetector
                 string matPath = AssetDatabase.GetAssetPath(mat);
                 if (string.IsNullOrEmpty(matPath)) continue;
 
-                if (matPath.StartsWith("Assets/Untitled_Variants/")) continue;
+                if (matPath.StartsWith("Assets/AMU_Variants/")) continue;
 
                 string matCopyPath = Path.Combine(materialDir, mat.name + ".mat").Replace("\\", "/");
                 if (!AssetDatabase.IsValidFolder(materialDir))
