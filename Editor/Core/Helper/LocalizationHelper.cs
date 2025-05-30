@@ -11,7 +11,7 @@ namespace AMU.Data.Lang
 
         public static void LoadLanguage(string languageCode)
         {
-            var rootDir = Path.Combine(Application.dataPath, "AMU/Editor");
+            var rootDir = Path.Combine(Application.dataPath, "AvatarModifyUtilities/Editor");
             var searchPattern = $"{languageCode}.json";
             var langFiles = Directory.GetFiles(rootDir, searchPattern, SearchOption.AllDirectories);
             var mergedDict = new Dictionary<string, string>();
