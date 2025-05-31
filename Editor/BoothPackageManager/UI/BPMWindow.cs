@@ -20,7 +20,6 @@ namespace AMU.BoothPackageManager.UI
             window.Show();
         }
 
-        // データ構造
         [Serializable]
         public class BPMFileInfo {
             public string fileName;
@@ -37,7 +36,8 @@ namespace AMU.BoothPackageManager.UI
         public class BPMLibrary {
             public string lastUpdated;
             public Dictionary<string, List<BPMPackage>> authors;
-        }        private BPMLibrary bpmLibrary;
+        }
+        private BPMLibrary bpmLibrary;
         private Vector2 scrollPos;
         private bool triedLoad = false;
         private bool isLoading = false;
@@ -46,7 +46,6 @@ namespace AMU.BoothPackageManager.UI
         private DateTime lastJsonWriteTime = DateTime.MinValue;
         private string cachedJsonPath = null;private string GetJsonPath()
         {
-            // EditorPrefsからCore_dirPathを取得し、BPM/BPMlibrary.jsonを返す
             string coreDir = EditorPrefs.GetString("Setting.Core_dirPath", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
             return Path.Combine(coreDir, "BPM", "BPMlibrary.json");
         }
@@ -64,27 +63,29 @@ namespace AMU.BoothPackageManager.UI
                 byte[] hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(url));
                 return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
             }
-        }        private void LoadJsonIfNeeded()
+        }
+
+        private void LoadJsonIfNeeded()
         {
             if (bpmLibrary != null || triedLoad || isLoading) return;
-            
+
             string currentJsonPath = GetJsonPath();
-            
-            // ファイルの存在確認
-            if (!File.Exists(currentJsonPath)) {
+
+            if (!File.Exists(currentJsonPath))
+            {
                 loadError = $"ファイルが見つかりません: {currentJsonPath}";
                 triedLoad = true;
                 return;
             }
-            
-            // ファイルが変更されていない場合はスキップ
+
             DateTime currentWriteTime = File.GetLastWriteTime(currentJsonPath);
-            if (bpmLibrary != null && 
-                currentJsonPath == cachedJsonPath && 
-                currentWriteTime == lastJsonWriteTime) {
+            if (bpmLibrary != null &&
+                currentJsonPath == cachedJsonPath &&
+                currentWriteTime == lastJsonWriteTime)
+            {
                 return;
             }
-            
+
             LoadJsonAsync(currentJsonPath);
         }
 
@@ -141,9 +142,9 @@ namespace AMU.BoothPackageManager.UI
             {
                 return await reader.ReadToEndAsync();
             }
-        }        private void OnEnable()
+        }
+         private void OnEnable()
         {
-            // 既存のデータをクリアして再読み込みを強制
             bpmLibrary = null;
             triedLoad = false;
             isLoading = false;
@@ -151,12 +152,14 @@ namespace AMU.BoothPackageManager.UI
             cachedJsonPath = null;
             lastJsonWriteTime = DateTime.MinValue;
             LoadJsonIfNeeded();
-        }        private void OnGUI()
+        }
+        private void OnGUI()
         {
             GUILayout.Label("Booth Package Manager", EditorStyles.boldLabel);
             GUILayout.Space(10);
-            
-            if (loadError != null) {
+
+            if (loadError != null)
+            {
                 EditorGUILayout.HelpBox(loadError, MessageType.Error);
                 if (GUILayout.Button("再読み込み"))
                 {
@@ -167,16 +170,17 @@ namespace AMU.BoothPackageManager.UI
                 }
                 return;
             }
-            
-            if (isLoading) {
+
+            if (isLoading)
+            {
                 GUILayout.Label("読み込み中...", EditorStyles.helpBox);
-                // プログレスバーを表示（オプション）
                 Rect progressRect = GUILayoutUtility.GetRect(0, 20, GUILayout.ExpandWidth(true));
                 EditorGUI.ProgressBar(progressRect, 0.5f, "JSONファイルを読み込み中...");
                 return;
             }
-            
-            if (bpmLibrary == null) {
+
+            if (bpmLibrary == null)
+            {
                 GUILayout.Label("データが読み込まれていません", EditorStyles.helpBox);
                 if (GUILayout.Button("読み込み"))
                 {
@@ -184,14 +188,17 @@ namespace AMU.BoothPackageManager.UI
                 }
                 return;
             }
-              GUILayout.Label($"最終更新: {bpmLibrary.lastUpdated}");
-            
+            GUILayout.Label($"最終更新: {bpmLibrary.lastUpdated}");
+
             scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
-            foreach (var author in bpmLibrary.authors) {
+            foreach (var author in bpmLibrary.authors)
+            {
                 GUILayout.Label(author.Key, EditorStyles.boldLabel);
-                foreach (var pkg in author.Value) {
+                foreach (var pkg in author.Value)
+                {
                     EditorGUILayout.BeginVertical(GUI.skin.box);
-                    GUILayout.BeginHorizontal();                    if (!string.IsNullOrEmpty(pkg.imageUrl)) {
+                    GUILayout.BeginHorizontal(); if (!string.IsNullOrEmpty(pkg.imageUrl))
+                    {
                         var tex = GetCachedImage(pkg.imageUrl);
                         if (tex != null)
                             GUILayout.Label(tex, GUILayout.Width(80), GUILayout.Height(80));
@@ -204,7 +211,9 @@ namespace AMU.BoothPackageManager.UI
                                 LoadImageAsync(pkg.imageUrl);
                             }
                         }
-                    } else {
+                    }
+                    else
+                    {
                         GUILayout.Label("No Image", GUILayout.Width(80), GUILayout.Height(80));
                     }
                     GUILayout.BeginVertical();
@@ -213,7 +222,8 @@ namespace AMU.BoothPackageManager.UI
                         if (GUILayout.Button("Boothページを開く", GUILayout.Width(120)))
                             Application.OpenURL(pkg.itemUrl);
                     GUILayout.Label("ファイル:");
-                    foreach (var f in pkg.files) {
+                    foreach (var f in pkg.files)
+                    {
                         GUILayout.BeginHorizontal();
                         GUILayout.Label(f.fileName, GUILayout.Width(180));
                         if (!string.IsNullOrEmpty(f.downloadLink))
@@ -240,7 +250,6 @@ namespace AMU.BoothPackageManager.UI
         {
             if (string.IsNullOrEmpty(url) || imageCache.ContainsKey(url)) return;
             
-            // プレースホルダーを設定して重複読み込みを防ぐ
             imageCache[url] = null;
             
             try
@@ -255,7 +264,6 @@ namespace AMU.BoothPackageManager.UI
                 string[] extensions = { ".png", ".jpg", ".jpeg", ".gif", ".bmp" };
                 string localImagePath = null;
 
-                // ローカルファイルをチェック
                 foreach (string ext in extensions)
                 {
                     string testPath = Path.Combine(thumbnailDir, imageHash + ext);
@@ -270,7 +278,6 @@ namespace AMU.BoothPackageManager.UI
                 
                 if (!string.IsNullOrEmpty(localImagePath))
                 {
-                    // ローカルファイルから非同期読み込み
                     byte[] fileBytes = await Task.Run(() => File.ReadAllBytes(localImagePath));
                     tex = new Texture2D(2, 2);
                     if (!tex.LoadImage(fileBytes))
@@ -281,7 +288,6 @@ namespace AMU.BoothPackageManager.UI
                 }
                 else
                 {
-                    // ネットワークから非同期ダウンロード
                     byte[] bytes = await Task.Run(() =>
                     {
                         using (var wc = new System.Net.WebClient())
@@ -293,7 +299,6 @@ namespace AMU.BoothPackageManager.UI
                     tex = new Texture2D(2, 2);
                     if (tex.LoadImage(bytes))
                     {
-                        // ファイルを保存
                         string extension = ".png";
                         string urlLower = url.ToLower();
                         if (urlLower.Contains(".jpg") || urlLower.Contains(".jpeg"))
@@ -313,7 +318,6 @@ namespace AMU.BoothPackageManager.UI
                     }
                 }
                 
-                // メインスレッドで結果を設定
                 EditorApplication.delayCall += () =>
                 {
                     imageCache[url] = tex;
@@ -332,7 +336,6 @@ namespace AMU.BoothPackageManager.UI
 
         private void OnDisable()
         {
-            // テクスチャのクリーンアップ
             foreach (var kvp in imageCache)
             {
                 if (kvp.Value != null)
