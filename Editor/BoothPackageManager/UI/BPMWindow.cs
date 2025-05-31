@@ -74,6 +74,69 @@ namespace AMU.BoothPackageManager.UI
             }
         }
 
+        private string ExtractItemIdFromUrl(string itemUrl)
+        {
+            if (string.IsNullOrEmpty(itemUrl)) return "unknown";
+
+            // BoothのURLパターン: https://booth.pm/ja/items/12345 など
+            var uri = new Uri(itemUrl);
+            var segments = uri.Segments;
+
+            // 最後のセグメントからIDを取得
+            if (segments.Length > 0)
+            {
+                string lastSegment = segments[segments.Length - 1].Trim('/');
+                return lastSegment;
+            }
+
+            return "unknown";
+        }
+
+        private string GetFileDirectory(string author, string itemUrl)
+        {
+            string coreDir = EditorPrefs.GetString("Setting.Core_dirPath", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
+            string itemId = ExtractItemIdFromUrl(itemUrl);
+            return Path.Combine(coreDir, "BPM", "file", author, itemId);
+        }
+
+        private void EnsureDirectoryExists(string directoryPath)
+        {
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+                Debug.Log($"ディレクトリを作成しました: {directoryPath}");
+            }
+        }
+
+        private async void DownloadFileAsync(string downloadUrl, string fileName, string destinationPath)
+        {
+            try
+            {
+                EnsureDirectoryExists(destinationPath);
+                string filePath = Path.Combine(destinationPath, fileName);
+
+                Debug.Log($"ファイルをダウンロード中: {fileName}");
+
+                byte[] fileData = await Task.Run(() =>
+                {
+                    using (var webClient = new System.Net.WebClient())
+                    {
+                        return webClient.DownloadData(downloadUrl);
+                    }
+                });
+
+                await Task.Run(() => File.WriteAllBytes(filePath, fileData));
+
+                Debug.Log($"ダウンロード完了: {filePath}");
+                EditorUtility.DisplayDialog("ダウンロード完了", $"ファイルをダウンロードしました:\n{filePath}", "OK");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"ダウンロードエラー: {ex.Message}");
+                EditorUtility.DisplayDialog("ダウンロードエラー", $"ファイルのダウンロードに失敗しました:\n{ex.Message}", "OK");
+            }
+        }
+
         private async Task<bool> CheckAndReplaceWithImportVersionAsync(string mainJsonPath)
         {
             string importJsonPath = GetImportJsonPath();
@@ -283,8 +346,19 @@ namespace AMU.BoothPackageManager.UI
                         GUILayout.BeginHorizontal();
                         GUILayout.Label(f.fileName, GUILayout.Width(180));
                         if (!string.IsNullOrEmpty(f.downloadLink))
+                        {
                             if (GUILayout.Button("DL", GUILayout.Width(40)))
-                                Application.OpenURL(f.downloadLink);
+                            {
+                                string fileDir = GetFileDirectory(author.Key, pkg.itemUrl);
+                                DownloadFileAsync(f.downloadLink, f.fileName, fileDir);
+                            }
+                            if (GUILayout.Button("フォルダ", GUILayout.Width(60)))
+                            {
+                                string fileDir = GetFileDirectory(author.Key, pkg.itemUrl);
+                                EnsureDirectoryExists(fileDir);
+                                EditorUtility.RevealInFinder(fileDir);
+                            }
+                        }
                         GUILayout.EndHorizontal();
                     }
                     GUILayout.EndVertical();
