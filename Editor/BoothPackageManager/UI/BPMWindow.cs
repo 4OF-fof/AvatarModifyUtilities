@@ -3,6 +3,7 @@ using UnityEditor;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -45,10 +46,12 @@ namespace AMU.BoothPackageManager.UI
         private Vector2 scrollPos;
         private bool triedLoad = false;
         private bool isLoading = false;
-        private string loadError = null;
-        private Dictionary<string, Texture2D> imageCache = new Dictionary<string, Texture2D>();
+        private string loadError = null; private Dictionary<string, Texture2D> imageCache = new Dictionary<string, Texture2D>();
         private DateTime lastJsonWriteTime = DateTime.MinValue;
-        private string cachedJsonPath = null; private string GetJsonPath()
+        private string cachedJsonPath = null; private Dictionary<string, bool> fileExistenceCache = new Dictionary<string, bool>();
+        private Dictionary<string, string> imagePathCache = new Dictionary<string, string>();
+        private bool thumbnailDirectoryChecked = false;
+        private HashSet<string> ensuredDirectories = new HashSet<string>(); private string GetJsonPath()
         {
             string coreDir = EditorPrefs.GetString("Setting.Core_dirPath", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
             return Path.Combine(coreDir, "BPM", "BPMlibrary.json");
@@ -81,6 +84,93 @@ namespace AMU.BoothPackageManager.UI
             }
         }
 
+        private void UpdateImagePathCache()
+        {
+            imagePathCache.Clear();
+
+            string thumbnailDir = GetThumbnailDirectory();
+            if (!Directory.Exists(thumbnailDir)) return;
+
+            try
+            {
+                var allFiles = Directory.GetFiles(thumbnailDir, "*", SearchOption.TopDirectoryOnly);
+                string[] extensions = { ".png", ".jpg", ".jpeg", ".gif", ".bmp" };
+
+                foreach (var filePath in allFiles)
+                {
+                    string fileName = Path.GetFileNameWithoutExtension(filePath);
+                    string extension = Path.GetExtension(filePath);
+
+                    if (extensions.Contains(extension.ToLower()))
+                    {
+                        imagePathCache[fileName] = filePath;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"画像パスキャッシュの更新に失敗: {ex.Message}");
+            }
+        }
+
+        private string GetCachedImagePath(string imageHash)
+        {
+            return imagePathCache.TryGetValue(imageHash, out string path) ? path : null;
+        }
+
+        private void EnsureThumbnailDirectory()
+        {
+            if (thumbnailDirectoryChecked) return;
+
+            string thumbnailDir = GetThumbnailDirectory();
+            if (!Directory.Exists(thumbnailDir))
+            {
+                Directory.CreateDirectory(thumbnailDir);
+            }
+            thumbnailDirectoryChecked = true;
+        }
+
+        private bool IsFileExistsCached(string filePath)
+        {
+            if (fileExistenceCache.TryGetValue(filePath, out bool exists))
+            {
+                return exists;
+            }
+
+            bool fileExists = File.Exists(filePath);
+            fileExistenceCache[filePath] = fileExists;
+            return fileExists;
+        }
+
+        private void UpdateFileExistenceCache()
+        {
+            fileExistenceCache.Clear();
+
+            if (bpmLibrary?.authors == null) return;
+
+            foreach (var authorKvp in bpmLibrary.authors)
+            {
+                foreach (var package in authorKvp.Value)
+                {
+                    if (package.files != null)
+                    {
+                        string fileDir = GetFileDirectory(authorKvp.Key, package.itemUrl);
+
+                        foreach (var file in package.files)
+                        {
+                            string filePath = Path.Combine(fileDir, file.fileName);
+                            fileExistenceCache[filePath] = File.Exists(filePath);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void UpdateSingleFileExistenceCache(string filePath)
+        {
+            fileExistenceCache[filePath] = File.Exists(filePath);
+        }
+
         private string ExtractItemIdFromUrl(string itemUrl)
         {
             if (string.IsNullOrEmpty(itemUrl)) return "unknown";
@@ -105,14 +195,16 @@ namespace AMU.BoothPackageManager.UI
             string itemId = ExtractItemIdFromUrl(itemUrl);
             return Path.Combine(coreDir, "BPM", "file", author, itemId);
         }
-
         private void EnsureDirectoryExists(string directoryPath)
         {
+            if (ensuredDirectories.Contains(directoryPath)) return;
+
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
                 Debug.Log($"ディレクトリを作成しました: {directoryPath}");
             }
+            ensuredDirectories.Add(directoryPath);
         }
 
         private async Task CheckAndMoveImportFilesAsync()
@@ -146,11 +238,12 @@ namespace AMU.BoothPackageManager.UI
                         {
                             Debug.Log($"ファイルは既に存在するためスキップしました: {targetPath}");
                             continue;
-                        }
-
-                        // ファイルを移動
+                        }                        // ファイルを移動
                         File.Move(filePath, targetPath);
                         Debug.Log($"ファイルを移動しました: {fileName} -> {targetPath}");
+
+                        // キャッシュを更新
+                        UpdateSingleFileExistenceCache(targetPath);
 
                         EditorUtility.DisplayDialog("ファイル移動完了",
                             $"Importフォルダからファイルを移動しました:\n{fileName}\n↓\n{targetPath}", "OK");
@@ -297,6 +390,12 @@ namespace AMU.BoothPackageManager.UI
                     cachedJsonPath = jsonPath;
                     lastJsonWriteTime = File.GetLastWriteTime(jsonPath);
                     isLoading = false;
+                    // ファイル存在キャッシュを更新
+                    UpdateFileExistenceCache();
+
+                    // 画像パスキャッシュを更新
+                    UpdateImagePathCache();
+
                     Repaint();
 
                     // データベース読み込み完了後にImportフォルダをチェック
@@ -322,7 +421,6 @@ namespace AMU.BoothPackageManager.UI
                 return await reader.ReadToEndAsync();
             }
         }
-
         private void ReloadData()
         {
             bpmLibrary = null;
@@ -331,6 +429,10 @@ namespace AMU.BoothPackageManager.UI
             loadError = null;
             cachedJsonPath = null;
             lastJsonWriteTime = DateTime.MinValue;
+            fileExistenceCache.Clear();
+            imagePathCache.Clear();
+            thumbnailDirectoryChecked = false;
+            ensuredDirectories.Clear();
             LoadJsonIfNeeded();
         }
         private void OnEnable()
@@ -399,7 +501,7 @@ namespace AMU.BoothPackageManager.UI
                         {
                             string fileDir = GetFileDirectory(author.Key, pkg.itemUrl);
                             string filePath = Path.Combine(fileDir, f.fileName);
-                            if (File.Exists(filePath))
+                            if (IsFileExistsCached(filePath))
                             {
                                 if (GUILayout.Button("フォルダ", GUILayout.Width(60)))
                                 {
@@ -431,7 +533,6 @@ namespace AMU.BoothPackageManager.UI
             if (string.IsNullOrEmpty(url)) return null;
             return imageCache.TryGetValue(url, out var cached) ? cached : null;
         }
-
         private async void LoadImageAsync(string url)
         {
             if (string.IsNullOrEmpty(url) || imageCache.ContainsKey(url)) return;
@@ -440,25 +541,10 @@ namespace AMU.BoothPackageManager.UI
 
             try
             {
-                string thumbnailDir = GetThumbnailDirectory();
-                if (!Directory.Exists(thumbnailDir))
-                {
-                    Directory.CreateDirectory(thumbnailDir);
-                }
+                EnsureThumbnailDirectory();
 
                 string imageHash = GetImageHash(url);
-                string[] extensions = { ".png", ".jpg", ".jpeg", ".gif", ".bmp" };
-                string localImagePath = null;
-
-                foreach (string ext in extensions)
-                {
-                    string testPath = Path.Combine(thumbnailDir, imageHash + ext);
-                    if (File.Exists(testPath))
-                    {
-                        localImagePath = testPath;
-                        break;
-                    }
-                }
+                string localImagePath = GetCachedImagePath(imageHash);
 
                 Texture2D tex = null;
 
@@ -488,10 +574,12 @@ namespace AMU.BoothPackageManager.UI
                             else if (urlLower.Contains(".gif"))
                                 extension = ".gif";
                             else if (urlLower.Contains(".bmp"))
-                                extension = ".bmp";
-
+                                extension = ".bmp"; string thumbnailDir = GetThumbnailDirectory();
                             string saveImagePath = Path.Combine(thumbnailDir, imageHash + extension);
                             await File.WriteAllBytesAsync(saveImagePath, bytes);
+
+                            // 画像パスキャッシュを更新
+                            imagePathCache[imageHash] = saveImagePath;
                         }
                         else
                         {
