@@ -347,16 +347,22 @@ namespace AMU.BoothPackageManager.UI
                         GUILayout.Label(f.fileName, GUILayout.Width(180));
                         if (!string.IsNullOrEmpty(f.downloadLink))
                         {
-                            if (GUILayout.Button("DL", GUILayout.Width(40)))
+                            string fileDir = GetFileDirectory(author.Key, pkg.itemUrl);
+                            string filePath = Path.Combine(fileDir, f.fileName);
+                            if (File.Exists(filePath))
                             {
-                                string fileDir = GetFileDirectory(author.Key, pkg.itemUrl);
-                                DownloadFileAsync(f.downloadLink, f.fileName, fileDir);
+                                if (GUILayout.Button("フォルダ", GUILayout.Width(60)))
+                                {
+                                    EnsureDirectoryExists(fileDir);
+                                    EditorUtility.RevealInFinder(filePath);
+                                }
                             }
-                            if (GUILayout.Button("フォルダ", GUILayout.Width(60)))
+                            else
                             {
-                                string fileDir = GetFileDirectory(author.Key, pkg.itemUrl);
-                                EnsureDirectoryExists(fileDir);
-                                EditorUtility.RevealInFinder(fileDir);
+                                if (GUILayout.Button("DL", GUILayout.Width(40)))
+                                {
+                                    DownloadFileAsync(f.downloadLink, f.fileName, fileDir);
+                                }
                             }
                         }
                         GUILayout.EndHorizontal();
