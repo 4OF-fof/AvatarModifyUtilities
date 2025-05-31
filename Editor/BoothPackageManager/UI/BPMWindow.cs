@@ -3,6 +3,7 @@ using UnityEditor;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -105,35 +106,6 @@ namespace AMU.BoothPackageManager.UI
             {
                 Directory.CreateDirectory(directoryPath);
                 Debug.Log($"ディレクトリを作成しました: {directoryPath}");
-            }
-        }
-
-        private async void DownloadFileAsync(string downloadUrl, string fileName, string destinationPath)
-        {
-            try
-            {
-                EnsureDirectoryExists(destinationPath);
-                string filePath = Path.Combine(destinationPath, fileName);
-
-                Debug.Log($"ファイルをダウンロード中: {fileName}");
-
-                byte[] fileData = await Task.Run(() =>
-                {
-                    using (var webClient = new System.Net.WebClient())
-                    {
-                        return webClient.DownloadData(downloadUrl);
-                    }
-                });
-
-                await Task.Run(() => File.WriteAllBytes(filePath, fileData));
-
-                Debug.Log($"ダウンロード完了: {filePath}");
-                EditorUtility.DisplayDialog("ダウンロード完了", $"ファイルをダウンロードしました:\n{filePath}", "OK");
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"ダウンロードエラー: {ex.Message}");
-                EditorUtility.DisplayDialog("ダウンロードエラー", $"ファイルのダウンロードに失敗しました:\n{ex.Message}", "OK");
             }
         }
 
@@ -361,7 +333,7 @@ namespace AMU.BoothPackageManager.UI
                             {
                                 if (GUILayout.Button("DL", GUILayout.Width(40)))
                                 {
-                                    DownloadFileAsync(f.downloadLink, f.fileName, fileDir);
+                                    Application.OpenURL(f.downloadLink);
                                 }
                             }
                         }
@@ -424,33 +396,30 @@ namespace AMU.BoothPackageManager.UI
                 }
                 else
                 {
-                    byte[] bytes = await Task.Run(() =>
+                    using (var httpClient = new HttpClient())
                     {
-                        using (var wc = new System.Net.WebClient())
+                        byte[] bytes = await httpClient.GetByteArrayAsync(url);
+
+                        tex = new Texture2D(2, 2);
+                        if (tex.LoadImage(bytes))
                         {
-                            return wc.DownloadData(url);
+                            string extension = ".png";
+                            string urlLower = url.ToLower();
+                            if (urlLower.Contains(".jpg") || urlLower.Contains(".jpeg"))
+                                extension = ".jpg";
+                            else if (urlLower.Contains(".gif"))
+                                extension = ".gif";
+                            else if (urlLower.Contains(".bmp"))
+                                extension = ".bmp";
+
+                            string saveImagePath = Path.Combine(thumbnailDir, imageHash + extension);
+                            await File.WriteAllBytesAsync(saveImagePath, bytes);
                         }
-                    });
-
-                    tex = new Texture2D(2, 2);
-                    if (tex.LoadImage(bytes))
-                    {
-                        string extension = ".png";
-                        string urlLower = url.ToLower();
-                        if (urlLower.Contains(".jpg") || urlLower.Contains(".jpeg"))
-                            extension = ".jpg";
-                        else if (urlLower.Contains(".gif"))
-                            extension = ".gif";
-                        else if (urlLower.Contains(".bmp"))
-                            extension = ".bmp";
-
-                        string saveImagePath = Path.Combine(thumbnailDir, imageHash + extension);
-                        await Task.Run(() => File.WriteAllBytes(saveImagePath, bytes));
-                    }
-                    else
-                    {
-                        DestroyImmediate(tex);
-                        tex = null;
+                        else
+                        {
+                            DestroyImmediate(tex);
+                            tex = null;
+                        }
                     }
                 }
 
