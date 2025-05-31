@@ -123,11 +123,11 @@ namespace AMU.BoothPackageManager.UI
             if (!Directory.Exists(importDir)) return;
 
             var allFiles = Directory.GetFiles(importDir, "*", SearchOption.AllDirectories);
-            
+
             foreach (var filePath in allFiles)
             {
                 string fileName = Path.GetFileName(filePath);
-                
+
                 // BPMlibrary.jsonファイルはスキップ
                 if (fileName.Equals("BPMlibrary.json", StringComparison.OrdinalIgnoreCase))
                     continue;                // データベース内でファイル名が一致するものを探す
@@ -138,9 +138,9 @@ namespace AMU.BoothPackageManager.UI
                     {
                         string targetDir = GetFileDirectory(matchedFile.author, matchedFile.package.itemUrl);
                         EnsureDirectoryExists(targetDir);
-                        
+
                         string targetPath = Path.Combine(targetDir, fileName);
-                        
+
                         // ファイルが既に存在する場合はスキップ
                         if (File.Exists(targetPath))
                         {
@@ -151,8 +151,8 @@ namespace AMU.BoothPackageManager.UI
                         // ファイルを移動
                         File.Move(filePath, targetPath);
                         Debug.Log($"ファイルを移動しました: {fileName} -> {targetPath}");
-                        
-                        EditorUtility.DisplayDialog("ファイル移動完了", 
+
+                        EditorUtility.DisplayDialog("ファイル移動完了",
                             $"Importフォルダからファイルを移動しました:\n{fileName}\n↓\n{targetPath}", "OK");
                     }
                     catch (Exception ex)
@@ -291,14 +291,14 @@ namespace AMU.BoothPackageManager.UI
                         DateParseHandling = DateParseHandling.None
                     };
                     return JsonConvert.DeserializeObject<BPMLibrary>(json, settings);
-                });                EditorApplication.delayCall += () =>
+                }); EditorApplication.delayCall += () =>
                 {
                     bpmLibrary = library;
                     cachedJsonPath = jsonPath;
                     lastJsonWriteTime = File.GetLastWriteTime(jsonPath);
                     isLoading = false;
                     Repaint();
-                    
+
                     // データベース読み込み完了後にImportフォルダをチェック
                     CheckAndMoveImportFilesAsync();
                 };
@@ -336,7 +336,8 @@ namespace AMU.BoothPackageManager.UI
         private void OnEnable()
         {
             ReloadData();
-        }        private void OnGUI()
+        }
+        private void OnGUI()
         {
             GUILayout.Label("Booth Package Manager", EditorStyles.boldLabel);
             GUILayout.Space(10); if (loadError != null)
