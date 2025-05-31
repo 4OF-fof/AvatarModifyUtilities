@@ -21,19 +21,22 @@ namespace AMU.BoothPackageManager.UI
         }
 
         [Serializable]
-        public class BPMFileInfo {
+        public class BPMFileInfo
+        {
             public string fileName;
             public string downloadLink;
         }
         [Serializable]
-        public class BPMPackage {
+        public class BPMPackage
+        {
             public string packageName;
             public string itemUrl;
             public string imageUrl;
             public List<BPMFileInfo> files;
         }
         [Serializable]
-        public class BPMLibrary {
+        public class BPMLibrary
+        {
             public string lastUpdated;
             public Dictionary<string, List<BPMPackage>> authors;
         }
@@ -44,7 +47,7 @@ namespace AMU.BoothPackageManager.UI
         private string loadError = null;
         private Dictionary<string, Texture2D> imageCache = new Dictionary<string, Texture2D>();
         private DateTime lastJsonWriteTime = DateTime.MinValue;
-        private string cachedJsonPath = null;private string GetJsonPath()
+        private string cachedJsonPath = null; private string GetJsonPath()
         {
             string coreDir = EditorPrefs.GetString("Setting.Core_dirPath", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
             return Path.Combine(coreDir, "BPM", "BPMlibrary.json");
@@ -92,18 +95,18 @@ namespace AMU.BoothPackageManager.UI
         private async void LoadJsonAsync(string jsonPath)
         {
             if (isLoading) return;
-            
+
             isLoading = true;
             triedLoad = true;
             loadError = null;
-            
-            try 
+
+            try
             {
                 // 非同期でファイルを読み込み
                 string json = await ReadFileAsync(jsonPath);
-                
+
                 // JSONのデシリアライズも非同期で実行
-                var library = await Task.Run(() => 
+                var library = await Task.Run(() =>
                 {
                     var settings = new JsonSerializerSettings
                     {
@@ -113,7 +116,7 @@ namespace AMU.BoothPackageManager.UI
                     };
                     return JsonConvert.DeserializeObject<BPMLibrary>(json, settings);
                 });
-                
+
                 // メインスレッドで結果を設定
                 EditorApplication.delayCall += () =>
                 {
@@ -123,8 +126,8 @@ namespace AMU.BoothPackageManager.UI
                     isLoading = false;
                     Repaint(); // UIを更新
                 };
-            } 
-            catch (Exception ex) 
+            }
+            catch (Exception ex)
             {
                 EditorApplication.delayCall += () =>
                 {
@@ -143,7 +146,7 @@ namespace AMU.BoothPackageManager.UI
                 return await reader.ReadToEndAsync();
             }
         }
-         private void OnEnable()
+        private void OnEnable()
         {
             bpmLibrary = null;
             triedLoad = false;
@@ -249,9 +252,9 @@ namespace AMU.BoothPackageManager.UI
         private async void LoadImageAsync(string url)
         {
             if (string.IsNullOrEmpty(url) || imageCache.ContainsKey(url)) return;
-            
+
             imageCache[url] = null;
-            
+
             try
             {
                 string thumbnailDir = GetThumbnailDirectory();
@@ -273,9 +276,9 @@ namespace AMU.BoothPackageManager.UI
                         break;
                     }
                 }
-                
+
                 Texture2D tex = null;
-                
+
                 if (!string.IsNullOrEmpty(localImagePath))
                 {
                     byte[] fileBytes = await Task.Run(() => File.ReadAllBytes(localImagePath));
@@ -295,7 +298,7 @@ namespace AMU.BoothPackageManager.UI
                             return wc.DownloadData(url);
                         }
                     });
-                    
+
                     tex = new Texture2D(2, 2);
                     if (tex.LoadImage(bytes))
                     {
@@ -307,7 +310,7 @@ namespace AMU.BoothPackageManager.UI
                             extension = ".gif";
                         else if (urlLower.Contains(".bmp"))
                             extension = ".bmp";
-                        
+
                         string saveImagePath = Path.Combine(thumbnailDir, imageHash + extension);
                         await Task.Run(() => File.WriteAllBytes(saveImagePath, bytes));
                     }
@@ -317,7 +320,7 @@ namespace AMU.BoothPackageManager.UI
                         tex = null;
                     }
                 }
-                
+
                 EditorApplication.delayCall += () =>
                 {
                     imageCache[url] = tex;
