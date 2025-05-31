@@ -66,6 +66,12 @@ namespace AMU.BoothPackageManager.UI
             return Path.Combine(coreDir, "BPM", "thumbnail");
         }
 
+        private string GetImportDirectory()
+        {
+            string coreDir = EditorPrefs.GetString("Setting.Core_dirPath", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
+            return Path.Combine(coreDir, "Import");
+        }
+
         private string GetImageHash(string url)
         {
             using (MD5 md5 = MD5.Create())
@@ -107,6 +113,77 @@ namespace AMU.BoothPackageManager.UI
                 Directory.CreateDirectory(directoryPath);
                 Debug.Log($"ディレクトリを作成しました: {directoryPath}");
             }
+        }
+
+        private async Task CheckAndMoveImportFilesAsync()
+        {
+            if (bpmLibrary == null) return;
+
+            string importDir = GetImportDirectory();
+            if (!Directory.Exists(importDir)) return;
+
+            var allFiles = Directory.GetFiles(importDir, "*", SearchOption.AllDirectories);
+            
+            foreach (var filePath in allFiles)
+            {
+                string fileName = Path.GetFileName(filePath);
+                
+                // BPMlibrary.jsonファイルはスキップ
+                if (fileName.Equals("BPMlibrary.json", StringComparison.OrdinalIgnoreCase))
+                    continue;                // データベース内でファイル名が一致するものを探す
+                var matchedFile = FindMatchingFileInDatabase(fileName);
+                if (matchedFile.author != null && matchedFile.package != null)
+                {
+                    try
+                    {
+                        string targetDir = GetFileDirectory(matchedFile.author, matchedFile.package.itemUrl);
+                        EnsureDirectoryExists(targetDir);
+                        
+                        string targetPath = Path.Combine(targetDir, fileName);
+                        
+                        // ファイルが既に存在する場合はスキップ
+                        if (File.Exists(targetPath))
+                        {
+                            Debug.Log($"ファイルは既に存在するためスキップしました: {targetPath}");
+                            continue;
+                        }
+
+                        // ファイルを移動
+                        File.Move(filePath, targetPath);
+                        Debug.Log($"ファイルを移動しました: {fileName} -> {targetPath}");
+                        
+                        EditorUtility.DisplayDialog("ファイル移動完了", 
+                            $"Importフォルダからファイルを移動しました:\n{fileName}\n↓\n{targetPath}", "OK");
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"ファイル移動エラー: {fileName}, エラー: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        private (string author, BPMPackage package) FindMatchingFileInDatabase(string fileName)
+        {
+            if (bpmLibrary?.authors == null) return (null, null);
+
+            foreach (var authorKvp in bpmLibrary.authors)
+            {
+                foreach (var package in authorKvp.Value)
+                {
+                    if (package.files != null)
+                    {
+                        foreach (var file in package.files)
+                        {
+                            if (string.Equals(file.fileName, fileName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                return (authorKvp.Key, package);
+                            }
+                        }
+                    }
+                }
+            }
+            return (null, null);
         }
 
         private async Task<bool> CheckAndReplaceWithImportVersionAsync(string mainJsonPath)
@@ -214,15 +291,16 @@ namespace AMU.BoothPackageManager.UI
                         DateParseHandling = DateParseHandling.None
                     };
                     return JsonConvert.DeserializeObject<BPMLibrary>(json, settings);
-                });
-
-                EditorApplication.delayCall += () =>
+                });                EditorApplication.delayCall += () =>
                 {
                     bpmLibrary = library;
                     cachedJsonPath = jsonPath;
                     lastJsonWriteTime = File.GetLastWriteTime(jsonPath);
                     isLoading = false;
                     Repaint();
+                    
+                    // データベース読み込み完了後にImportフォルダをチェック
+                    CheckAndMoveImportFilesAsync();
                 };
             }
             catch (Exception ex)
@@ -258,8 +336,7 @@ namespace AMU.BoothPackageManager.UI
         private void OnEnable()
         {
             ReloadData();
-        }
-        private void OnGUI()
+        }        private void OnGUI()
         {
             GUILayout.Label("Booth Package Manager", EditorStyles.boldLabel);
             GUILayout.Space(10); if (loadError != null)
