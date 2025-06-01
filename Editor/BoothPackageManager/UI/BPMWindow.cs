@@ -95,61 +95,64 @@ namespace AMU.BoothPackageManager.UI
                 GUILayout.Label(author.Key, EditorStyles.boldLabel);
                 foreach (var pkg in author.Value)
                 {
-                    EditorGUILayout.BeginVertical(GUI.skin.box);
-                    GUILayout.BeginHorizontal();
-
-                    if (!string.IsNullOrEmpty(pkg.imageUrl))
+                    using (new EditorGUILayout.VerticalScope(GUI.skin.box))
                     {
-                        var tex = imageManager.GetCachedImage(pkg.imageUrl);
-                        if (tex != null)
-                            GUILayout.Label(tex, GUILayout.Width(80), GUILayout.Height(80));
-                        else
+                        using (new GUILayout.HorizontalScope())
                         {
-                            GUILayout.Label("読み込み中...", GUILayout.Width(80), GUILayout.Height(80));
-                            imageManager.LoadImageAsync(pkg.imageUrl);
-                        }
-                    }
-                    else
-                    {
-                        GUILayout.Label("No Image", GUILayout.Width(80), GUILayout.Height(80));
-                    }
-
-                    GUILayout.BeginVertical();
-                    GUILayout.Label(pkg.packageName, EditorStyles.boldLabel);
-                    if (!string.IsNullOrEmpty(pkg.itemUrl))
-                        if (GUILayout.Button("Boothページを開く", GUILayout.Width(120)))
-                            Application.OpenURL(pkg.itemUrl);
-
-                    GUILayout.Label("ファイル:");
-                    foreach (var f in pkg.files)
-                    {
-                        GUILayout.BeginHorizontal();
-                        GUILayout.Label(f.fileName, GUILayout.Width(180));
-                        if (!string.IsNullOrEmpty(f.downloadLink))
-                        {
-                            string fileDir = BPMPathManager.GetFileDirectory(author.Key, pkg.itemUrl);
-                            string filePath = Path.Combine(fileDir, f.fileName);
-                            if (fileManager.IsFileExistsCached(filePath))
+                            if (!string.IsNullOrEmpty(pkg.imageUrl))
                             {
-                                if (GUILayout.Button("フォルダ", GUILayout.Width(60)))
+                                var tex = imageManager.GetCachedImage(pkg.imageUrl);
+                                if (tex != null)
+                                    GUILayout.Label(tex, GUILayout.Width(80), GUILayout.Height(80));
+                                else
                                 {
-                                    fileManager.EnsureDirectoryExists(fileDir);
-                                    EditorUtility.RevealInFinder(filePath);
+                                    GUILayout.Label("読み込み中...", GUILayout.Width(80), GUILayout.Height(80));
+                                    imageManager.LoadImageAsync(pkg.imageUrl);
                                 }
                             }
                             else
                             {
-                                if (GUILayout.Button("DL", GUILayout.Width(40)))
+                                GUILayout.Label("No Image", GUILayout.Width(80), GUILayout.Height(80));
+                            }
+
+                            using (new GUILayout.VerticalScope())
+                            {
+                                GUILayout.Label(pkg.packageName, EditorStyles.boldLabel);
+                                if (!string.IsNullOrEmpty(pkg.itemUrl))
+                                    if (GUILayout.Button("Boothページを開く", GUILayout.Width(120)))
+                                        Application.OpenURL(pkg.itemUrl);
+
+                                GUILayout.Label("ファイル:");
+                                foreach (var f in pkg.files)
                                 {
-                                    Application.OpenURL(f.downloadLink);
+                                    using (new GUILayout.HorizontalScope())
+                                    {
+                                        GUILayout.Label(f.fileName, GUILayout.Width(180));
+                                        if (!string.IsNullOrEmpty(f.downloadLink))
+                                        {
+                                            string fileDir = BPMPathManager.GetFileDirectory(author.Key, pkg.itemUrl);
+                                            string filePath = Path.Combine(fileDir, f.fileName);
+                                            if (fileManager.IsFileExistsCached(filePath))
+                                            {
+                                                if (GUILayout.Button("フォルダ", GUILayout.Width(60)))
+                                                {
+                                                    fileManager.EnsureDirectoryExists(fileDir);
+                                                    EditorUtility.RevealInFinder(filePath);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (GUILayout.Button("DL", GUILayout.Width(40)))
+                                                {
+                                                    Application.OpenURL(f.downloadLink);
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
-                        GUILayout.EndHorizontal();
                     }
-                    GUILayout.EndVertical();
-                    GUILayout.EndHorizontal();
-                    EditorGUILayout.EndVertical();
                     GUILayout.Space(8);
                 }
             }
