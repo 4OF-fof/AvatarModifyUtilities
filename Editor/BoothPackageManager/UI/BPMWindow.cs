@@ -56,11 +56,15 @@ namespace AMU.BoothPackageManager.UI
             string coreDir = EditorPrefs.GetString("Setting.Core_dirPath", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
             return Path.Combine(coreDir, "BPM", "BPMlibrary.json");
         }
-
         private string GetImportJsonPath()
         {
             string coreDir = EditorPrefs.GetString("Setting.Core_dirPath", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
             return Path.Combine(coreDir, "Import", "BPMlibrary.json");
+        }
+
+        private string GetDownloadJsonPath()
+        {
+            return Path.Combine(GetDownloadDirectory(), "BPMlibrary.json");
         }
 
         private string GetThumbnailDirectory()
@@ -304,29 +308,63 @@ namespace AMU.BoothPackageManager.UI
             }
             return (null, null);
         }
-
         private async Task<bool> CheckAndReplaceWithImportVersionAsync(string mainJsonPath)
         {
-            string importJsonPath = GetImportJsonPath();
+            var candidateFiles = new List<string>();
 
-            if (!File.Exists(importJsonPath))
+            // Importフォルダ内のJSONを候補に追加
+            string importJsonPath = GetImportJsonPath();
+            if (File.Exists(importJsonPath))
+            {
+                candidateFiles.Add(importJsonPath);
+            }
+
+            // Downloadフォルダ検索が有効な場合、DownloadフォルダのJSONも候補に追加
+            bool searchDownloadFolder = EditorPrefs.GetBool("Setting.BPM_searchDownloadFolder", false);
+            if (searchDownloadFolder)
+            {
+                string downloadJsonPath = GetDownloadJsonPath();
+                if (File.Exists(downloadJsonPath))
+                {
+                    candidateFiles.Add(downloadJsonPath);
+                }
+            }
+
+            if (candidateFiles.Count == 0)
             {
                 return false;
             }
 
             try
             {
-                string importJson = await ReadFileAsync(importJsonPath);
-                var importLibrary = await Task.Run(() =>
-                {
-                    var settings = new JsonSerializerSettings
-                    {
-                        CheckAdditionalContent = false,
-                        DateParseHandling = DateParseHandling.None
-                    };
-                    return JsonConvert.DeserializeObject<BPMLibrary>(importJson, settings);
-                });
+                // 候補ファイルの中から最新のものを探す
+                BPMLibrary newestLibrary = null;
+                string newestFilePath = null;
+                string newestLastUpdated = null;
 
+                foreach (string candidatePath in candidateFiles)
+                {
+                    string candidateJson = await ReadFileAsync(candidatePath);
+                    var candidateLibrary = await Task.Run(() =>
+                    {
+                        var settings = new JsonSerializerSettings
+                        {
+                            CheckAdditionalContent = false,
+                            DateParseHandling = DateParseHandling.None
+                        };
+                        return JsonConvert.DeserializeObject<BPMLibrary>(candidateJson, settings);
+                    });
+
+                    if (newestLibrary == null ||
+                        string.Compare(candidateLibrary.lastUpdated, newestLastUpdated, StringComparison.Ordinal) > 0)
+                    {
+                        newestLibrary = candidateLibrary;
+                        newestFilePath = candidatePath;
+                        newestLastUpdated = candidateLibrary.lastUpdated;
+                    }
+                }
+
+                // メインファイルと比較
                 if (File.Exists(mainJsonPath))
                 {
                     string mainJson = await ReadFileAsync(mainJsonPath);
@@ -340,23 +378,28 @@ namespace AMU.BoothPackageManager.UI
                         return JsonConvert.DeserializeObject<BPMLibrary>(mainJson, settings);
                     });
 
-                    if (string.Compare(importLibrary.lastUpdated, mainLibrary.lastUpdated, StringComparison.Ordinal) <= 0)
+                    if (string.Compare(newestLastUpdated, mainLibrary.lastUpdated, StringComparison.Ordinal) <= 0)
                     {
                         return false;
                     }
                 }
 
+                // 最新のファイルをメインファイルにコピー
                 string bpmDir = Path.GetDirectoryName(mainJsonPath);
                 if (!Directory.Exists(bpmDir))
                 {
                     Directory.CreateDirectory(bpmDir);
                 }
-                await Task.Run(() => File.Copy(importJsonPath, mainJsonPath, true));
+                await Task.Run(() => File.Copy(newestFilePath, mainJsonPath, true));
+
+                string sourceFolder = newestFilePath == GetDownloadJsonPath() ? "Downloadフォルダ" : "Importフォルダ";
+                Debug.Log($"{sourceFolder}からBPMlibrary.jsonを更新しました: {newestFilePath} -> {mainJsonPath}");
+
                 return true;
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"Importファイルとの比較・置き換えに失敗: {ex.Message}");
+                Debug.LogWarning($"候補ファイルとの比較・置き換えに失敗: {ex.Message}");
                 return false;
             }
         }
