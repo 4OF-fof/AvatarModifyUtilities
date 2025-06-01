@@ -67,6 +67,13 @@ namespace AMU.BoothPackageManager.UI
             GUILayout.Label("Booth Package Manager", EditorStyles.boldLabel);
             GUILayout.Space(10);
 
+            // 再読み込みボタンを追加
+            if (GUILayout.Button("再読み込み", GUILayout.Width(100)))
+            {
+                ReloadData();
+            }
+            GUILayout.Space(5);
+
             if (dataManager.LoadError != null)
             {
                 EditorGUILayout.HelpBox(dataManager.LoadError, MessageType.Error);
