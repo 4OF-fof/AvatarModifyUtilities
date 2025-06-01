@@ -1,3 +1,14 @@
 {
-  "BPM_searchDownloadFolder": "Downloadフォルダも検索対象にする"
+  "BPM_searchDownloadFolder": "Downloadフォルダも検索対象にする",
+  "BPM_windowTitle": "Booth Package Manager",
+  "BPM_reloadButton": "再読み込み",
+  "BPM_loading": "読み込み中...",
+  "BPM_loadingJson": "JSONファイルを読み込み中...",
+  "BPM_noDataLoaded": "データが読み込まれていません",
+  "BPM_lastUpdated": "最終更新:",
+  "BPM_noImage": "画像なし",
+  "BPM_openBoothPage": "Boothページを開く",
+  "BPM_files": "ファイル:",
+  "BPM_openFile": "開く",
+  "BPM_download": "ダウンロード"
 }

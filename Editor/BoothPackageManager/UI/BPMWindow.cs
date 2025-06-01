@@ -2,21 +2,27 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 using AMU.BoothPackageManager.Helper;
+using AMU.Data.Lang;
 
 namespace AMU.BoothPackageManager.UI
 {
     public class BoothPackageManagerWindow : EditorWindow
-    {        [MenuItem("AMU/Booth Package Manager", priority = 0)]
+    {
+        [MenuItem("AMU/Booth Package Manager", priority = 0)]
         public static void ShowWindow()
         {
-            var window = GetWindow<BoothPackageManagerWindow>("Booth Package Manager");
+            // ローカライズの初期化
+            var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
+            LocalizationManager.LoadLanguage(language);
+
+            var window = GetWindow<BoothPackageManagerWindow>(LocalizationManager.GetText("BPM_windowTitle"));
             window.minSize = new Vector2(800, 600);
             window.Show();
         }
 
         private BPMDataManager dataManager;
         private BPMFileManager fileManager;
-        private BPMImageManager imageManager;        private Vector2 scrollPos;
+        private BPMImageManager imageManager; private Vector2 scrollPos;
 
         private void InitializeManagers()
         {
@@ -52,23 +58,30 @@ namespace AMU.BoothPackageManager.UI
         private void OnLoadError()
         {
             Repaint();
-        }        private void ReloadData()
+        }
+        private void ReloadData()
         {
             dataManager?.ReloadData();
             fileManager?.ClearCaches();
             imageManager?.UpdateImagePathCache();
             dataManager?.LoadJsonIfNeeded();
-        }        private void OnEnable()
+        }
+        private void OnEnable()
         {
+            // ローカライズの初期化
+            var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
+            LocalizationManager.LoadLanguage(language);
+
             InitializeManagers();
             ReloadData();
-        }        private void OnGUI()
+        }
+        private void OnGUI()
         {
-            GUILayout.Label("Booth Package Manager", EditorStyles.boldLabel);
+            GUILayout.Label(LocalizationManager.GetText("BPM_windowTitle"), EditorStyles.boldLabel);
             GUILayout.Space(10);
 
             // 再読み込みボタンを追加
-            if (GUILayout.Button("再読み込み", GUILayout.Width(100)))
+            if (GUILayout.Button(LocalizationManager.GetText("BPM_reloadButton"), GUILayout.Width(100)))
             {
                 ReloadData();
             }
@@ -82,19 +95,19 @@ namespace AMU.BoothPackageManager.UI
 
             if (dataManager.IsLoading)
             {
-                GUILayout.Label("読み込み中...", EditorStyles.helpBox);
+                GUILayout.Label(LocalizationManager.GetText("BPM_loading"), EditorStyles.helpBox);
                 Rect progressRect = GUILayoutUtility.GetRect(0, 20, GUILayout.ExpandWidth(true));
-                EditorGUI.ProgressBar(progressRect, 0.5f, "JSONファイルを読み込み中...");
+                EditorGUI.ProgressBar(progressRect, 0.5f, LocalizationManager.GetText("BPM_loadingJson"));
                 return;
             }
 
             if (dataManager.Library == null)
             {
-                GUILayout.Label("データが読み込まれていません", EditorStyles.helpBox);
+                GUILayout.Label(LocalizationManager.GetText("BPM_noDataLoaded"), EditorStyles.helpBox);
                 return;
             }
 
-            GUILayout.Label($"最終更新: {dataManager.Library.lastUpdated}");
+            GUILayout.Label($"{LocalizationManager.GetText("BPM_lastUpdated")} {dataManager.Library.lastUpdated}");
 
             scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
             foreach (var author in dataManager.Library.authors)
@@ -113,23 +126,23 @@ namespace AMU.BoothPackageManager.UI
                                     GUILayout.Label(tex, GUILayout.Width(80), GUILayout.Height(80));
                                 else
                                 {
-                                    GUILayout.Label("読み込み中...", GUILayout.Width(80), GUILayout.Height(80));
+                                    GUILayout.Label(LocalizationManager.GetText("BPM_loading"), GUILayout.Width(80), GUILayout.Height(80));
                                     imageManager.LoadImageAsync(pkg.imageUrl);
                                 }
                             }
                             else
                             {
-                                GUILayout.Label("No Image", GUILayout.Width(80), GUILayout.Height(80));
+                                GUILayout.Label(LocalizationManager.GetText("BPM_noImage"), GUILayout.Width(80), GUILayout.Height(80));
                             }
 
                             using (new GUILayout.VerticalScope())
                             {
                                 GUILayout.Label(pkg.packageName, EditorStyles.boldLabel);
                                 if (!string.IsNullOrEmpty(pkg.itemUrl))
-                                    if (GUILayout.Button("Boothページを開く", GUILayout.Width(120)))
+                                    if (GUILayout.Button(LocalizationManager.GetText("BPM_openBoothPage"), GUILayout.Width(120)))
                                         Application.OpenURL(pkg.itemUrl);
 
-                                GUILayout.Label("ファイル:");
+                                GUILayout.Label($"{LocalizationManager.GetText("BPM_files")}");
                                 foreach (var f in pkg.files)
                                 {
                                     using (new GUILayout.HorizontalScope())
@@ -141,7 +154,7 @@ namespace AMU.BoothPackageManager.UI
                                             string filePath = Path.Combine(fileDir, f.fileName);
                                             if (fileManager.IsFileExistsCached(filePath))
                                             {
-                                                if (GUILayout.Button("フォルダ", GUILayout.Width(60)))
+                                                if (GUILayout.Button(LocalizationManager.GetText("BPM_openFile"), GUILayout.Width(60)))
                                                 {
                                                     fileManager.EnsureDirectoryExists(fileDir);
                                                     EditorUtility.RevealInFinder(filePath);
@@ -149,7 +162,7 @@ namespace AMU.BoothPackageManager.UI
                                             }
                                             else
                                             {
-                                                if (GUILayout.Button("DL", GUILayout.Width(40)))
+                                                if (GUILayout.Button(LocalizationManager.GetText("BPM_download"), GUILayout.Width(80)))
                                                 {
                                                     Application.OpenURL(f.downloadLink);
                                                 }

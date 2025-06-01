@@ -1,3 +1,14 @@
 {
-  "BPM_searchDownloadFolder": "Also search Download folder"
+  "BPM_searchDownloadFolder": "Also search Download folder",
+  "BPM_windowTitle": "Booth Package Manager",
+  "BPM_reloadButton": "Reload",
+  "BPM_loading": "Loading...",
+  "BPM_loadingJson": "Loading JSON file...",
+  "BPM_noDataLoaded": "No data loaded",
+  "BPM_lastUpdated": "Last Updated:",
+  "BPM_noImage": "No Image",
+  "BPM_openBoothPage": "Open Booth Page",
+  "BPM_files": "Files:",
+  "BPM_openFile": "Open",
+  "BPM_download": "Download"
 }
