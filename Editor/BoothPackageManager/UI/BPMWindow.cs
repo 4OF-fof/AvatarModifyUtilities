@@ -11,7 +11,6 @@ namespace AMU.BoothPackageManager.UI
         [MenuItem("AMU/Booth Package Manager", priority = 0)]
         public static void ShowWindow()
         {
-            // ローカライズの初期化
             var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
             LocalizationManager.LoadLanguage(language);
 
@@ -51,7 +50,6 @@ namespace AMU.BoothPackageManager.UI
             imageManager.UpdateImagePathCache();
             Repaint();
 
-            // データベース読み込み完了後にImportフォルダをチェック
             fileManager.CheckAndMoveImportFilesAsync(dataManager);
         }
 
@@ -68,7 +66,6 @@ namespace AMU.BoothPackageManager.UI
         }
         private void OnEnable()
         {
-            // ローカライズの初期化
             var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
             LocalizationManager.LoadLanguage(language);
 
@@ -80,7 +77,6 @@ namespace AMU.BoothPackageManager.UI
             GUILayout.Label(LocalizationManager.GetText("BPM_windowTitle"), EditorStyles.boldLabel);
             GUILayout.Space(10);
 
-            // 再読み込みボタンを追加
             if (GUILayout.Button(LocalizationManager.GetText("BPM_reloadButton"), GUILayout.Width(100)))
             {
                 ReloadData();

@@ -55,11 +55,9 @@ namespace AMU.BoothPackageManager.Helper
         {
             if (string.IsNullOrEmpty(itemUrl)) return "unknown";
 
-            // BoothのURLパターン: https://booth.pm/ja/items/12345 など
             var uri = new Uri(itemUrl);
             var segments = uri.Segments;
 
-            // 最後のセグメントからIDを取得
             if (segments.Length > 0)
             {
                 string lastSegment = segments[segments.Length - 1].Trim('/');
