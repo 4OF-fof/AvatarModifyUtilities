@@ -43,6 +43,7 @@ namespace AMU.BoothPackageManager.UI
                 imageManager.OnImageLoaded += () => Repaint();
             }
         }
+        
         private void OnDataLoaded()
         {
             fileManager.UpdateFileExistenceCache(dataManager.Library);
@@ -56,6 +57,7 @@ namespace AMU.BoothPackageManager.UI
         {
             Repaint();
         }
+
         private void ReloadData()
         {
             dataManager?.ReloadData();
@@ -63,6 +65,7 @@ namespace AMU.BoothPackageManager.UI
             imageManager?.UpdateImagePathCache();
             dataManager?.LoadJsonIfNeeded();
         }
+
         private void OnEnable()
         {
             var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
@@ -71,11 +74,9 @@ namespace AMU.BoothPackageManager.UI
             InitializeManagers();
             ReloadData();
         }
+
         private void OnGUI()
         {
-            GUILayout.Label(LocalizationManager.GetText("BPM_windowTitle"), EditorStyles.boldLabel);
-            GUILayout.Space(10);
-
             if (GUILayout.Button(LocalizationManager.GetText("BPM_reloadButton"), GUILayout.Width(100)))
             {
                 ReloadData();
