@@ -66,9 +66,9 @@ namespace AMU.BoothPackageManager.Helper
             ensuredDirectories.Add(directoryPath);
         }
 
-        public async Task CheckAndMoveImportFilesAsync(BPMDataManager dataManager)
+        public Task CheckAndMoveImportFilesAsync(BPMDataManager dataManager)
         {
-            if (dataManager.Library == null) return;
+            if (dataManager.Library == null) return Task.CompletedTask;
 
             var searchDirectories = new List<string>();
 
@@ -90,7 +90,7 @@ namespace AMU.BoothPackageManager.Helper
                 }
             }
 
-            if (searchDirectories.Count == 0) return;
+            if (searchDirectories.Count == 0) return Task.CompletedTask;
 
             foreach (string searchDir in searchDirectories)
             {
@@ -140,6 +140,8 @@ namespace AMU.BoothPackageManager.Helper
                     }
                 }
             }
+            
+            return Task.CompletedTask;
         }
 
         public void ClearCaches()

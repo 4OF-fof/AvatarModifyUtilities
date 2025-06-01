@@ -43,14 +43,13 @@ namespace AMU.BoothPackageManager.UI
                 imageManager.OnImageLoaded += () => Repaint();
             }
         }
-
         private void OnDataLoaded()
         {
             fileManager.UpdateFileExistenceCache(dataManager.Library);
             imageManager.UpdateImagePathCache();
             Repaint();
 
-            fileManager.CheckAndMoveImportFilesAsync(dataManager);
+            _ = fileManager.CheckAndMoveImportFilesAsync(dataManager);
         }
 
         private void OnLoadError()
