@@ -67,7 +67,8 @@ namespace AMU.BoothPackageManager.UI
         {
             string coreDir = EditorPrefs.GetString("Setting.Core_dirPath", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
             return Path.Combine(coreDir, "BPM", "thumbnail");
-        }        private string GetImportDirectory()
+        }
+        private string GetImportDirectory()
         {
             string coreDir = EditorPrefs.GetString("Setting.Core_dirPath", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
             return Path.Combine(coreDir, "Import");
@@ -208,12 +209,13 @@ namespace AMU.BoothPackageManager.UI
                 Debug.Log($"ディレクトリを作成しました: {directoryPath}");
             }
             ensuredDirectories.Add(directoryPath);
-        }        private async Task CheckAndMoveImportFilesAsync()
+        }
+        private async Task CheckAndMoveImportFilesAsync()
         {
             if (bpmLibrary == null) return;
 
             var searchDirectories = new List<string>();
-            
+
             // Importディレクトリを常に検索対象に含める
             string importDir = GetImportDirectory();
             if (Directory.Exists(importDir))
