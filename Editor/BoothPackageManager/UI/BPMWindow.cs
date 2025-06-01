@@ -67,12 +67,15 @@ namespace AMU.BoothPackageManager.UI
         {
             string coreDir = EditorPrefs.GetString("Setting.Core_dirPath", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
             return Path.Combine(coreDir, "BPM", "thumbnail");
-        }
-
-        private string GetImportDirectory()
+        }        private string GetImportDirectory()
         {
             string coreDir = EditorPrefs.GetString("Setting.Core_dirPath", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
             return Path.Combine(coreDir, "Import");
+        }
+
+        private string GetDownloadDirectory()
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
         }
 
         private string GetImageHash(string url)
@@ -205,52 +208,73 @@ namespace AMU.BoothPackageManager.UI
                 Debug.Log($"ディレクトリを作成しました: {directoryPath}");
             }
             ensuredDirectories.Add(directoryPath);
-        }
-
-        private async Task CheckAndMoveImportFilesAsync()
+        }        private async Task CheckAndMoveImportFilesAsync()
         {
             if (bpmLibrary == null) return;
 
+            var searchDirectories = new List<string>();
+            
+            // Importディレクトリを常に検索対象に含める
             string importDir = GetImportDirectory();
-            if (!Directory.Exists(importDir)) return;
-
-            var allFiles = Directory.GetFiles(importDir, "*", SearchOption.AllDirectories);
-
-            foreach (var filePath in allFiles)
+            if (Directory.Exists(importDir))
             {
-                string fileName = Path.GetFileName(filePath);
+                searchDirectories.Add(importDir);
+            }
 
-                // BPMlibrary.jsonファイルはスキップ
-                if (fileName.Equals("BPMlibrary.json", StringComparison.OrdinalIgnoreCase))
-                    continue;                // データベース内でファイル名が一致するものを探す
-                var matchedFile = FindMatchingFileInDatabase(fileName);
-                if (matchedFile.author != null && matchedFile.package != null)
+            // 設定でDownloadフォルダ検索が有効な場合、Downloadディレクトリも検索対象に含める
+            bool searchDownloadFolder = EditorPrefs.GetBool("Setting.BPM_searchDownloadFolder", false);
+            if (searchDownloadFolder)
+            {
+                string downloadDir = GetDownloadDirectory();
+                if (Directory.Exists(downloadDir))
                 {
-                    try
+                    searchDirectories.Add(downloadDir);
+                }
+            }
+
+            if (searchDirectories.Count == 0) return;
+
+            foreach (string searchDir in searchDirectories)
+            {
+                var allFiles = Directory.GetFiles(searchDir, "*", SearchOption.AllDirectories);
+
+                foreach (var filePath in allFiles)
+                {
+                    string fileName = Path.GetFileName(filePath);
+
+                    // BPMlibrary.jsonファイルはスキップ
+                    if (fileName.Equals("BPMlibrary.json", StringComparison.OrdinalIgnoreCase))
+                        continue;                    // データベース内でファイル名が一致するものを探す
+                    var matchedFile = FindMatchingFileInDatabase(fileName);
+                    if (matchedFile.author != null && matchedFile.package != null)
                     {
-                        string targetDir = GetFileDirectory(matchedFile.author, matchedFile.package.itemUrl);
-                        EnsureDirectoryExists(targetDir);
-
-                        string targetPath = Path.Combine(targetDir, fileName);
-
-                        // ファイルが既に存在する場合はスキップ
-                        if (File.Exists(targetPath))
+                        try
                         {
-                            Debug.Log($"ファイルは既に存在するためスキップしました: {targetPath}");
-                            continue;
-                        }                        // ファイルを移動
-                        File.Move(filePath, targetPath);
-                        Debug.Log($"ファイルを移動しました: {fileName} -> {targetPath}");
+                            string targetDir = GetFileDirectory(matchedFile.author, matchedFile.package.itemUrl);
+                            EnsureDirectoryExists(targetDir);
 
-                        // キャッシュを更新
-                        UpdateSingleFileExistenceCache(targetPath);
+                            string targetPath = Path.Combine(targetDir, fileName);
 
-                        EditorUtility.DisplayDialog("ファイル移動完了",
-                            $"Importフォルダからファイルを移動しました:\n{fileName}\n↓\n{targetPath}", "OK");
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.LogError($"ファイル移動エラー: {fileName}, エラー: {ex.Message}");
+                            // ファイルが既に存在する場合はスキップ
+                            if (File.Exists(targetPath))
+                            {
+                                Debug.Log($"ファイルは既に存在するためスキップしました: {targetPath}");
+                                continue;
+                            }                        // ファイルを移動
+                            File.Move(filePath, targetPath);
+                            Debug.Log($"ファイルを移動しました: {fileName} -> {targetPath}");
+
+                            // キャッシュを更新
+                            UpdateSingleFileExistenceCache(targetPath);
+
+                            string sourceFolder = searchDir == GetDownloadDirectory() ? "Downloadフォルダ" : "Importフォルダ";
+                            EditorUtility.DisplayDialog("ファイル移動完了",
+                                $"{sourceFolder}からファイルを移動しました:\n{fileName}\n↓\n{targetPath}", "OK");
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.LogError($"ファイル移動エラー: {fileName}, エラー: {ex.Message}");
+                        }
                     }
                 }
             }
