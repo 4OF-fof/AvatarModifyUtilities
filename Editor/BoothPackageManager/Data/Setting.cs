@@ -7,7 +7,7 @@ namespace AMU.Data.Setting
     {
         public static readonly Dictionary<string, SettingItem[]> SettingItems = new Dictionary<string, SettingItem[]>
         {
-            { "BPM", new SettingItem[] {
+            { "Booth Package Manager", new SettingItem[] {
                 new BoolSettingItem("BPM_searchDownloadFolder", false)
             } },
         };
