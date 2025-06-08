@@ -28,14 +28,45 @@ namespace AMU.Editor.AutoVariant.Watcher
 
             try
             {
+                // UnityPackageとしてエクスポート
                 AssetDatabase.ExportPackage(assetPaths.ToArray(), exportPath, ExportPackageOptions.Recurse);
                 Debug.Log($"[AvatarExporter] Exported optimized avatar to: {exportPath}");
+
+                // 画像キャプチャと保存
+                CaptureAvatarImage(avatar, exportPath);
             }
             catch (Exception e)
             {
                 Debug.LogError($"[AvatarExporter] Failed to export {avatar.name}: {e.Message}");
             }
         }
+
+        private static void CaptureAvatarImage(GameObject avatar, string unityPackagePath)
+        {
+            try
+            {
+                // UnityPackageと同じ場所に同じ名前でpngファイルを保存
+                var imagePath = Path.ChangeExtension(unityPackagePath, ".png");
+                
+                // ObjectCaptureHelperを使用してアバターの画像をキャプチャ
+                var capturedTexture = ObjectCaptureHelper.CaptureObject(avatar, imagePath, 512, 512);
+                
+                if (capturedTexture != null)
+                {
+                    Debug.Log($"[AvatarExporter] Captured avatar image: {imagePath}");
+                    UnityEngine.Object.DestroyImmediate(capturedTexture);
+                }
+                else
+                {
+                    Debug.LogWarning($"[AvatarExporter] Failed to capture avatar image for {avatar.name}");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[AvatarExporter] Failed to capture avatar image: {e.Message}");
+            }
+        }
+
         private static string GenerateExportPath(GameObject avatar)
         {
             var blueprintId = PipelineManagerHelper.GetBlueprintId(avatar);
