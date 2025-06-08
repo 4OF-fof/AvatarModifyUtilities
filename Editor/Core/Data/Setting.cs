@@ -20,7 +20,7 @@ namespace AMU.Data.Setting
                     "Core_dirPath",
                     System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"),
                     true),
-                new StringSettingItem("Core_versionInfo", "0.2.0", true),
+                new StringSettingItem("Core_versionInfo", "0.2.1", true),
                 new StringSettingItem("Core_repositoryUrl", "https://github.com/4OF-fof/AvatarModifyUtilities", true),
             } },
         };
