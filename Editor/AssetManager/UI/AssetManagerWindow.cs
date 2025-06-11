@@ -33,6 +33,7 @@ namespace AMU.AssetManager.UI
         private string _searchText = "";
         private AssetType _selectedAssetType = AssetType.Avatar;
         private bool _showFavoritesOnly = false;
+        private bool _showHidden = false;
         private int _selectedSortOption = 0; // 0: Name, 1: Date, 2: Size, 3: Type
         private bool _sortDescending = false;
 
@@ -132,6 +133,16 @@ namespace AMU.AssetManager.UI
                 if (GUILayout.Button(LocalizationManager.GetText("AssetManager_filterFavorite"), EditorStyles.toolbarButton))
                 {
                     _showFavoritesOnly = true;
+                    RefreshAssetList();
+                }
+
+                GUILayout.Space(10);
+
+                // Show hidden checkbox
+                var newShowHidden = GUILayout.Toggle(_showHidden, LocalizationManager.GetText("AssetManager_showHidden"), EditorStyles.toolbarButton);
+                if (newShowHidden != _showHidden)
+                {
+                    _showHidden = newShowHidden;
                     RefreshAssetList();
                 }
 
@@ -291,6 +302,12 @@ namespace AMU.AssetManager.UI
                     EditorGUI.DrawRect(thumbnailRect, new Color(0.3f, 0.5f, 1f, 0.3f));
                 }
 
+                // Show hidden overlay
+                if (asset.isHidden)
+                {
+                    EditorGUI.DrawRect(thumbnailRect, new Color(0f, 0f, 0f, 0.5f));
+                }
+
                 if (thumbnail != null)
                 {
                     GUI.DrawTexture(thumbnailRect, thumbnail, ScaleMode.ScaleToFit);
@@ -305,6 +322,16 @@ namespace AMU.AssetManager.UI
                 {
                     var starRect = new Rect(thumbnailRect.x + thumbnailRect.width - 20, thumbnailRect.y + 5, 15, 15);
                     GUI.Label(starRect, "★");
+                }
+
+                // Hidden indicator
+                if (asset.isHidden)
+                {
+                    var hiddenRect = new Rect(thumbnailRect.x + 5, thumbnailRect.y + 5, 15, 15);
+                    var oldColor = GUI.color;
+                    GUI.color = Color.red;
+                    GUI.Label(hiddenRect, "👁");
+                    GUI.color = oldColor;
                 }
 
                 // Asset name
@@ -366,6 +393,17 @@ namespace AMU.AssetManager.UI
             
             menu.AddSeparator("");
             
+            string hiddenText = asset.isHidden ? 
+                LocalizationManager.GetText("AssetManager_showAsset") : 
+                LocalizationManager.GetText("AssetManager_hideAsset");
+            
+            menu.AddItem(new GUIContent(hiddenText), false, () => {
+                asset.isHidden = !asset.isHidden;
+                _dataManager.UpdateAsset(asset);
+            });
+            
+            menu.AddSeparator("");
+            
             menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_openLocation")), false, () => {
                 _fileManager.OpenFileLocation(asset);
             });
@@ -407,7 +445,7 @@ namespace AMU.AssetManager.UI
                 return;
             }
 
-            _filteredAssets = _dataManager.SearchAssets(_searchText, _selectedAssetType, _showFavoritesOnly ? true : (bool?)null);
+            _filteredAssets = _dataManager.SearchAssets(_searchText, _selectedAssetType, _showFavoritesOnly ? true : (bool?)null, _showHidden);
 
             // Sort assets
             switch (_selectedSortOption)

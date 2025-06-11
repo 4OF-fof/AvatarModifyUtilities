@@ -120,9 +120,15 @@ namespace AMU.AssetManager.Helper
             return _assetLibrary?.assets ?? new List<AssetInfo>();
         }
 
-        public List<AssetInfo> SearchAssets(string searchText, AssetType? filterType = null, bool? favoritesOnly = null)
+        public List<AssetInfo> SearchAssets(string searchText, AssetType? filterType = null, bool? favoritesOnly = null, bool showHidden = false)
         {
             var assets = GetAllAssets();
+
+            // Filter hidden assets unless explicitly showing them
+            if (!showHidden)
+            {
+                assets = assets.Where(a => !a.isHidden).ToList();
+            }
 
             if (!string.IsNullOrEmpty(searchText))
             {

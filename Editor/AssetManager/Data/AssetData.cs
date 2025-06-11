@@ -36,6 +36,7 @@ namespace AMU.AssetManager.Data
         public List<string> tags;
         public List<string> dependencies;
         public bool isFavorite;
+        public bool isHidden;
         public int rating;
         public string notes;
 
@@ -55,6 +56,7 @@ namespace AMU.AssetManager.Data
             tags = new List<string>();
             dependencies = new List<string>();
             isFavorite = false;
+            isHidden = false;
             rating = 0;
             notes = "";
         }
@@ -77,6 +79,7 @@ namespace AMU.AssetManager.Data
                 tags = new List<string>(this.tags),
                 dependencies = new List<string>(this.dependencies),
                 isFavorite = this.isFavorite,
+                isHidden = this.isHidden,
                 rating = this.rating,
                 notes = this.notes
             };
