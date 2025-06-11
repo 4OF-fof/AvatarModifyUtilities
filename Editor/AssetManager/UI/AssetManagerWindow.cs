@@ -347,10 +347,6 @@ namespace AMU.AssetManager.UI
                 AssetDetailWindow.ShowWindow(asset);
             });
             
-            menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_openPreview")), false, () => {
-                AssetPreviewWindow.ShowWindow(asset);
-            });
-            
             menu.AddSeparator("");
             
             menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_editAsset")), false, () => {
