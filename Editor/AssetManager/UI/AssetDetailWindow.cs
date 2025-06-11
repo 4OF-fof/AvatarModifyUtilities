@@ -156,8 +156,6 @@ namespace AMU.AssetManager.UI
                 DrawFileInfo();
                 GUILayout.Space(10);
                 DrawTagsAndDependencies();
-                GUILayout.Space(10);
-                DrawNotesAndRating();
             }
         }
 
@@ -218,19 +216,6 @@ namespace AMU.AssetManager.UI
                     GUILayout.Label(_asset.authorName);
                 }
                 GUILayout.EndHorizontal();
-
-                // Version
-                GUILayout.BeginHorizontal();
-                GUILayout.Label(LocalizationManager.GetText("AssetDetail_version"), GUILayout.Width(100));
-                if (_isEditMode)
-                {
-                    _asset.version = EditorGUILayout.TextField(_asset.version);
-                }
-                else
-                {
-                    GUILayout.Label(_asset.version);
-                }
-                GUILayout.EndHorizontal();
             }
         }
 
@@ -266,17 +251,7 @@ namespace AMU.AssetManager.UI
                 GUILayout.Label(_fileManager.FormatFileSize(_asset.fileSize));
                 GUILayout.EndHorizontal();
 
-                // Created Date
-                GUILayout.BeginHorizontal();
-                GUILayout.Label(LocalizationManager.GetText("AssetDetail_createdDate"), GUILayout.Width(100));
-                GUILayout.Label(_asset.createdDate.ToString("yyyy/MM/dd HH:mm"));
-                GUILayout.EndHorizontal();
 
-                // Modified Date
-                GUILayout.BeginHorizontal();
-                GUILayout.Label(LocalizationManager.GetText("AssetDetail_modifiedDate"), GUILayout.Width(100));
-                GUILayout.Label(_asset.lastModifiedDate.ToString("yyyy/MM/dd HH:mm"));
-                GUILayout.EndHorizontal();
             }
         }
 
@@ -360,37 +335,7 @@ namespace AMU.AssetManager.UI
             }
         }
 
-        private void DrawNotesAndRating()
-        {
-            // Rating
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(LocalizationManager.GetText("AssetDetail_rating"), GUILayout.Width(100));
-            if (_isEditMode)
-            {
-                _asset.rating = EditorGUILayout.IntSlider(_asset.rating, 0, 5);
-            }
-            else
-            {
-                GUILayout.Label(new string('★', _asset.rating) + new string('☆', 5 - _asset.rating));
-            }
-            GUILayout.EndHorizontal();
 
-            GUILayout.Space(5);
-
-            // Notes
-            GUILayout.Label(LocalizationManager.GetText("AssetDetail_notes"), EditorStyles.boldLabel);
-            if (_isEditMode)
-            {
-                _asset.notes = EditorGUILayout.TextArea(_asset.notes, GUILayout.Height(80));
-            }
-            else
-            {
-                using (new GUILayout.VerticalScope(EditorStyles.helpBox))
-                {
-                    GUILayout.Label(_asset.notes, EditorStyles.wordWrappedLabel);
-                }
-            }
-        }
 
         private void SelectThumbnail()
         {

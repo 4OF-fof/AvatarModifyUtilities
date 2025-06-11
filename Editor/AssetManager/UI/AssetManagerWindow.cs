@@ -357,10 +357,6 @@ namespace AMU.AssetManager.UI
                 AssetDetailWindow.ShowWindow(asset, true);
             });
             
-            menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_duplicateAsset")), false, () => {
-                _dataManager.DuplicateAsset(asset);
-            });
-            
             menu.AddSeparator("");
             
             string favoriteText = asset.isFavorite ? 
