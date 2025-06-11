@@ -59,6 +59,7 @@ namespace AMU.AssetManager.UI
             {
                 _thumbnailManager = new AssetThumbnailManager();
                 _thumbnailManager.OnThumbnailLoaded += Repaint;
+                _thumbnailManager.OnThumbnailSaved += OnThumbnailSaved;
             }
 
             if (_fileManager == null)
@@ -464,6 +465,14 @@ namespace AMU.AssetManager.UI
         {
             _asset = _originalAsset?.Clone();
             _isEditMode = false;
+        }
+
+        private void OnThumbnailSaved(AssetInfo asset)
+        {
+            if (asset != null && _dataManager != null)
+            {
+                _dataManager.UpdateAsset(asset);
+            }
         }
     }
 }

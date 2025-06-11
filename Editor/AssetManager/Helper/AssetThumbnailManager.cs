@@ -12,6 +12,7 @@ namespace AMU.AssetManager.Helper
         private Dictionary<string, Texture2D> _thumbnailCache = new Dictionary<string, Texture2D>();
         private string _thumbnailDirectory;
 
+        public event Action<AssetInfo> OnThumbnailSaved;
         public event Action OnThumbnailLoaded;
 
         public AssetThumbnailManager()
@@ -49,6 +50,7 @@ namespace AMU.AssetManager.Helper
             {
                 _thumbnailCache[asset.uid] = generatedTexture;
                 SaveThumbnail(asset, generatedTexture);
+                OnThumbnailSaved?.Invoke(asset);
                 return generatedTexture;
             }
 
@@ -67,9 +69,11 @@ namespace AMU.AssetManager.Helper
                 string thumbnailPath = Path.Combine(_thumbnailDirectory, $"{asset.uid}.png");
                 SaveTextureToFile(texture, thumbnailPath);
 
-                asset.thumbnailPath = thumbnailPath;
+                // Convert path to use forward slashes for JSON storage
+                asset.thumbnailPath = thumbnailPath.Replace('\\', '/');
                 _thumbnailCache[asset.uid] = texture;
                 OnThumbnailLoaded?.Invoke();
+                OnThumbnailSaved?.Invoke(asset);
             }
         }
 
@@ -83,6 +87,7 @@ namespace AMU.AssetManager.Helper
                 SaveThumbnail(asset, texture);
                 _thumbnailCache[asset.uid] = texture;
                 OnThumbnailLoaded?.Invoke();
+                OnThumbnailSaved?.Invoke(asset);
             }
         }
 
@@ -175,7 +180,8 @@ namespace AMU.AssetManager.Helper
         {
             string thumbnailPath = Path.Combine(_thumbnailDirectory, $"{asset.uid}.png");
             SaveTextureToFile(texture, thumbnailPath);
-            asset.thumbnailPath = thumbnailPath;
+            // Convert path to use forward slashes for JSON storage
+            asset.thumbnailPath = thumbnailPath.Replace('\\', '/');
         }
 
         private void SaveTextureToFile(Texture2D texture, string filePath)

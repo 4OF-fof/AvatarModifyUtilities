@@ -20,6 +20,7 @@ namespace AMU.AssetManager.UI
         private AssetInfo _asset;
         private AssetThumbnailManager _thumbnailManager;
         private AssetFileManager _fileManager;
+        private AssetDataManager _dataManager;
 
         // Preview state
         private PreviewRenderUtility _previewUtility;
@@ -54,11 +55,18 @@ namespace AMU.AssetManager.UI
             if (_thumbnailManager == null)
             {
                 _thumbnailManager = new AssetThumbnailManager();
+                _thumbnailManager.OnThumbnailSaved += OnThumbnailSaved;
             }
 
             if (_fileManager == null)
             {
                 _fileManager = new AssetFileManager();
+            }
+
+            if (_dataManager == null)
+            {
+                _dataManager = new AssetDataManager();
+                _dataManager.LoadData();
             }
         }
 
@@ -422,6 +430,14 @@ namespace AMU.AssetManager.UI
 
                     Debug.Log($"[AssetPreviewWindow] Preview image exported to: {path}");
                 }
+            }
+        }
+
+        private void OnThumbnailSaved(AssetInfo asset)
+        {
+            if (asset != null && _dataManager != null)
+            {
+                _dataManager.UpdateAsset(asset);
             }
         }
     }
