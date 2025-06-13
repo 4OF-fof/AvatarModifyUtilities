@@ -35,26 +35,5 @@ namespace AMU.Editor.Initializer
                 Debug.LogError($"[AMU] TagTypeManager initialization failed: {ex.Message}");
             }
         }
-
-        [MenuItem("AMU/Initialize/Reset Tag & Type Data")]
-        public static void ResetTagTypeData()
-        {
-            if (EditorUtility.DisplayDialog("確認",
-                "タグとタイプのデータをデフォルト状態にリセットしますか？\n" +
-                "カスタムタグとタイプは失われます。",
-                "リセット", "キャンセル"))
-            {
-                TagTypeManager.ResetToDefaults();
-                Debug.Log("[AMU] Tag & Type data has been reset to defaults.");
-            }
-        }
-
-        [MenuItem("AMU/Initialize/Open Data Folder")]
-        public static void OpenDataFolder()
-        {
-            var dataPath = TagTypeManager.GetDataFilePath();
-            var folderPath = System.IO.Path.GetDirectoryName(dataPath);
-            EditorUtility.RevealInFinder(folderPath);
-        }
     }
 }
