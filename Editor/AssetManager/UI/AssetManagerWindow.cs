@@ -25,17 +25,19 @@ namespace AMU.AssetManager.UI
         // Managers
         private AssetDataManager _dataManager;
         private AssetThumbnailManager _thumbnailManager;
-        private AssetFileManager _fileManager;
-
-        // UI State
+        private AssetFileManager _fileManager;        // UI State
         private Vector2 _leftScrollPosition = Vector2.zero;
         private Vector2 _rightScrollPosition = Vector2.zero;
         private string _searchText = "";
-        private AssetType _selectedAssetType = AssetType.Avatar;
+        private string _selectedAssetType = "Avatar";
         private bool _showFavoritesOnly = false;
         private bool _showHidden = false;
         private int _selectedSortOption = 1;
         private bool _sortDescending = true;
+
+        // Type Management
+        private bool _showTypeManager = false;
+        private string _newTypeName = "";
 
         // Layout
         private float _leftPanelWidth = 250f;
@@ -45,13 +47,12 @@ namespace AMU.AssetManager.UI
         // Asset Grid
         private float _thumbnailSize = 100f;
         private List<AssetInfo> _filteredAssets = new List<AssetInfo>();
-        private AssetInfo _selectedAsset;
-
-        private void OnEnable()
+        private AssetInfo _selectedAsset; private void OnEnable()
         {
             var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
             LocalizationManager.LoadLanguage(language);
 
+            AssetTypeManager.LoadCustomTypes();
             InitializeManagers();
             RefreshAssetList();
         }
@@ -193,26 +194,107 @@ namespace AMU.AssetManager.UI
                 DrawRightPanel();
             }
         }
-
         private void DrawLeftPanel()
         {
             using (new GUILayout.VerticalScope(GUILayout.Width(_leftPanelWidth)))
             {
-                GUILayout.Label("Asset Types", EditorStyles.boldLabel);
+                // Header with type management button
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUILayout.Label("Asset Types", EditorStyles.boldLabel);
+                    if (GUILayout.Button("⚙", GUILayout.Width(20)))
+                    {
+                        _showTypeManager = !_showTypeManager;
+                    }
+                }
+
+                // Type management panel
+                if (_showTypeManager)
+                {
+                    DrawTypeManagementPanel();
+                    GUILayout.Space(5);
+                }
+
+                // Asset types list
                 using (var scrollView = new GUILayout.ScrollViewScope(_leftScrollPosition, GUILayout.ExpandHeight(true)))
                 {
                     _leftScrollPosition = scrollView.scrollPosition;
 
-                    foreach (AssetType assetType in Enum.GetValues(typeof(AssetType)))
+                    // All types button
+                    bool isAllSelected = string.IsNullOrEmpty(_selectedAssetType);
+                    var allStyle = isAllSelected ? EditorStyles.boldLabel : EditorStyles.label;
+                    if (GUILayout.Button("All", allStyle))
+                    {
+                        _selectedAssetType = "";
+                        RefreshAssetList();
+                    }
+
+                    GUILayout.Space(5);
+
+                    // Individual type buttons
+                    foreach (var assetType in AssetTypeManager.AllTypes)
                     {
                         bool isSelected = _selectedAssetType == assetType;
                         var style = isSelected ? EditorStyles.boldLabel : EditorStyles.label;
-                        
-                        if (GUILayout.Button(assetType.ToString(), style))
+
+                        using (new GUILayout.HorizontalScope())
                         {
-                            _selectedAssetType = assetType;
+                            if (GUILayout.Button(assetType, style))
+                            {
+                                _selectedAssetType = assetType;
+                                RefreshAssetList();
+                            }
+
+                            // Show delete button for custom types
+                            if (!AssetTypeManager.IsDefaultType(assetType))
+                            {
+                                if (GUILayout.Button("×", GUILayout.Width(20)))
+                                {
+                                    if (EditorUtility.DisplayDialog("Confirm Delete",
+                                        $"Delete custom type '{assetType}'?", "Yes", "No"))
+                                    {
+                                        AssetTypeManager.RemoveCustomType(assetType);
+                                        if (_selectedAssetType == assetType)
+                                        {
+                                            _selectedAssetType = "";
+                                        }
+                                        RefreshAssetList();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void DrawTypeManagementPanel()
+        {
+            using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+            {
+                GUILayout.Label("Add Custom Type", EditorStyles.boldLabel);
+
+                using (new GUILayout.HorizontalScope())
+                {
+                    _newTypeName = EditorGUILayout.TextField(_newTypeName);
+
+                    if (GUILayout.Button("Add", GUILayout.Width(50)))
+                    {
+                        if (!string.IsNullOrWhiteSpace(_newTypeName))
+                        {
+                            AssetTypeManager.AddCustomType(_newTypeName);
+                            _newTypeName = "";
                             RefreshAssetList();
                         }
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(_newTypeName))
+                {
+                    var existingTypes = AssetTypeManager.AllTypes;
+                    if (existingTypes.Contains(_newTypeName.Trim()))
+                    {
+                        EditorGUILayout.HelpBox("Type already exists", MessageType.Warning);
                     }
                 }
             }
@@ -222,7 +304,7 @@ namespace AMU.AssetManager.UI
         {
             _resizeRect = new Rect(_leftPanelWidth, 0, 5, position.height);
             EditorGUIUtility.AddCursorRect(_resizeRect, MouseCursor.ResizeHorizontal);
-            
+
             if (Event.current.type == EventType.MouseDown && _resizeRect.Contains(Event.current.mousePosition))
             {
                 _isResizing = true;
@@ -292,7 +374,7 @@ namespace AMU.AssetManager.UI
                 // Thumbnail
                 var thumbnailRect = GUILayoutUtility.GetRect(_thumbnailSize, _thumbnailSize);
                 var thumbnail = _thumbnailManager.GetThumbnail(asset);
-                
+
                 bool isSelected = _selectedAsset == asset;
                 if (isSelected)
                 {
@@ -338,14 +420,14 @@ namespace AMU.AssetManager.UI
                     alignment = TextAnchor.UpperCenter,
                     fontSize = 10
                 };
-                
+
                 GUILayout.Label(asset.name, nameStyle, GUILayout.Height(30));
 
                 // Handle click events
                 if (Event.current.type == EventType.MouseDown && thumbnailRect.Contains(Event.current.mousePosition))
                 {
                     _selectedAsset = asset;
-                    
+
                     if (Event.current.clickCount == 2)
                     {
                         // Double click - open details
@@ -356,7 +438,7 @@ namespace AMU.AssetManager.UI
                         // Right click - context menu
                         ShowContextMenu(asset);
                     }
-                    
+
                     Event.current.Use();
                     Repaint();
                 }
@@ -366,57 +448,63 @@ namespace AMU.AssetManager.UI
         private void ShowContextMenu(AssetInfo asset)
         {
             var menu = new GenericMenu();
-            
-            menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_viewDetails")), false, () => {
+
+            menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_viewDetails")), false, () =>
+            {
                 AssetDetailWindow.ShowWindow(asset);
             });
-            
+
             menu.AddSeparator("");
-            
-            menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_editAsset")), false, () => {
+
+            menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_editAsset")), false, () =>
+            {
                 AssetDetailWindow.ShowWindow(asset, true);
             });
-            
+
             menu.AddSeparator("");
-            
-            string favoriteText = asset.isFavorite ? 
-                LocalizationManager.GetText("AssetManager_removeFromFavorites") : 
+
+            string favoriteText = asset.isFavorite ?
+                LocalizationManager.GetText("AssetManager_removeFromFavorites") :
                 LocalizationManager.GetText("AssetManager_addToFavorites");
-            
-            menu.AddItem(new GUIContent(favoriteText), false, () => {
+
+            menu.AddItem(new GUIContent(favoriteText), false, () =>
+            {
                 asset.isFavorite = !asset.isFavorite;
                 _dataManager.UpdateAsset(asset);
             });
-            
+
             menu.AddSeparator("");
-            
-            string hiddenText = asset.isHidden ? 
-                LocalizationManager.GetText("AssetManager_showAsset") : 
+
+            string hiddenText = asset.isHidden ?
+                LocalizationManager.GetText("AssetManager_showAsset") :
                 LocalizationManager.GetText("AssetManager_hideAsset");
-            
-            menu.AddItem(new GUIContent(hiddenText), false, () => {
+
+            menu.AddItem(new GUIContent(hiddenText), false, () =>
+            {
                 asset.isHidden = !asset.isHidden;
                 _dataManager.UpdateAsset(asset);
             });
-            
+
             menu.AddSeparator("");
-            
-            menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_openLocation")), false, () => {
+
+            menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_openLocation")), false, () =>
+            {
                 _fileManager.OpenFileLocation(asset);
             });
-            
+
             menu.AddSeparator("");
-            
-            menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_deleteAsset")), false, () => {
-                if (EditorUtility.DisplayDialog("Confirm Delete", 
-                    LocalizationManager.GetText("AssetManager_confirmDelete"), 
-                    LocalizationManager.GetText("Common_yes"), 
+
+            menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_deleteAsset")), false, () =>
+            {
+                if (EditorUtility.DisplayDialog("Confirm Delete",
+                    LocalizationManager.GetText("AssetManager_confirmDelete"),
+                    LocalizationManager.GetText("Common_yes"),
                     LocalizationManager.GetText("Common_no")))
                 {
                     _dataManager.RemoveAsset(asset.uid);
                 }
             });
-            
+
             menu.ShowAsContext();
         }
 
@@ -448,18 +536,18 @@ namespace AMU.AssetManager.UI
             switch (_selectedSortOption)
             {
                 case 0: // Name
-                    _filteredAssets = _sortDescending ? 
-                        _filteredAssets.OrderByDescending(a => a.name).ToList() : 
+                    _filteredAssets = _sortDescending ?
+                        _filteredAssets.OrderByDescending(a => a.name).ToList() :
                         _filteredAssets.OrderBy(a => a.name).ToList();
                     break;
                 case 1: // Date
-                    _filteredAssets = _sortDescending ? 
-                        _filteredAssets.OrderByDescending(a => a.createdDate).ToList() : 
+                    _filteredAssets = _sortDescending ?
+                        _filteredAssets.OrderByDescending(a => a.createdDate).ToList() :
                         _filteredAssets.OrderBy(a => a.createdDate).ToList();
                     break;
                 case 2: // Size
-                    _filteredAssets = _sortDescending ? 
-                        _filteredAssets.OrderByDescending(a => a.fileSize).ToList() : 
+                    _filteredAssets = _sortDescending ?
+                        _filteredAssets.OrderByDescending(a => a.fileSize).ToList() :
                         _filteredAssets.OrderBy(a => a.fileSize).ToList();
                     break;
             }
@@ -473,9 +561,9 @@ namespace AMU.AssetManager.UI
             {
                 if (Event.current.keyCode == KeyCode.Delete && _selectedAsset != null)
                 {
-                    if (EditorUtility.DisplayDialog("Confirm Delete", 
-                        LocalizationManager.GetText("AssetManager_confirmDelete"), 
-                        LocalizationManager.GetText("Common_yes"), 
+                    if (EditorUtility.DisplayDialog("Confirm Delete",
+                        LocalizationManager.GetText("AssetManager_confirmDelete"),
+                        LocalizationManager.GetText("Common_yes"),
                         LocalizationManager.GetText("Common_no")))
                     {
                         _dataManager.RemoveAsset(_selectedAsset.uid);

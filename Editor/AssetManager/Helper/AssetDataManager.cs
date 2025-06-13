@@ -23,7 +23,7 @@ namespace AMU.AssetManager.Helper
 
         public AssetDataManager()
         {
-            string coreDir = EditorPrefs.GetString("Setting.Core_dirPath", 
+            string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
             _dataFilePath = Path.Combine(coreDir, "AssetManager", "AssetLibrary.json");
         }
@@ -118,8 +118,7 @@ namespace AMU.AssetManager.Helper
         {
             return _assetLibrary?.assets ?? new List<AssetInfo>();
         }
-
-        public List<AssetInfo> SearchAssets(string searchText, AssetType? filterType = null, bool? favoritesOnly = null, bool showHidden = false)
+        public List<AssetInfo> SearchAssets(string searchText, string filterType = null, bool? favoritesOnly = null, bool showHidden = false)
         {
             var assets = GetAllAssets();
 
@@ -131,7 +130,7 @@ namespace AMU.AssetManager.Helper
             if (!string.IsNullOrEmpty(searchText))
             {
                 searchText = searchText.ToLower();
-                assets = assets.Where(a => 
+                assets = assets.Where(a =>
                     a.name.ToLower().Contains(searchText) ||
                     a.description.ToLower().Contains(searchText) ||
                     a.authorName.ToLower().Contains(searchText) ||
@@ -139,9 +138,9 @@ namespace AMU.AssetManager.Helper
                 ).ToList();
             }
 
-            if (filterType.HasValue)
+            if (!string.IsNullOrEmpty(filterType))
             {
-                assets = assets.Where(a => a.assetType == filterType.Value).ToList();
+                assets = assets.Where(a => a.assetType == filterType).ToList();
             }
 
             if (favoritesOnly.HasValue && favoritesOnly.Value)

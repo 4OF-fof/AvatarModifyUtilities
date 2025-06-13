@@ -32,13 +32,12 @@ namespace AMU.AssetManager.UI
 
         // UI state for tags and dependencies
         private string _newTag = "";
-        private string _newDependency = "";
-
-        private void OnEnable()
+        private string _newDependency = ""; private void OnEnable()
         {
             var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
             LocalizationManager.LoadLanguage(language);
 
+            AssetTypeManager.LoadCustomTypes();
             InitializeManagers();
         }
 
@@ -128,7 +127,7 @@ namespace AMU.AssetManager.UI
             using (new GUILayout.VerticalScope(GUILayout.Width(200)))
             {
                 GUILayout.Label(LocalizationManager.GetText("AssetDetail_thumbnail"), EditorStyles.boldLabel);
-                
+
                 _thumbnailManager.DrawThumbnail(_asset, 180);
 
                 if (_isEditMode)
@@ -184,18 +183,24 @@ namespace AMU.AssetManager.UI
                 {
                     GUILayout.Label(_asset.description, EditorStyles.wordWrappedLabel);
                 }
-                GUILayout.EndHorizontal();
-
-                // Type
+                GUILayout.EndHorizontal();                // Type
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(LocalizationManager.GetText("AssetDetail_type"), GUILayout.Width(100));
                 if (_isEditMode)
                 {
-                    _asset.assetType = (AssetType)EditorGUILayout.EnumPopup(_asset.assetType);
+                    var allTypes = AssetTypeManager.AllTypes;
+                    var currentIndex = allTypes.IndexOf(_asset.assetType);
+                    if (currentIndex < 0) currentIndex = 0;
+
+                    var newIndex = EditorGUILayout.Popup(currentIndex, allTypes.ToArray());
+                    if (newIndex >= 0 && newIndex < allTypes.Count)
+                    {
+                        _asset.assetType = allTypes[newIndex];
+                    }
                 }
                 else
                 {
-                    GUILayout.Label(_asset.assetType.ToString());
+                    GUILayout.Label(_asset.assetType);
                 }
                 GUILayout.EndHorizontal();
 

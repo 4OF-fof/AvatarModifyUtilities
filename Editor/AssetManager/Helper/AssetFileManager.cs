@@ -116,37 +116,36 @@ namespace AMU.AssetManager.Helper
             }
             return $"{len:0.##} {sizes[order]}";
         }
-
-        private AssetType DetermineAssetType(string filePath)
+        private string DetermineAssetType(string filePath)
         {
             string extension = Path.GetExtension(filePath).ToLower();
-            
+
             switch (extension)
             {
                 case ".prefab":
-                    return AssetType.Prefab;
+                    return "Prefab";
                 case ".mat":
-                    return AssetType.Material;
+                    return "Material";
                 case ".png":
                 case ".jpg":
                 case ".jpeg":
                 case ".tga":
                 case ".psd":
                 case ".tiff":
-                    return AssetType.Texture;
+                    return "Texture";
                 case ".anim":
                 case ".controller":
-                    return AssetType.Animation;
+                    return "Animation";
                 case ".cs":
-                    return AssetType.Script;
+                    return "Script";
                 case ".shader":
-                    return AssetType.Shader;
+                    return "Shader";
                 case ".fbx":
                 case ".obj":
                 case ".blend":
-                    return AssetType.Avatar;
+                    return "Avatar";
                 default:
-                    return AssetType.Other;
+                    return "Other";
             }
         }
 

@@ -17,11 +17,12 @@ namespace AMU.AssetManager.Helper
 
         public AssetThumbnailManager()
         {
-            string coreDir = EditorPrefs.GetString("Setting.Core_dirPath", 
+            string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
             _thumbnailDirectory = Path.Combine(coreDir, "AssetManager", "Thumbnails");
             EnsureThumbnailDirectory();
-        }        public Texture2D GetThumbnail(AssetInfo asset)
+        }
+        public Texture2D GetThumbnail(AssetInfo asset)
         {
             if (asset == null) return null;
 
@@ -62,7 +63,8 @@ namespace AMU.AssetManager.Helper
                 _thumbnailCache[asset.uid] = texture;
                 OnThumbnailLoaded?.Invoke();
                 OnThumbnailSaved?.Invoke(asset);
-            }        }
+            }
+        }
 
         public void ClearCache()
         {
@@ -73,7 +75,8 @@ namespace AMU.AssetManager.Helper
                     UnityEngine.Object.DestroyImmediate(texture);
                 }
             }
-            _thumbnailCache.Clear();        }
+            _thumbnailCache.Clear();
+        }
 
         private Texture2D LoadTextureFromFile(string filePath)
         {
@@ -122,22 +125,21 @@ namespace AMU.AssetManager.Helper
                 Debug.LogError($"[AssetThumbnailManager] Failed to save texture to {filePath}: {ex.Message}");
             }
         }
-
-        private Texture2D GetDefaultThumbnail(AssetType assetType)
+        private Texture2D GetDefaultThumbnail(string assetType)
         {
             // Return default Unity icons based on asset type
             switch (assetType)
             {
-                case AssetType.Avatar:
-                case AssetType.Prefab:
+                case "Avatar":
+                case "Prefab":
                     return EditorGUIUtility.IconContent("Prefab Icon").image as Texture2D;
-                case AssetType.Material:
+                case "Material":
                     return EditorGUIUtility.IconContent("Material Icon").image as Texture2D;
-                case AssetType.Texture:
+                case "Texture":
                     return EditorGUIUtility.IconContent("Texture Icon").image as Texture2D;
-                case AssetType.Animation:
+                case "Animation":
                     return EditorGUIUtility.IconContent("AnimationClip Icon").image as Texture2D;
-                case AssetType.Script:
+                case "Script":
                     return EditorGUIUtility.IconContent("cs Script Icon").image as Texture2D;
                 default:
                     return EditorGUIUtility.IconContent("DefaultAsset Icon").image as Texture2D;
@@ -156,7 +158,7 @@ namespace AMU.AssetManager.Helper
         {
             var thumbnail = GetThumbnail(asset);
             var rect = GUILayoutUtility.GetRect(size, size, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(false));
-            
+
             if (thumbnail != null)
             {
                 GUI.DrawTexture(rect, thumbnail, ScaleMode.ScaleToFit);
