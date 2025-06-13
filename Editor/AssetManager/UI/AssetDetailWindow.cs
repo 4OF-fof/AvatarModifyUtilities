@@ -208,12 +208,6 @@ namespace AMU.AssetManager.UI
                 GUILayout.Label(_asset.name, EditorStyles.boldLabel);
                 GUILayout.FlexibleSpace();
 
-                // 更新ボタン（常に表示）
-                if (GUILayout.Button(LocalizationManager.GetText("Common_refresh"), EditorStyles.toolbarButton))
-                {
-                    RefreshAssetInfo();
-                }
-
                 if (_isEditMode)
                 {
                     if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_save"), EditorStyles.toolbarButton))
@@ -228,6 +222,10 @@ namespace AMU.AssetManager.UI
                 }
                 else
                 {
+                    if (GUILayout.Button(LocalizationManager.GetText("Common_refresh"), EditorStyles.toolbarButton))
+                    {
+                        RefreshAssetInfo();
+                    }
                     if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_edit"), EditorStyles.toolbarButton))
                     {
                         // 編集モードに入る前にアセット情報を最新に更新
