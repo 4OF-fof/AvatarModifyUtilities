@@ -140,7 +140,7 @@ namespace AMU.BoothPackageManager.Helper
                     }
                 }
             }
-            
+
             return Task.CompletedTask;
         }
 

@@ -43,7 +43,7 @@ namespace AMU.BoothPackageManager.UI
                 imageManager.OnImageLoaded += () => Repaint();
             }
         }
-        
+
         private void OnDataLoaded()
         {
             fileManager.UpdateFileExistenceCache(dataManager.Library);
