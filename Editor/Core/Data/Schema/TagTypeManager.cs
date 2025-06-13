@@ -22,11 +22,7 @@ namespace AMU.Data.TagType
     {
         public string id;
         public string name;
-        public string description;
         public string color; // HEX色コード
-        public string category;
-        public bool isVisible = true;
-        public int sortOrder = 0;
         public DateTime createdDate = DateTime.Now;
 
         public TagItem()
@@ -34,13 +30,11 @@ namespace AMU.Data.TagType
             id = Guid.NewGuid().ToString();
         }
 
-        public TagItem(string name, string description = "", string color = "#FFFFFF", string category = "General")
+        public TagItem(string name, string color = "#FFFFFF")
         {
             id = Guid.NewGuid().ToString();
             this.name = name;
-            this.description = description;
             this.color = color;
-            this.category = category;
         }
     }
 
@@ -50,7 +44,6 @@ namespace AMU.Data.TagType
         public string id;
         public string name;
         public string description;
-        public string icon; // アイコンパス
         public bool isDefault = false;
         public bool isVisible = true;
         public int sortOrder = 0;
@@ -172,20 +165,15 @@ namespace AMU.Data.TagType
             // デフォルトタグ
             var defaultTags = new[]
             {
-                new TagItem("Free", "無料", "#4CAF50", "Price"),
-                new TagItem("Paid", "有料", "#F44336", "Price"),
-                new TagItem("VRC", "VRChat対応", "#1976D2", "Platform"),
-                new TagItem("Original", "オリジナル", "#9C27B0", "Origin"),
-                new TagItem("Public", "パブリック対応", "#FF9800", "Usage"),
-                new TagItem("Commercial", "商用利用可", "#795548", "License"),
-                new TagItem("Favorite", "お気に入り", "#E91E63", "Personal"),
-                new TagItem("Work-in-Progress", "制作中", "#607D8B", "Status")
+                new TagItem("Free", "#4CAF50"),
+                new TagItem("Paid", "#F44336"),
+                new TagItem("VRC", "#1976D2"),
+                new TagItem("Original", "#9C27B0"),
+                new TagItem("Public", "#FF9800"),
+                new TagItem("Commercial", "#795548"),
+                new TagItem("Favorite", "#E91E63"),
+                new TagItem("Work-in-Progress", "#607D8B")
             };
-
-            for (int i = 0; i < defaultTags.Length; i++)
-            {
-                defaultTags[i].sortOrder = i;
-            }
 
             data.tags.AddRange(defaultTags);
 
@@ -214,7 +202,7 @@ namespace AMU.Data.TagType
         public static List<TagItem> GetVisibleTags()
         {
             CheckAndReloadIfNeeded();
-            return Data.tags.FindAll(t => t.isVisible);
+            return new List<TagItem>(Data.tags);
         }
 
         public static TagItem GetTagById(string id)
@@ -320,21 +308,13 @@ namespace AMU.Data.TagType
         public static List<string> GetTagCategories()
         {
             CheckAndReloadIfNeeded();
-            var categories = new HashSet<string>();
-            foreach (var tag in Data.tags)
-            {
-                if (!string.IsNullOrEmpty(tag.category))
-                {
-                    categories.Add(tag.category);
-                }
-            }
-            return new List<string>(categories);
+            return new List<string>();
         }
 
         public static List<TagItem> GetTagsByCategory(string category)
         {
             CheckAndReloadIfNeeded();
-            return Data.tags.FindAll(t => t.category == category && t.isVisible);
+            return new List<TagItem>(Data.tags);
         }
 
         public static Color GetTagColor(string tagName)

@@ -14,7 +14,6 @@ namespace AMU.Editor.TagType
 
         // タグ編集用
         private string _newTagName = "";
-        private string _newTagCategory = "Custom";
         private Color _newTagColor = Color.white;
         private string _editingTagId = "";
 
@@ -25,7 +24,6 @@ namespace AMU.Editor.TagType
 
         // フィルタリング
         private string _searchFilter = "";
-        private string _categoryFilter = "All";
 
         private GUIStyle _headerStyle;
         private GUIStyle _cardStyle;
@@ -87,17 +85,6 @@ namespace AMU.Editor.TagType
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("検索:", GUILayout.Width(40));
             _searchFilter = EditorGUILayout.TextField(_searchFilter);
-
-            if (_selectedTab == 0) // タグタブ
-            {
-                EditorGUILayout.LabelField("カテゴリ:", GUILayout.Width(60));
-                var categories = new List<string> { "All" };
-                categories.AddRange(TagTypeManager.GetTagCategories());
-                var categoryIndex = Mathf.Max(0, categories.IndexOf(_categoryFilter));
-                categoryIndex = EditorGUILayout.Popup(categoryIndex, categories.ToArray(), GUILayout.Width(100));
-                _categoryFilter = categories[categoryIndex];
-            }
-
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
 
@@ -148,11 +135,6 @@ namespace AMU.Editor.TagType
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("カテゴリ:", GUILayout.Width(50));
-            _newTagCategory = EditorGUILayout.TextField(_newTagCategory);
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("色:", GUILayout.Width(50));
             _newTagColor = EditorGUILayout.ColorField(_newTagColor);
             EditorGUILayout.EndHorizontal();
@@ -164,10 +146,9 @@ namespace AMU.Editor.TagType
                 if (!string.IsNullOrWhiteSpace(_newTagName))
                 {
                     var colorHex = "#" + ColorUtility.ToHtmlStringRGB(_newTagColor);
-                    var newTag = new TagItem(_newTagName, "", colorHex, _newTagCategory);
+                    var newTag = new TagItem(_newTagName, colorHex);
                     TagTypeManager.AddTag(newTag);
                     _newTagName = "";
-                    _newTagCategory = "Custom";
                     _newTagColor = Color.white;
                 }
             }
@@ -182,12 +163,8 @@ namespace AMU.Editor.TagType
             {
                 tags = tags.Where(t => t.name.ToLower().Contains(_searchFilter.ToLower())).ToList();
             }
-            if (_categoryFilter != "All")
-            {
-                tags = tags.Where(t => t.category == _categoryFilter).ToList();
-            }
 
-            foreach (var tag in tags.OrderBy(t => t.sortOrder).ThenBy(t => t.name))
+            foreach (var tag in tags.OrderBy(t => t.name))
             {
                 DrawTagItem(tag);
             }
@@ -210,11 +187,6 @@ namespace AMU.Editor.TagType
             // タグ情報
             EditorGUILayout.BeginVertical();
             EditorGUILayout.LabelField(tag.name, EditorStyles.boldLabel);
-            EditorGUILayout.LabelField($"カテゴリ: {tag.category}", EditorStyles.miniLabel);
-            if (!string.IsNullOrEmpty(tag.description))
-            {
-                EditorGUILayout.LabelField(tag.description, EditorStyles.miniLabel);
-            }
             EditorGUILayout.EndVertical();
 
             GUILayout.FlexibleSpace();
@@ -252,8 +224,6 @@ namespace AMU.Editor.TagType
             EditorGUILayout.LabelField("編集", EditorStyles.boldLabel);
 
             tag.name = EditorGUILayout.TextField("名前:", tag.name);
-            tag.description = EditorGUILayout.TextField("説明:", tag.description);
-            tag.category = EditorGUILayout.TextField("カテゴリ:", tag.category);
 
             Color color;
             if (ColorUtility.TryParseHtmlString(tag.color, out color))
@@ -261,9 +231,6 @@ namespace AMU.Editor.TagType
                 color = EditorGUILayout.ColorField("色:", color);
                 tag.color = "#" + ColorUtility.ToHtmlStringRGB(color);
             }
-
-            tag.isVisible = EditorGUILayout.Toggle("表示:", tag.isVisible);
-            tag.sortOrder = EditorGUILayout.IntField("ソート順:", tag.sortOrder);
 
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("保存"))

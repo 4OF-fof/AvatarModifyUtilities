@@ -254,8 +254,7 @@ namespace AMU.AssetManager.Data
         {
             return TagTypeManager.GetTagColor(tagName);
         }
-
-        public static bool AddCustomTag(string tagName, string category = "Custom", string color = "#CCCCCC")
+        public static bool AddCustomTag(string tagName, string color = "#CCCCCC")
         {
             if (string.IsNullOrWhiteSpace(tagName)) return false;
 
@@ -264,7 +263,7 @@ namespace AMU.AssetManager.Data
 
             if (existingTag == null)
             {
-                var newTag = new TagItem(tagName, $"カスタムタグ: {tagName}", color, category);
+                var newTag = new TagItem(tagName, color);
                 TagTypeManager.AddTag(newTag);
                 return true;
             }
