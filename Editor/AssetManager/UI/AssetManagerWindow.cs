@@ -34,11 +34,10 @@ namespace AMU.AssetManager.UI
         private bool _showFavoritesOnly = false;
         private bool _showHidden = false;
         private int _selectedSortOption = 1;
-        private bool _sortDescending = true;
-
-        // Data synchronization
+        private bool _sortDescending = true;        // Data synchronization
         private bool _needsRefresh = false;
-        private double _lastDataCheckTime = 0;// Type Management
+        private double _lastDataCheckTime = 0;
+        private bool _isLoadingTypeChange = false;// Type Management
         private string _newTypeName = "";
 
         // Layout
@@ -318,8 +317,13 @@ namespace AMU.AssetManager.UI
                     bool isAllSelected = string.IsNullOrEmpty(_selectedAssetType);
                     var allStyle = isAllSelected ? _selectedTypeButtonStyle : _typeButtonStyle; if (GUILayout.Button(LocalizationManager.GetText("AssetType_all"), allStyle))
                     {
-                        _selectedAssetType = "";
-                        _needsRefresh = true;
+                        if (_selectedAssetType != "")
+                        {
+                            _selectedAssetType = "";
+                            _isLoadingTypeChange = true;
+                            _needsRefresh = true;
+                            Repaint();
+                        }
                     }
 
                     GUILayout.Space(8);
@@ -334,8 +338,13 @@ namespace AMU.AssetManager.UI
                         {
                             if (GUILayout.Button(assetType, style, GUILayout.ExpandWidth(true)))
                             {
-                                _selectedAssetType = assetType;
-                                _needsRefresh = true;
+                                if (_selectedAssetType != assetType)
+                                {
+                                    _selectedAssetType = assetType;
+                                    _isLoadingTypeChange = true;
+                                    _needsRefresh = true;
+                                    Repaint();
+                                }
                             }
 
                             // Show delete button for custom types
@@ -487,9 +496,22 @@ namespace AMU.AssetManager.UI
                 DrawAssetGrid();
             }
         }
-
         private void DrawAssetGrid()
         {
+            // Type切り替え中の読み込み表示
+            if (_isLoadingTypeChange)
+            {
+                GUILayout.FlexibleSpace();
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Label(LocalizationManager.GetText("AssetManager_loading"), EditorStyles.largeLabel);
+                    GUILayout.FlexibleSpace();
+                }
+                GUILayout.FlexibleSpace();
+                return;
+            }
+
             if (_filteredAssets == null || _filteredAssets.Count == 0)
             {
                 GUILayout.FlexibleSpace();
@@ -676,12 +698,12 @@ namespace AMU.AssetManager.UI
                 }
             }
         }
-
         private void RefreshAssetList()
         {
             if (_dataManager?.Library?.assets == null)
             {
                 _filteredAssets = new List<AssetInfo>();
+                _isLoadingTypeChange = false;
                 return;
             }
 
@@ -707,6 +729,7 @@ namespace AMU.AssetManager.UI
                     break;
             }
 
+            _isLoadingTypeChange = false;
             Repaint();
         }
 
