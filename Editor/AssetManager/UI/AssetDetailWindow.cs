@@ -391,159 +391,178 @@ namespace AMU.AssetManager.UI
 
             }
         }
-
         private void DrawTagsAndDependencies()
         {
+            // 編集モードでない場合は、タグまたは依存関係が存在する場合のみ表示
+            bool hasTagsOrDependencies = (_asset.tags != null && _asset.tags.Count > 0) ||
+                                       (_asset.dependencies != null && _asset.dependencies.Count > 0);
+
+            if (!_isEditMode && !hasTagsOrDependencies)
+            {
+                return; // タグも依存関係もない場合は何も表示しない
+            }
+
             using (new GUILayout.HorizontalScope())
             {
-                // Tags
-                using (new GUILayout.VerticalScope())
+                // Tags - 編集モードまたはタグが存在する場合のみ表示
+                if (_isEditMode || (_asset.tags != null && _asset.tags.Count > 0))
                 {
-                    GUILayout.Label(LocalizationManager.GetText("AssetDetail_tags"), EditorStyles.boldLabel);
-                    using (new GUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Height(120)))
+                    using (new GUILayout.VerticalScope())
                     {
-                        if (_asset.tags != null && _asset.tags.Count > 0)
+                        GUILayout.Label(LocalizationManager.GetText("AssetDetail_tags"), EditorStyles.boldLabel);
+                        using (new GUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Height(120)))
                         {
-                            for (int i = _asset.tags.Count - 1; i >= 0; i--)
+                            if (_asset.tags != null && _asset.tags.Count > 0)
                             {
-                                using (new GUILayout.HorizontalScope())
+                                for (int i = _asset.tags.Count - 1; i >= 0; i--)
                                 {
-                                    var tagName = _asset.tags[i];
-                                    var originalColor = GUI.color;
-
-                                    // タグの色を取得して背景色に設定
-                                    var tagColor = AssetTagManager.GetTagColor(tagName);
-                                    GUI.color = tagColor;
-
-                                    var tagContent = new GUIContent(tagName);
-                                    GUILayout.Button(tagContent, EditorStyles.miniButton);
-
-                                    GUI.color = originalColor;
-
-                                    if (_isEditMode && GUILayout.Button("×", GUILayout.Width(20)))
+                                    using (new GUILayout.HorizontalScope())
                                     {
-                                        _asset.tags.RemoveAt(i);
+                                        var tagName = _asset.tags[i];
+                                        var originalColor = GUI.color;
+
+                                        // タグの色を取得して背景色に設定
+                                        var tagColor = AssetTagManager.GetTagColor(tagName);
+                                        GUI.color = tagColor;
+
+                                        var tagContent = new GUIContent(tagName);
+                                        GUILayout.Button(tagContent, EditorStyles.miniButton);
+
+                                        GUI.color = originalColor;
+
+                                        if (_isEditMode && GUILayout.Button("×", GUILayout.Width(20)))
+                                        {
+                                            _asset.tags.RemoveAt(i);
+                                        }
                                     }
                                 }
                             }
-                        }
-                        if (_isEditMode)
-                        {
-                            GUILayout.FlexibleSpace();
-                            DrawTagInput();
+                            if (_isEditMode)
+                            {
+                                GUILayout.FlexibleSpace();
+                                DrawTagInput();
+                            }
                         }
                     }
                 }
 
-                GUILayout.Space(10);                // Dependencies
-                using (new GUILayout.VerticalScope())
+                // タグと依存関係の両方が表示される場合のスペース
+                if ((_isEditMode || (_asset.tags != null && _asset.tags.Count > 0)) &&
+                    (_isEditMode || (_asset.dependencies != null && _asset.dependencies.Count > 0)))
                 {
-                    GUILayout.Label(LocalizationManager.GetText("AssetDetail_dependencies"), EditorStyles.boldLabel);
-                    using (new GUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Height(120)))
+                    GUILayout.Space(10);
+                }                // Dependencies - 編集モードまたは依存関係が存在する場合のみ表示
+                if (_isEditMode || (_asset.dependencies != null && _asset.dependencies.Count > 0))
+                {
+                    using (new GUILayout.VerticalScope())
                     {
-                        if (_asset.dependencies != null && _asset.dependencies.Count > 0)
+                        GUILayout.Label(LocalizationManager.GetText("AssetDetail_dependencies"), EditorStyles.boldLabel);
+                        using (new GUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Height(120)))
                         {
-                            for (int i = _asset.dependencies.Count - 1; i >= 0; i--)
+                            if (_asset.dependencies != null && _asset.dependencies.Count > 0)
                             {
-                                using (new GUILayout.HorizontalScope())
+                                for (int i = _asset.dependencies.Count - 1; i >= 0; i--)
                                 {
-                                    var dependency = _asset.dependencies[i];
-                                    var referencedAsset = _dataManager.GetAsset(dependency); // Use UUID instead of name
-
-                                    if (referencedAsset != null)
+                                    using (new GUILayout.HorizontalScope())
                                     {
-                                        // This is a reference to an existing asset
-                                        var originalColor = GUI.color;
-                                        GUI.color = new Color(0.7f, 1f, 0.7f, 1f); // Light green background
+                                        var dependency = _asset.dependencies[i];
+                                        var referencedAsset = _dataManager.GetAsset(dependency); // Use UUID instead of name
 
-                                        var content = new GUIContent(referencedAsset.name, LocalizationManager.GetText("AssetDetail_clickToOpenAsset"));
-                                        if (GUILayout.Button(content, EditorStyles.miniButton))
+                                        if (referencedAsset != null)
                                         {
-                                            // Open the referenced asset's detail window
-                                            AssetDetailWindow.ShowWindow(referencedAsset);
-                                        }
+                                            // This is a reference to an existing asset
+                                            var originalColor = GUI.color;
+                                            GUI.color = new Color(0.7f, 1f, 0.7f, 1f); // Light green background
 
-                                        GUI.color = originalColor;
-                                    }
-                                    else
-                                    {
-                                        // This is a manual text entry or broken reference
-                                        var originalColor = GUI.color; if (dependency.Length == 36 && dependency.Contains("-")) // Looks like a UUID
-                                        {
-                                            GUI.color = new Color(1f, 0.7f, 0.7f, 1f); // Light red for broken reference
-                                            var missingContent = new GUIContent($"{LocalizationManager.GetText("AssetDetail_missingDependency")} {dependency}");
-                                            GUILayout.Button(missingContent, EditorStyles.miniButton);
+                                            var content = new GUIContent(referencedAsset.name, LocalizationManager.GetText("AssetDetail_clickToOpenAsset"));
+                                            if (GUILayout.Button(content, EditorStyles.miniButton))
+                                            {
+                                                // Open the referenced asset's detail window
+                                                AssetDetailWindow.ShowWindow(referencedAsset);
+                                            }
+
+                                            GUI.color = originalColor;
                                         }
                                         else
                                         {
-                                            GUI.color = new Color(0.9f, 0.9f, 1f, 1f); // Light blue background for manual entries
-                                            var manualContent = new GUIContent(dependency);
-                                            GUILayout.Button(manualContent, EditorStyles.miniButton);
+                                            // This is a manual text entry or broken reference
+                                            var originalColor = GUI.color; if (dependency.Length == 36 && dependency.Contains("-")) // Looks like a UUID
+                                            {
+                                                GUI.color = new Color(1f, 0.7f, 0.7f, 1f); // Light red for broken reference
+                                                var missingContent = new GUIContent($"{LocalizationManager.GetText("AssetDetail_missingDependency")} {dependency}");
+                                                GUILayout.Button(missingContent, EditorStyles.miniButton);
+                                            }
+                                            else
+                                            {
+                                                GUI.color = new Color(0.9f, 0.9f, 1f, 1f); // Light blue background for manual entries
+                                                var manualContent = new GUIContent(dependency);
+                                                GUILayout.Button(manualContent, EditorStyles.miniButton);
+                                            }
+                                            GUI.color = originalColor;
                                         }
-                                        GUI.color = originalColor;
-                                    }
 
-                                    if (_isEditMode && GUILayout.Button("×", GUILayout.Width(20)))
-                                    {
-                                        _asset.dependencies.RemoveAt(i);
+                                        if (_isEditMode && GUILayout.Button("×", GUILayout.Width(20)))
+                                        {
+                                            _asset.dependencies.RemoveAt(i);
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        if (_isEditMode)
-                        {
-                            GUILayout.FlexibleSpace();
-                            // Selection mode toggle
-                            using (new GUILayout.HorizontalScope())
+                            if (_isEditMode)
                             {
-                                GUILayout.Label("Mode:", GUILayout.Width(40));
-                                string[] modes = {
+                                GUILayout.FlexibleSpace();
+                                // Selection mode toggle
+                                using (new GUILayout.HorizontalScope())
+                                {
+                                    GUILayout.Label("Mode:", GUILayout.Width(40));
+                                    string[] modes = {
                                     LocalizationManager.GetText("AssetDetail_dependencyModeAsset"),
                                     LocalizationManager.GetText("AssetDetail_dependencyModeManual")
                                 };
-                                _dependencySelectionMode = GUILayout.Toolbar(_dependencySelectionMode, modes, _tabStyle);
-                            }
+                                    _dependencySelectionMode = GUILayout.Toolbar(_dependencySelectionMode, modes, _tabStyle);
+                                }
 
-                            GUILayout.Space(3);
+                                GUILayout.Space(3);
 
-                            using (new GUILayout.HorizontalScope())
-                            {
-                                if (_dependencySelectionMode == 0)
+                                using (new GUILayout.HorizontalScope())
                                 {
-                                    // Asset selection mode
-                                    _availableAssets = _dataManager.GetAllAssets().Where(a => a.uid != _asset.uid).ToList(); // Exclude self
-                                    var assetNames = _availableAssets.Select(a => a.name).ToArray();
-
-                                    if (assetNames.Length > 0)
+                                    if (_dependencySelectionMode == 0)
                                     {
-                                        _selectedAssetIndex = EditorGUILayout.Popup(_selectedAssetIndex, assetNames);
+                                        // Asset selection mode
+                                        _availableAssets = _dataManager.GetAllAssets().Where(a => a.uid != _asset.uid).ToList(); // Exclude self
+                                        var assetNames = _availableAssets.Select(a => a.name).ToArray();
 
-                                        if (_selectedAssetIndex >= 0 && _selectedAssetIndex < _availableAssets.Count)
+                                        if (assetNames.Length > 0)
                                         {
-                                            if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_addDependency"), GUILayout.Width(80)))
+                                            _selectedAssetIndex = EditorGUILayout.Popup(_selectedAssetIndex, assetNames);
+
+                                            if (_selectedAssetIndex >= 0 && _selectedAssetIndex < _availableAssets.Count)
                                             {
-                                                var selectedAsset = _availableAssets[_selectedAssetIndex];
-                                                if (!_asset.dependencies.Contains(selectedAsset.uid))
+                                                if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_addDependency"), GUILayout.Width(80)))
                                                 {
-                                                    _asset.dependencies.Add(selectedAsset.uid); // Add UUID instead of name
-                                                    _selectedAssetIndex = -1; // Reset selection
+                                                    var selectedAsset = _availableAssets[_selectedAssetIndex];
+                                                    if (!_asset.dependencies.Contains(selectedAsset.uid))
+                                                    {
+                                                        _asset.dependencies.Add(selectedAsset.uid); // Add UUID instead of name
+                                                        _selectedAssetIndex = -1; // Reset selection
+                                                    }
                                                 }
                                             }
+                                        }
+                                        else
+                                        {
+                                            GUILayout.Label(LocalizationManager.GetText("AssetDetail_noOtherAssets"), EditorStyles.miniLabel);
                                         }
                                     }
                                     else
                                     {
-                                        GUILayout.Label(LocalizationManager.GetText("AssetDetail_noOtherAssets"), EditorStyles.miniLabel);
-                                    }
-                                }
-                                else
-                                {
-                                    // Manual input mode
-                                    _newDependency = EditorGUILayout.TextField(_newDependency);
-                                    if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_addDependency"), GUILayout.Width(80)))
-                                    {
-                                        AddDependency();
+                                        // Manual input mode
+                                        _newDependency = EditorGUILayout.TextField(_newDependency);
+                                        if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_addDependency"), GUILayout.Width(80)))
+                                        {
+                                            AddDependency();
+                                        }
                                     }
                                 }
                             }
