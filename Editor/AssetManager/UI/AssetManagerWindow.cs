@@ -159,17 +159,15 @@ namespace AMU.AssetManager.UI
             DrawToolbar();
             DrawMainContent();
             HandleEvents();
-        }
-
-        /// <summary>
-        /// データの外部変更をチェックして必要に応じてリフレッシュ
-        /// </summary>
+        }        /// <summary>
+                 /// データの外部変更をチェックして必要に応じてリフレッシュ
+                 /// </summary>
         private void CheckAndRefreshData()
         {
             double currentTime = EditorApplication.timeSinceStartup;
 
-            // 一定間隔でチェック（0.5秒間隔）
-            if (currentTime - _lastDataCheckTime > 0.5f)
+            // チェック間隔を2秒に延長してパフォーマンスを向上
+            if (currentTime - _lastDataCheckTime > 2.0f)
             {
                 _lastDataCheckTime = currentTime;
 
@@ -537,16 +535,43 @@ namespace AMU.AssetManager.UI
                 float availableWidth = position.width - _leftPanelWidth - 20;
                 int columnsPerRow = Mathf.Max(1, Mathf.FloorToInt(availableWidth / (_thumbnailSize + 10)));
 
-                for (int i = 0; i < _filteredAssets.Count; i += columnsPerRow)
+                // 仮想化：表示範囲内のアイテムのみ描画
+                float itemHeight = _thumbnailSize + 40; // サムネイル + テキストの高さ
+                float scrollAreaHeight = position.height - 100; // ツールバーなどを除く
+
+                int visibleRows = Mathf.CeilToInt(scrollAreaHeight / itemHeight) + 2; // バッファ行を追加
+                int totalRows = Mathf.CeilToInt((float)_filteredAssets.Count / columnsPerRow);
+
+                int startRow = Mathf.Max(0, Mathf.FloorToInt(_rightScrollPosition.y / itemHeight) - 1);
+                int endRow = Mathf.Min(totalRows, startRow + visibleRows);
+
+                // 上部の空白スペース
+                if (startRow > 0)
                 {
+                    GUILayout.Space(startRow * itemHeight);
+                }
+
+                // 表示範囲内のアイテムを描画
+                for (int row = startRow; row < endRow; row++)
+                {
+                    int startIndex = row * columnsPerRow;
+                    if (startIndex >= _filteredAssets.Count) break;
+
                     using (new GUILayout.HorizontalScope())
                     {
-                        for (int j = 0; j < columnsPerRow && i + j < _filteredAssets.Count; j++)
+                        for (int j = 0; j < columnsPerRow && startIndex + j < _filteredAssets.Count; j++)
                         {
-                            DrawAssetItem(_filteredAssets[i + j]);
+                            DrawAssetItem(_filteredAssets[startIndex + j]);
                         }
                         GUILayout.FlexibleSpace();
                     }
+                }
+
+                // 下部の空白スペース
+                int remainingRows = totalRows - endRow;
+                if (remainingRows > 0)
+                {
+                    GUILayout.Space(remainingRows * itemHeight);
                 }
             }
         }

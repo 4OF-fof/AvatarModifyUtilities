@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEditor;
 using AMU.AssetManager.Data;
@@ -11,7 +13,10 @@ namespace AMU.AssetManager.Helper
     {
         private Dictionary<string, Texture2D> _thumbnailCache = new Dictionary<string, Texture2D>();
         private Dictionary<string, DateTime> _thumbnailFileModified = new Dictionary<string, DateTime>();
+        private HashSet<string> _loadingThumbnails = new HashSet<string>();
+        private Queue<string> _loadQueue = new Queue<string>();
         private string _thumbnailDirectory;
+        private int _maxCacheSize = 200; // キャッシュサイズを制限
 
         public event Action<AssetInfo> OnThumbnailSaved;
         public event Action OnThumbnailLoaded;
@@ -27,28 +32,143 @@ namespace AMU.AssetManager.Helper
         {
             if (asset == null) return null;
 
-            // サムネイルファイルの変更をチェック
-            CheckThumbnailFileChanges(asset);
-
-            // Check cache first
+            // キャッシュから取得
             if (_thumbnailCache.TryGetValue(asset.uid, out var cachedTexture) && cachedTexture != null)
             {
                 return cachedTexture;
             }
 
-            // Try to load from thumbnail path
-            if (!string.IsNullOrEmpty(asset.thumbnailPath) && File.Exists(asset.thumbnailPath))
+            // 既に読み込み中の場合はデフォルトを返す
+            if (_loadingThumbnails.Contains(asset.uid))
             {
-                var texture = LoadTextureFromFile(asset.thumbnailPath);
-                if (texture != null)
-                {
-                    _thumbnailCache[asset.uid] = texture;
-                    UpdateThumbnailModifiedTime(asset);
-                    return texture;
-                }
+                return GetDefaultThumbnail(asset.assetType);
             }
 
+            // 非同期で読み込みを開始
+            LoadThumbnailAsync(asset);
+
             return GetDefaultThumbnail(asset.assetType);
+        }
+
+        /// <summary>
+        /// サムネイルを非同期で読み込む
+        /// </summary>
+        private async void LoadThumbnailAsync(AssetInfo asset)
+        {
+            if (_loadingThumbnails.Contains(asset.uid)) return;
+
+            _loadingThumbnails.Add(asset.uid);
+
+            try
+            {
+                // サムネイルファイルの変更をチェック
+                CheckThumbnailFileChanges(asset);
+
+                Texture2D texture = null;
+
+                // サムネイルパスが存在する場合
+                if (!string.IsNullOrEmpty(asset.thumbnailPath) && File.Exists(asset.thumbnailPath))
+                {
+                    texture = await LoadTextureFromFileAsync(asset.thumbnailPath);
+                }
+
+                if (texture != null)
+                {
+                    // メインスレッドでキャッシュに追加
+                    EditorApplication.delayCall += () =>
+                    {
+                        AddToCache(asset.uid, texture);
+                        UpdateThumbnailModifiedTime(asset);
+                        OnThumbnailLoaded?.Invoke();
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[AssetThumbnailManager] Failed to load thumbnail for {asset.uid}: {ex.Message}");
+            }
+            finally
+            {
+                _loadingThumbnails.Remove(asset.uid);
+            }
+        }
+
+        /// <summary>
+        /// テクスチャファイルを非同期で読み込む
+        /// </summary>
+        private async Task<Texture2D> LoadTextureFromFileAsync(string filePath)
+        {
+            try
+            {
+                if (filePath.StartsWith("Assets/"))
+                {
+                    // Unityアセットの場合はメインスレッドで読み込み
+                    return AssetDatabase.LoadAssetAtPath<Texture2D>(filePath);
+                }
+                else
+                {
+                    // 外部ファイルを非同期で読み込み
+                    byte[] fileData = await ReadFileAsync(filePath);
+
+                    if (fileData != null)
+                    {
+                        // テクスチャ作成はメインスレッドで実行
+                        Texture2D texture = null;
+                        await Task.Run(() =>
+                        {
+                            EditorApplication.delayCall += () =>
+                            {
+                                texture = new Texture2D(2, 2);
+                                if (!texture.LoadImage(fileData))
+                                {
+                                    UnityEngine.Object.DestroyImmediate(texture);
+                                    texture = null;
+                                }
+                            };
+                        });
+
+                        return texture;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[AssetThumbnailManager] Failed to load texture from {filePath}: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// ファイルを非同期で読み込む
+        /// </summary>
+        private async Task<byte[]> ReadFileAsync(string filePath)
+        {
+            using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                var buffer = new byte[fileStream.Length];
+                await fileStream.ReadAsync(buffer, 0, buffer.Length);
+                return buffer;
+            }
+        }
+
+        /// <summary>
+        /// キャッシュにテクスチャを追加（サイズ制限付き）
+        /// </summary>
+        private void AddToCache(string assetUid, Texture2D texture)
+        {
+            // キャッシュサイズを制限
+            if (_thumbnailCache.Count >= _maxCacheSize)
+            {
+                var oldestEntry = _thumbnailCache.First();
+                if (oldestEntry.Value != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(oldestEntry.Value);
+                }
+                _thumbnailCache.Remove(oldestEntry.Key);
+            }
+
+            _thumbnailCache[assetUid] = texture;
         }
 
         /// <summary>
@@ -120,7 +240,7 @@ namespace AMU.AssetManager.Helper
             if (asset == null || string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath))
                 return;
 
-            var texture = LoadTextureFromFile(imagePath);
+            var texture = LoadTextureFromFileSync(imagePath);
             if (texture != null)
             {
                 // Save to thumbnail directory
@@ -132,7 +252,7 @@ namespace AMU.AssetManager.Helper
 
                 // 古いキャッシュを無効化してから新しいテクスチャをキャッシュ
                 InvalidateThumbnailCache(asset.uid);
-                _thumbnailCache[asset.uid] = texture;
+                AddToCache(asset.uid, texture);
                 UpdateThumbnailModifiedTime(asset);
 
                 OnThumbnailLoaded?.Invoke();
@@ -151,8 +271,7 @@ namespace AMU.AssetManager.Helper
             _thumbnailCache.Clear();
             _thumbnailFileModified.Clear();
         }
-
-        private Texture2D LoadTextureFromFile(string filePath)
+        private Texture2D LoadTextureFromFileSync(string filePath)
         {
             try
             {

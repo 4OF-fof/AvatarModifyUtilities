@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEditor;
 using Newtonsoft.Json;
@@ -17,6 +18,13 @@ namespace AMU.AssetManager.Helper
         private bool _isLoading = false;
         private DateTime _lastFileModified = DateTime.MinValue;
         private string _lastFileHash = "";
+
+        // キャッシュとインデックス
+        private Dictionary<string, List<AssetInfo>> _searchCache = new Dictionary<string, List<AssetInfo>>();
+        private Dictionary<string, List<AssetInfo>> _typeCache = new Dictionary<string, List<AssetInfo>>();
+        private Dictionary<string, AssetInfo> _assetByIdIndex = new Dictionary<string, AssetInfo>();
+        private List<string> _searchableText = new List<string>();
+        private bool _indexNeedsUpdate = true;
 
         public AssetLibrary Library => _assetLibrary;
         public bool IsLoading => _isLoading;
@@ -36,48 +44,72 @@ namespace AMU.AssetManager.Helper
 
             _isLoading = true;
 
+            // 非同期でデータを読み込み
+            LoadDataAsync();
+        }
+
+        private async void LoadDataAsync()
+        {
             try
             {
                 if (!File.Exists(_dataFilePath))
                 {
                     _assetLibrary = new AssetLibrary();
-                    SaveData();
+                    await SaveDataAsync();
                 }
                 else
                 {
-                    string json = File.ReadAllText(_dataFilePath);
-                    _assetLibrary = JsonConvert.DeserializeObject<AssetLibrary>(json) ?? new AssetLibrary();
+                    // ファイルを非同期で読み込み
+                    string json = await ReadFileAsync(_dataFilePath);
+
+                    // JSONのデシリアライズを別スレッドで実行
+                    _assetLibrary = await Task.Run(() =>
+                        JsonConvert.DeserializeObject<AssetLibrary>(json) ?? new AssetLibrary());
+
                     UpdateFileTrackingInfo();
+                    UpdateIndexes();
                 }
 
                 _isLoading = false;
-                OnDataLoaded?.Invoke();
+
+                // メインスレッドでイベントを実行
+                EditorApplication.delayCall += () => OnDataLoaded?.Invoke();
             }
             catch (Exception ex)
             {
                 Debug.LogError($"[AssetDataManager] Failed to load data: {ex.Message}");
                 _assetLibrary = new AssetLibrary();
                 _isLoading = false;
-                OnDataLoaded?.Invoke();
+                EditorApplication.delayCall += () => OnDataLoaded?.Invoke();
             }
         }
 
-        /// <summary>
-        /// JSONファイルが外部で変更されていないかチェックし、必要に応じて再読み込みを行う
-        /// </summary>
+        private async Task<string> ReadFileAsync(string filePath)
+        {
+            using (var reader = new StreamReader(filePath))
+            {
+                return await reader.ReadToEndAsync();
+            }
+        }        /// <summary>
+                 /// JSONファイルが外部で変更されていないかチェックし、必要に応じて再読み込みを行う
+                 /// </summary>
         public bool CheckForExternalChanges()
         {
             if (!File.Exists(_dataFilePath)) return false;
 
-            var fileInfo = new FileInfo(_dataFilePath);
-            var currentModified = fileInfo.LastWriteTime;
-
-            // ファイルの更新時刻が変わっていない場合はスキップ
-            if (currentModified <= _lastFileModified) return false;
-
             try
             {
-                string currentHash = ComputeFileHash(_dataFilePath);
+                var fileInfo = new FileInfo(_dataFilePath);
+                var currentModified = fileInfo.LastWriteTime;
+
+                // ファイルの更新時刻が変わっていない場合はスキップ
+                if (currentModified <= _lastFileModified) return false;
+
+                // ファイルサイズをまずチェック（軽量）
+                long currentSize = fileInfo.Length;
+
+                // ハッシュ計算の頻度を減らすため、サイズが変わった場合のみ実行
+                string currentHash = ComputeFileHashOptimized(_dataFilePath, currentSize);
                 if (currentHash != _lastFileHash)
                 {
                     // ファイルが変更されている場合は再読み込み
@@ -92,29 +124,94 @@ namespace AMU.AssetManager.Helper
 
             return false;
         }
+
+        /// <summary>
+        /// 最適化されたファイルハッシュ計算（一部のみ）
+        /// </summary>
+        private string ComputeFileHashOptimized(string filePath, long fileSize)
+        {
+            try
+            {
+                // 小さなファイルの場合は全体をハッシュ
+                if (fileSize < 1024 * 1024) // 1MB未満
+                {
+                    return ComputeFileHash(filePath);
+                }
+
+                // 大きなファイルの場合は先頭と末尾のみをハッシュ
+                using (var stream = File.OpenRead(filePath))
+                {
+                    using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                    {
+                        byte[] buffer = new byte[8192]; // 8KB
+
+                        // 先頭を読み込み
+                        int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                        if (bytesRead > 0)
+                        {
+                            sha256.TransformBlock(buffer, 0, bytesRead, buffer, 0);
+                        }
+
+                        // 末尾を読み込み
+                        if (stream.Length > buffer.Length)
+                        {
+                            stream.Seek(-buffer.Length, SeekOrigin.End);
+                            bytesRead = stream.Read(buffer, 0, buffer.Length);
+                            if (bytesRead > 0)
+                            {
+                                sha256.TransformFinalBlock(buffer, 0, bytesRead);
+                            }
+                        }
+
+                        byte[] hash = sha256.Hash;
+                        return Convert.ToBase64String(hash);
+                    }
+                }
+            }
+            catch
+            {
+                return ComputeFileHash(filePath); // フォールバック
+            }
+        }
         public void SaveData()
+        {
+            _ = SaveDataAsync(); // 非同期メソッドを明示的に無視
+        }
+
+        private async Task SaveDataAsync()
         {
             try
             {
                 EnsureDirectoryExists();
                 _assetLibrary.lastUpdated = DateTime.Now;
-                string json = JsonConvert.SerializeObject(_assetLibrary, Formatting.Indented);
-                File.WriteAllText(_dataFilePath, json);
+
+                // JSONシリアライズを別スレッドで実行
+                string json = await Task.Run(() =>
+                    JsonConvert.SerializeObject(_assetLibrary, Formatting.Indented));
+
+                // ファイル書き込みを非同期で実行
+                using (var writer = new StreamWriter(_dataFilePath))
+                {
+                    await writer.WriteAsync(json);
+                }
+
                 UpdateFileTrackingInfo();
-                OnDataChanged?.Invoke();
+                UpdateIndexes();
+
+                EditorApplication.delayCall += () => OnDataChanged?.Invoke();
             }
             catch (Exception ex)
             {
                 Debug.LogError($"[AssetDataManager] Failed to save data: {ex.Message}");
             }
         }
-
         public void AddAsset(AssetInfo asset)
         {
             if (_assetLibrary?.assets == null)
                 _assetLibrary = new AssetLibrary();
 
             _assetLibrary.assets.Add(asset);
+            InvalidateCache();
             SaveData();
         }
 
@@ -127,6 +224,7 @@ namespace AMU.AssetManager.Helper
             {
                 var index = _assetLibrary.assets.IndexOf(existingAsset);
                 _assetLibrary.assets[index] = asset;
+                InvalidateCache();
                 SaveData();
             }
         }
@@ -139,18 +237,21 @@ namespace AMU.AssetManager.Helper
             if (asset != null)
             {
                 _assetLibrary.assets.Remove(asset);
+                InvalidateCache();
                 SaveData();
             }
         }
-
         public AssetInfo GetAsset(string uid)
         {
-            return _assetLibrary?.assets?.FirstOrDefault(a => a.uid == uid);
+            if (_indexNeedsUpdate)
+                UpdateIndexes();
+
+            return _assetByIdIndex.TryGetValue(uid, out var asset) ? asset : null;
         }
 
         public AssetInfo GetAssetByName(string name)
         {
-            return _assetLibrary?.assets?.FirstOrDefault(a => a.name == name);
+            return GetAllAssets().FirstOrDefault(a => a.name == name);
         }
         public List<AssetInfo> GetAllAssets()
         {
@@ -158,46 +259,119 @@ namespace AMU.AssetManager.Helper
         }
         public List<AssetInfo> SearchAssets(string searchText, string filterType = null, bool? favoritesOnly = null, bool showHidden = false, bool? archivedOnly = null)
         {
-            // 外部ファイル変更をチェック
+            // インデックスの更新
+            if (_indexNeedsUpdate)
+                UpdateIndexes();
+
+            // キャッシュキーを生成
+            var cacheKey = $"{searchText}|{filterType}|{favoritesOnly}|{showHidden}|{archivedOnly}";
+
+            // キャッシュから検索
+            if (_searchCache.TryGetValue(cacheKey, out var cachedResult))
+            {
+                return cachedResult;
+            }
+
+            // 外部ファイル変更をチェック（頻度を削減）
             CheckForExternalChanges();
 
             var assets = GetAllAssets();
 
-            // Apply archived filter
+            // タイプフィルターを先に適用（最も効果的なフィルター）
+            if (!string.IsNullOrEmpty(filterType))
+            {
+                if (_typeCache.TryGetValue(filterType, out var typeFiltered))
+                {
+                    assets = typeFiltered;
+                }
+                else
+                {
+                    assets = assets.Where(a => a.assetType == filterType).ToList();
+                    _typeCache[filterType] = assets;
+                }
+            }
+
+            // アーカイブフィルターを適用
             if (archivedOnly.HasValue && archivedOnly.Value)
             {
-                // Show only archived items
                 assets = assets.Where(a => a.isHidden).ToList();
             }
             else if (!showHidden)
             {
-                // Filter out archived assets
                 assets = assets.Where(a => !a.isHidden).ToList();
             }
-            // If showHidden is true and archivedOnly is null/false, show all items including archived
 
-            if (!string.IsNullOrEmpty(searchText))
-            {
-                searchText = searchText.ToLower();
-                assets = assets.Where(a =>
-                    a.name.ToLower().Contains(searchText) ||
-                    a.description.ToLower().Contains(searchText) ||
-                    a.authorName.ToLower().Contains(searchText) ||
-                    a.tags.Any(tag => tag.ToLower().Contains(searchText))
-                ).ToList();
-            }
-
-            if (!string.IsNullOrEmpty(filterType))
-            {
-                assets = assets.Where(a => a.assetType == filterType).ToList();
-            }
-
+            // お気に入りフィルターを適用
             if (favoritesOnly.HasValue && favoritesOnly.Value)
             {
                 assets = assets.Where(a => a.isFavorite).ToList();
             }
 
+            // テキスト検索を最後に適用（最も重い処理）
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                var searchLower = searchText.ToLower();
+                assets = assets.Where(a =>
+                    a.name.ToLower().Contains(searchLower) ||
+                    a.description.ToLower().Contains(searchLower) ||
+                    a.authorName.ToLower().Contains(searchLower) ||
+                    a.tags.Any(tag => tag.ToLower().Contains(searchLower))
+                ).ToList();
+            }
+
+            // 結果をキャッシュ（最大100件まで）
+            if (_searchCache.Count >= 100)
+            {
+                var oldestKey = _searchCache.Keys.First();
+                _searchCache.Remove(oldestKey);
+            }
+            _searchCache[cacheKey] = assets;
+
             return assets;
+        }
+
+        /// <summary>
+        /// インデックスを更新してパフォーマンスを向上させる
+        /// </summary>
+        private void UpdateIndexes()
+        {
+            if (_assetLibrary?.assets == null) return;
+
+            _assetByIdIndex.Clear();
+            _typeCache.Clear();
+
+            var typeGroups = new Dictionary<string, List<AssetInfo>>();
+
+            foreach (var asset in _assetLibrary.assets)
+            {
+                // ID インデックス
+                _assetByIdIndex[asset.uid] = asset;
+
+                // タイプ別インデックス
+                if (!typeGroups.ContainsKey(asset.assetType))
+                {
+                    typeGroups[asset.assetType] = new List<AssetInfo>();
+                }
+                typeGroups[asset.assetType].Add(asset);
+            }
+
+            // タイプキャッシュを更新
+            foreach (var kvp in typeGroups)
+            {
+                _typeCache[kvp.Key] = kvp.Value;
+            }
+
+            _indexNeedsUpdate = false;
+        }
+
+        /// <summary>
+        /// キャッシュを無効化する
+        /// </summary>
+        private void InvalidateCache()
+        {
+            _searchCache.Clear();
+            _typeCache.Clear();
+            _indexNeedsUpdate = true;
         }
 
         private void UpdateFileTrackingInfo()
