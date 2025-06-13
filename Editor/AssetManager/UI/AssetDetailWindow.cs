@@ -53,11 +53,10 @@ namespace AMU.AssetManager.UI
             InitializeManagers();
             LoadTagSuggestions();
         }
-
         private void LoadTagSuggestions()
         {
             // 新しいTagTypeManagerからタグ一覧を取得
-            _allTags = AssetTagManager.GetAllTagsFromTagTypeManager();
+            _allTags = AssetTagManager.GetAllTags();
         }
         private void OnDisable()
         {

@@ -8,41 +8,37 @@ namespace AMU.AssetManager.Data
     [Serializable]
     public class AssetTypeManager
     {
-        private static List<string> _defaultTypes = new List<string>
-        {
-            "Avatar",
-            "Clothing",
-            "Accessory",
-            "Texture",
-            "Material",
-            "Animation",
-            "Shader",
-            "Prefab",
-            "Script",
-            "Other"
-        };
-
-        public static List<string> DefaultTypes => new List<string>(_defaultTypes);
-
-        private static List<string> _customTypes = new List<string>();
-        public static List<string> CustomTypes => new List<string>(_customTypes);
-
-        public static List<string> AllTypes
+        public static List<string> DefaultTypes
         {
             get
             {
-                var allTypes = new List<string>(_defaultTypes);
+                var types = new List<string>();
+                var allTypes = TagTypeManager.GetVisibleTypes();
+                foreach (var type in allTypes)
+                {
+                    types.Add(type.name);
+                }
+                return types;
+            }
+        }
+
+        private static List<string> _customTypes = new List<string>();
+        public static List<string> CustomTypes => new List<string>(_customTypes); public static List<string> AllTypes
+        {
+            get
+            {
+                var allTypes = DefaultTypes;
                 allTypes.AddRange(_customTypes);
                 return allTypes;
             }
         }
-
         public static void AddCustomType(string typeName)
         {
             if (string.IsNullOrWhiteSpace(typeName)) return;
 
             typeName = typeName.Trim();
-            if (!_defaultTypes.Contains(typeName) && !_customTypes.Contains(typeName))
+            var defaultTypes = DefaultTypes;
+            if (!defaultTypes.Contains(typeName) && !_customTypes.Contains(typeName))
             {
                 _customTypes.Add(typeName);
                 SaveCustomTypes();
@@ -56,10 +52,9 @@ namespace AMU.AssetManager.Data
                 SaveCustomTypes();
             }
         }
-
         public static bool IsDefaultType(string typeName)
         {
-            return _defaultTypes.Contains(typeName);
+            return DefaultTypes.Contains(typeName);
         }
 
         public static void SaveCustomTypes()
@@ -83,18 +78,6 @@ namespace AMU.AssetManager.Data
                     _customTypes = new List<string>();
                 }
             }
-        }
-        public static List<string> GetAllTypesFromTagTypeManager()
-        {
-            var types = new List<string>();
-            var allTypes = TagTypeManager.GetVisibleTypes();
-
-            foreach (var type in allTypes)
-            {
-                types.Add(type.name);
-            }
-
-            return types;
         }
         [Serializable]
         private class SerializableStringList
@@ -171,12 +154,10 @@ namespace AMU.AssetManager.Data
             assets = new List<AssetInfo>();
         }
     }
-
     [Serializable]
     public class AssetTagManager
     {
-        // タグ管理用の新しいクラス
-        public static List<string> GetAllTagsFromTagTypeManager()
+        public static List<string> GetAllTags()
         {
             var tags = new List<string>();
             var allTags = TagTypeManager.GetVisibleTags();
