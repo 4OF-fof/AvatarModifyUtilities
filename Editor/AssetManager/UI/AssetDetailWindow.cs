@@ -752,7 +752,6 @@ namespace AMU.AssetManager.UI
                 }
             }
         }
-
         private void AddTag()
         {
             if (!string.IsNullOrEmpty(_newTag.Trim()) && !_asset.tags.Contains(_newTag.Trim()))
@@ -767,10 +766,53 @@ namespace AMU.AssetManager.UI
                     _allTags.Sort();
                 }
 
+                // TagTypeManagerに新しいタグが存在しない場合、ランダムな視認性の良い色で追加
+                var existingTag = TagTypeManager.GetTagByName(trimmedTag);
+                if (existingTag == null)
+                {
+                    var randomColor = GenerateRandomVisibleColor();
+                    AssetTagManager.AddCustomTag(trimmedTag, randomColor);
+                }
+
                 _newTag = "";
                 _showTagSuggestions = false;
                 GUI.FocusControl(null);
             }
+        }
+
+        /// <summary>
+        /// 視認性の良いランダムな色を生成します
+        /// </summary>
+        /// <returns>HEX形式の色文字列</returns>
+        private string GenerateRandomVisibleColor()
+        {
+            // 視認性の良い色のパレット
+            var visibleColors = new string[]
+            {
+                "#FF6B6B", // 明るい赤
+                "#4ECDC4", // ティール
+                "#45B7D1", // 明るい青
+                "#96CEB4", // ミントグリーン
+                "#FFEAA7", // 明るい黄色
+                "#DDA0DD", // プラム
+                "#98D8C8", // ライトシーグリーン
+                "#F7DC6F", // ライトゴールド
+                "#BB8FCE", // ライトパープル
+                "#85C1E9", // ライトブルー
+                "#F8C471", // ライトオレンジ
+                "#82E0AA", // ライトグリーン
+                "#F1948A", // ライトピンク
+                "#85C1E9", // スカイブルー
+                "#F4D03F", // ライトイエロー
+                "#AED6F1", // ベビーブルー
+                "#A9DFBF", // ライトターコイズ
+                "#F5B7B1", // ライトローズ
+                "#D7BDE2", // ライトラベンダー
+                "#FAD7A0"  // ライトピーチ
+            };
+
+            var random = new System.Random();
+            return visibleColors[random.Next(visibleColors.Length)];
         }
     }
 }
