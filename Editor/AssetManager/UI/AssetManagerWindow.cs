@@ -5,11 +5,19 @@ using UnityEngine;
 using UnityEditor;
 using AMU.AssetManager.Data;
 using AMU.AssetManager.Helper;
+using AMU.Editor.Core.Helper;
 using AMU.Data.Lang;
 using AMU.Data.TagType;
 
 namespace AMU.AssetManager.UI
 {
+    public enum AssetFilterType
+    {
+        All,
+        Favorites,
+        ArchivedOnly
+    }
+
     public class AssetManagerWindow : EditorWindow
     {
         [MenuItem("AMU/Asset Manager", priority = 2)]
@@ -21,24 +29,29 @@ namespace AMU.AssetManager.UI
             var window = GetWindow<AssetManagerWindow>(LocalizationManager.GetText("AssetManager_windowTitle"));
             window.minSize = new Vector2(1000, 600);
             window.Show();
-        }
-
-        // Managers
+        }        // Managers
         private AssetDataManager _dataManager;
         private AssetThumbnailManager _thumbnailManager;
-        private AssetFileManager _fileManager;        // UI State
+        private AssetFileManager _fileManager;
+
+        // UI State
         private Vector2 _leftScrollPosition = Vector2.zero;
         private Vector2 _rightScrollPosition = Vector2.zero;
         private string _searchText = "";
         private string _selectedAssetType = "Avatar";
-        private bool _showFavoritesOnly = false;
-        private bool _showHidden = false;
+        private AssetFilterType _currentFilter = AssetFilterType.All;
         private int _selectedSortOption = 1;
-        private bool _sortDescending = true;        // Data synchronization
+        private bool _sortDescending = true;
+
+        // Data synchronization
         private bool _needsRefresh = false;
         private double _lastDataCheckTime = 0;
-        private bool _isLoadingTypeChange = false;// Type Management
-        private string _newTypeName = "";        // Layout
+        private bool _isLoadingTypeChange = false;
+
+        // Type Management
+        private string _newTypeName = "";
+
+        // Layout
         private float _leftPanelWidth = 250f;
 
         // Asset Grid
@@ -234,30 +247,37 @@ namespace AMU.AssetManager.UI
 
                 // Right panel area - starts immediately after left panel
                 using (new GUILayout.HorizontalScope())
-                {
-                    // Filter buttons - positioned at the start of right panel area
-                    if (GUILayout.Button(LocalizationManager.GetText("AssetManager_filterAll"), EditorStyles.toolbarButton))
+                {                    // Filter buttons - positioned at the start of right panel area
+                    if (GUILayout.Toggle(_currentFilter == AssetFilterType.All, LocalizationManager.GetText("AssetManager_filterAll"), EditorStyles.toolbarButton))
                     {
-                        _showFavoritesOnly = false;
-                        _needsRefresh = true;
-                        _isLoadingTypeChange = true;
+                        if (_currentFilter != AssetFilterType.All)
+                        {
+                            _currentFilter = AssetFilterType.All;
+                            _needsRefresh = true;
+                            _isLoadingTypeChange = true;
+                        }
                     }
 
-                    if (GUILayout.Button(LocalizationManager.GetText("AssetManager_filterFavorite"), EditorStyles.toolbarButton))
+                    if (GUILayout.Toggle(_currentFilter == AssetFilterType.Favorites, LocalizationManager.GetText("AssetManager_filterFavorite"), EditorStyles.toolbarButton))
                     {
-                        _showFavoritesOnly = true;
-                        _needsRefresh = true;
-                        _isLoadingTypeChange = true;
+                        if (_currentFilter != AssetFilterType.Favorites)
+                        {
+                            _currentFilter = AssetFilterType.Favorites;
+                            _needsRefresh = true;
+                            _isLoadingTypeChange = true;
+                        }
+                    }
+
+                    if (GUILayout.Toggle(_currentFilter == AssetFilterType.ArchivedOnly, LocalizationManager.GetText("AssetManager_filterArchived"), EditorStyles.toolbarButton))
+                    {
+                        if (_currentFilter != AssetFilterType.ArchivedOnly)
+                        {
+                            _currentFilter = AssetFilterType.ArchivedOnly;
+                            _needsRefresh = true;
+                            _isLoadingTypeChange = true;
+                        }
                     }
                     GUILayout.Space(10);
-
-                    // Show archived checkbox
-                    var newShowHidden = GUILayout.Toggle(_showHidden, LocalizationManager.GetText("AssetManager_showHidden"), EditorStyles.toolbarButton);
-                    if (newShowHidden != _showHidden)
-                    {
-                        _showHidden = newShowHidden;
-                        _needsRefresh = true;
-                    }
 
                     GUILayout.FlexibleSpace();
 
@@ -692,7 +712,28 @@ namespace AMU.AssetManager.UI
                 return;
             }
 
-            _filteredAssets = _dataManager.SearchAssets(_searchText, _selectedAssetType, _showFavoritesOnly ? true : (bool?)null, _showHidden);
+            // Apply filter based on current filter type
+            bool? favoritesOnly = null;
+            bool? archivedOnly = null;
+            bool showHidden = false;
+
+            switch (_currentFilter)
+            {
+                case AssetFilterType.Favorites:
+                    favoritesOnly = true;
+                    showHidden = true; // Show both normal and archived favorites
+                    break;
+                case AssetFilterType.ArchivedOnly:
+                    archivedOnly = true;
+                    showHidden = true;
+                    break;
+                case AssetFilterType.All:
+                default:
+                    showHidden = false; // Only show non-archived items
+                    break;
+            }
+
+            _filteredAssets = _dataManager.SearchAssets(_searchText, _selectedAssetType, favoritesOnly, showHidden, archivedOnly);
 
             // Sort assets
             switch (_selectedSortOption)

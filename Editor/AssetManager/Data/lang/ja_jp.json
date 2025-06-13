@@ -3,7 +3,7 @@
   "AssetManager_searchPlaceholder": "アセットを検索...",
   "AssetManager_filterAll": "すべて",
   "AssetManager_filterFavorite": "お気に入り",
-  "AssetManager_showHidden": "アーカイブしたアイテムを表示",
+  "AssetManager_filterArchived": "アーカイブしたアイテム",
   "AssetManager_sortName": "名前",
   "AssetManager_sortDate": "日付",
   "AssetManager_sortSize": "サイズ",

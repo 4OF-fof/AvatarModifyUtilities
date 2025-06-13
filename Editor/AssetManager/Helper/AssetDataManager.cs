@@ -156,17 +156,25 @@ namespace AMU.AssetManager.Helper
         {
             return _assetLibrary?.assets ?? new List<AssetInfo>();
         }
-        public List<AssetInfo> SearchAssets(string searchText, string filterType = null, bool? favoritesOnly = null, bool showHidden = false)
+        public List<AssetInfo> SearchAssets(string searchText, string filterType = null, bool? favoritesOnly = null, bool showHidden = false, bool? archivedOnly = null)
         {
             // 外部ファイル変更をチェック
             CheckForExternalChanges();
 
             var assets = GetAllAssets();
 
-            if (!showHidden)
+            // Apply archived filter
+            if (archivedOnly.HasValue && archivedOnly.Value)
             {
-                assets = assets.Where(a => !a.isHidden).ToList(); // Filter out archived assets
+                // Show only archived items
+                assets = assets.Where(a => a.isHidden).ToList();
             }
+            else if (!showHidden)
+            {
+                // Filter out archived assets
+                assets = assets.Where(a => !a.isHidden).ToList();
+            }
+            // If showHidden is true and archivedOnly is null/false, show all items including archived
 
             if (!string.IsNullOrEmpty(searchText))
             {

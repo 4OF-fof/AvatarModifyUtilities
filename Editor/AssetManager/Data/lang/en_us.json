@@ -3,7 +3,7 @@
   "AssetManager_searchPlaceholder": "Search assets...",
   "AssetManager_filterAll": "All",
   "AssetManager_filterFavorite": "Favorites",
-  "AssetManager_showHidden": "Show Archived Items",
+  "AssetManager_filterArchived": "Archived Items",
   "AssetManager_sortName": "Name",
   "AssetManager_sortDate": "Date",
   "AssetManager_sortSize": "Size",
