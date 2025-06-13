@@ -715,13 +715,11 @@ namespace AMU.AssetManager.UI
             // Apply filter based on current filter type
             bool? favoritesOnly = null;
             bool? archivedOnly = null;
-            bool showHidden = false;
-
-            switch (_currentFilter)
+            bool showHidden = false; switch (_currentFilter)
             {
                 case AssetFilterType.Favorites:
                     favoritesOnly = true;
-                    showHidden = true; // Show both normal and archived favorites
+                    showHidden = false; // Only show non-archived favorites
                     break;
                 case AssetFilterType.ArchivedOnly:
                     archivedOnly = true;
