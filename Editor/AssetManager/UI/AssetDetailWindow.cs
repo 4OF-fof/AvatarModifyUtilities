@@ -16,8 +16,12 @@ namespace AMU.AssetManager.UI
         {
             var window = GetWindow<AssetDetailWindow>(LocalizationManager.GetText("AssetDetail_windowTitle"));
             window.minSize = new Vector2(600, 500);
-            window._asset = asset?.Clone();
-            window._originalAsset = asset;
+
+            // 編集画面を開く前にアセット情報を最新のものに更新
+            var updatedAsset = window.GetLatestAssetInfo(asset);
+
+            window._asset = updatedAsset?.Clone();
+            window._originalAsset = updatedAsset;
             window._isEditMode = editMode;
             window.Show();
         }
@@ -98,6 +102,56 @@ namespace AMU.AssetManager.UI
             LoadAllTags();
         }
 
+        /// <summary>
+        /// アセット情報を最新の状態に更新して取得します
+        /// </summary>
+        /// <param name="asset">更新対象のアセット</param>
+        /// <returns>最新のアセット情報</returns>
+        private AssetInfo GetLatestAssetInfo(AssetInfo asset)
+        {
+            if (asset == null) return null;
+
+            // まずデータマネージャーを初期化
+            InitializeManagers();
+
+            // UIDでデータベースから最新の情報を取得
+            var latestAsset = _dataManager?.GetAsset(asset.uid);
+
+            if (latestAsset != null)
+            {
+                Debug.Log($"アセット情報を更新しました: {asset.name} (UID: {asset.uid})");
+                return latestAsset;
+            }
+            else
+            {
+                // データベースに見つからない場合は、元のアセットをそのまま使用
+                Debug.LogWarning($"データベースにアセットが見つかりませんでした: {asset.name} (UID: {asset.uid})");
+                return asset;
+            }
+        }
+
+        /// <summary>
+        /// 現在表示中のアセット情報を最新の状態に更新します
+        /// </summary>
+        private void RefreshAssetInfo()
+        {
+            if (_asset == null) return;
+
+            var latestAsset = GetLatestAssetInfo(_asset);
+            if (latestAsset != null)
+            {
+                _asset = latestAsset.Clone();
+                _originalAsset = latestAsset;
+
+                // タグ情報も更新
+                LoadAllTags();
+                LoadTagSuggestions();
+
+                Debug.Log($"アセット情報を手動で更新しました: {_asset.name}");
+                Repaint();
+            }
+        }
+
         private void LoadAllTags()
         {
             _allTags.Clear();
@@ -133,13 +187,18 @@ namespace AMU.AssetManager.UI
             DrawHeader();
             DrawContent();
         }
-
         private void DrawHeader()
         {
             using (new GUILayout.HorizontalScope(EditorStyles.toolbar))
             {
                 GUILayout.Label(_asset.name, EditorStyles.boldLabel);
                 GUILayout.FlexibleSpace();
+
+                // 更新ボタン（常に表示）
+                if (GUILayout.Button("🔄", EditorStyles.toolbarButton, GUILayout.Width(25)))
+                {
+                    RefreshAssetInfo();
+                }
 
                 if (_isEditMode)
                 {
@@ -157,6 +216,9 @@ namespace AMU.AssetManager.UI
                 {
                     if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_edit"), EditorStyles.toolbarButton))
                     {
+                        // 編集モードに入る前にアセット情報を最新に更新
+                        RefreshAssetInfo();
+
                         _isEditMode = true;
                         // Reset UI state when entering edit mode
                         _newTag = "";
