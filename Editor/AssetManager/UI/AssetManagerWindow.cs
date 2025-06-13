@@ -41,10 +41,9 @@ namespace AMU.AssetManager.UI
         private string _selectedAssetType = "Avatar";
         private AssetFilterType _currentFilter = AssetFilterType.All;
         private int _selectedSortOption = 1;
-        private bool _sortDescending = true;
-
-        // Data synchronization
-        private bool _needsRefresh = false;
+        private bool _sortDescending = true;        // Data synchronization
+        private bool _needsDataReload = false;  // データファイルの再読み込みが必要
+        private bool _needsUIRefresh = false;   // UIの再描画のみ必要
         private double _lastDataCheckTime = 0;
         private bool _isLoadingTypeChange = false;
 
@@ -69,10 +68,8 @@ namespace AMU.AssetManager.UI
             LocalizationManager.LoadLanguage(language);
 
             AssetTypeManager.LoadCustomTypes();
-            InitializeManagers();
-
-            // 初回データ読み込み
-            _needsRefresh = true;
+            InitializeManagers();            // 初回データ読み込み
+            _needsUIRefresh = true;
             CheckAndRefreshData();
 
             // TagTypeManagerとの統合初期化
@@ -100,16 +97,15 @@ namespace AMU.AssetManager.UI
                 _fileManager = new AssetFileManager();
             }
         }
-
         private void OnDataLoaded()
         {
-            _needsRefresh = true;
+            _needsUIRefresh = true;
             Repaint();
         }
-
         private void OnDataChanged()
         {
-            _needsRefresh = true;
+            // 他のウィンドウからのデータ変更通知時は、データは既に最新なのでUI更新のみ
+            _needsUIRefresh = true;
             Repaint();
         }
         private void InitializeTagTypeIntegration()
@@ -122,12 +118,11 @@ namespace AMU.AssetManager.UI
             _thumbnailManager?.ClearCache();
 
             // イベントハンドラーの解除
-            TagTypeManager.OnDataChanged -= OnTagTypeDataChanged;
-
-            if (_dataManager != null)
+            TagTypeManager.OnDataChanged -= OnTagTypeDataChanged; if (_dataManager != null)
             {
                 _dataManager.OnDataLoaded -= OnDataLoaded;
                 _dataManager.OnDataChanged -= OnDataChanged;
+                _dataManager.Dispose();
             }
 
             if (_thumbnailManager != null)
@@ -139,16 +134,23 @@ namespace AMU.AssetManager.UI
         private void OnTagTypeDataChanged()
         {
             // タイプやタグが変更された時の処理
-            _needsRefresh = true;
+            _needsUIRefresh = true;
             Repaint();
         }
-
         private void OnGUI()
         {
-            InitializeStyles();
+            InitializeStyles();            // 定期的に外部ファイル変更をチェック
+            CheckForExternalFileChanges();
 
-            // データの外部変更をチェック（一定間隔で）
+            // データの再読み込みが必要な場合のみ実行
             CheckAndRefreshData();
+
+            // UI更新が必要な場合はアセットリストを更新
+            if (_needsUIRefresh)
+            {
+                RefreshAssetList();
+                _needsUIRefresh = false;
+            }
 
             if (_dataManager?.IsLoading == true)
             {
@@ -159,10 +161,24 @@ namespace AMU.AssetManager.UI
             DrawToolbar();
             DrawMainContent();
             HandleEvents();
-        }        /// <summary>
-                 /// データの外部変更をチェックして必要に応じてリフレッシュ
-                 /// </summary>
+        }/// <summary>
+         /// データの外部変更をチェックして必要に応じてリフレッシュ
+         /// データファイルの再読み込みが必要な場合のみ実行
+         /// </summary>
         private void CheckAndRefreshData()
+        {            // データの再読み込みが必要な場合のみチェック
+            if (!_needsDataReload) return;
+
+            // 即座にデータ再読み込みを実行
+            _dataManager?.CheckForExternalChanges();
+            _needsDataReload = false;
+            _needsUIRefresh = true;
+        }
+
+        /// <summary>
+        /// 定期的に外部ファイル変更をチェックし、必要に応じてデータ再読み込みフラグを設定
+        /// </summary>
+        private void CheckForExternalFileChanges()
         {
             double currentTime = EditorApplication.timeSinceStartup;
 
@@ -172,10 +188,9 @@ namespace AMU.AssetManager.UI
                 _lastDataCheckTime = currentTime;
 
                 // データマネージャーで外部変更をチェック
-                if (_dataManager?.CheckForExternalChanges() == true || _needsRefresh)
+                if (_dataManager?.CheckForExternalChanges() == true)
                 {
-                    RefreshAssetList();
-                    _needsRefresh = false;
+                    _needsUIRefresh = true;
                 }
             }
         }
@@ -239,19 +254,18 @@ namespace AMU.AssetManager.UI
                     if (newSearchText != _searchText)
                     {
                         _searchText = newSearchText;
-                        _needsRefresh = true;
+                        _needsUIRefresh = true;
                     }
                 }
 
                 // Right panel area - starts immediately after left panel
                 using (new GUILayout.HorizontalScope())
-                {                    // Filter buttons - positioned at the start of right panel area
-                    if (GUILayout.Toggle(_currentFilter == AssetFilterType.All, LocalizationManager.GetText("AssetManager_filterAll"), EditorStyles.toolbarButton))
+                {                    // Filter buttons - positioned at the start of right panel area                    if (GUILayout.Toggle(_currentFilter == AssetFilterType.All, LocalizationManager.GetText("AssetManager_filterAll"), EditorStyles.toolbarButton))
                     {
                         if (_currentFilter != AssetFilterType.All)
                         {
                             _currentFilter = AssetFilterType.All;
-                            _needsRefresh = true;
+                            _needsUIRefresh = true;
                             _isLoadingTypeChange = true;
                         }
                     }
@@ -261,7 +275,7 @@ namespace AMU.AssetManager.UI
                         if (_currentFilter != AssetFilterType.Favorites)
                         {
                             _currentFilter = AssetFilterType.Favorites;
-                            _needsRefresh = true;
+                            _needsUIRefresh = true;
                             _isLoadingTypeChange = true;
                         }
                     }
@@ -271,7 +285,7 @@ namespace AMU.AssetManager.UI
                         if (_currentFilter != AssetFilterType.ArchivedOnly)
                         {
                             _currentFilter = AssetFilterType.ArchivedOnly;
-                            _needsRefresh = true;
+                            _needsUIRefresh = true;
                             _isLoadingTypeChange = true;
                         }
                     }
@@ -284,12 +298,11 @@ namespace AMU.AssetManager.UI
                         LocalizationManager.GetText("AssetManager_sortName"),
                         LocalizationManager.GetText("AssetManager_sortDate"),
                         LocalizationManager.GetText("AssetManager_sortSize")
-                    };
-                    var newSortOption = EditorGUILayout.Popup(_selectedSortOption, sortOptions, EditorStyles.toolbarPopup, GUILayout.Width(100));
+                    }; var newSortOption = EditorGUILayout.Popup(_selectedSortOption, sortOptions, EditorStyles.toolbarPopup, GUILayout.Width(100));
                     if (newSortOption != _selectedSortOption)
                     {
                         _selectedSortOption = newSortOption;
-                        _needsRefresh = true;
+                        _needsUIRefresh = true;
                     }
 
                     string sortArrow = _sortDescending ? "↓" : "↑";
@@ -297,7 +310,7 @@ namespace AMU.AssetManager.UI
                     if (newSortDescending != _sortDescending)
                     {
                         _sortDescending = newSortDescending;
-                        _needsRefresh = true;
+                        _needsUIRefresh = true;
                     }
 
                     GUILayout.Space(10);
@@ -308,7 +321,7 @@ namespace AMU.AssetManager.UI
                     }
                     if (GUILayout.Button(LocalizationManager.GetText("Common_refresh"), EditorStyles.toolbarButton))
                     {
-                        _needsRefresh = true;
+                        _needsDataReload = true;
                         _dataManager?.CheckForExternalChanges();
                     }
                 }
@@ -344,7 +357,7 @@ namespace AMU.AssetManager.UI
                         {
                             _selectedAssetType = "";
                             _isLoadingTypeChange = true;
-                            _needsRefresh = true;
+                            _needsUIRefresh = true;
                             Repaint();
                         }
                     }
@@ -365,7 +378,7 @@ namespace AMU.AssetManager.UI
                                 {
                                     _selectedAssetType = assetType;
                                     _isLoadingTypeChange = true;
-                                    _needsRefresh = true;
+                                    _needsUIRefresh = true;
                                     Repaint();
                                 }
                             }
@@ -395,7 +408,7 @@ namespace AMU.AssetManager.UI
                                         {
                                             _selectedAssetType = "";
                                         }
-                                        _needsRefresh = true;
+                                        _needsUIRefresh = true;
                                     }
                                 }
                             }
@@ -453,7 +466,7 @@ namespace AMU.AssetManager.UI
                     {
                         AssetTypeManager.AddCustomType(_newTypeName.Trim());
                         _newTypeName = "";
-                        _needsRefresh = true;
+                        _needsUIRefresh = true;
                     }
 
                     GUI.enabled = true;
@@ -678,7 +691,7 @@ namespace AMU.AssetManager.UI
  {
      asset.isFavorite = !asset.isFavorite;
      _dataManager.UpdateAsset(asset);
-     _needsRefresh = true;
+     _needsDataReload = true;
  });
 
             menu.AddSeparator("");
@@ -689,7 +702,7 @@ namespace AMU.AssetManager.UI
  {
      asset.isHidden = !asset.isHidden;
      _dataManager.UpdateAsset(asset);
-     _needsRefresh = true;
+     _needsDataReload = true;
  });
 
             menu.AddSeparator("");
@@ -708,7 +721,7 @@ namespace AMU.AssetManager.UI
                     LocalizationManager.GetText("Common_yes"), LocalizationManager.GetText("Common_no")))
                 {
                     _dataManager.RemoveAsset(asset.uid);
-                    _needsRefresh = true;
+                    _needsDataReload = true;
                 }
             });
 
@@ -724,7 +737,7 @@ namespace AMU.AssetManager.UI
                 {
                     _dataManager.AddAsset(asset);
                     AssetDetailWindow.ShowWindow(asset, true);
-                    _needsRefresh = true;
+                    _needsDataReload = true;
                 }
             }
         }
@@ -795,7 +808,7 @@ namespace AMU.AssetManager.UI
                     {
                         _dataManager.RemoveAsset(_selectedAsset.uid);
                         _selectedAsset = null;
-                        _needsRefresh = true;
+                        _needsDataReload = true;
                     }
                     Event.current.Use();
                 }

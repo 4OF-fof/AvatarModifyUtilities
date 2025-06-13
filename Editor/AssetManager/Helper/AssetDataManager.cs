@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEditor;
@@ -11,13 +12,18 @@ using AMU.AssetManager.Data;
 
 namespace AMU.AssetManager.Helper
 {
-    public class AssetDataManager
+    public class AssetDataManager : IDisposable
     {
         private AssetLibrary _assetLibrary;
         private string _dataFilePath;
         private bool _isLoading = false;
         private DateTime _lastFileModified = DateTime.MinValue;
         private string _lastFileHash = "";
+
+        // ファイルアクセス排他制御
+        private readonly SemaphoreSlim _fileLock = new SemaphoreSlim(1, 1);
+        private readonly object _saveLock = new object();
+        private bool _isSaving = false;
 
         // キャッシュとインデックス
         private Dictionary<string, List<AssetInfo>> _searchCache = new Dictionary<string, List<AssetInfo>>();
@@ -47,9 +53,9 @@ namespace AMU.AssetManager.Helper
             // 非同期でデータを読み込み
             LoadDataAsync();
         }
-
         private async void LoadDataAsync()
         {
+            await _fileLock.WaitAsync();
             try
             {
                 if (!File.Exists(_dataFilePath))
@@ -82,20 +88,52 @@ namespace AMU.AssetManager.Helper
                 _isLoading = false;
                 EditorApplication.delayCall += () => OnDataLoaded?.Invoke();
             }
+            finally
+            {
+                _fileLock.Release();
+            }
         }
-
         private async Task<string> ReadFileAsync(string filePath)
         {
-            using (var reader = new StreamReader(filePath))
+            const int maxRetries = 3;
+            const int retryDelayMs = 100;
+
+            for (int i = 0; i < maxRetries; i++)
+            {
+                try
+                {
+                    // 共有読み取りアクセスを許可してファイルを開く
+                    using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    using (var reader = new StreamReader(stream))
+                    {
+                        return await reader.ReadToEndAsync();
+                    }
+                }
+                catch (IOException ex) when (i < maxRetries - 1)
+                {
+                    // ファイルが使用中の場合は少し待ってからリトライ
+                    Debug.LogWarning($"[AssetDataManager] File access retry {i + 1}/{maxRetries}: {ex.Message}");
+                    await Task.Delay(retryDelayMs);
+                }
+            }
+
+            // 最後の試行
+            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var reader = new StreamReader(stream))
             {
                 return await reader.ReadToEndAsync();
             }
-        }        /// <summary>
-                 /// JSONファイルが外部で変更されていないかチェックし、必要に応じて再読み込みを行う
-                 /// </summary>
+        }
+
+        /// <summary>
+        /// JSONファイルが外部で変更されていないかチェックし、必要に応じて再読み込みを行う
+        /// </summary>
         public bool CheckForExternalChanges()
         {
             if (!File.Exists(_dataFilePath)) return false;
+
+            // 既に読み込み中または保存中の場合はスキップ
+            if (_isLoading || _isSaving) return false;
 
             try
             {
@@ -117,17 +155,20 @@ namespace AMU.AssetManager.Helper
                     return true;
                 }
             }
+            catch (IOException ex)
+            {
+                // ファイルアクセスエラーは警告レベルで出力
+                Debug.LogWarning($"[AssetDataManager] File access error during change check: {ex.Message}");
+            }
             catch (Exception ex)
             {
                 Debug.LogError($"[AssetDataManager] Failed to check file changes: {ex.Message}");
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// 最適化されたファイルハッシュ計算（一部のみ）
-        /// </summary>
+        }        /// <summary>
+                 /// 最適化されたファイルハッシュ計算（一部のみ）
+                 /// </summary>
         private string ComputeFileHashOptimized(string filePath, long fileSize)
         {
             try
@@ -139,7 +180,7 @@ namespace AMU.AssetManager.Helper
                 }
 
                 // 大きなファイルの場合は先頭と末尾のみをハッシュ
-                using (var stream = File.OpenRead(filePath))
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     using (var sha256 = System.Security.Cryptography.SHA256.Create())
                     {
@@ -156,8 +197,7 @@ namespace AMU.AssetManager.Helper
                         if (stream.Length > buffer.Length)
                         {
                             stream.Seek(-buffer.Length, SeekOrigin.End);
-                            bytesRead = stream.Read(buffer, 0, buffer.Length);
-                            if (bytesRead > 0)
+                            bytesRead = stream.Read(buffer, 0, buffer.Length); if (bytesRead > 0)
                             {
                                 sha256.TransformFinalBlock(buffer, 0, bytesRead);
                             }
@@ -168,6 +208,11 @@ namespace AMU.AssetManager.Helper
                     }
                 }
             }
+            catch (IOException)
+            {
+                // ファイルアクセスエラーの場合はフォールバックを試行
+                return ComputeFileHash(filePath);
+            }
             catch
             {
                 return ComputeFileHash(filePath); // フォールバック
@@ -175,11 +220,18 @@ namespace AMU.AssetManager.Helper
         }
         public void SaveData()
         {
+            lock (_saveLock)
+            {
+                if (_isSaving) return; // 既に保存中の場合はスキップ
+                _isSaving = true;
+            }
+
             _ = SaveDataAsync(); // 非同期メソッドを明示的に無視
         }
 
         private async Task SaveDataAsync()
         {
+            await _fileLock.WaitAsync();
             try
             {
                 EnsureDirectoryExists();
@@ -189,10 +241,45 @@ namespace AMU.AssetManager.Helper
                 string json = await Task.Run(() =>
                     JsonConvert.SerializeObject(_assetLibrary, Formatting.Indented));
 
-                // ファイル書き込みを非同期で実行
-                using (var writer = new StreamWriter(_dataFilePath))
+                // 一時ファイルに書き込んでから原子的に置き換え
+                string tempFilePath = _dataFilePath + ".tmp";
+
+                const int maxRetries = 3;
+                const int retryDelayMs = 100;
+
+                for (int i = 0; i < maxRetries; i++)
                 {
-                    await writer.WriteAsync(json);
+                    try
+                    {
+                        // 一時ファイルに書き込み
+                        using (var writer = new StreamWriter(tempFilePath))
+                        {
+                            await writer.WriteAsync(json);
+                        }
+
+                        // 原子的にファイルを置き換え
+                        if (File.Exists(_dataFilePath))
+                        {
+                            File.Replace(tempFilePath, _dataFilePath, null);
+                        }
+                        else
+                        {
+                            File.Move(tempFilePath, _dataFilePath);
+                        }
+
+                        break; // 成功した場合はループを抜ける
+                    }
+                    catch (IOException ex) when (i < maxRetries - 1)
+                    {
+                        Debug.LogWarning($"[AssetDataManager] Save retry {i + 1}/{maxRetries}: {ex.Message}");
+                        await Task.Delay(retryDelayMs);
+
+                        // 一時ファイルが残っている場合は削除
+                        if (File.Exists(tempFilePath))
+                        {
+                            try { File.Delete(tempFilePath); } catch { }
+                        }
+                    }
                 }
 
                 UpdateFileTrackingInfo();
@@ -203,6 +290,14 @@ namespace AMU.AssetManager.Helper
             catch (Exception ex)
             {
                 Debug.LogError($"[AssetDataManager] Failed to save data: {ex.Message}");
+            }
+            finally
+            {
+                _fileLock.Release();
+                lock (_saveLock)
+                {
+                    _isSaving = false;
+                }
             }
         }
         public void AddAsset(AssetInfo asset)
@@ -383,12 +478,11 @@ namespace AMU.AssetManager.Helper
                 _lastFileHash = ComputeFileHash(_dataFilePath);
             }
         }
-
         private string ComputeFileHash(string filePath)
         {
             try
             {
-                using (var stream = File.OpenRead(filePath))
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     using (var sha256 = System.Security.Cryptography.SHA256.Create())
                     {
@@ -396,6 +490,11 @@ namespace AMU.AssetManager.Helper
                         return Convert.ToBase64String(hash);
                     }
                 }
+            }
+            catch (IOException)
+            {
+                // ファイルアクセスエラーの場合は空文字列を返す
+                return "";
             }
             catch
             {
@@ -411,6 +510,11 @@ namespace AMU.AssetManager.Helper
             {
                 Directory.CreateDirectory(directory);
             }
+        }
+
+        public void Dispose()
+        {
+            _fileLock?.Dispose();
         }
     }
 }
