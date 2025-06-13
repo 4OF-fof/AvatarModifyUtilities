@@ -31,6 +31,7 @@ namespace AMU.AssetManager.UI
         private string _newDependency = "";
         private int _dependencySelectionMode = 0; // 0: Asset Selection, 1: Manual Input
         private int _selectedAssetIndex = -1;
+        private List<AssetInfo> _availableAssets = new List<AssetInfo>();
 
         private void OnEnable()
         {
@@ -317,14 +318,15 @@ namespace AMU.AssetManager.UI
                                 using (new GUILayout.HorizontalScope())
                                 {
                                     var dependency = _asset.dependencies[i];
-                                    var referencedAsset = _dataManager.GetAssetByName(dependency);
+                                    var referencedAsset = _dataManager.GetAsset(dependency); // Use UUID instead of name
+
                                     if (referencedAsset != null)
                                     {
                                         // This is a reference to an existing asset
                                         var originalColor = GUI.color;
                                         GUI.color = new Color(0.7f, 1f, 0.7f, 1f); // Light green background
 
-                                        var content = new GUIContent(dependency, LocalizationManager.GetText("AssetDetail_clickToOpenAsset"));
+                                        var content = new GUIContent(referencedAsset.name, LocalizationManager.GetText("AssetDetail_clickToOpenAsset"));
                                         if (GUILayout.Button(content, EditorStyles.miniButton))
                                         {
                                             // Open the referenced asset's detail window
@@ -335,8 +337,17 @@ namespace AMU.AssetManager.UI
                                     }
                                     else
                                     {
-                                        // This is a manual text entry
-                                        GUILayout.Label(dependency);
+                                        // This is a manual text entry or broken reference
+                                        var originalColor = GUI.color; if (dependency.Length == 36 && dependency.Contains("-")) // Looks like a UUID
+                                        {
+                                            GUI.color = new Color(1f, 0.7f, 0.7f, 1f); // Light red for broken reference
+                                            GUILayout.Label($"{LocalizationManager.GetText("AssetDetail_missingDependency")} {dependency}", EditorStyles.miniLabel);
+                                        }
+                                        else
+                                        {
+                                            GUILayout.Label(dependency); // Manual text entry
+                                        }
+                                        GUI.color = originalColor;
                                     }
 
                                     if (_isEditMode && GUILayout.Button("×", GUILayout.Width(20)))
@@ -368,23 +379,21 @@ namespace AMU.AssetManager.UI
                                 if (_dependencySelectionMode == 0)
                                 {
                                     // Asset selection mode
-                                    var allAssets = _dataManager.GetAllAssets();
-                                    var assetNames = allAssets.Where(a => a.uid != _asset.uid) // Exclude self
-                                                              .Select(a => a.name)
-                                                              .ToArray();
+                                    _availableAssets = _dataManager.GetAllAssets().Where(a => a.uid != _asset.uid).ToList(); // Exclude self
+                                    var assetNames = _availableAssets.Select(a => a.name).ToArray();
 
                                     if (assetNames.Length > 0)
                                     {
                                         _selectedAssetIndex = EditorGUILayout.Popup(_selectedAssetIndex, assetNames);
 
-                                        if (_selectedAssetIndex >= 0 && _selectedAssetIndex < assetNames.Length)
+                                        if (_selectedAssetIndex >= 0 && _selectedAssetIndex < _availableAssets.Count)
                                         {
                                             if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_addDependency"), GUILayout.Width(80)))
                                             {
-                                                var selectedAssetName = assetNames[_selectedAssetIndex];
-                                                if (!_asset.dependencies.Contains(selectedAssetName))
+                                                var selectedAsset = _availableAssets[_selectedAssetIndex];
+                                                if (!_asset.dependencies.Contains(selectedAsset.uid))
                                                 {
-                                                    _asset.dependencies.Add(selectedAssetName);
+                                                    _asset.dependencies.Add(selectedAsset.uid); // Add UUID instead of name
                                                     _selectedAssetIndex = -1; // Reset selection
                                                 }
                                             }

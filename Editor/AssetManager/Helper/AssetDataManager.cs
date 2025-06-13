@@ -118,7 +118,6 @@ namespace AMU.AssetManager.Helper
         {
             return _assetLibrary?.assets?.FirstOrDefault(a => a.name == name);
         }
-
         public List<AssetInfo> GetAllAssets()
         {
             return _assetLibrary?.assets ?? new List<AssetInfo>();
