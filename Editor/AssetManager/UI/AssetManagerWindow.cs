@@ -34,7 +34,7 @@ namespace AMU.AssetManager.UI
         private AssetType _selectedAssetType = AssetType.Avatar;
         private bool _showFavoritesOnly = false;
         private bool _showHidden = false;
-        private int _selectedSortOption = 0; // 0: Name, 1: Date, 2: Size, 3: Type
+        private int _selectedSortOption = 0; // 0: Name, 1: Date, 2: Size
         private bool _sortDescending = false;
 
         // Layout
@@ -152,8 +152,7 @@ namespace AMU.AssetManager.UI
                 string[] sortOptions = {
                     LocalizationManager.GetText("AssetManager_sortName"),
                     LocalizationManager.GetText("AssetManager_sortDate"),
-                    LocalizationManager.GetText("AssetManager_sortSize"),
-                    LocalizationManager.GetText("AssetManager_sortType")
+                    LocalizationManager.GetText("AssetManager_sortSize")
                 };
 
                 var newSortOption = EditorGUILayout.Popup(_selectedSortOption, sortOptions, EditorStyles.toolbarPopup, GUILayout.Width(100));
@@ -464,11 +463,6 @@ namespace AMU.AssetManager.UI
                     _filteredAssets = _sortDescending ? 
                         _filteredAssets.OrderByDescending(a => a.fileSize).ToList() : 
                         _filteredAssets.OrderBy(a => a.fileSize).ToList();
-                    break;
-                case 3: // Type
-                    _filteredAssets = _sortDescending ? 
-                        _filteredAssets.OrderByDescending(a => a.assetType).ToList() : 
-                        _filteredAssets.OrderBy(a => a.assetType).ToList();
                     break;
             }
 
