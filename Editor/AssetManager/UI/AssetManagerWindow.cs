@@ -38,12 +38,10 @@ namespace AMU.AssetManager.UI
         private bool _needsRefresh = false;
         private double _lastDataCheckTime = 0;
         private bool _isLoadingTypeChange = false;// Type Management
-        private string _newTypeName = "";
-
-        // Layout
+        private string _newTypeName = "";        // Layout
         private float _leftPanelWidth = 250f;
-        private bool _isResizing = false;
-        private Rect _resizeRect;        // Asset Grid
+
+        // Asset Grid
         private float _thumbnailSize = 100f;
         private List<AssetInfo> _filteredAssets = new List<AssetInfo>();
         private AssetInfo _selectedAsset;
@@ -296,7 +294,6 @@ namespace AMU.AssetManager.UI
             using (new GUILayout.HorizontalScope())
             {
                 DrawLeftPanel();
-                DrawResizeHandle();
                 DrawRightPanel();
             }
         }
@@ -465,34 +462,14 @@ namespace AMU.AssetManager.UI
                 }
             }
         }
-
-        private void DrawResizeHandle()
-        {
-            _resizeRect = new Rect(_leftPanelWidth, 0, 5, position.height);
-            EditorGUIUtility.AddCursorRect(_resizeRect, MouseCursor.ResizeHorizontal);
-
-            if (Event.current.type == EventType.MouseDown && _resizeRect.Contains(Event.current.mousePosition))
-            {
-                _isResizing = true;
-            }
-
-            if (_isResizing)
-            {
-                _leftPanelWidth = Event.current.mousePosition.x;
-                _leftPanelWidth = Mathf.Clamp(_leftPanelWidth, 150, position.width - 400);
-                Repaint();
-            }
-
-            if (Event.current.type == EventType.MouseUp)
-            {
-                _isResizing = false;
-            }
-        }
-
         private void DrawRightPanel()
         {
-            using (new GUILayout.VerticalScope())
+            var originalColor = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(0.9f, 0.9f, 0.9f, 1f); // 薄いグレー色
+
+            using (new GUILayout.VerticalScope(EditorStyles.helpBox))
             {
+                GUI.backgroundColor = originalColor;
                 DrawAssetGrid();
             }
         }
