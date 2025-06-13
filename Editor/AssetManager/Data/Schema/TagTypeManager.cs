@@ -156,15 +156,6 @@ namespace AMU.Data.TagType
 
             data.types.AddRange(defaultTypes);
 
-            // デフォルトタグ
-            var defaultTags = new[]
-            {
-                new TagItem("Free", "#A8E6CF"),
-                new TagItem("Original", "#DDA0DD"),
-            };
-
-            data.tags.AddRange(defaultTags);
-
             return data;
         }
 
