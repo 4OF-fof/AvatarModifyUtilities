@@ -21,9 +21,7 @@ namespace AMU.AssetManager.Helper
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
             _thumbnailDirectory = Path.Combine(coreDir, "AssetManager", "Thumbnails");
             EnsureThumbnailDirectory();
-        }
-
-        public Texture2D GetThumbnail(AssetInfo asset)
+        }        public Texture2D GetThumbnail(AssetInfo asset)
         {
             if (asset == null) return null;
 
@@ -42,16 +40,6 @@ namespace AMU.AssetManager.Helper
                     _thumbnailCache[asset.uid] = texture;
                     return texture;
                 }
-            }
-
-            // Try to generate thumbnail for supported asset types
-            var generatedTexture = GenerateThumbnail(asset);
-            if (generatedTexture != null)
-            {
-                _thumbnailCache[asset.uid] = generatedTexture;
-                SaveThumbnail(asset, generatedTexture);
-                OnThumbnailSaved?.Invoke(asset);
-                return generatedTexture;
             }
 
             return GetDefaultThumbnail(asset.assetType);
@@ -74,22 +62,7 @@ namespace AMU.AssetManager.Helper
                 _thumbnailCache[asset.uid] = texture;
                 OnThumbnailLoaded?.Invoke();
                 OnThumbnailSaved?.Invoke(asset);
-            }
-        }
-
-        public void GenerateAndSaveThumbnail(AssetInfo asset)
-        {
-            if (asset == null) return;
-
-            var texture = GenerateThumbnail(asset);
-            if (texture != null)
-            {
-                SaveThumbnail(asset, texture);
-                _thumbnailCache[asset.uid] = texture;
-                OnThumbnailLoaded?.Invoke();
-                OnThumbnailSaved?.Invoke(asset);
-            }
-        }
+            }        }
 
         public void ClearCache()
         {
@@ -100,54 +73,7 @@ namespace AMU.AssetManager.Helper
                     UnityEngine.Object.DestroyImmediate(texture);
                 }
             }
-            _thumbnailCache.Clear();
-        }
-
-        private Texture2D GenerateThumbnail(AssetInfo asset)
-        {
-            if (string.IsNullOrEmpty(asset.filePath) || !File.Exists(asset.filePath))
-                return null;
-
-            try
-            {
-                switch (asset.assetType)
-                {
-                    case AssetType.Avatar:
-                    case AssetType.Prefab:
-                        return GeneratePrefabThumbnail(asset.filePath);
-                    
-                    case AssetType.Texture:
-                        return LoadTextureFromFile(asset.filePath);
-                    
-                    case AssetType.Material:
-                        return GenerateMaterialThumbnail(asset.filePath);
-                    
-                    default:
-                        return null;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[AssetThumbnailManager] Failed to generate thumbnail for {asset.name}: {ex.Message}");
-                return null;
-            }
-        }
-
-        private Texture2D GeneratePrefabThumbnail(string prefabPath)
-        {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
-            if (prefab == null) return null;
-
-            return AssetPreview.GetAssetPreview(prefab);
-        }
-
-        private Texture2D GenerateMaterialThumbnail(string materialPath)
-        {
-            var material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
-            if (material == null) return null;
-
-            return AssetPreview.GetAssetPreview(material);
-        }
+            _thumbnailCache.Clear();        }
 
         private Texture2D LoadTextureFromFile(string filePath)
         {

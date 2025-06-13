@@ -50,7 +50,6 @@ namespace AMU.Data.Lang
             public string AssetDetail_cancel;
             public string AssetDetail_edit;
             public string AssetDetail_selectThumbnail;
-            public string AssetDetail_generateThumbnail;
             public string AssetDetail_addTag;
             public string AssetDetail_addDependency;
 

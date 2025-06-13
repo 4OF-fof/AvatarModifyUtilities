@@ -138,11 +138,6 @@ namespace AMU.AssetManager.UI
                     {
                         SelectThumbnail();
                     }
-
-                    if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_generateThumbnail")))
-                    {
-                        GenerateThumbnail();
-                    }
                 }
             }
         }
@@ -344,11 +339,6 @@ namespace AMU.AssetManager.UI
             {
                 _thumbnailManager.SetCustomThumbnail(_asset, path);
             }
-        }
-
-        private void GenerateThumbnail()
-        {
-            _thumbnailManager.GenerateAndSaveThumbnail(_asset);
         }
 
         private void BrowseForFile()
