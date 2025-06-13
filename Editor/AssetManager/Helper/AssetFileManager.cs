@@ -114,7 +114,6 @@ namespace AMU.AssetManager.Helper
                 assetType = DetermineAssetType(filePath),
                 fileSize = GetFileSize(filePath),
                 createdDate = GetFileCreationTime(filePath),
-                lastModifiedDate = GetFileModificationTime(filePath)
             };
 
             return asset;

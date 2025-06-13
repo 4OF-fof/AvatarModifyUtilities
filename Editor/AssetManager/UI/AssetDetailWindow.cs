@@ -367,7 +367,6 @@ namespace AMU.AssetManager.UI
 
                 // Update file info
                 _asset.fileSize = _fileManager.GetFileSize(_asset.filePath);
-                _asset.lastModifiedDate = _fileManager.GetFileModificationTime(_asset.filePath);
             }
         }
 
@@ -393,7 +392,6 @@ namespace AMU.AssetManager.UI
 
         private void SaveAsset()
         {
-            _asset.lastModifiedDate = DateTime.Now;
             _dataManager.UpdateAsset(_asset);
             _originalAsset = _asset.Clone();
             _isEditMode = false;

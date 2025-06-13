@@ -456,8 +456,8 @@ namespace AMU.AssetManager.UI
                     break;
                 case 1: // Date
                     _filteredAssets = _sortDescending ? 
-                        _filteredAssets.OrderByDescending(a => a.lastModifiedDate).ToList() : 
-                        _filteredAssets.OrderBy(a => a.lastModifiedDate).ToList();
+                        _filteredAssets.OrderByDescending(a => a.createdDate).ToList() : 
+                        _filteredAssets.OrderBy(a => a.createdDate).ToList();
                     break;
                 case 2: // Size
                     _filteredAssets = _sortDescending ? 

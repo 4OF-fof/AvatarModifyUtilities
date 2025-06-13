@@ -92,7 +92,6 @@ namespace AMU.AssetManager.Helper
             if (existingAsset != null)
             {
                 var index = _assetLibrary.assets.IndexOf(existingAsset);
-                asset.lastModifiedDate = DateTime.Now;
                 _assetLibrary.assets[index] = asset;
                 SaveData();
             }
@@ -124,7 +123,6 @@ namespace AMU.AssetManager.Helper
         {
             var assets = GetAllAssets();
 
-            // Filter hidden assets unless explicitly showing them
             if (!showHidden)
             {
                 assets = assets.Where(a => !a.isHidden).ToList();
@@ -160,7 +158,6 @@ namespace AMU.AssetManager.Helper
             duplicate.uid = Guid.NewGuid().ToString();
             duplicate.name = $"{originalAsset.name} (Copy)";
             duplicate.createdDate = DateTime.Now;
-            duplicate.lastModifiedDate = DateTime.Now;
 
             AddAsset(duplicate);
             return duplicate;

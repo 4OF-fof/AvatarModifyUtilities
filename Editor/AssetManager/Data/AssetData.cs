@@ -29,16 +29,12 @@ namespace AMU.AssetManager.Data
         public string filePath;
         public string thumbnailPath;
         public string authorName;
-        public string version;
         public DateTime createdDate;
-        public DateTime lastModifiedDate;
         public long fileSize;
         public List<string> tags;
         public List<string> dependencies;
         public bool isFavorite;
         public bool isHidden;
-        public int rating;
-        public string notes;
 
         public AssetInfo()
         {
@@ -49,16 +45,12 @@ namespace AMU.AssetManager.Data
             filePath = "";
             thumbnailPath = "";
             authorName = "";
-            version = "1.0";
             createdDate = DateTime.Now;
-            lastModifiedDate = DateTime.Now;
             fileSize = 0;
             tags = new List<string>();
             dependencies = new List<string>();
             isFavorite = false;
             isHidden = false;
-            rating = 0;
-            notes = "";
         }
 
         public AssetInfo Clone()
@@ -72,16 +64,12 @@ namespace AMU.AssetManager.Data
                 filePath = this.filePath,
                 thumbnailPath = this.thumbnailPath,
                 authorName = this.authorName,
-                version = this.version,
                 createdDate = this.createdDate,
-                lastModifiedDate = this.lastModifiedDate,
                 fileSize = this.fileSize,
                 tags = new List<string>(this.tags),
                 dependencies = new List<string>(this.dependencies),
                 isFavorite = this.isFavorite,
                 isHidden = this.isHidden,
-                rating = this.rating,
-                notes = this.notes
             };
         }
     }
