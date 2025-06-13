@@ -24,15 +24,15 @@ namespace AMU.AssetManager.UI
         private AssetInfo _asset;
         private AssetInfo _originalAsset;
         private bool _isEditMode = false;
-        private Vector2 _scrollPosition = Vector2.zero;
-
-        private AssetDataManager _dataManager;
+        private Vector2 _scrollPosition = Vector2.zero; private AssetDataManager _dataManager;
         private AssetThumbnailManager _thumbnailManager;
-        private AssetFileManager _fileManager;
-
-        // UI state for tags and dependencies
+        private AssetFileManager _fileManager;        // UI state for tags and dependencies
         private string _newTag = "";
-        private string _newDependency = ""; private void OnEnable()
+        private string _newDependency = "";
+        private int _dependencySelectionMode = 0; // 0: Asset Selection, 1: Manual Input
+        private int _selectedAssetIndex = -1;
+
+        private void OnEnable()
         {
             var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
             LocalizationManager.LoadLanguage(language);
@@ -103,6 +103,10 @@ namespace AMU.AssetManager.UI
                     if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_edit"), EditorStyles.toolbarButton))
                     {
                         _isEditMode = true;
+                        // Reset UI state when entering edit mode
+                        _newTag = "";
+                        _newDependency = "";
+                        _selectedAssetIndex = -1;
                     }
                 }
             }
@@ -300,9 +304,7 @@ namespace AMU.AssetManager.UI
                     }
                 }
 
-                GUILayout.Space(10);
-
-                // Dependencies
+                GUILayout.Space(10);                // Dependencies
                 using (new GUILayout.VerticalScope())
                 {
                     GUILayout.Label(LocalizationManager.GetText("AssetDetail_dependencies"), EditorStyles.boldLabel);
@@ -314,7 +316,29 @@ namespace AMU.AssetManager.UI
                             {
                                 using (new GUILayout.HorizontalScope())
                                 {
-                                    GUILayout.Label(_asset.dependencies[i]);
+                                    var dependency = _asset.dependencies[i];
+                                    var referencedAsset = _dataManager.GetAssetByName(dependency);
+                                    if (referencedAsset != null)
+                                    {
+                                        // This is a reference to an existing asset
+                                        var originalColor = GUI.color;
+                                        GUI.color = new Color(0.7f, 1f, 0.7f, 1f); // Light green background
+
+                                        var content = new GUIContent(dependency, LocalizationManager.GetText("AssetDetail_clickToOpenAsset"));
+                                        if (GUILayout.Button(content, EditorStyles.miniButton))
+                                        {
+                                            // Open the referenced asset's detail window
+                                            AssetDetailWindow.ShowWindow(referencedAsset);
+                                        }
+
+                                        GUI.color = originalColor;
+                                    }
+                                    else
+                                    {
+                                        // This is a manual text entry
+                                        GUILayout.Label(dependency);
+                                    }
+
                                     if (_isEditMode && GUILayout.Button("×", GUILayout.Width(20)))
                                     {
                                         _asset.dependencies.RemoveAt(i);
@@ -326,12 +350,59 @@ namespace AMU.AssetManager.UI
                         if (_isEditMode)
                         {
                             GUILayout.FlexibleSpace();
+                            // Selection mode toggle
                             using (new GUILayout.HorizontalScope())
                             {
-                                _newDependency = EditorGUILayout.TextField(_newDependency);
-                                if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_addDependency"), GUILayout.Width(80)))
+                                GUILayout.Label("Mode:", GUILayout.Width(40));
+                                string[] modes = {
+                                    LocalizationManager.GetText("AssetDetail_dependencyModeAsset"),
+                                    LocalizationManager.GetText("AssetDetail_dependencyModeManual")
+                                };
+                                _dependencySelectionMode = GUILayout.Toolbar(_dependencySelectionMode, modes, EditorStyles.miniButton);
+                            }
+
+                            GUILayout.Space(3);
+
+                            using (new GUILayout.HorizontalScope())
+                            {
+                                if (_dependencySelectionMode == 0)
                                 {
-                                    AddDependency();
+                                    // Asset selection mode
+                                    var allAssets = _dataManager.GetAllAssets();
+                                    var assetNames = allAssets.Where(a => a.uid != _asset.uid) // Exclude self
+                                                              .Select(a => a.name)
+                                                              .ToArray();
+
+                                    if (assetNames.Length > 0)
+                                    {
+                                        _selectedAssetIndex = EditorGUILayout.Popup(_selectedAssetIndex, assetNames);
+
+                                        if (_selectedAssetIndex >= 0 && _selectedAssetIndex < assetNames.Length)
+                                        {
+                                            if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_addDependency"), GUILayout.Width(80)))
+                                            {
+                                                var selectedAssetName = assetNames[_selectedAssetIndex];
+                                                if (!_asset.dependencies.Contains(selectedAssetName))
+                                                {
+                                                    _asset.dependencies.Add(selectedAssetName);
+                                                    _selectedAssetIndex = -1; // Reset selection
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        GUILayout.Label(LocalizationManager.GetText("AssetDetail_noOtherAssets"), EditorStyles.miniLabel);
+                                    }
+                                }
+                                else
+                                {
+                                    // Manual input mode
+                                    _newDependency = EditorGUILayout.TextField(_newDependency);
+                                    if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_addDependency"), GUILayout.Width(80)))
+                                    {
+                                        AddDependency();
+                                    }
                                 }
                             }
                         }
@@ -389,25 +460,38 @@ namespace AMU.AssetManager.UI
                 GUI.FocusControl(null);
             }
         }
-
         private void SaveAsset()
         {
-            _dataManager.UpdateAsset(_asset);
-            _originalAsset = _asset.Clone();
-            _isEditMode = false;
-
-            // Refresh the main window
-            var mainWindow = GetWindow<AssetManagerWindow>();
-            if (mainWindow != null)
+            try
             {
-                EditorApplication.delayCall += () => mainWindow.Repaint();
+                _dataManager.UpdateAsset(_asset);
+                _originalAsset = _asset.Clone();
+                _isEditMode = false;
+
+                // Refresh the main window without stealing focus
+                EditorApplication.delayCall += () =>
+                {
+                    var windows = Resources.FindObjectsOfTypeAll<AssetManagerWindow>();
+                    foreach (var window in windows)
+                    {
+                        window.Repaint();
+                    }
+                };
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to save asset: {ex.Message}");
+                EditorUtility.DisplayDialog("Error", "Failed to save asset. Check console for details.", "OK");
             }
         }
-
         private void CancelEdit()
         {
             _asset = _originalAsset?.Clone();
             _isEditMode = false;
+            // Reset UI state when canceling edit
+            _newTag = "";
+            _newDependency = "";
+            _selectedAssetIndex = -1;
         }
 
         private void OnThumbnailSaved(AssetInfo asset)
