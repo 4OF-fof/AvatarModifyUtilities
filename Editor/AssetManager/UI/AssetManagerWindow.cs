@@ -34,8 +34,8 @@ namespace AMU.AssetManager.UI
         private AssetType _selectedAssetType = AssetType.Avatar;
         private bool _showFavoritesOnly = false;
         private bool _showHidden = false;
-        private int _selectedSortOption = 0; // 0: Name, 1: Date, 2: Size
-        private bool _sortDescending = false;
+        private int _selectedSortOption = 1;
+        private bool _sortDescending = true;
 
         // Layout
         private float _leftPanelWidth = 250f;
@@ -162,8 +162,8 @@ namespace AMU.AssetManager.UI
                     RefreshAssetList();
                 }
 
-                // Sort direction
-                var newSortDescending = GUILayout.Toggle(_sortDescending, "↓", EditorStyles.toolbarButton, GUILayout.Width(25));
+                string sortArrow = _sortDescending ? "↓" : "↑";
+                var newSortDescending = GUILayout.Toggle(_sortDescending, sortArrow, EditorStyles.toolbarButton, GUILayout.Width(25));
                 if (newSortDescending != _sortDescending)
                 {
                     _sortDescending = newSortDescending;
@@ -172,7 +172,6 @@ namespace AMU.AssetManager.UI
 
                 GUILayout.Space(10);
 
-                // Action buttons
                 if (GUILayout.Button(LocalizationManager.GetText("AssetManager_addAsset"), EditorStyles.toolbarButton))
                 {
                     ShowAddAssetDialog();
@@ -199,7 +198,6 @@ namespace AMU.AssetManager.UI
         {
             using (new GUILayout.VerticalScope(GUILayout.Width(_leftPanelWidth)))
             {
-                // Asset type filter
                 GUILayout.Label("Asset Types", EditorStyles.boldLabel);
                 using (var scrollView = new GUILayout.ScrollViewScope(_leftScrollPosition, GUILayout.ExpandHeight(true)))
                 {
