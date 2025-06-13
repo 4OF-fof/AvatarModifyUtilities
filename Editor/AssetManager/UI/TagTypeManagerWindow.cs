@@ -178,11 +178,13 @@ namespace AMU.Editor.TagType
 
             // カラーインジケーター
             var color = Color.white;
-            ColorUtility.TryParseHtmlString(tag.color, out color);
-            var originalColor = GUI.backgroundColor;
-            GUI.backgroundColor = color;
-            GUILayout.Box("", GUILayout.Width(20), GUILayout.Height(20));
-            GUI.backgroundColor = originalColor;
+            if (!ColorUtility.TryParseHtmlString(tag.color, out color))
+            {
+                color = Color.gray; // パースに失敗した場合はグレー
+            }
+
+            var rect = GUILayoutUtility.GetRect(20, 20, GUILayout.Width(20), GUILayout.Height(20));
+            EditorGUI.DrawRect(rect, color);
 
             // タグ情報
             EditorGUILayout.BeginVertical();
@@ -225,10 +227,16 @@ namespace AMU.Editor.TagType
 
             tag.name = EditorGUILayout.TextField("名前:", tag.name);
 
-            Color color;
+            Color color = Color.white;
             if (ColorUtility.TryParseHtmlString(tag.color, out color))
             {
                 color = EditorGUILayout.ColorField("色:", color);
+                tag.color = "#" + ColorUtility.ToHtmlStringRGB(color);
+            }
+            else
+            {
+                // パースに失敗した場合は白からスタート
+                color = EditorGUILayout.ColorField("色:", Color.white);
                 tag.color = "#" + ColorUtility.ToHtmlStringRGB(color);
             }
 
