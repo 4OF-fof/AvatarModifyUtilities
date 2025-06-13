@@ -33,6 +33,12 @@ namespace AMU.AssetManager.UI
         private int _selectedAssetIndex = -1;
         private List<AssetInfo> _availableAssets = new List<AssetInfo>();
 
+        // Tag suggestion state
+        private List<string> _allTags = new List<string>();
+        private List<string> _filteredTags = new List<string>();
+        private bool _showTagSuggestions = false;
+        private Vector2 _tagSuggestionScrollPos = Vector2.zero;
+
         private void OnEnable()
         {
             var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
@@ -46,7 +52,6 @@ namespace AMU.AssetManager.UI
         {
             _thumbnailManager?.ClearCache();
         }
-
         private void InitializeManagers()
         {
             if (_dataManager == null)
@@ -65,6 +70,31 @@ namespace AMU.AssetManager.UI
             if (_fileManager == null)
             {
                 _fileManager = new AssetFileManager();
+            }
+
+            LoadAllTags();
+        }
+
+        private void LoadAllTags()
+        {
+            _allTags.Clear();
+            if (_dataManager?.Library?.assets != null)
+            {
+                var tagSet = new HashSet<string>();
+                foreach (var asset in _dataManager.Library.assets)
+                {
+                    if (asset.tags != null)
+                    {
+                        foreach (var tag in asset.tags)
+                        {
+                            if (!string.IsNullOrWhiteSpace(tag))
+                            {
+                                tagSet.Add(tag.Trim());
+                            }
+                        }
+                    }
+                }
+                _allTags = tagSet.OrderBy(tag => tag).ToList();
             }
         }
 
@@ -289,18 +319,10 @@ namespace AMU.AssetManager.UI
                                 }
                             }
                         }
-
                         if (_isEditMode)
                         {
                             GUILayout.FlexibleSpace();
-                            using (new GUILayout.HorizontalScope())
-                            {
-                                _newTag = EditorGUILayout.TextField(_newTag);
-                                if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_addTag"), GUILayout.Width(80)))
-                                {
-                                    AddTag();
-                                }
-                            }
+                            DrawTagInput();
                         }
                     }
                 }
@@ -453,13 +475,112 @@ namespace AMU.AssetManager.UI
             }
         }
 
-        private void AddTag()
+        private void DrawTagInput()
         {
-            if (!string.IsNullOrEmpty(_newTag) && !_asset.tags.Contains(_newTag))
+            using (new GUILayout.VerticalScope())
             {
-                _asset.tags.Add(_newTag);
-                _newTag = "";
-                GUI.FocusControl(null);
+                using (new GUILayout.HorizontalScope())
+                {
+                    var newTagInput = EditorGUILayout.TextField(_newTag);
+
+                    // Check if input changed to update suggestions
+                    if (newTagInput != _newTag)
+                    {
+                        _newTag = newTagInput;
+                        UpdateTagSuggestions();
+                    }
+
+                    if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_addTag"), GUILayout.Width(80)))
+                    {
+                        AddTag();
+                    }
+                }
+
+                // Show suggestions if available and input is not empty
+                if (_showTagSuggestions && _filteredTags.Count > 0 && !string.IsNullOrEmpty(_newTag))
+                {
+                    DrawTagSuggestions();
+                }
+            }
+        }
+
+        private void UpdateTagSuggestions()
+        {
+            _filteredTags.Clear();
+            _showTagSuggestions = false;
+
+            if (string.IsNullOrEmpty(_newTag))
+            {
+                return;
+            }
+
+            var input = _newTag.ToLower();
+            foreach (var tag in _allTags)
+            {
+                // Skip tags that are already added to the current asset
+                if (_asset.tags.Contains(tag))
+                    continue;
+
+                // Filter tags that contain the input text
+                if (tag.ToLower().Contains(input))
+                {
+                    _filteredTags.Add(tag);
+                }
+            }
+
+            _showTagSuggestions = _filteredTags.Count > 0;
+        }
+        private void DrawTagSuggestions()
+        {
+            var suggestionHeight = Mathf.Min(_filteredTags.Count * 20f, 100f);
+
+            using (new GUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Height(suggestionHeight)))
+            {
+                _tagSuggestionScrollPos = GUILayout.BeginScrollView(_tagSuggestionScrollPos);
+
+                for (int i = 0; i < _filteredTags.Count; i++)
+                {
+                    var tag = _filteredTags[i];
+                    var rect = GUILayoutUtility.GetRect(GUIContent.none, EditorStyles.label, GUILayout.Height(18));
+
+                    if (GUI.Button(rect, tag, EditorStyles.label))
+                    {
+                        _newTag = tag;
+                        AddTag();
+                        _showTagSuggestions = false;
+                        GUI.FocusControl(null);
+                        break;
+                    }
+
+                    // Highlight on hover
+                    if (rect.Contains(Event.current.mousePosition))
+                    {
+                        EditorGUI.DrawRect(rect, new Color(0.5f, 0.5f, 1f, 0.3f));
+                        GUI.Label(rect, tag);
+                    }
+                }
+
+                GUILayout.EndScrollView();
+            }
+
+            // Handle keyboard input for tag suggestions
+            if (Event.current.type == EventType.KeyDown)
+            {
+                if (Event.current.keyCode == KeyCode.Escape)
+                {
+                    _showTagSuggestions = false;
+                    Event.current.Use();
+                }
+                else if (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter)
+                {
+                    if (_filteredTags.Count > 0)
+                    {
+                        _newTag = _filteredTags[0];
+                        AddTag();
+                        _showTagSuggestions = false;
+                        Event.current.Use();
+                    }
+                }
             }
         }
 
@@ -511,6 +632,26 @@ namespace AMU.AssetManager.UI
             if (asset != null && _dataManager != null)
             {
                 _dataManager.UpdateAsset(asset);
+            }
+        }
+
+        private void AddTag()
+        {
+            if (!string.IsNullOrEmpty(_newTag.Trim()) && !_asset.tags.Contains(_newTag.Trim()))
+            {
+                var trimmedTag = _newTag.Trim();
+                _asset.tags.Add(trimmedTag);
+
+                // Add to global tag list if it's not already there
+                if (!_allTags.Contains(trimmedTag))
+                {
+                    _allTags.Add(trimmedTag);
+                    _allTags.Sort();
+                }
+
+                _newTag = "";
+                _showTagSuggestions = false;
+                GUI.FocusControl(null);
             }
         }
     }
