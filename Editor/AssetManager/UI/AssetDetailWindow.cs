@@ -341,11 +341,14 @@ namespace AMU.AssetManager.UI
                                         var originalColor = GUI.color; if (dependency.Length == 36 && dependency.Contains("-")) // Looks like a UUID
                                         {
                                             GUI.color = new Color(1f, 0.7f, 0.7f, 1f); // Light red for broken reference
-                                            GUILayout.Label($"{LocalizationManager.GetText("AssetDetail_missingDependency")} {dependency}", EditorStyles.miniLabel);
+                                            var missingContent = new GUIContent($"{LocalizationManager.GetText("AssetDetail_missingDependency")} {dependency}");
+                                            GUILayout.Button(missingContent, EditorStyles.miniButton);
                                         }
                                         else
                                         {
-                                            GUILayout.Label(dependency); // Manual text entry
+                                            GUI.color = new Color(0.9f, 0.9f, 1f, 1f); // Light blue background for manual entries
+                                            var manualContent = new GUIContent(dependency);
+                                            GUILayout.Button(manualContent, EditorStyles.miniButton);
                                         }
                                         GUI.color = originalColor;
                                     }
