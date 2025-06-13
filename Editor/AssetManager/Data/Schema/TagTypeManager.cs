@@ -146,12 +146,6 @@ namespace AMU.Data.TagType
                 new TypeItem("Avatar", "アバター関連", true),
                 new TypeItem("Clothing", "衣装・服", true),
                 new TypeItem("Accessory", "アクセサリー", true),
-                new TypeItem("Texture", "テクスチャ", true),
-                new TypeItem("Material", "マテリアル", true),
-                new TypeItem("Animation", "アニメーション", true),
-                new TypeItem("Shader", "シェーダー", true),
-                new TypeItem("Prefab", "プレハブ", true),
-                new TypeItem("Script", "スクリプト", true),
                 new TypeItem("Other", "その他", true)
             };
 
@@ -166,13 +160,7 @@ namespace AMU.Data.TagType
             var defaultTags = new[]
             {
                 new TagItem("Free", "#4CAF50"),
-                new TagItem("Paid", "#F44336"),
-                new TagItem("VRC", "#1976D2"),
                 new TagItem("Original", "#9C27B0"),
-                new TagItem("Public", "#FF9800"),
-                new TagItem("Commercial", "#795548"),
-                new TagItem("Favorite", "#E91E63"),
-                new TagItem("Work-in-Progress", "#607D8B")
             };
 
             data.tags.AddRange(defaultTags);
