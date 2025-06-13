@@ -260,7 +260,8 @@ namespace AMU.AssetManager.UI
 
                 // Right panel area - starts immediately after left panel
                 using (new GUILayout.HorizontalScope())
-                {                    // Filter buttons - positioned at the start of right panel area                    if (GUILayout.Toggle(_currentFilter == AssetFilterType.All, LocalizationManager.GetText("AssetManager_filterAll"), EditorStyles.toolbarButton))
+                {
+                    if (GUILayout.Toggle(_currentFilter == AssetFilterType.All, LocalizationManager.GetText("AssetManager_filterAll"), EditorStyles.toolbarButton))
                     {
                         if (_currentFilter != AssetFilterType.All)
                         {
