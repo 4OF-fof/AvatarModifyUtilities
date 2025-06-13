@@ -20,4 +20,5 @@ namespace AMU.Editor.AutoVariant.Watcher
 
             return true;
         }
-    }}
+    }
+}

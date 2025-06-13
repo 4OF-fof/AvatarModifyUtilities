@@ -33,14 +33,14 @@ namespace AMU.Editor.AutoVariant.Watcher
         public static void OptimizeActiveAvatars()
         {
             var avatars = AvatarValidator.FindActiveAvatars();
-            
+
             ClearMaterialStates();
-            
+
             foreach (var avatar in avatars)
             {
                 OptimizeAvatarMaterials(avatar);
             }
-            
+
             RestoreMaterialStates();
         }
 
@@ -48,7 +48,7 @@ namespace AMU.Editor.AutoVariant.Watcher
         {
             SaveMaterialStates(avatar);
             MaterialVariantOptimizer.OptimizeMaterials(avatar);
-            
+
             Debug.Log($"[MaterialOptimizationManager] Optimized materials for VRC Avatar: {avatar.name}");
 
             OptimizeNestedPrefabs(avatar);
@@ -69,7 +69,7 @@ namespace AMU.Editor.AutoVariant.Watcher
         {
             if (visited.Contains(prefabPath))
                 return;
-                
+
             visited.Add(prefabPath);
 
             var prefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
@@ -108,7 +108,7 @@ namespace AMU.Editor.AutoVariant.Watcher
         private static void OptimizeMaterialsForAllChildren(GameObject root)
         {
             MaterialVariantOptimizer.OptimizeMaterials(root);
-            
+
             foreach (Transform child in root.transform)
             {
                 OptimizeMaterialsForAllChildren(child.gameObject);
@@ -118,7 +118,7 @@ namespace AMU.Editor.AutoVariant.Watcher
         private static void SaveMaterialStates(GameObject avatar)
         {
             var renderers = avatar.GetComponentsInChildren<Renderer>(true);
-            
+
             foreach (var renderer in renderers)
             {
                 if (renderer.sharedMaterials != null && renderer.sharedMaterials.Length > 0)
@@ -126,14 +126,14 @@ namespace AMU.Editor.AutoVariant.Watcher
                     _materialStates.Add(new RendererMaterialState(renderer));
                 }
             }
-            
+
             Debug.Log($"[MaterialOptimizationManager] Saved material states for {renderers.Length} renderers in {avatar.name}");
         }
 
         private static void RestoreMaterialStates()
         {
             int restoredCount = 0;
-            
+
             foreach (var state in _materialStates)
             {
                 if (state.renderer != null)
@@ -142,7 +142,7 @@ namespace AMU.Editor.AutoVariant.Watcher
                     restoredCount++;
                 }
             }
-            
+
             Debug.Log($"[MaterialOptimizationManager] Restored materials for {restoredCount} renderers");
         }
 

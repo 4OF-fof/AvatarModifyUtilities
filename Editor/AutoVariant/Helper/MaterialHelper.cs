@@ -70,7 +70,7 @@ public static class MaterialVariantOptimizer
         {
             var variantChild = variant.transform.GetChild(i).gameObject;
             var parentChild = parent.transform.GetChild(i).gameObject;
-            
+
             if (ProcessMaterialsRecursive(variantChild, parentChild))
             {
                 hasChanges = true;
@@ -155,7 +155,7 @@ public static class MaterialVariantOptimizer
         try
         {
             PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
-            
+
             var prefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefabRoot);
             if (!string.IsNullOrEmpty(prefabPath))
             {
@@ -178,7 +178,7 @@ public static class MaterialHashCalculator
             return string.Empty;
 
         var hashBuilder = new StringBuilder();
-        
+
         AppendShaderInfo(material, hashBuilder);
         AppendShaderProperties(material, hashBuilder);
         AppendShaderKeywords(material, hashBuilder);
@@ -224,22 +224,22 @@ public static class MaterialHashCalculator
                 var color = material.GetColor(propName);
                 hashBuilder.Append($"{propName}:c{color.r:F6},{color.g:F6},{color.b:F6},{color.a:F6};");
                 break;
-                
+
             case UnityEngine.Rendering.ShaderPropertyType.Vector:
                 var vector = material.GetVector(propName);
                 hashBuilder.Append($"{propName}:v{vector.x:F6},{vector.y:F6},{vector.z:F6},{vector.w:F6};");
                 break;
-                
+
             case UnityEngine.Rendering.ShaderPropertyType.Float:
             case UnityEngine.Rendering.ShaderPropertyType.Range:
                 var floatVal = material.GetFloat(propName);
                 hashBuilder.Append($"{propName}:f{floatVal:F6};");
                 break;
-                
+
             case UnityEngine.Rendering.ShaderPropertyType.Texture:
                 AppendTextureInfo(material, propName, hashBuilder);
                 break;
-                
+
             case UnityEngine.Rendering.ShaderPropertyType.Int:
                 var intVal = material.GetInt(propName);
                 hashBuilder.Append($"{propName}:i{intVal};");
@@ -253,7 +253,7 @@ public static class MaterialHashCalculator
         if (texture != null)
         {
             hashBuilder.Append($"{propName}:t{texture.GetInstanceID()};");
-            
+
             var offset = material.GetTextureOffset(propName);
             var scale = material.GetTextureScale(propName);
             hashBuilder.Append($"{propName}_ST:{offset.x:F6},{offset.y:F6},{scale.x:F6},{scale.y:F6};");
@@ -280,7 +280,7 @@ public static class MaterialHashCalculator
         {
             var inputBytes = Encoding.UTF8.GetBytes(input);
             var hashBytes = md5.ComputeHash(inputBytes);
-            
+
             var result = new StringBuilder();
             foreach (var b in hashBytes)
             {

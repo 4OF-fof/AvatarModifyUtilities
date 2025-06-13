@@ -8,11 +8,11 @@ using AMU.Editor.Core.Helper;
 public static class PrefabAdditionDetector
 {
     static bool isProcessing = false;
-    static System.Collections.Generic.HashSet<int> processedInstanceIds = new System.Collections.Generic.HashSet<int>();    static PrefabAdditionDetector()
+    static System.Collections.Generic.HashSet<int> processedInstanceIds = new System.Collections.Generic.HashSet<int>(); static PrefabAdditionDetector()
     {
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return;
         EditorApplication.hierarchyChanged += OnHierarchyChanged;
-        
+
         EditorApplication.update += ClearProcessedIds;
     }
 
@@ -24,7 +24,8 @@ public static class PrefabAdditionDetector
             processedInstanceIds.Clear();
             lastClearTime = EditorApplication.timeSinceStartup;
         }
-    }static void OnHierarchyChanged()
+    }
+    static void OnHierarchyChanged()
     {
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return;
         if (isProcessing) return;
@@ -53,22 +54,22 @@ public static class PrefabAdditionDetector
     static System.Collections.Generic.List<GameObject> FindAddedPrefabRoots()
     {
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return new System.Collections.Generic.List<GameObject>();
-        
+
         if (PrefabStageUtility.GetCurrentPrefabStage() != null)
         {
             return new System.Collections.Generic.List<GameObject>();
         }
-        
+
         var result = new System.Collections.Generic.List<GameObject>();
         foreach (GameObject go in Resources.FindObjectsOfTypeAll<GameObject>())
         {
             if (!go.scene.IsValid()) continue;
             if ((go.hideFlags & HideFlags.HideInHierarchy) != 0) continue;
-            
+
             bool isPrefabRoot = go.transform.parent == null && PrefabUtility.IsAnyPrefabInstanceRoot(go);
-            bool isPrefabChild = go.transform.parent != null && PrefabUtility.IsPartOfAnyPrefab(go) && 
+            bool isPrefabChild = go.transform.parent != null && PrefabUtility.IsPartOfAnyPrefab(go) &&
                                PrefabUtility.IsAnyPrefabInstanceRoot(go);
-            
+
             if (!isPrefabRoot && !isPrefabChild) continue;
 
             var prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(go);
@@ -82,7 +83,8 @@ public static class PrefabAdditionDetector
     static bool IsAMU(GameObject go, Object prefabAsset)
     {
         return go.name.StartsWith("AMU_") || (prefabAsset != null && prefabAsset.name.StartsWith("AMU_"));
-    }    static void HandlePrefabAddition(GameObject go)
+    }
+    static void HandlePrefabAddition(GameObject go)
     {
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return;
 
@@ -102,7 +104,7 @@ public static class PrefabAdditionDetector
         string materialDir = Path.Combine(variantDir, "Material").Replace("\\", "/");
         EnsureVariantDirectoryExists(materialDir);
 
-        bool isPrefabChild = go.transform.parent != null && 
+        bool isPrefabChild = go.transform.parent != null &&
                            PrefabUtility.IsPartOfAnyPrefab(go.transform.parent.gameObject);
 
         if (isPrefabChild)
@@ -177,7 +179,7 @@ public static class PrefabAdditionDetector
             {
                 renderer.sharedMaterials = materials;
                 EditorUtility.SetDirty(renderer);
-                
+
                 if (PrefabUtility.IsPartOfAnyPrefab(renderer.gameObject))
                 {
                     var prefabRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(renderer.gameObject);
@@ -189,7 +191,8 @@ public static class PrefabAdditionDetector
                 }
             }
         }
-    }    static void ReplaceWithVariant(GameObject original, string variantPath)
+    }
+    static void ReplaceWithVariant(GameObject original, string variantPath)
     {
         if (!EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false)) return;
         var variantPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(variantPath);

@@ -10,7 +10,7 @@ namespace AMU.Editor.AutoVariant.Watcher
         public static bool ValidateAvatarCount()
         {
             var avatars = FindActiveAvatars();
-            
+
             if (avatars.Length <= 1)
                 return true;
 
@@ -38,7 +38,7 @@ namespace AMU.Editor.AutoVariant.Watcher
         {
             var lang = EditorPrefs.GetString("Setting.Core_language", "en_us");
             var (title, message) = GetLocalizedErrorMessage(lang);
-            
+
             EditorUtility.DisplayDialog(title, message, "OK");
         }
 

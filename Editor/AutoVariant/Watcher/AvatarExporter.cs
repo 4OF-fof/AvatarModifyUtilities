@@ -47,10 +47,10 @@ namespace AMU.Editor.AutoVariant.Watcher
             {
                 // UnityPackageと同じ場所に同じ名前でpngファイルを保存
                 var imagePath = Path.ChangeExtension(unityPackagePath, ".png");
-                
+
                 // ObjectCaptureHelperを使用してアバターの画像をキャプチャ
                 var capturedTexture = ObjectCaptureHelper.CaptureObject(avatar, imagePath, 512, 512);
-                
+
                 if (capturedTexture != null)
                 {
                     Debug.Log($"[AvatarExporter] Captured avatar image: {imagePath}");
@@ -72,20 +72,20 @@ namespace AMU.Editor.AutoVariant.Watcher
             var blueprintId = PipelineManagerHelper.GetBlueprintId(avatar);
             var exportDirectory = CreateExportDirectory(blueprintId);
             var fileName = GenerateUniqueFileName(exportDirectory, avatar.name, string.IsNullOrEmpty(blueprintId));
-            
+
             return Path.Combine(exportDirectory, fileName);
         }
 
         private static string CreateExportDirectory(string blueprintId)
         {
-            var basePath = EditorPrefs.GetString("Setting.Core_dirPath", 
+            var basePath = EditorPrefs.GetString("Setting.Core_dirPath",
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
-            
+
             EnsureDirectoryExists(basePath);
-            
+
             var autoVariantPath = Path.Combine(basePath, "AutoVariant");
             EnsureDirectoryExists(autoVariantPath);
-            
+
             var dirName = string.IsNullOrEmpty(blueprintId) ? "local" : blueprintId;
             var avatarDir = Path.Combine(autoVariantPath, dirName);
             EnsureDirectoryExists(avatarDir);
@@ -111,7 +111,7 @@ namespace AMU.Editor.AutoVariant.Watcher
         {
             var dateString = DateTime.Now.ToString("yyMMdd");
             var baseName = isLocal ? $"{dateString}-{avatarName}-" : $"{dateString}-";
-            
+
             int number = 1;
             string fileName;
 
@@ -139,7 +139,7 @@ namespace AMU.Editor.AutoVariant.Watcher
 
             assetPaths.Add(avatarPrefabPath);
             CollectDependencies(avatarPrefabPath, assetPaths, includeAllAssets);
-            
+
             Debug.Log($"[AvatarExporter] Collected {assetPaths.Count} assets for {avatar.name} (includeAllAssets: {includeAllAssets})");
             return assetPaths;
         }
@@ -147,7 +147,7 @@ namespace AMU.Editor.AutoVariant.Watcher
         private static void CollectDependencies(string prefabPath, List<string> assetPaths, bool includeAllAssets)
         {
             var dependencies = AssetDatabase.GetDependencies(prefabPath, true);
-            
+
             foreach (var dependency in dependencies)
             {
                 if (ShouldIncludeDependency(dependency, includeAllAssets) && !assetPaths.Contains(dependency))

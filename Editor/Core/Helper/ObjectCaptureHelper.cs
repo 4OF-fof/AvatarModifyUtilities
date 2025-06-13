@@ -22,7 +22,7 @@ namespace AMU.Editor.Core.Helper
 
             GameObject tempCameraObject = new GameObject("TempCaptureCamera");
             Camera captureCamera = tempCameraObject.AddComponent<Camera>();
-            
+
             try
             {
                 Bounds bounds = GetObjectBounds(targetObject);
@@ -73,7 +73,7 @@ namespace AMU.Editor.Core.Helper
             bool hasBounds = false;
 
             Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
-            
+
             foreach (Renderer renderer in renderers)
             {
                 if (!hasBounds)
@@ -95,7 +95,7 @@ namespace AMU.Editor.Core.Helper
             try
             {
                 byte[] bytes = texture.EncodeToPNG();
-                
+
                 string directory = Path.GetDirectoryName(path);
                 if (!Directory.Exists(directory))
                 {

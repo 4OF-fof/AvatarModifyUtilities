@@ -15,7 +15,7 @@ namespace AMU.Editor.AutoVariant.Watcher
             EditorPrefs.GetString("Setting.Core_language", "en_us");
 
         public static string BaseDirectoryPath =>
-            EditorPrefs.GetString("Setting.Core_dirPath", 
+            EditorPrefs.GetString("Setting.Core_dirPath",
                 System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
     }
 }
