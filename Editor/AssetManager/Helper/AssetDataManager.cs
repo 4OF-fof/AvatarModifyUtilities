@@ -165,7 +165,7 @@ namespace AMU.AssetManager.Helper
 
             if (!showHidden)
             {
-                assets = assets.Where(a => !a.isHidden).ToList();
+                assets = assets.Where(a => !a.isHidden).ToList(); // Filter out archived assets
             }
 
             if (!string.IsNullOrEmpty(searchText))

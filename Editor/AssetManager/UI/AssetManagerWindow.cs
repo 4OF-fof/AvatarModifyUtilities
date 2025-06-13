@@ -249,10 +249,9 @@ namespace AMU.AssetManager.UI
                         _needsRefresh = true;
                         _isLoadingTypeChange = true;
                     }
-
                     GUILayout.Space(10);
 
-                    // Show hidden checkbox
+                    // Show archived checkbox
                     var newShowHidden = GUILayout.Toggle(_showHidden, LocalizationManager.GetText("AssetManager_showHidden"), EditorStyles.toolbarButton);
                     if (newShowHidden != _showHidden)
                     {
@@ -546,7 +545,7 @@ namespace AMU.AssetManager.UI
                     EditorGUI.DrawRect(thumbnailRect, new Color(0.3f, 0.5f, 1f, 0.3f));
                 }
 
-                // Show hidden overlay
+                // Show archived overlay
                 if (asset.isHidden)
                 {
                     EditorGUI.DrawRect(thumbnailRect, new Color(0f, 0f, 0f, 0.5f));
@@ -568,7 +567,7 @@ namespace AMU.AssetManager.UI
                     GUI.Label(starRect, "★");
                 }
 
-                // Hidden indicator
+                // Archived indicator
                 if (asset.isHidden)
                 {
                     var hiddenRect = new Rect(thumbnailRect.x + 5, thumbnailRect.y + 5, 15, 15);
