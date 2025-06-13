@@ -408,7 +408,18 @@ namespace AMU.AssetManager.UI
                             {
                                 using (new GUILayout.HorizontalScope())
                                 {
-                                    GUILayout.Label(_asset.tags[i]);
+                                    var tagName = _asset.tags[i];
+                                    var originalColor = GUI.color;
+
+                                    // タグの色を取得して背景色に設定
+                                    var tagColor = AssetTagManager.GetTagColor(tagName);
+                                    GUI.color = tagColor;
+
+                                    var tagContent = new GUIContent(tagName);
+                                    GUILayout.Button(tagContent, EditorStyles.miniButton);
+
+                                    GUI.color = originalColor;
+
                                     if (_isEditMode && GUILayout.Button("×", GUILayout.Width(20)))
                                     {
                                         _asset.tags.RemoveAt(i);
