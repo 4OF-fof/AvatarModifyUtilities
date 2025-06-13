@@ -152,16 +152,6 @@ namespace AMU.AssetManager.Helper
             return assets;
         }
 
-        public AssetInfo DuplicateAsset(AssetInfo originalAsset)
-        {
-            var duplicate = originalAsset.Clone();
-            duplicate.uid = Guid.NewGuid().ToString();
-            duplicate.name = $"{originalAsset.name} (Copy)";
-            duplicate.createdDate = DateTime.Now;
-
-            AddAsset(duplicate);
-            return duplicate;
-        }
 
         private void EnsureDirectoryExists()
         {

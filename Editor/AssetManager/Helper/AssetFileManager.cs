@@ -51,41 +51,7 @@ namespace AMU.AssetManager.Helper
             }
         }
 
-        public DateTime GetFileCreationTime(string filePath)
-        {
-            try
-            {
-                string fullPath = GetFullPath(filePath);
-                if (File.Exists(fullPath))
-                {
-                    return File.GetCreationTime(fullPath);
-                }
-                return DateTime.MinValue;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[AssetFileManager] Failed to get creation time for {filePath}: {ex.Message}");
-                return DateTime.MinValue;
-            }
-        }
 
-        public DateTime GetFileModificationTime(string filePath)
-        {
-            try
-            {
-                string fullPath = GetFullPath(filePath);
-                if (File.Exists(fullPath))
-                {
-                    return File.GetLastWriteTime(fullPath);
-                }
-                return DateTime.MinValue;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[AssetFileManager] Failed to get modification time for {filePath}: {ex.Message}");
-                return DateTime.MinValue;
-            }
-        }
 
         public bool FileExists(string filePath)
         {
@@ -119,79 +85,7 @@ namespace AMU.AssetManager.Helper
             return asset;
         }
 
-        public string ImportAssetFile(string sourcePath)
-        {
-            if (string.IsNullOrEmpty(sourcePath) || !File.Exists(sourcePath))
-            {
-                return null;
-            }
 
-            try
-            {
-                string fileName = Path.GetFileName(sourcePath);
-                string targetDir = Path.Combine(Application.dataPath, "ImportedAssets");
-                
-                if (!Directory.Exists(targetDir))
-                {
-                    Directory.CreateDirectory(targetDir);
-                }
-
-                string targetPath = Path.Combine(targetDir, fileName);
-                
-                // Generate unique filename if file already exists
-                int counter = 1;
-                while (File.Exists(targetPath))
-                {
-                    string nameWithoutExt = Path.GetFileNameWithoutExtension(sourcePath);
-                    string extension = Path.GetExtension(sourcePath);
-                    string newFileName = $"{nameWithoutExt}_{counter}{extension}";
-                    targetPath = Path.Combine(targetDir, newFileName);
-                    counter++;
-                }
-
-                File.Copy(sourcePath, targetPath);
-                AssetDatabase.Refresh();
-
-                return GetRelativePath(targetPath);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[AssetFileManager] Failed to import asset from {sourcePath}: {ex.Message}");
-                return null;
-            }
-        }
-
-        public void ExportAsset(AssetInfo asset, string targetPath)
-        {
-            if (asset == null || string.IsNullOrEmpty(asset.filePath) || string.IsNullOrEmpty(targetPath))
-            {
-                return;
-            }
-
-            try
-            {
-                string sourcePath = GetFullPath(asset.filePath);
-                if (File.Exists(sourcePath))
-                {
-                    string targetDir = Path.GetDirectoryName(targetPath);
-                    if (!Directory.Exists(targetDir))
-                    {
-                        Directory.CreateDirectory(targetDir);
-                    }
-
-                    File.Copy(sourcePath, targetPath, true);
-                    Debug.Log($"[AssetFileManager] Asset exported to: {targetPath}");
-                }
-                else
-                {
-                    Debug.LogWarning($"[AssetFileManager] Source file not found: {sourcePath}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[AssetFileManager] Failed to export asset to {targetPath}: {ex.Message}");
-            }
-        }
 
         public List<string> GetAssetDependencies(string assetPath)
         {
