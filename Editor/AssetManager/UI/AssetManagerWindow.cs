@@ -33,10 +33,7 @@ namespace AMU.AssetManager.UI
         private bool _showFavoritesOnly = false;
         private bool _showHidden = false;
         private int _selectedSortOption = 1;
-        private bool _sortDescending = true;
-
-        // Type Management
-        private bool _showTypeManager = false;
+        private bool _sortDescending = true;        // Type Management
         private string _newTypeName = "";
 
         // Layout
@@ -198,24 +195,10 @@ namespace AMU.AssetManager.UI
         {
             using (new GUILayout.VerticalScope(GUILayout.Width(_leftPanelWidth)))
             {
-                // Header with type management button
-                using (new GUILayout.HorizontalScope())
-                {
-                    GUILayout.Label("Asset Types", EditorStyles.boldLabel);
-                    if (GUILayout.Button("⚙", GUILayout.Width(20)))
-                    {
-                        _showTypeManager = !_showTypeManager;
-                    }
-                }
+                // Header
+                GUILayout.Label("Asset Types", EditorStyles.boldLabel);
 
-                // Type management panel
-                if (_showTypeManager)
-                {
-                    DrawTypeManagementPanel();
-                    GUILayout.Space(5);
-                }
-
-                // Asset types list
+                // Asset types list with scroll view
                 using (var scrollView = new GUILayout.ScrollViewScope(_leftScrollPosition, GUILayout.ExpandHeight(true)))
                 {
                     _leftScrollPosition = scrollView.scrollPosition;
@@ -264,37 +247,63 @@ namespace AMU.AssetManager.UI
                             }
                         }
                     }
+
+                    GUILayout.Space(10);
+
+                    // Add new type form at the bottom
+                    DrawAddTypeForm();
                 }
             }
         }
-
-        private void DrawTypeManagementPanel()
+        private void DrawAddTypeForm()
         {
-            using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+            // Separator line
+            var rect = GUILayoutUtility.GetRect(1, 1, GUILayout.ExpandWidth(true));
+            EditorGUI.DrawRect(rect, new Color(0.5f, 0.5f, 0.5f, 0.5f));
+
+            GUILayout.Space(5);
+
+            // Add new type section
+            using (new GUILayout.VerticalScope())
             {
-                GUILayout.Label("Add Custom Type", EditorStyles.boldLabel);
+                GUILayout.Label("Add New Type", EditorStyles.miniLabel);
 
                 using (new GUILayout.HorizontalScope())
                 {
-                    _newTypeName = EditorGUILayout.TextField(_newTypeName);
+                    _newTypeName = EditorGUILayout.TextField(_newTypeName, GUILayout.ExpandWidth(true));
 
-                    if (GUILayout.Button("Add", GUILayout.Width(50)))
+                    GUI.enabled = !string.IsNullOrWhiteSpace(_newTypeName) &&
+                                  !AssetTypeManager.AllTypes.Contains(_newTypeName.Trim());
+
+                    if (GUILayout.Button("+", GUILayout.Width(25)))
                     {
-                        if (!string.IsNullOrWhiteSpace(_newTypeName))
-                        {
-                            AssetTypeManager.AddCustomType(_newTypeName);
-                            _newTypeName = "";
-                            RefreshAssetList();
-                        }
+                        AssetTypeManager.AddCustomType(_newTypeName.Trim());
+                        _newTypeName = "";
+                        RefreshAssetList();
                     }
+
+                    GUI.enabled = true;
                 }
 
+                // Show validation message if needed
                 if (!string.IsNullOrWhiteSpace(_newTypeName))
                 {
-                    var existingTypes = AssetTypeManager.AllTypes;
-                    if (existingTypes.Contains(_newTypeName.Trim()))
+                    var trimmedName = _newTypeName.Trim();
+                    if (AssetTypeManager.AllTypes.Contains(trimmedName))
                     {
-                        EditorGUILayout.HelpBox("Type already exists", MessageType.Warning);
+                        using (new GUILayout.HorizontalScope())
+                        {
+                            GUILayout.Space(5);
+                            GUILayout.Label("Type already exists", EditorStyles.miniLabel);
+                        }
+                    }
+                    else if (string.IsNullOrWhiteSpace(trimmedName))
+                    {
+                        using (new GUILayout.HorizontalScope())
+                        {
+                            GUILayout.Space(5);
+                            GUILayout.Label("Type name required", EditorStyles.miniLabel);
+                        }
                     }
                 }
             }
