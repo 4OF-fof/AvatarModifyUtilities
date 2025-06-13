@@ -6,6 +6,7 @@ using UnityEditor;
 using AMU.AssetManager.Data;
 using AMU.AssetManager.Helper;
 using AMU.Data.Lang;
+using AMU.Data.TagType;
 
 namespace AMU.AssetManager.UI
 {
@@ -52,11 +53,9 @@ namespace AMU.AssetManager.UI
             AssetTypeManager.LoadCustomTypes();
             InitializeManagers();
             RefreshAssetList();
-        }
 
-        private void OnDisable()
-        {
-            _thumbnailManager?.ClearCache();
+            // TagTypeManagerとの統合初期化
+            InitializeTagTypeIntegration();
         }
 
         private void InitializeManagers()
@@ -80,6 +79,27 @@ namespace AMU.AssetManager.UI
             {
                 _fileManager = new AssetFileManager();
             }
+        }
+
+        private void InitializeTagTypeIntegration()
+        {
+            // 既存のカスタムタイプを新しいシステムに移行
+            AssetTypeManager.MigrateToTagTypeManager();
+
+            // TagTypeManagerからのデータ変更通知を受け取る
+            TagTypeManager.OnDataChanged += OnTagTypeDataChanged;
+        }
+
+        private void OnDisable()
+        {
+            _thumbnailManager?.ClearCache();
+            TagTypeManager.OnDataChanged -= OnTagTypeDataChanged;
+        }
+
+        private void OnTagTypeDataChanged()
+        {
+            // タイプやタグが変更された時の処理
+            Repaint();
         }
 
         private void OnGUI()

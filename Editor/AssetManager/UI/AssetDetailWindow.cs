@@ -6,6 +6,7 @@ using UnityEditor;
 using AMU.AssetManager.Data;
 using AMU.AssetManager.Helper;
 using AMU.Data.Lang;
+using AMU.Data.TagType;
 
 namespace AMU.AssetManager.UI
 {
@@ -37,15 +38,20 @@ namespace AMU.AssetManager.UI
         private List<string> _allTags = new List<string>();
         private List<string> _filteredTags = new List<string>();
         private bool _showTagSuggestions = false;
-        private Vector2 _tagSuggestionScrollPos = Vector2.zero;
-
-        private void OnEnable()
+        private Vector2 _tagSuggestionScrollPos = Vector2.zero; private void OnEnable()
         {
             var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
             LocalizationManager.LoadLanguage(language);
 
             AssetTypeManager.LoadCustomTypes();
             InitializeManagers();
+            LoadTagSuggestions();
+        }
+
+        private void LoadTagSuggestions()
+        {
+            // 新しいTagTypeManagerからタグ一覧を取得
+            _allTags = AssetTagManager.GetAllTagsFromTagTypeManager();
         }
 
         private void OnDisable()

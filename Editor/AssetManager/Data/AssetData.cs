@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using AMU.Data.TagType;
 
 namespace AMU.AssetManager.Data
 {
@@ -84,6 +85,65 @@ namespace AMU.AssetManager.Data
             }
         }
 
+        // 新しいTagTypeManagerとの統合メソッド
+        public static void MigrateToTagTypeManager()
+        {
+            LoadCustomTypes(); // 既存のカスタムタイプを読み込み
+
+            // 既存のカスタムタイプを新しいシステムに移行
+            foreach (var customType in _customTypes)
+            {
+                var existingType = TagTypeManager.GetTypeByName(customType);
+                if (existingType == null)
+                {
+                    var newType = new TypeItem(customType, $"カスタムタイプ: {customType}", false);
+                    TagTypeManager.AddType(newType);
+                }
+            }
+        }
+
+        public static List<string> GetAllTypesFromTagTypeManager()
+        {
+            var types = new List<string>();
+            var allTypes = TagTypeManager.GetVisibleTypes();
+
+            foreach (var type in allTypes)
+            {
+                types.Add(type.name);
+            }
+
+            return types;
+        }
+
+        public static bool AddCustomTypeToTagTypeManager(string typeName)
+        {
+            if (string.IsNullOrWhiteSpace(typeName)) return false;
+
+            typeName = typeName.Trim();
+            var existingType = TagTypeManager.GetTypeByName(typeName);
+
+            if (existingType == null)
+            {
+                var newType = new TypeItem(typeName, $"カスタムタイプ: {typeName}", false);
+                TagTypeManager.AddType(newType);
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool RemoveCustomTypeFromTagTypeManager(string typeName)
+        {
+            var type = TagTypeManager.GetTypeByName(typeName);
+            if (type != null && !type.isDefault)
+            {
+                TagTypeManager.RemoveType(type.id);
+                return true;
+            }
+
+            return false;
+        }
+
         [Serializable]
         private class SerializableStringList
         {
@@ -157,6 +217,76 @@ namespace AMU.AssetManager.Data
             version = "1.0";
             lastUpdated = DateTime.Now;
             assets = new List<AssetInfo>();
+        }
+    }
+
+    [Serializable]
+    public class AssetTagManager
+    {
+        // タグ管理用の新しいクラス
+        public static List<string> GetAllTagsFromTagTypeManager()
+        {
+            var tags = new List<string>();
+            var allTags = TagTypeManager.GetVisibleTags();
+
+            foreach (var tag in allTags)
+            {
+                tags.Add(tag.name);
+            }
+
+            return tags;
+        }
+
+        public static List<string> GetTagsByCategory(string category)
+        {
+            var tags = new List<string>();
+            var categoryTags = TagTypeManager.GetTagsByCategory(category);
+
+            foreach (var tag in categoryTags)
+            {
+                tags.Add(tag.name);
+            }
+
+            return tags;
+        }
+
+        public static Color GetTagColor(string tagName)
+        {
+            return TagTypeManager.GetTagColor(tagName);
+        }
+
+        public static bool AddCustomTag(string tagName, string category = "Custom", string color = "#CCCCCC")
+        {
+            if (string.IsNullOrWhiteSpace(tagName)) return false;
+
+            tagName = tagName.Trim();
+            var existingTag = TagTypeManager.GetTagByName(tagName);
+
+            if (existingTag == null)
+            {
+                var newTag = new TagItem(tagName, $"カスタムタグ: {tagName}", color, category);
+                TagTypeManager.AddTag(newTag);
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool RemoveCustomTag(string tagName)
+        {
+            var tag = TagTypeManager.GetTagByName(tagName);
+            if (tag != null)
+            {
+                TagTypeManager.RemoveTag(tag.id);
+                return true;
+            }
+
+            return false;
+        }
+
+        public static List<string> GetTagCategories()
+        {
+            return TagTypeManager.GetTagCategories();
         }
     }
 }
