@@ -32,13 +32,15 @@ namespace AMU.AssetManager.UI
         private string _newDependency = "";
         private int _dependencySelectionMode = 0; // 0: Asset Selection, 1: Manual Input
         private int _selectedAssetIndex = -1;
-        private List<AssetInfo> _availableAssets = new List<AssetInfo>();
-
-        // Tag suggestion state
+        private List<AssetInfo> _availableAssets = new List<AssetInfo>();        // Tag suggestion state
         private List<string> _allTags = new List<string>();
         private List<string> _filteredTags = new List<string>();
         private bool _showTagSuggestions = false;
-        private Vector2 _tagSuggestionScrollPos = Vector2.zero; private void OnEnable()
+        private Vector2 _tagSuggestionScrollPos = Vector2.zero;
+
+        // UI Style
+        private GUIStyle _tabStyle;
+        private bool _stylesInitialized = false; private void OnEnable()
         {
             var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
             LocalizationManager.LoadLanguage(language);
@@ -53,10 +55,25 @@ namespace AMU.AssetManager.UI
             // 新しいTagTypeManagerからタグ一覧を取得
             _allTags = AssetTagManager.GetAllTagsFromTagTypeManager();
         }
-
         private void OnDisable()
         {
             _thumbnailManager?.ClearCache();
+        }
+
+        private void InitializeStyles()
+        {
+            if (_stylesInitialized) return;
+
+            // より見やすいタブスタイル
+            _tabStyle = new GUIStyle(EditorStyles.miniButton)
+            {
+                fontSize = 12,
+                fontStyle = FontStyle.Bold,
+                fixedHeight = 24,
+                alignment = TextAnchor.MiddleCenter
+            };
+
+            _stylesInitialized = true;
         }
         private void InitializeManagers()
         {
@@ -103,9 +120,10 @@ namespace AMU.AssetManager.UI
                 _allTags = tagSet.OrderBy(tag => tag).ToList();
             }
         }
-
         private void OnGUI()
         {
+            InitializeStyles();
+
             if (_asset == null)
             {
                 GUILayout.Label("No asset selected", EditorStyles.centeredGreyMiniLabel);
@@ -400,7 +418,7 @@ namespace AMU.AssetManager.UI
                                     LocalizationManager.GetText("AssetDetail_dependencyModeAsset"),
                                     LocalizationManager.GetText("AssetDetail_dependencyModeManual")
                                 };
-                                _dependencySelectionMode = GUILayout.Toolbar(_dependencySelectionMode, modes, EditorStyles.miniButton);
+                                _dependencySelectionMode = GUILayout.Toolbar(_dependencySelectionMode, modes, _tabStyle);
                             }
 
                             GUILayout.Space(3);

@@ -40,12 +40,18 @@ namespace AMU.AssetManager.UI
         // Layout
         private float _leftPanelWidth = 250f;
         private bool _isResizing = false;
-        private Rect _resizeRect;
-
-        // Asset Grid
+        private Rect _resizeRect;        // Asset Grid
         private float _thumbnailSize = 100f;
         private List<AssetInfo> _filteredAssets = new List<AssetInfo>();
-        private AssetInfo _selectedAsset; private void OnEnable()
+        private AssetInfo _selectedAsset;
+
+        // UI Styles
+        private GUIStyle _typeButtonStyle;
+        private GUIStyle _selectedTypeButtonStyle;
+        private GUIStyle _typeHeaderStyle;
+        private bool _stylesInitialized = false;
+
+        private void OnEnable()
         {
             var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
             LocalizationManager.LoadLanguage(language);
@@ -97,9 +103,10 @@ namespace AMU.AssetManager.UI
             // タイプやタグが変更された時の処理
             Repaint();
         }
-
         private void OnGUI()
         {
+            InitializeStyles();
+
             if (_dataManager?.IsLoading == true)
             {
                 DrawLoadingUI();
@@ -109,6 +116,45 @@ namespace AMU.AssetManager.UI
             DrawToolbar();
             DrawMainContent();
             HandleEvents();
+        }
+
+        private void InitializeStyles()
+        {
+            if (_stylesInitialized) return;
+
+            // Type header style
+            _typeHeaderStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = 16,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleLeft,
+                padding = new RectOffset(8, 8, 8, 8)
+            };
+
+            // Type button style (unselected)
+            _typeButtonStyle = new GUIStyle(GUI.skin.button)
+            {
+                fontSize = 14,
+                fontStyle = FontStyle.Normal,
+                alignment = TextAnchor.MiddleLeft,
+                padding = new RectOffset(12, 12, 8, 8),
+                margin = new RectOffset(2, 2, 2, 2),
+                fixedHeight = 28,
+                normal = { background = null, textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black },
+                hover = { background = EditorGUIUtility.Load("builtin skins/darkskin/images/btn hover.png") as Texture2D }
+            };
+
+            // Type button style (selected)
+            _selectedTypeButtonStyle = new GUIStyle(_typeButtonStyle)
+            {
+                fontStyle = FontStyle.Bold,
+                normal = {
+                    background = EditorGUIUtility.Load("builtin skins/darkskin/images/btn on.png") as Texture2D,
+                    textColor = EditorGUIUtility.isProSkin ? Color.cyan : Color.blue
+                }
+            };
+
+            _stylesInitialized = true;
         }
 
         private void DrawLoadingUI()
@@ -211,32 +257,35 @@ namespace AMU.AssetManager.UI
         {
             using (new GUILayout.VerticalScope(GUILayout.Width(_leftPanelWidth)))
             {
-                // Header
-                GUILayout.Label("Asset Types", EditorStyles.boldLabel);
+                // Header with improved style
+                GUILayout.Label("Asset Types", _typeHeaderStyle);
+                GUILayout.Space(5);
 
                 // Asset types list with scroll view
                 using (var scrollView = new GUILayout.ScrollViewScope(_leftScrollPosition, GUILayout.ExpandHeight(true)))
                 {
-                    _leftScrollPosition = scrollView.scrollPosition;                    // All types button
+                    _leftScrollPosition = scrollView.scrollPosition;
+
+                    // All types button with improved style
                     bool isAllSelected = string.IsNullOrEmpty(_selectedAssetType);
-                    var allStyle = isAllSelected ? EditorStyles.boldLabel : EditorStyles.label;
+                    var allStyle = isAllSelected ? _selectedTypeButtonStyle : _typeButtonStyle;
                     if (GUILayout.Button(LocalizationManager.GetText("AssetType_all"), allStyle))
                     {
                         _selectedAssetType = "";
                         RefreshAssetList();
                     }
 
-                    GUILayout.Space(5);
+                    GUILayout.Space(8);
 
-                    // Individual type buttons
+                    // Individual type buttons with improved styles
                     foreach (var assetType in AssetTypeManager.AllTypes)
                     {
                         bool isSelected = _selectedAssetType == assetType;
-                        var style = isSelected ? EditorStyles.boldLabel : EditorStyles.label;
+                        var style = isSelected ? _selectedTypeButtonStyle : _typeButtonStyle;
 
                         using (new GUILayout.HorizontalScope())
                         {
-                            if (GUILayout.Button(assetType, style))
+                            if (GUILayout.Button(assetType, style, GUILayout.ExpandWidth(true)))
                             {
                                 _selectedAssetType = assetType;
                                 RefreshAssetList();
@@ -245,7 +294,16 @@ namespace AMU.AssetManager.UI
                             // Show delete button for custom types
                             if (!AssetTypeManager.IsDefaultType(assetType))
                             {
-                                if (GUILayout.Button("×", GUILayout.Width(20)))
+                                var deleteButtonStyle = new GUIStyle(GUI.skin.button)
+                                {
+                                    fontSize = 12,
+                                    fontStyle = FontStyle.Bold,
+                                    fixedWidth = 24,
+                                    fixedHeight = 24,
+                                    normal = { textColor = Color.red }
+                                };
+
+                                if (GUILayout.Button("×", deleteButtonStyle))
                                 {
                                     if (EditorUtility.DisplayDialog(
                                         LocalizationManager.GetText("AssetType_confirmDeleteTitle"),
@@ -263,6 +321,8 @@ namespace AMU.AssetManager.UI
                                 }
                             }
                         }
+
+                        GUILayout.Space(2);
                     }
 
                     GUILayout.Space(10);
@@ -275,22 +335,44 @@ namespace AMU.AssetManager.UI
         private void DrawAddTypeForm()
         {
             // Separator line
-            var rect = GUILayoutUtility.GetRect(1, 1, GUILayout.ExpandWidth(true));
-            EditorGUI.DrawRect(rect, new Color(0.5f, 0.5f, 0.5f, 0.5f));
+            var rect = GUILayoutUtility.GetRect(1, 2, GUILayout.ExpandWidth(true));
+            EditorGUI.DrawRect(rect, new Color(0.5f, 0.5f, 0.5f, 0.7f));
 
-            GUILayout.Space(5);            // Add new type section
+            GUILayout.Space(8);
+
+            // Add new type section with improved styling
             using (new GUILayout.VerticalScope())
             {
-                GUILayout.Label(LocalizationManager.GetText("AssetType_addNewType"), EditorStyles.miniLabel);
+                var labelStyle = new GUIStyle(EditorStyles.miniLabel)
+                {
+                    fontSize = 12,
+                    fontStyle = FontStyle.Bold
+                };
+                GUILayout.Label(LocalizationManager.GetText("AssetType_addNewType"), labelStyle);
+
+                GUILayout.Space(4);
 
                 using (new GUILayout.HorizontalScope())
                 {
-                    _newTypeName = EditorGUILayout.TextField(_newTypeName, GUILayout.ExpandWidth(true));
+                    var textFieldStyle = new GUIStyle(EditorStyles.textField)
+                    {
+                        fontSize = 12,
+                        fixedHeight = 24
+                    };
+                    _newTypeName = EditorGUILayout.TextField(_newTypeName, textFieldStyle, GUILayout.ExpandWidth(true));
 
                     GUI.enabled = !string.IsNullOrWhiteSpace(_newTypeName) &&
                                   !AssetTypeManager.AllTypes.Contains(_newTypeName.Trim());
 
-                    if (GUILayout.Button("+", GUILayout.Width(25)))
+                    var addButtonStyle = new GUIStyle(GUI.skin.button)
+                    {
+                        fontSize = 14,
+                        fontStyle = FontStyle.Bold,
+                        fixedWidth = 30,
+                        fixedHeight = 24
+                    };
+
+                    if (GUILayout.Button("+", addButtonStyle))
                     {
                         AssetTypeManager.AddCustomType(_newTypeName.Trim());
                         _newTypeName = "";
@@ -303,12 +385,19 @@ namespace AMU.AssetManager.UI
                 // Show validation message if needed
                 if (!string.IsNullOrWhiteSpace(_newTypeName))
                 {
-                    var trimmedName = _newTypeName.Trim(); if (AssetTypeManager.AllTypes.Contains(trimmedName))
+                    var trimmedName = _newTypeName.Trim();
+                    var messageStyle = new GUIStyle(EditorStyles.miniLabel)
+                    {
+                        fontSize = 10,
+                        normal = { textColor = Color.red }
+                    };
+
+                    if (AssetTypeManager.AllTypes.Contains(trimmedName))
                     {
                         using (new GUILayout.HorizontalScope())
                         {
                             GUILayout.Space(5);
-                            GUILayout.Label(LocalizationManager.GetText("AssetType_typeAlreadyExists"), EditorStyles.miniLabel);
+                            GUILayout.Label(LocalizationManager.GetText("AssetType_typeAlreadyExists"), messageStyle);
                         }
                     }
                     else if (string.IsNullOrWhiteSpace(trimmedName))
@@ -316,7 +405,7 @@ namespace AMU.AssetManager.UI
                         using (new GUILayout.HorizontalScope())
                         {
                             GUILayout.Space(5);
-                            GUILayout.Label(LocalizationManager.GetText("AssetType_typeNameRequired"), EditorStyles.miniLabel);
+                            GUILayout.Label(LocalizationManager.GetText("AssetType_typeNameRequired"), messageStyle);
                         }
                     }
                 }
