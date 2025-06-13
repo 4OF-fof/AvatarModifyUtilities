@@ -240,12 +240,14 @@ namespace AMU.AssetManager.UI
                     {
                         _showFavoritesOnly = false;
                         _needsRefresh = true;
+                        _isLoadingTypeChange = true;
                     }
 
                     if (GUILayout.Button(LocalizationManager.GetText("AssetManager_filterFavorite"), EditorStyles.toolbarButton))
                     {
                         _showFavoritesOnly = true;
                         _needsRefresh = true;
+                        _isLoadingTypeChange = true;
                     }
 
                     GUILayout.Space(10);
