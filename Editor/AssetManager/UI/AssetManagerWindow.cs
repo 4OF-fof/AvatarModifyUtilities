@@ -129,17 +129,15 @@ namespace AMU.AssetManager.UI
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleLeft,
                 padding = new RectOffset(8, 8, 8, 8)
-            };
-
-            // Type button style (unselected)
+            };            // Type button style (unselected)
             _typeButtonStyle = new GUIStyle(GUI.skin.button)
             {
                 fontSize = 14,
                 fontStyle = FontStyle.Normal,
-                alignment = TextAnchor.MiddleLeft,
-                padding = new RectOffset(12, 12, 8, 8),
+                alignment = TextAnchor.MiddleCenter,
+                padding = new RectOffset(12, 12, 6, 6),
                 margin = new RectOffset(2, 2, 2, 2),
-                fixedHeight = 28,
+                fixedHeight = 32,
                 normal = { background = null, textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black },
                 hover = { background = EditorGUIUtility.Load("builtin skins/darkskin/images/btn hover.png") as Texture2D }
             };
