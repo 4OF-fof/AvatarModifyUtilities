@@ -80,12 +80,8 @@ namespace AMU.AssetManager.UI
                 _fileManager = new AssetFileManager();
             }
         }
-
         private void InitializeTagTypeIntegration()
         {
-            // 既存のカスタムタイプを新しいシステムに移行
-            AssetTypeManager.MigrateToTagTypeManager();
-
             // TagTypeManagerからのデータ変更通知を受け取る
             TagTypeManager.OnDataChanged += OnTagTypeDataChanged;
         }

@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEditor;
 using AMU.Data.TagType;
-using AMU.AssetManager.Data;
 
 namespace AMU.Editor.Initializer
 {
@@ -21,9 +20,6 @@ namespace AMU.Editor.Initializer
         {
             // TagTypeManagerの初期化
             InitializeTagTypeManager();
-
-            // データマイグレーション
-            PerformDataMigration();
         }
 
         private static void InitializeTagTypeManager()
@@ -40,20 +36,6 @@ namespace AMU.Editor.Initializer
             }
         }
 
-        private static void PerformDataMigration()
-        {
-            try
-            {
-                // 既存のAssetManagerのカスタムタイプを新しいシステムに移行
-                AssetTypeManager.MigrateToTagTypeManager();
-                Debug.Log("[AMU] Data migration completed successfully.");
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogError($"[AMU] Data migration failed: {ex.Message}");
-            }
-        }
-
         [MenuItem("AMU/Initialize/Reset Tag & Type Data")]
         public static void ResetTagTypeData()
         {
@@ -64,18 +46,6 @@ namespace AMU.Editor.Initializer
             {
                 TagTypeManager.ResetToDefaults();
                 Debug.Log("[AMU] Tag & Type data has been reset to defaults.");
-            }
-        }
-
-        [MenuItem("AMU/Initialize/Migrate Asset Data")]
-        public static void MigrateAssetData()
-        {
-            if (EditorUtility.DisplayDialog("確認",
-                "既存のアセットデータを新しいシステムに移行しますか？",
-                "移行", "キャンセル"))
-            {
-                AssetTypeManager.MigrateToTagTypeManager();
-                Debug.Log("[AMU] Asset data migration completed.");
             }
         }
 

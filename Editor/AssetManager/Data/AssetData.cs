@@ -84,24 +84,6 @@ namespace AMU.AssetManager.Data
                 }
             }
         }
-
-        // 新しいTagTypeManagerとの統合メソッド
-        public static void MigrateToTagTypeManager()
-        {
-            LoadCustomTypes(); // 既存のカスタムタイプを読み込み
-
-            // 既存のカスタムタイプを新しいシステムに移行
-            foreach (var customType in _customTypes)
-            {
-                var existingType = TagTypeManager.GetTypeByName(customType);
-                if (existingType == null)
-                {
-                    var newType = new TypeItem(customType, $"カスタムタイプ: {customType}", false);
-                    TagTypeManager.AddType(newType);
-                }
-            }
-        }
-
         public static List<string> GetAllTypesFromTagTypeManager()
         {
             var types = new List<string>();
@@ -114,36 +96,6 @@ namespace AMU.AssetManager.Data
 
             return types;
         }
-
-        public static bool AddCustomTypeToTagTypeManager(string typeName)
-        {
-            if (string.IsNullOrWhiteSpace(typeName)) return false;
-
-            typeName = typeName.Trim();
-            var existingType = TagTypeManager.GetTypeByName(typeName);
-
-            if (existingType == null)
-            {
-                var newType = new TypeItem(typeName, $"カスタムタイプ: {typeName}", false);
-                TagTypeManager.AddType(newType);
-                return true;
-            }
-
-            return false;
-        }
-
-        public static bool RemoveCustomTypeFromTagTypeManager(string typeName)
-        {
-            var type = TagTypeManager.GetTypeByName(typeName);
-            if (type != null && !type.isDefault)
-            {
-                TagTypeManager.RemoveType(type.id);
-                return true;
-            }
-
-            return false;
-        }
-
         [Serializable]
         private class SerializableStringList
         {
