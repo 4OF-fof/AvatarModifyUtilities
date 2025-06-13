@@ -217,74 +217,81 @@ namespace AMU.AssetManager.UI
             }
             GUILayout.FlexibleSpace();
         }
-
         private void DrawToolbar()
         {
             using (new GUILayout.HorizontalScope(EditorStyles.toolbar))
             {
-                // Search field
-                var newSearchText = GUILayout.TextField(_searchText, EditorStyles.toolbarSearchField, GUILayout.Width(200));
-                if (newSearchText != _searchText)
+                // Search field area - same width as left panel
+                using (new GUILayout.HorizontalScope(GUILayout.Width(_leftPanelWidth)))
                 {
-                    _searchText = newSearchText;
-                    _needsRefresh = true;
+                    var newSearchText = GUILayout.TextField(_searchText, EditorStyles.toolbarSearchField);
+                    if (newSearchText != _searchText)
+                    {
+                        _searchText = newSearchText;
+                        _needsRefresh = true;
+                    }
                 }
 
-                GUILayout.Space(10);
-
-                // Filter buttons                if (GUILayout.Button(LocalizationManager.GetText("AssetManager_filterAll"), EditorStyles.toolbarButton))
+                // Right panel area - starts immediately after left panel
+                using (new GUILayout.HorizontalScope())
                 {
-                    _showFavoritesOnly = false;
-                    _needsRefresh = true;
-                }
+                    // Filter buttons - positioned at the start of right panel area
+                    if (GUILayout.Button(LocalizationManager.GetText("AssetManager_filterAll"), EditorStyles.toolbarButton))
+                    {
+                        _showFavoritesOnly = false;
+                        _needsRefresh = true;
+                    }
 
-                if (GUILayout.Button(LocalizationManager.GetText("AssetManager_filterFavorite"), EditorStyles.toolbarButton))
-                {
-                    _showFavoritesOnly = true;
-                    _needsRefresh = true;
-                }
-                GUILayout.Space(10);
+                    if (GUILayout.Button(LocalizationManager.GetText("AssetManager_filterFavorite"), EditorStyles.toolbarButton))
+                    {
+                        _showFavoritesOnly = true;
+                        _needsRefresh = true;
+                    }
 
-                // Show hidden checkbox
-                var newShowHidden = GUILayout.Toggle(_showHidden, LocalizationManager.GetText("AssetManager_showHidden"), EditorStyles.toolbarButton);
-                if (newShowHidden != _showHidden)
-                {
-                    _showHidden = newShowHidden;
-                    _needsRefresh = true;
-                }
+                    GUILayout.Space(10);
 
-                GUILayout.FlexibleSpace();
+                    // Show hidden checkbox
+                    var newShowHidden = GUILayout.Toggle(_showHidden, LocalizationManager.GetText("AssetManager_showHidden"), EditorStyles.toolbarButton);
+                    if (newShowHidden != _showHidden)
+                    {
+                        _showHidden = newShowHidden;
+                        _needsRefresh = true;
+                    }
 
-                // Sort options
-                string[] sortOptions = {
-                    LocalizationManager.GetText("AssetManager_sortName"),
-                    LocalizationManager.GetText("AssetManager_sortDate"),
-                    LocalizationManager.GetText("AssetManager_sortSize")
-                }; var newSortOption = EditorGUILayout.Popup(_selectedSortOption, sortOptions, EditorStyles.toolbarPopup, GUILayout.Width(100));
-                if (newSortOption != _selectedSortOption)
-                {
-                    _selectedSortOption = newSortOption;
-                    _needsRefresh = true;
-                }
+                    GUILayout.FlexibleSpace();
 
-                string sortArrow = _sortDescending ? "↓" : "↑";
-                var newSortDescending = GUILayout.Toggle(_sortDescending, sortArrow, EditorStyles.toolbarButton, GUILayout.Width(25));
-                if (newSortDescending != _sortDescending)
-                {
-                    _sortDescending = newSortDescending;
-                    _needsRefresh = true;
-                }
+                    // Sort options
+                    string[] sortOptions = {
+                        LocalizationManager.GetText("AssetManager_sortName"),
+                        LocalizationManager.GetText("AssetManager_sortDate"),
+                        LocalizationManager.GetText("AssetManager_sortSize")
+                    };
+                    var newSortOption = EditorGUILayout.Popup(_selectedSortOption, sortOptions, EditorStyles.toolbarPopup, GUILayout.Width(100));
+                    if (newSortOption != _selectedSortOption)
+                    {
+                        _selectedSortOption = newSortOption;
+                        _needsRefresh = true;
+                    }
 
-                GUILayout.Space(10);
+                    string sortArrow = _sortDescending ? "↓" : "↑";
+                    var newSortDescending = GUILayout.Toggle(_sortDescending, sortArrow, EditorStyles.toolbarButton, GUILayout.Width(25));
+                    if (newSortDescending != _sortDescending)
+                    {
+                        _sortDescending = newSortDescending;
+                        _needsRefresh = true;
+                    }
 
-                if (GUILayout.Button(LocalizationManager.GetText("AssetManager_addAsset"), EditorStyles.toolbarButton))
-                {
-                    ShowAddAssetDialog();
-                }
-                if (GUILayout.Button(LocalizationManager.GetText("Common_refresh"), EditorStyles.toolbarButton))
-                {
-                    _needsRefresh = true;
-                    _dataManager?.CheckForExternalChanges();
+                    GUILayout.Space(10);
+
+                    if (GUILayout.Button(LocalizationManager.GetText("AssetManager_addAsset"), EditorStyles.toolbarButton))
+                    {
+                        ShowAddAssetDialog();
+                    }
+                    if (GUILayout.Button(LocalizationManager.GetText("Common_refresh"), EditorStyles.toolbarButton))
+                    {
+                        _needsRefresh = true;
+                        _dataManager?.CheckForExternalChanges();
+                    }
                 }
             }
         }
