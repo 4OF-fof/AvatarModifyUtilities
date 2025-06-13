@@ -246,6 +246,11 @@ namespace AMU.AssetManager.UI
                 GUILayout.Label(_fileManager.FormatFileSize(_asset.fileSize));
                 GUILayout.EndHorizontal();
 
+                // Created Date
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(LocalizationManager.GetText("AssetDetail_createdDate"), GUILayout.Width(100));
+                GUILayout.Label(_asset.createdDate.ToString("yyyy/MM/dd HH:mm:ss"));
+                GUILayout.EndHorizontal();
 
             }
         }
