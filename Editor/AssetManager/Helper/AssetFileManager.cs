@@ -113,7 +113,7 @@ namespace AMU.AssetManager.Helper
                 filePath = GetRelativePath(filePath),
                 assetType = DetermineAssetType(filePath),
                 fileSize = GetFileSize(filePath),
-                createdDate = GetFileCreationTime(filePath),
+                createdDate = DateTime.Now,
             };
 
             return asset;
