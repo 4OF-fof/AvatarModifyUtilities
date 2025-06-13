@@ -209,7 +209,7 @@ namespace AMU.AssetManager.UI
                 GUILayout.FlexibleSpace();
 
                 // 更新ボタン（常に表示）
-                if (GUILayout.Button("🔄", EditorStyles.toolbarButton, GUILayout.Width(25)))
+                if (GUILayout.Button(LocalizationManager.GetText("Common_refresh"), EditorStyles.toolbarButton))
                 {
                     RefreshAssetInfo();
                 }
