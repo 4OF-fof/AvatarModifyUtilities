@@ -10,6 +10,7 @@ namespace AMU.AssetManager.Helper
     public class AssetThumbnailManager
     {
         private Dictionary<string, Texture2D> _thumbnailCache = new Dictionary<string, Texture2D>();
+        private Dictionary<string, DateTime> _thumbnailFileModified = new Dictionary<string, DateTime>();
         private string _thumbnailDirectory;
 
         public event Action<AssetInfo> OnThumbnailSaved;
@@ -26,6 +27,9 @@ namespace AMU.AssetManager.Helper
         {
             if (asset == null) return null;
 
+            // サムネイルファイルの変更をチェック
+            CheckThumbnailFileChanges(asset);
+
             // Check cache first
             if (_thumbnailCache.TryGetValue(asset.uid, out var cachedTexture) && cachedTexture != null)
             {
@@ -39,6 +43,7 @@ namespace AMU.AssetManager.Helper
                 if (texture != null)
                 {
                     _thumbnailCache[asset.uid] = texture;
+                    UpdateThumbnailModifiedTime(asset);
                     return texture;
                 }
             }
@@ -46,6 +51,70 @@ namespace AMU.AssetManager.Helper
             return GetDefaultThumbnail(asset.assetType);
         }
 
+        /// <summary>
+        /// サムネイルファイルが変更されているかチェックし、必要に応じてキャッシュを無効化する
+        /// </summary>
+        private void CheckThumbnailFileChanges(AssetInfo asset)
+        {
+            if (string.IsNullOrEmpty(asset.thumbnailPath) || !File.Exists(asset.thumbnailPath))
+                return;
+
+            try
+            {
+                var fileInfo = new FileInfo(asset.thumbnailPath);
+                var currentModified = fileInfo.LastWriteTime;
+
+                if (_thumbnailFileModified.TryGetValue(asset.uid, out var lastModified))
+                {
+                    if (currentModified > lastModified)
+                    {
+                        // ファイルが更新されているのでキャッシュを無効化
+                        InvalidateThumbnailCache(asset.uid);
+                    }
+                }
+                else
+                {
+                    // 初回アクセスの場合
+                    _thumbnailFileModified[asset.uid] = currentModified;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[AssetThumbnailManager] Failed to check thumbnail file changes for {asset.uid}: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 特定のアセットのサムネイルキャッシュを無効化する
+        /// </summary>
+        private void InvalidateThumbnailCache(string assetUid)
+        {
+            if (_thumbnailCache.TryGetValue(assetUid, out var texture) && texture != null)
+            {
+                UnityEngine.Object.DestroyImmediate(texture);
+            }
+            _thumbnailCache.Remove(assetUid);
+            _thumbnailFileModified.Remove(assetUid);
+        }
+
+        /// <summary>
+        /// サムネイルの更新時刻を記録する
+        /// </summary>
+        private void UpdateThumbnailModifiedTime(AssetInfo asset)
+        {
+            if (!string.IsNullOrEmpty(asset.thumbnailPath) && File.Exists(asset.thumbnailPath))
+            {
+                try
+                {
+                    var fileInfo = new FileInfo(asset.thumbnailPath);
+                    _thumbnailFileModified[asset.uid] = fileInfo.LastWriteTime;
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[AssetThumbnailManager] Failed to update thumbnail modified time for {asset.uid}: {ex.Message}");
+                }
+            }
+        }
         public void SetCustomThumbnail(AssetInfo asset, string imagePath)
         {
             if (asset == null || string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath))
@@ -60,12 +129,16 @@ namespace AMU.AssetManager.Helper
 
                 // Convert path to use forward slashes for JSON storage
                 asset.thumbnailPath = thumbnailPath.Replace('\\', '/');
+
+                // 古いキャッシュを無効化してから新しいテクスチャをキャッシュ
+                InvalidateThumbnailCache(asset.uid);
                 _thumbnailCache[asset.uid] = texture;
+                UpdateThumbnailModifiedTime(asset);
+
                 OnThumbnailLoaded?.Invoke();
                 OnThumbnailSaved?.Invoke(asset);
             }
         }
-
         public void ClearCache()
         {
             foreach (var texture in _thumbnailCache.Values)
@@ -76,6 +149,7 @@ namespace AMU.AssetManager.Helper
                 }
             }
             _thumbnailCache.Clear();
+            _thumbnailFileModified.Clear();
         }
 
         private Texture2D LoadTextureFromFile(string filePath)

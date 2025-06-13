@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using UnityEngine;
 using UnityEditor;
 using Newtonsoft.Json;
@@ -14,6 +15,8 @@ namespace AMU.AssetManager.Helper
         private AssetLibrary _assetLibrary;
         private string _dataFilePath;
         private bool _isLoading = false;
+        private DateTime _lastFileModified = DateTime.MinValue;
+        private string _lastFileHash = "";
 
         public AssetLibrary Library => _assetLibrary;
         public bool IsLoading => _isLoading;
@@ -27,7 +30,6 @@ namespace AMU.AssetManager.Helper
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
             _dataFilePath = Path.Combine(coreDir, "AssetManager", "AssetLibrary.json");
         }
-
         public void LoadData()
         {
             if (_isLoading) return;
@@ -45,6 +47,7 @@ namespace AMU.AssetManager.Helper
                 {
                     string json = File.ReadAllText(_dataFilePath);
                     _assetLibrary = JsonConvert.DeserializeObject<AssetLibrary>(json) ?? new AssetLibrary();
+                    UpdateFileTrackingInfo();
                 }
 
                 _isLoading = false;
@@ -59,6 +62,36 @@ namespace AMU.AssetManager.Helper
             }
         }
 
+        /// <summary>
+        /// JSONファイルが外部で変更されていないかチェックし、必要に応じて再読み込みを行う
+        /// </summary>
+        public bool CheckForExternalChanges()
+        {
+            if (!File.Exists(_dataFilePath)) return false;
+
+            var fileInfo = new FileInfo(_dataFilePath);
+            var currentModified = fileInfo.LastWriteTime;
+
+            // ファイルの更新時刻が変わっていない場合はスキップ
+            if (currentModified <= _lastFileModified) return false;
+
+            try
+            {
+                string currentHash = ComputeFileHash(_dataFilePath);
+                if (currentHash != _lastFileHash)
+                {
+                    // ファイルが変更されている場合は再読み込み
+                    LoadData();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[AssetDataManager] Failed to check file changes: {ex.Message}");
+            }
+
+            return false;
+        }
         public void SaveData()
         {
             try
@@ -67,6 +100,7 @@ namespace AMU.AssetManager.Helper
                 _assetLibrary.lastUpdated = DateTime.Now;
                 string json = JsonConvert.SerializeObject(_assetLibrary, Formatting.Indented);
                 File.WriteAllText(_dataFilePath, json);
+                UpdateFileTrackingInfo();
                 OnDataChanged?.Invoke();
             }
             catch (Exception ex)
@@ -124,6 +158,9 @@ namespace AMU.AssetManager.Helper
         }
         public List<AssetInfo> SearchAssets(string searchText, string filterType = null, bool? favoritesOnly = null, bool showHidden = false)
         {
+            // 外部ファイル変更をチェック
+            CheckForExternalChanges();
+
             var assets = GetAllAssets();
 
             if (!showHidden)
@@ -153,6 +190,35 @@ namespace AMU.AssetManager.Helper
             }
 
             return assets;
+        }
+
+        private void UpdateFileTrackingInfo()
+        {
+            if (File.Exists(_dataFilePath))
+            {
+                var fileInfo = new FileInfo(_dataFilePath);
+                _lastFileModified = fileInfo.LastWriteTime;
+                _lastFileHash = ComputeFileHash(_dataFilePath);
+            }
+        }
+
+        private string ComputeFileHash(string filePath)
+        {
+            try
+            {
+                using (var stream = File.OpenRead(filePath))
+                {
+                    using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                    {
+                        byte[] hash = sha256.ComputeHash(stream);
+                        return Convert.ToBase64String(hash);
+                    }
+                }
+            }
+            catch
+            {
+                return "";
+            }
         }
 
 

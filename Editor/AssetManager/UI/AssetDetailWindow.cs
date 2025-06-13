@@ -184,8 +184,22 @@ namespace AMU.AssetManager.UI
                 return;
             }
 
+            // データの外部変更をチェック（一定間隔で）
+            CheckForDataChanges();
+
             DrawHeader();
             DrawContent();
+        }
+
+        /// <summary>
+        /// データの外部変更をチェックして必要に応じてリフレッシュ
+        /// </summary>
+        private void CheckForDataChanges()
+        {
+            if (_dataManager?.CheckForExternalChanges() == true)
+            {
+                RefreshAssetInfo();
+            }
         }
         private void DrawHeader()
         {
@@ -687,6 +701,8 @@ namespace AMU.AssetManager.UI
                 _originalAsset = _asset.Clone();
                 _isEditMode = false;
 
+                Debug.Log($"アセット情報を保存しました: {_asset.name}");
+
                 // Refresh the main window without stealing focus
                 EditorApplication.delayCall += () =>
                 {
@@ -712,12 +728,20 @@ namespace AMU.AssetManager.UI
             _newDependency = "";
             _selectedAssetIndex = -1;
         }
-
         private void OnThumbnailSaved(AssetInfo asset)
         {
             if (asset != null && _dataManager != null)
             {
                 _dataManager.UpdateAsset(asset);
+
+                // 現在編集中のアセットと同じ場合は情報を更新
+                if (_asset != null && _asset.uid == asset.uid)
+                {
+                    _asset.thumbnailPath = asset.thumbnailPath;
+                    _originalAsset = _asset.Clone();
+                    Debug.Log($"サムネイルが保存されアセット情報を更新しました: {asset.name}");
+                    Repaint();
+                }
             }
         }
 

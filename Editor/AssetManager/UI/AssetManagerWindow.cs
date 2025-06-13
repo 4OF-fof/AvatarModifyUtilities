@@ -34,7 +34,11 @@ namespace AMU.AssetManager.UI
         private bool _showFavoritesOnly = false;
         private bool _showHidden = false;
         private int _selectedSortOption = 1;
-        private bool _sortDescending = true;        // Type Management
+        private bool _sortDescending = true;
+
+        // Data synchronization
+        private bool _needsRefresh = false;
+        private double _lastDataCheckTime = 0;// Type Management
         private string _newTypeName = "";
 
         // Layout
@@ -49,28 +53,28 @@ namespace AMU.AssetManager.UI
         private GUIStyle _typeButtonStyle;
         private GUIStyle _selectedTypeButtonStyle;
         private GUIStyle _typeHeaderStyle;
-        private bool _stylesInitialized = false;
-
-        private void OnEnable()
+        private bool _stylesInitialized = false; private void OnEnable()
         {
             var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
             LocalizationManager.LoadLanguage(language);
 
             AssetTypeManager.LoadCustomTypes();
             InitializeManagers();
-            RefreshAssetList();
+
+            // 初回データ読み込み
+            _needsRefresh = true;
+            CheckAndRefreshData();
 
             // TagTypeManagerとの統合初期化
             InitializeTagTypeIntegration();
         }
-
         private void InitializeManagers()
         {
             if (_dataManager == null)
             {
                 _dataManager = new AssetDataManager();
-                _dataManager.OnDataLoaded += RefreshAssetList;
-                _dataManager.OnDataChanged += RefreshAssetList;
+                _dataManager.OnDataLoaded += OnDataLoaded;
+                _dataManager.OnDataChanged += OnDataChanged;
                 _dataManager.LoadData();
             }
 
@@ -86,26 +90,55 @@ namespace AMU.AssetManager.UI
                 _fileManager = new AssetFileManager();
             }
         }
+
+        private void OnDataLoaded()
+        {
+            _needsRefresh = true;
+            Repaint();
+        }
+
+        private void OnDataChanged()
+        {
+            _needsRefresh = true;
+            Repaint();
+        }
         private void InitializeTagTypeIntegration()
         {
             // TagTypeManagerからのデータ変更通知を受け取る
             TagTypeManager.OnDataChanged += OnTagTypeDataChanged;
         }
-
         private void OnDisable()
         {
             _thumbnailManager?.ClearCache();
-            TagTypeManager.OnDataChanged -= OnTagTypeDataChanged;
-        }
 
+            // イベントハンドラーの解除
+            TagTypeManager.OnDataChanged -= OnTagTypeDataChanged;
+
+            if (_dataManager != null)
+            {
+                _dataManager.OnDataLoaded -= OnDataLoaded;
+                _dataManager.OnDataChanged -= OnDataChanged;
+            }
+
+            if (_thumbnailManager != null)
+            {
+                _thumbnailManager.OnThumbnailLoaded -= Repaint;
+                _thumbnailManager.OnThumbnailSaved -= OnThumbnailSaved;
+            }
+        }
         private void OnTagTypeDataChanged()
         {
             // タイプやタグが変更された時の処理
+            _needsRefresh = true;
             Repaint();
         }
+
         private void OnGUI()
         {
             InitializeStyles();
+
+            // データの外部変更をチェック（一定間隔で）
+            CheckAndRefreshData();
 
             if (_dataManager?.IsLoading == true)
             {
@@ -116,6 +149,27 @@ namespace AMU.AssetManager.UI
             DrawToolbar();
             DrawMainContent();
             HandleEvents();
+        }
+
+        /// <summary>
+        /// データの外部変更をチェックして必要に応じてリフレッシュ
+        /// </summary>
+        private void CheckAndRefreshData()
+        {
+            double currentTime = EditorApplication.timeSinceStartup;
+
+            // 一定間隔でチェック（0.5秒間隔）
+            if (currentTime - _lastDataCheckTime > 0.5f)
+            {
+                _lastDataCheckTime = currentTime;
+
+                // データマネージャーで外部変更をチェック
+                if (_dataManager?.CheckForExternalChanges() == true || _needsRefresh)
+                {
+                    RefreshAssetList();
+                    _needsRefresh = false;
+                }
+            }
         }
 
         private void InitializeStyles()
@@ -176,24 +230,22 @@ namespace AMU.AssetManager.UI
                 if (newSearchText != _searchText)
                 {
                     _searchText = newSearchText;
-                    RefreshAssetList();
+                    _needsRefresh = true;
                 }
 
                 GUILayout.Space(10);
 
-                // Filter buttons
-                if (GUILayout.Button(LocalizationManager.GetText("AssetManager_filterAll"), EditorStyles.toolbarButton))
+                // Filter buttons                if (GUILayout.Button(LocalizationManager.GetText("AssetManager_filterAll"), EditorStyles.toolbarButton))
                 {
                     _showFavoritesOnly = false;
-                    RefreshAssetList();
+                    _needsRefresh = true;
                 }
 
                 if (GUILayout.Button(LocalizationManager.GetText("AssetManager_filterFavorite"), EditorStyles.toolbarButton))
                 {
                     _showFavoritesOnly = true;
-                    RefreshAssetList();
+                    _needsRefresh = true;
                 }
-
                 GUILayout.Space(10);
 
                 // Show hidden checkbox
@@ -201,7 +253,7 @@ namespace AMU.AssetManager.UI
                 if (newShowHidden != _showHidden)
                 {
                     _showHidden = newShowHidden;
-                    RefreshAssetList();
+                    _needsRefresh = true;
                 }
 
                 GUILayout.FlexibleSpace();
@@ -211,13 +263,11 @@ namespace AMU.AssetManager.UI
                     LocalizationManager.GetText("AssetManager_sortName"),
                     LocalizationManager.GetText("AssetManager_sortDate"),
                     LocalizationManager.GetText("AssetManager_sortSize")
-                };
-
-                var newSortOption = EditorGUILayout.Popup(_selectedSortOption, sortOptions, EditorStyles.toolbarPopup, GUILayout.Width(100));
+                }; var newSortOption = EditorGUILayout.Popup(_selectedSortOption, sortOptions, EditorStyles.toolbarPopup, GUILayout.Width(100));
                 if (newSortOption != _selectedSortOption)
                 {
                     _selectedSortOption = newSortOption;
-                    RefreshAssetList();
+                    _needsRefresh = true;
                 }
 
                 string sortArrow = _sortDescending ? "↓" : "↑";
@@ -225,7 +275,7 @@ namespace AMU.AssetManager.UI
                 if (newSortDescending != _sortDescending)
                 {
                     _sortDescending = newSortDescending;
-                    RefreshAssetList();
+                    _needsRefresh = true;
                 }
 
                 GUILayout.Space(10);
@@ -234,10 +284,10 @@ namespace AMU.AssetManager.UI
                 {
                     ShowAddAssetDialog();
                 }
-
                 if (GUILayout.Button(LocalizationManager.GetText("Common_refresh"), EditorStyles.toolbarButton))
                 {
-                    RefreshAssetList();
+                    _needsRefresh = true;
+                    _dataManager?.CheckForExternalChanges();
                 }
             }
         }
@@ -266,11 +316,10 @@ namespace AMU.AssetManager.UI
 
                     // All types button with improved style
                     bool isAllSelected = string.IsNullOrEmpty(_selectedAssetType);
-                    var allStyle = isAllSelected ? _selectedTypeButtonStyle : _typeButtonStyle;
-                    if (GUILayout.Button(LocalizationManager.GetText("AssetType_all"), allStyle))
+                    var allStyle = isAllSelected ? _selectedTypeButtonStyle : _typeButtonStyle; if (GUILayout.Button(LocalizationManager.GetText("AssetType_all"), allStyle))
                     {
                         _selectedAssetType = "";
-                        RefreshAssetList();
+                        _needsRefresh = true;
                     }
 
                     GUILayout.Space(8);
@@ -286,7 +335,7 @@ namespace AMU.AssetManager.UI
                             if (GUILayout.Button(assetType, style, GUILayout.ExpandWidth(true)))
                             {
                                 _selectedAssetType = assetType;
-                                RefreshAssetList();
+                                _needsRefresh = true;
                             }
 
                             // Show delete button for custom types
@@ -314,7 +363,7 @@ namespace AMU.AssetManager.UI
                                         {
                                             _selectedAssetType = "";
                                         }
-                                        RefreshAssetList();
+                                        _needsRefresh = true;
                                     }
                                 }
                             }
@@ -368,13 +417,11 @@ namespace AMU.AssetManager.UI
                         fontStyle = FontStyle.Bold,
                         fixedWidth = 30,
                         fixedHeight = 24
-                    };
-
-                    if (GUILayout.Button("+", addButtonStyle))
+                    }; if (GUILayout.Button("+", addButtonStyle))
                     {
                         AssetTypeManager.AddCustomType(_newTypeName.Trim());
                         _newTypeName = "";
-                        RefreshAssetList();
+                        _needsRefresh = true;
                     }
 
                     GUI.enabled = true;
@@ -575,25 +622,23 @@ namespace AMU.AssetManager.UI
 
             string favoriteText = asset.isFavorite ?
                 LocalizationManager.GetText("AssetManager_removeFromFavorites") :
-                LocalizationManager.GetText("AssetManager_addToFavorites");
-
-            menu.AddItem(new GUIContent(favoriteText), false, () =>
-            {
-                asset.isFavorite = !asset.isFavorite;
-                _dataManager.UpdateAsset(asset);
-            });
+                LocalizationManager.GetText("AssetManager_addToFavorites"); menu.AddItem(new GUIContent(favoriteText), false, () =>
+ {
+     asset.isFavorite = !asset.isFavorite;
+     _dataManager.UpdateAsset(asset);
+     _needsRefresh = true;
+ });
 
             menu.AddSeparator("");
 
             string hiddenText = asset.isHidden ?
                 LocalizationManager.GetText("AssetManager_showAsset") :
-                LocalizationManager.GetText("AssetManager_hideAsset");
-
-            menu.AddItem(new GUIContent(hiddenText), false, () =>
-            {
-                asset.isHidden = !asset.isHidden;
-                _dataManager.UpdateAsset(asset);
-            });
+                LocalizationManager.GetText("AssetManager_hideAsset"); menu.AddItem(new GUIContent(hiddenText), false, () =>
+ {
+     asset.isHidden = !asset.isHidden;
+     _dataManager.UpdateAsset(asset);
+     _needsRefresh = true;
+ });
 
             menu.AddSeparator("");
 
@@ -608,10 +653,10 @@ namespace AMU.AssetManager.UI
             {
                 if (EditorUtility.DisplayDialog("Confirm Delete",
                     LocalizationManager.GetText("AssetManager_confirmDelete"),
-                    LocalizationManager.GetText("Common_yes"),
-                    LocalizationManager.GetText("Common_no")))
+                    LocalizationManager.GetText("Common_yes"), LocalizationManager.GetText("Common_no")))
                 {
                     _dataManager.RemoveAsset(asset.uid);
+                    _needsRefresh = true;
                 }
             });
 
@@ -623,11 +668,11 @@ namespace AMU.AssetManager.UI
             string path = EditorUtility.OpenFilePanel("Select Asset File", Application.dataPath, "");
             if (!string.IsNullOrEmpty(path))
             {
-                var asset = _fileManager.CreateAssetFromFile(path);
-                if (asset != null)
+                var asset = _fileManager.CreateAssetFromFile(path); if (asset != null)
                 {
                     _dataManager.AddAsset(asset);
                     AssetDetailWindow.ShowWindow(asset, true);
+                    _needsRefresh = true;
                 }
             }
         }
@@ -678,6 +723,7 @@ namespace AMU.AssetManager.UI
                     {
                         _dataManager.RemoveAsset(_selectedAsset.uid);
                         _selectedAsset = null;
+                        _needsRefresh = true;
                     }
                     Event.current.Use();
                 }
