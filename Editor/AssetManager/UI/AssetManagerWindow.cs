@@ -201,12 +201,10 @@ namespace AMU.AssetManager.UI
                 // Asset types list with scroll view
                 using (var scrollView = new GUILayout.ScrollViewScope(_leftScrollPosition, GUILayout.ExpandHeight(true)))
                 {
-                    _leftScrollPosition = scrollView.scrollPosition;
-
-                    // All types button
+                    _leftScrollPosition = scrollView.scrollPosition;                    // All types button
                     bool isAllSelected = string.IsNullOrEmpty(_selectedAssetType);
                     var allStyle = isAllSelected ? EditorStyles.boldLabel : EditorStyles.label;
-                    if (GUILayout.Button("All", allStyle))
+                    if (GUILayout.Button(LocalizationManager.GetText("AssetType_all"), allStyle))
                     {
                         _selectedAssetType = "";
                         RefreshAssetList();
@@ -233,8 +231,11 @@ namespace AMU.AssetManager.UI
                             {
                                 if (GUILayout.Button("×", GUILayout.Width(20)))
                                 {
-                                    if (EditorUtility.DisplayDialog("Confirm Delete",
-                                        $"Delete custom type '{assetType}'?", "Yes", "No"))
+                                    if (EditorUtility.DisplayDialog(
+                                        LocalizationManager.GetText("AssetType_confirmDeleteTitle"),
+                                        string.Format(LocalizationManager.GetText("AssetType_confirmDeleteMessage"), assetType),
+                                        LocalizationManager.GetText("Common_yes"),
+                                        LocalizationManager.GetText("Common_no")))
                                     {
                                         AssetTypeManager.RemoveCustomType(assetType);
                                         if (_selectedAssetType == assetType)
@@ -261,12 +262,10 @@ namespace AMU.AssetManager.UI
             var rect = GUILayoutUtility.GetRect(1, 1, GUILayout.ExpandWidth(true));
             EditorGUI.DrawRect(rect, new Color(0.5f, 0.5f, 0.5f, 0.5f));
 
-            GUILayout.Space(5);
-
-            // Add new type section
+            GUILayout.Space(5);            // Add new type section
             using (new GUILayout.VerticalScope())
             {
-                GUILayout.Label("Add New Type", EditorStyles.miniLabel);
+                GUILayout.Label(LocalizationManager.GetText("AssetType_addNewType"), EditorStyles.miniLabel);
 
                 using (new GUILayout.HorizontalScope())
                 {
@@ -288,13 +287,12 @@ namespace AMU.AssetManager.UI
                 // Show validation message if needed
                 if (!string.IsNullOrWhiteSpace(_newTypeName))
                 {
-                    var trimmedName = _newTypeName.Trim();
-                    if (AssetTypeManager.AllTypes.Contains(trimmedName))
+                    var trimmedName = _newTypeName.Trim(); if (AssetTypeManager.AllTypes.Contains(trimmedName))
                     {
                         using (new GUILayout.HorizontalScope())
                         {
                             GUILayout.Space(5);
-                            GUILayout.Label("Type already exists", EditorStyles.miniLabel);
+                            GUILayout.Label(LocalizationManager.GetText("AssetType_typeAlreadyExists"), EditorStyles.miniLabel);
                         }
                     }
                     else if (string.IsNullOrWhiteSpace(trimmedName))
@@ -302,7 +300,7 @@ namespace AMU.AssetManager.UI
                         using (new GUILayout.HorizontalScope())
                         {
                             GUILayout.Space(5);
-                            GUILayout.Label("Type name required", EditorStyles.miniLabel);
+                            GUILayout.Label(LocalizationManager.GetText("AssetType_typeNameRequired"), EditorStyles.miniLabel);
                         }
                     }
                 }

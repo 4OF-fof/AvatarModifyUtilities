@@ -24,7 +24,6 @@
   "AssetManager_confirmDelete": "このアセットを削除しますか？",
   "AssetManager_noAssets": "アセットが見つかりません",
   "AssetManager_loading": "読み込み中...",
-  
   "AssetDetail_windowTitle": "アセット詳細",
   "AssetDetail_generalInfo": "基本情報",
   "AssetDetail_name": "名前",
@@ -46,9 +45,14 @@
   "AssetDetail_cancel": "キャンセル",
   "AssetDetail_edit": "編集",
   "AssetDetail_selectThumbnail": "サムネイル選択",
-  "AssetDetail_addTag": "タグ追加",
+  "AssetDetail_addTag": "タグ追加", 
   "AssetDetail_addDependency": "依存関係追加",
-  
+  "AssetType_addNewType": "新しいタイプを追加",
+  "AssetType_typeAlreadyExists": "このタイプは既に存在します",
+  "AssetType_typeNameRequired": "タイプ名を入力してください",
+  "AssetType_confirmDeleteTitle": "削除の確認",
+  "AssetType_confirmDeleteMessage": "カスタムタイプ '{0}' を削除しますか？",
+  "AssetType_all": "すべて",
   "AssetPreview_windowTitle": "アセットプレビュー",
   "AssetPreview_noPreview": "プレビューできません",
   "AssetPreview_generating": "プレビュー生成中...",
@@ -57,7 +61,6 @@
   "AssetPreview_wireframe": "ワイヤーフレーム",
   "AssetPreview_lighting": "ライティング",
   "AssetPreview_background": "背景",
-
   "Common_ok": "OK",
   "Common_cancel": "キャンセル",
   "Common_yes": "はい",
