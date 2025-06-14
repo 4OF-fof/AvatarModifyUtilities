@@ -263,7 +263,6 @@ namespace AMU.AssetManager.UI
                 GUILayout.FlexibleSpace();
             }
         }
-
         private void DrawGeneralInfo()
         {
             GUILayout.Label(LocalizationManager.GetText("AssetDetail_generalInfo"), EditorStyles.boldLabel);
@@ -275,11 +274,11 @@ namespace AMU.AssetManager.UI
                 GUILayout.Label(LocalizationManager.GetText("AssetDetail_name"), GUILayout.Width(100));
                 if (_isEditMode)
                 {
-                    _asset.name = EditorGUILayout.TextField(_asset.name);
+                    _asset.name = EditorGUILayout.TextField(_asset.name, GUILayout.Width(360));
                 }
                 else
                 {
-                    GUILayout.Label(_asset.name);
+                    GUILayout.Label(_asset.name, GUILayout.Width(360));
                 }
                 GUILayout.EndHorizontal();
 
@@ -288,13 +287,15 @@ namespace AMU.AssetManager.UI
                 GUILayout.Label(LocalizationManager.GetText("AssetDetail_description"), GUILayout.Width(100));
                 if (_isEditMode)
                 {
-                    _asset.description = EditorGUILayout.TextArea(_asset.description, GUILayout.Height(60));
+                    _asset.description = EditorGUILayout.TextArea(_asset.description, GUILayout.Height(60), GUILayout.Width(360));
                 }
                 else
                 {
-                    GUILayout.Label(_asset.description, EditorStyles.wordWrappedLabel);
+                    GUILayout.Label(_asset.description, EditorStyles.wordWrappedLabel, GUILayout.Width(360));
                 }
-                GUILayout.EndHorizontal();                // Type
+                GUILayout.EndHorizontal();
+
+                // Type
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(LocalizationManager.GetText("AssetDetail_type"), GUILayout.Width(100));
                 if (_isEditMode)
@@ -303,7 +304,7 @@ namespace AMU.AssetManager.UI
                     var currentIndex = allTypes.IndexOf(_asset.assetType);
                     if (currentIndex < 0) currentIndex = 0;
 
-                    var newIndex = EditorGUILayout.Popup(currentIndex, allTypes.ToArray());
+                    var newIndex = EditorGUILayout.Popup(currentIndex, allTypes.ToArray(), GUILayout.Width(360));
                     if (newIndex >= 0 && newIndex < allTypes.Count)
                     {
                         _asset.assetType = allTypes[newIndex];
@@ -311,7 +312,7 @@ namespace AMU.AssetManager.UI
                 }
                 else
                 {
-                    GUILayout.Label(_asset.assetType);
+                    GUILayout.Label(_asset.assetType, GUILayout.Width(360));
                 }
                 GUILayout.EndHorizontal();
 
@@ -320,16 +321,15 @@ namespace AMU.AssetManager.UI
                 GUILayout.Label(LocalizationManager.GetText("AssetDetail_author"), GUILayout.Width(100));
                 if (_isEditMode)
                 {
-                    _asset.authorName = EditorGUILayout.TextField(_asset.authorName);
+                    _asset.authorName = EditorGUILayout.TextField(_asset.authorName, GUILayout.Width(360));
                 }
                 else
                 {
-                    GUILayout.Label(_asset.authorName);
+                    GUILayout.Label(_asset.authorName, GUILayout.Width(360));
                 }
                 GUILayout.EndHorizontal();
             }
         }
-
         private void DrawFileInfo()
         {
             GUILayout.Label(LocalizationManager.GetText("AssetDetail_fileInfo"), EditorStyles.boldLabel);
@@ -343,7 +343,7 @@ namespace AMU.AssetManager.UI
                 {
                     using (new GUILayout.HorizontalScope())
                     {
-                        _asset.filePath = EditorGUILayout.TextField(_asset.filePath);
+                        _asset.filePath = EditorGUILayout.TextField(_asset.filePath, GUILayout.Width(280));
                         if (GUILayout.Button(LocalizationManager.GetText("Common_browse"), GUILayout.Width(80)))
                         {
                             BrowseForFile();
@@ -352,20 +352,20 @@ namespace AMU.AssetManager.UI
                 }
                 else
                 {
-                    GUILayout.Label(_asset.filePath);
+                    GUILayout.Label(_asset.filePath, GUILayout.Width(360));
                 }
                 GUILayout.EndHorizontal();
 
                 // File Size
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(LocalizationManager.GetText("AssetDetail_fileSize"), GUILayout.Width(100));
-                GUILayout.Label(_fileManager.FormatFileSize(_asset.fileSize));
+                GUILayout.Label(_fileManager.FormatFileSize(_asset.fileSize), GUILayout.Width(360));
                 GUILayout.EndHorizontal();
 
                 // Created Date
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(LocalizationManager.GetText("AssetDetail_createdDate"), GUILayout.Width(100));
-                GUILayout.Label(_asset.createdDate.ToString("yyyy/MM/dd HH:mm:ss"));
+                GUILayout.Label(_asset.createdDate.ToString("yyyy/MM/dd HH:mm:ss"), GUILayout.Width(360));
                 GUILayout.EndHorizontal();
 
             }
