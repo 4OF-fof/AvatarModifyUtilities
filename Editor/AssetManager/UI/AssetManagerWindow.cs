@@ -372,7 +372,7 @@ namespace AMU.AssetManager.UI
                                     fontSize = 12,
                                     fontStyle = FontStyle.Bold,
                                     fixedWidth = 24,
-                                    fixedHeight = 24,
+                                    fixedHeight = 36,
                                     normal = { textColor = Color.red }
                                 };
 
