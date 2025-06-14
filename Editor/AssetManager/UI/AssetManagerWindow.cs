@@ -580,13 +580,39 @@ namespace AMU.AssetManager.UI
                 else
                 {
                     GUI.Box(thumbnailRect, "No Image");
-                }
-
-                // Favorite indicator
+                }                // Favorite indicator
                 if (asset.isFavorite)
                 {
-                    var starRect = new Rect(thumbnailRect.x + thumbnailRect.width - 20, thumbnailRect.y + 5, 15, 15);
-                    GUI.Label(starRect, "★");
+                    var starSize = 25f; // サイズをさらに拡大
+                    var starRect = new Rect(thumbnailRect.x + thumbnailRect.width - starSize - 3, thumbnailRect.y + 3, starSize, starSize);
+
+                    // 黒い縁取りを描画（少しずらして描画）
+                    var outlineOffsets = new Vector2[] {
+                        new Vector2(-1, -1), new Vector2(0, -1), new Vector2(1, -1),
+                        new Vector2(-1, 0),                       new Vector2(1, 0),
+                        new Vector2(-1, 1),  new Vector2(0, 1),  new Vector2(1, 1)
+                    };
+
+                    var originalColor = GUI.color;
+                    var starStyle = new GUIStyle(GUI.skin.label)
+                    {
+                        fontSize = Mathf.RoundToInt(starSize * 0.8f),
+                        alignment = TextAnchor.MiddleCenter
+                    };
+
+                    // 黒い縁取りを描画
+                    GUI.color = Color.black;
+                    foreach (var offset in outlineOffsets)
+                    {
+                        var outlineRect = new Rect(starRect.x + offset.x, starRect.y + offset.y, starRect.width, starRect.height);
+                        GUI.Label(outlineRect, "★", starStyle);
+                    }
+
+                    // メインの星を描画
+                    GUI.color = Color.yellow;
+                    GUI.Label(starRect, "★", starStyle);
+
+                    GUI.color = originalColor;
                 }
 
                 // Archived indicator
