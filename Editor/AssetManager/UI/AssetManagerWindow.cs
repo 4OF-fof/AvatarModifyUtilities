@@ -194,7 +194,7 @@ namespace AMU.AssetManager.UI
             {
                 fontSize = 14,
                 fontStyle = FontStyle.Normal,
-                alignment = TextAnchor.MiddleLeft,
+                alignment = TextAnchor.MiddleCenter,
                 padding = new RectOffset(12, 12, 8, 8),
                 margin = new RectOffset(2, 2, 1, 1),
                 fixedHeight = 36,
