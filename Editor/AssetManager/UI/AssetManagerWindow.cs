@@ -17,7 +17,6 @@ namespace AMU.AssetManager.UI
         Favorites,
         ArchivedOnly
     }
-
     public class AssetManagerWindow : EditorWindow
     {
         [MenuItem("AMU/Asset Manager", priority = 2)]
@@ -30,7 +29,9 @@ namespace AMU.AssetManager.UI
             window.minSize = new Vector2(1000, 600);
             window.maxSize = new Vector2(1000, 600);
             window.Show();
-        }// Managers
+        }
+
+        // Managers - シングルトンを使用
         private AssetDataManager _dataManager;
         private AssetThumbnailManager _thumbnailManager;
         private AssetFileManager _fileManager;
@@ -42,11 +43,11 @@ namespace AMU.AssetManager.UI
         private string _selectedAssetType = "Avatar";
         private AssetFilterType _currentFilter = AssetFilterType.All;
         private int _selectedSortOption = 1;
-        private bool _sortDescending = true;        // Data synchronization
-        private bool _needsDataReload = false;  // データファイルの再読み込みが必要
+        private bool _sortDescending = true;
+
+        // データ管理の簡素化
         private bool _needsUIRefresh = false;   // UIの再描画のみ必要
-        private double _lastDataCheckTime = 0;
-        private bool _isLoadingTypeChange = false;
+        private bool _isFirstLoad = true;       // 初回ロードフラグ
 
         // Type Management
         private string _newTypeName = "";
@@ -69,22 +70,27 @@ namespace AMU.AssetManager.UI
             LocalizationManager.LoadLanguage(language);
 
             AssetTypeManager.LoadCustomTypes();
-            InitializeManagers();            // 初回データ読み込み
+            InitializeManagers();
+
+            // 初回のみデータ読み込み
+            if (_isFirstLoad)
+            {
+                _dataManager.Initialize();
+                _isFirstLoad = false;
+            }
+
             _needsUIRefresh = true;
-            CheckAndRefreshData();
 
             // TagTypeManagerとの統合初期化
             InitializeTagTypeIntegration();
         }
+
         private void InitializeManagers()
         {
-            if (_dataManager == null)
-            {
-                _dataManager = new AssetDataManager();
-                _dataManager.OnDataLoaded += OnDataLoaded;
-                _dataManager.OnDataChanged += OnDataChanged;
-                _dataManager.LoadData();
-            }
+            // シングルトンインスタンスを取得
+            _dataManager = AssetDataManager.Instance;
+            _dataManager.OnDataLoaded += OnDataLoaded;
+            _dataManager.OnDataChanged += OnDataChanged;
 
             if (_thumbnailManager == null)
             {
@@ -119,11 +125,13 @@ namespace AMU.AssetManager.UI
             _thumbnailManager?.ClearCache();
 
             // イベントハンドラーの解除
-            TagTypeManager.OnDataChanged -= OnTagTypeDataChanged; if (_dataManager != null)
+            TagTypeManager.OnDataChanged -= OnTagTypeDataChanged;
+
+            if (_dataManager != null)
             {
                 _dataManager.OnDataLoaded -= OnDataLoaded;
                 _dataManager.OnDataChanged -= OnDataChanged;
-                _dataManager.Dispose();
+                // シングルトンなのでDisposeは呼ばない
             }
 
             if (_thumbnailManager != null)
@@ -140,11 +148,14 @@ namespace AMU.AssetManager.UI
         }
         private void OnGUI()
         {
-            InitializeStyles();            // 定期的に外部ファイル変更をチェック
-            CheckForExternalFileChanges();
+            InitializeStyles();
 
-            // データの再読み込みが必要な場合のみ実行
-            CheckAndRefreshData();
+            // データの読み込みが完了していない場合の処理
+            if (_dataManager?.IsLoading == true)
+            {
+                DrawLoadingUI();
+                return;
+            }
 
             // UI更新が必要な場合はアセットリストを更新
             if (_needsUIRefresh)
@@ -153,47 +164,18 @@ namespace AMU.AssetManager.UI
                 _needsUIRefresh = false;
             }
 
-            if (_dataManager?.IsLoading == true)
-            {
-                DrawLoadingUI();
-                return;
-            }
-
             DrawToolbar();
             DrawMainContent();
             HandleEvents();
-        }/// <summary>
-         /// データの外部変更をチェックして必要に応じてリフレッシュ
-         /// データファイルの再読み込みが必要な場合のみ実行
-         /// </summary>
-        private void CheckAndRefreshData()
-        {            // データの再読み込みが必要な場合のみチェック
-            if (!_needsDataReload) return;
-
-            // 即座にデータ再読み込みを実行
-            _dataManager?.CheckForExternalChanges();
-            _needsDataReload = false;
-            _needsUIRefresh = true;
         }
 
         /// <summary>
-        /// 定期的に外部ファイル変更をチェックし、必要に応じてデータ再読み込みフラグを設定
+        /// 明示的なデータリフレッシュ（ユーザーが更新ボタンを押した時のみ）
         /// </summary>
-        private void CheckForExternalFileChanges()
+        private void RefreshData()
         {
-            double currentTime = EditorApplication.timeSinceStartup;
-
-            // チェック間隔を2秒に延長してパフォーマンスを向上
-            if (currentTime - _lastDataCheckTime > 2.0f)
-            {
-                _lastDataCheckTime = currentTime;
-
-                // データマネージャーで外部変更をチェック
-                if (_dataManager?.CheckForExternalChanges() == true)
-                {
-                    _needsUIRefresh = true;
-                }
-            }
+            _dataManager?.ForceRefresh();
+            _needsUIRefresh = true;
         }
 
         private void InitializeStyles()
@@ -268,7 +250,6 @@ namespace AMU.AssetManager.UI
                         {
                             _currentFilter = AssetFilterType.All;
                             _needsUIRefresh = true;
-                            _isLoadingTypeChange = true;
                         }
                     }
 
@@ -278,7 +259,6 @@ namespace AMU.AssetManager.UI
                         {
                             _currentFilter = AssetFilterType.Favorites;
                             _needsUIRefresh = true;
-                            _isLoadingTypeChange = true;
                         }
                     }
 
@@ -288,7 +268,6 @@ namespace AMU.AssetManager.UI
                         {
                             _currentFilter = AssetFilterType.ArchivedOnly;
                             _needsUIRefresh = true;
-                            _isLoadingTypeChange = true;
                         }
                     }
                     GUILayout.Space(10);
@@ -323,8 +302,7 @@ namespace AMU.AssetManager.UI
                     }
                     if (GUILayout.Button(LocalizationManager.GetText("Common_refresh"), EditorStyles.toolbarButton))
                     {
-                        _needsDataReload = true;
-                        _dataManager?.CheckForExternalChanges();
+                        RefreshData();
                     }
                 }
             }
@@ -358,7 +336,6 @@ namespace AMU.AssetManager.UI
                         if (_selectedAssetType != "")
                         {
                             _selectedAssetType = "";
-                            _isLoadingTypeChange = true;
                             _needsUIRefresh = true;
                             Repaint();
                         }
@@ -379,7 +356,6 @@ namespace AMU.AssetManager.UI
                                 if (_selectedAssetType != assetType)
                                 {
                                     _selectedAssetType = assetType;
-                                    _isLoadingTypeChange = true;
                                     _needsUIRefresh = true;
                                     Repaint();
                                 }
@@ -516,20 +492,6 @@ namespace AMU.AssetManager.UI
         }
         private void DrawAssetGrid()
         {
-            // Type切り替え中の読み込み表示
-            if (_isLoadingTypeChange)
-            {
-                GUILayout.FlexibleSpace();
-                using (new GUILayout.HorizontalScope())
-                {
-                    GUILayout.FlexibleSpace();
-                    GUILayout.Label(LocalizationManager.GetText("AssetManager_loading"), EditorStyles.largeLabel);
-                    GUILayout.FlexibleSpace();
-                }
-                GUILayout.FlexibleSpace();
-                return;
-            }
-
             if (_filteredAssets == null || _filteredAssets.Count == 0)
             {
                 GUILayout.FlexibleSpace();
@@ -550,7 +512,7 @@ namespace AMU.AssetManager.UI
                 float availableWidth = position.width - _leftPanelWidth - 20;
                 int columnsPerRow = Mathf.Max(1, Mathf.FloorToInt(availableWidth / (_thumbnailSize + 10)));
 
-                // 仮想化：表示範囲内のアイテムのみ描画
+                // 改善された仮想化：表示範囲内のアイテムのみ描画
                 float itemHeight = _thumbnailSize + 40; // サムネイル + テキストの高さ
                 float scrollAreaHeight = position.height - 100; // ツールバーなどを除く
 
@@ -693,7 +655,7 @@ namespace AMU.AssetManager.UI
  {
      asset.isFavorite = !asset.isFavorite;
      _dataManager.UpdateAsset(asset);
-     _needsDataReload = true;
+     _needsUIRefresh = true;
  });
 
             menu.AddSeparator("");
@@ -704,7 +666,7 @@ namespace AMU.AssetManager.UI
  {
      asset.isHidden = !asset.isHidden;
      _dataManager.UpdateAsset(asset);
-     _needsDataReload = true;
+     _needsUIRefresh = true;
  });
 
             menu.AddSeparator("");
@@ -714,18 +676,16 @@ namespace AMU.AssetManager.UI
                 _fileManager.OpenFileLocation(asset);
             });
 
-            menu.AddSeparator("");
-
-            menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_deleteAsset")), false, () =>
-            {
-                if (EditorUtility.DisplayDialog("Confirm Delete",
-                    LocalizationManager.GetText("AssetManager_confirmDelete"),
-                    LocalizationManager.GetText("Common_yes"), LocalizationManager.GetText("Common_no")))
-                {
-                    _dataManager.RemoveAsset(asset.uid);
-                    _needsDataReload = true;
-                }
-            });
+            menu.AddSeparator(""); menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_deleteAsset")), false, () =>
+ {
+     if (EditorUtility.DisplayDialog("Confirm Delete",
+         LocalizationManager.GetText("AssetManager_confirmDelete"),
+         LocalizationManager.GetText("Common_yes"), LocalizationManager.GetText("Common_no")))
+     {
+         _dataManager.RemoveAsset(asset.uid);
+         _needsUIRefresh = true;
+     }
+ });
 
             menu.ShowAsContext();
         }
@@ -739,27 +699,30 @@ namespace AMU.AssetManager.UI
                 {
                     _dataManager.AddAsset(asset);
                     AssetDetailWindow.ShowWindow(asset, true);
-                    _needsDataReload = true;
+                    _needsUIRefresh = true;
                 }
             }
-        }
+        }        /// <summary>
+                 /// 高速化されたアセットリスト更新
+                 /// </summary>
         private void RefreshAssetList()
         {
             if (_dataManager?.Library?.assets == null)
             {
                 _filteredAssets = new List<AssetInfo>();
-                _isLoadingTypeChange = false;
                 return;
             }
 
-            // Apply filter based on current filter type
+            // フィルター条件を設定
             bool? favoritesOnly = null;
             bool? archivedOnly = null;
-            bool showHidden = false; switch (_currentFilter)
+            bool showHidden = false;
+
+            switch (_currentFilter)
             {
                 case AssetFilterType.Favorites:
                     favoritesOnly = true;
-                    showHidden = false; // Only show non-archived favorites
+                    showHidden = false;
                     break;
                 case AssetFilterType.ArchivedOnly:
                     archivedOnly = true;
@@ -767,34 +730,42 @@ namespace AMU.AssetManager.UI
                     break;
                 case AssetFilterType.All:
                 default:
-                    showHidden = false; // Only show non-archived items
+                    showHidden = false;
                     break;
             }
 
+            // 高速化された検索を実行
             _filteredAssets = _dataManager.SearchAssets(_searchText, _selectedAssetType, favoritesOnly, showHidden, archivedOnly);
 
-            // Sort assets
+            // ソート処理の最適化
+            ApplySorting();
+
+            Repaint();
+        }
+
+        /// <summary>
+        /// ソート処理を分離して高速化
+        /// </summary>
+        private void ApplySorting()
+        {
             switch (_selectedSortOption)
             {
                 case 0: // Name
-                    _filteredAssets = _sortDescending ?
-                        _filteredAssets.OrderByDescending(a => a.name).ToList() :
-                        _filteredAssets.OrderBy(a => a.name).ToList();
+                    _filteredAssets.Sort((a, b) => _sortDescending ?
+                        string.Compare(b.name, a.name, StringComparison.OrdinalIgnoreCase) :
+                        string.Compare(a.name, b.name, StringComparison.OrdinalIgnoreCase));
                     break;
                 case 1: // Date
-                    _filteredAssets = _sortDescending ?
-                        _filteredAssets.OrderByDescending(a => a.createdDate).ToList() :
-                        _filteredAssets.OrderBy(a => a.createdDate).ToList();
+                    _filteredAssets.Sort((a, b) => _sortDescending ?
+                        DateTime.Compare(b.createdDate, a.createdDate) :
+                        DateTime.Compare(a.createdDate, b.createdDate));
                     break;
                 case 2: // Size
-                    _filteredAssets = _sortDescending ?
-                        _filteredAssets.OrderByDescending(a => a.fileSize).ToList() :
-                        _filteredAssets.OrderBy(a => a.fileSize).ToList();
+                    _filteredAssets.Sort((a, b) => _sortDescending ?
+                        b.fileSize.CompareTo(a.fileSize) :
+                        a.fileSize.CompareTo(b.fileSize));
                     break;
             }
-
-            _isLoadingTypeChange = false;
-            Repaint();
         }
 
         private void HandleEvents()
@@ -810,7 +781,7 @@ namespace AMU.AssetManager.UI
                     {
                         _dataManager.RemoveAsset(_selectedAsset.uid);
                         _selectedAsset = null;
-                        _needsDataReload = true;
+                        _needsUIRefresh = true;
                     }
                     Event.current.Use();
                 }

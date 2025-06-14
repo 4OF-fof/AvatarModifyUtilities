@@ -18,10 +18,10 @@ namespace AMU.AssetManager.UI
             window.minSize = new Vector2(600, 500);
             window.maxSize = new Vector2(600, 500);
 
-            // 編集画面を開く前にアセット情報を最新のものに更新
-            var updatedAsset = window.GetLatestAssetInfo(asset);
+            // シングルトンインスタンスから最新データを取得
+            var updatedAsset = AssetDataManager.Instance.GetAsset(asset.uid) ?? asset;
 
-            window._asset = updatedAsset?.Clone();
+            window._asset = updatedAsset.Clone();
             window._originalAsset = updatedAsset;
             window._isEditMode = editMode;
             window.Show();
@@ -81,11 +81,8 @@ namespace AMU.AssetManager.UI
         }
         private void InitializeManagers()
         {
-            if (_dataManager == null)
-            {
-                _dataManager = new AssetDataManager();
-                _dataManager.LoadData();
-            }
+            // シングルトンインスタンスを使用
+            _dataManager = AssetDataManager.Instance;
 
             if (_thumbnailManager == null)
             {
@@ -103,51 +100,30 @@ namespace AMU.AssetManager.UI
         }
 
         /// <summary>
-        /// アセット情報を最新の状態に更新して取得します
+        /// 最新のアセット情報を取得
         /// </summary>
-        /// <param name="asset">更新対象のアセット</param>
-        /// <returns>最新のアセット情報</returns>
-        private AssetInfo GetLatestAssetInfo(AssetInfo asset)
+        private AssetInfo GetLatestAssetInfo()
         {
-            if (asset == null) return null;
-
-            // まずデータマネージャーを初期化
-            InitializeManagers();
-
-            // UIDでデータベースから最新の情報を取得
-            var latestAsset = _dataManager?.GetAsset(asset.uid);
-
-            if (latestAsset != null)
-            {
-                Debug.Log($"アセット情報を更新しました: {asset.name} (UID: {asset.uid})");
-                return latestAsset;
-            }
-            else
-            {
-                // データベースに見つからない場合は、元のアセットをそのまま使用
-                Debug.LogWarning($"データベースにアセットが見つかりませんでした: {asset.name} (UID: {asset.uid})");
-                return asset;
-            }
+            if (_asset == null) return null;
+            return _dataManager?.GetAsset(_asset.uid) ?? _asset;
         }
 
         /// <summary>
-        /// 現在表示中のアセット情報を最新の状態に更新します
+        /// 現在表示中のアセット情報を最新の状態に更新
         /// </summary>
         private void RefreshAssetInfo()
         {
             if (_asset == null) return;
 
-            var latestAsset = GetLatestAssetInfo(_asset);
-            if (latestAsset != null)
+            var latestAsset = GetLatestAssetInfo();
+            if (latestAsset != null && latestAsset != _asset)
             {
                 _asset = latestAsset.Clone();
                 _originalAsset = latestAsset;
 
-                // タグ情報も更新
-                LoadAllTags();
+                // タグ情報も更新                LoadAllTags();
                 LoadTagSuggestions();
 
-                Debug.Log($"アセット情報を手動で更新しました: {_asset.name}");
                 Repaint();
             }
         }
@@ -184,22 +160,8 @@ namespace AMU.AssetManager.UI
                 return;
             }
 
-            // データの外部変更をチェック（一定間隔で）
-            CheckForDataChanges();
-
             DrawHeader();
             DrawContent();
-        }
-
-        /// <summary>
-        /// データの外部変更をチェックして必要に応じてリフレッシュ
-        /// </summary>
-        private void CheckForDataChanges()
-        {
-            if (_dataManager?.CheckForExternalChanges() == true)
-            {
-                RefreshAssetInfo();
-            }
         }
         private void DrawHeader()
         {
