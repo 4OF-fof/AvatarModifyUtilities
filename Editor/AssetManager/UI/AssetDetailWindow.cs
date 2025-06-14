@@ -212,12 +212,14 @@ namespace AMU.AssetManager.UI
                 }
             }
         }
-
         private void DrawThumbnailSection()
         {
             using (new GUILayout.VerticalScope(GUILayout.Width(200)))
             {
                 GUILayout.Label(LocalizationManager.GetText("AssetDetail_thumbnail"), EditorStyles.boldLabel);
+
+                // サムネイルを中央に配置するためのフレキシブルスペース
+                GUILayout.FlexibleSpace();
 
                 _thumbnailManager.DrawThumbnail(_asset, 180);
 
@@ -229,18 +231,26 @@ namespace AMU.AssetManager.UI
                         SelectThumbnail();
                     }
                 }
+
+                // 下側にもフレキシブルスペースを追加
+                GUILayout.FlexibleSpace();
             }
         }
-
         private void DrawDetailsSection()
         {
             using (new GUILayout.VerticalScope())
             {
+                // 詳細セクションを中央に配置するためのフレキシブルスペース
+                GUILayout.FlexibleSpace();
+
                 DrawGeneralInfo();
                 GUILayout.Space(10);
                 DrawFileInfo();
                 GUILayout.Space(10);
                 DrawTagsAndDependencies();
+
+                // 下側にもフレキシブルスペースを追加
+                GUILayout.FlexibleSpace();
             }
         }
 
