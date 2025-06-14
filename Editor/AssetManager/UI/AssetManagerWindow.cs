@@ -28,8 +28,9 @@ namespace AMU.AssetManager.UI
 
             var window = GetWindow<AssetManagerWindow>(LocalizationManager.GetText("AssetManager_windowTitle"));
             window.minSize = new Vector2(1000, 600);
+            window.maxSize = new Vector2(1000, 600);
             window.Show();
-        }        // Managers
+        }// Managers
         private AssetDataManager _dataManager;
         private AssetThumbnailManager _thumbnailManager;
         private AssetFileManager _fileManager;

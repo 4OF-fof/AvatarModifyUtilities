@@ -16,6 +16,7 @@ namespace AMU.AssetManager.UI
         {
             var window = GetWindow<AssetDetailWindow>(LocalizationManager.GetText("AssetDetail_windowTitle"));
             window.minSize = new Vector2(600, 500);
+            window.maxSize = new Vector2(600, 500);
 
             // 編集画面を開く前にアセット情報を最新のものに更新
             var updatedAsset = window.GetLatestAssetInfo(asset);
