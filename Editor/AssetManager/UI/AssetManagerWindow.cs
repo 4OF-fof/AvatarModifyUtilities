@@ -194,12 +194,18 @@ namespace AMU.AssetManager.UI
             {
                 fontSize = 14,
                 fontStyle = FontStyle.Normal,
-                alignment = TextAnchor.MiddleCenter,
-                padding = new RectOffset(12, 12, 6, 6),
-                margin = new RectOffset(2, 2, 2, 2),
-                fixedHeight = 32,
-                normal = { background = null, textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black },
-                hover = { background = EditorGUIUtility.Load("builtin skins/darkskin/images/btn hover.png") as Texture2D }
+                alignment = TextAnchor.MiddleLeft,
+                padding = new RectOffset(12, 12, 8, 8),
+                margin = new RectOffset(2, 2, 1, 1),
+                fixedHeight = 36,
+                normal = {
+                    background = null,
+                    textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black
+                },
+                hover = {
+                    background = CreateColorTexture(new Color(0.3f, 0.3f, 0.3f, 0.5f)),
+                    textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black
+                }
             };
 
             // Type button style (selected)
@@ -207,8 +213,12 @@ namespace AMU.AssetManager.UI
             {
                 fontStyle = FontStyle.Bold,
                 normal = {
-                    background = EditorGUIUtility.Load("builtin skins/darkskin/images/btn on.png") as Texture2D,
-                    textColor = EditorGUIUtility.isProSkin ? Color.cyan : Color.blue
+                    background = CreateColorTexture(EditorGUIUtility.isProSkin ? new Color(0.24f, 0.48f, 0.90f, 0.8f) : new Color(0.24f, 0.48f, 0.90f, 0.6f)),
+                    textColor = EditorGUIUtility.isProSkin ? Color.white : Color.white
+                },
+                hover = {
+                    background = CreateColorTexture(EditorGUIUtility.isProSkin ? new Color(0.24f, 0.48f, 0.90f, 0.9f) : new Color(0.24f, 0.48f, 0.90f, 0.7f)),
+                    textColor = EditorGUIUtility.isProSkin ? Color.white : Color.white
                 }
             };
 
@@ -327,38 +337,31 @@ namespace AMU.AssetManager.UI
                 // Asset types list with scroll view
                 using (var scrollView = new GUILayout.ScrollViewScope(_leftScrollPosition, GUILayout.ExpandHeight(true)))
                 {
-                    _leftScrollPosition = scrollView.scrollPosition;
-
-                    // All types button with improved style
+                    _leftScrollPosition = scrollView.scrollPosition;                    // All types button with improved style
                     bool isAllSelected = string.IsNullOrEmpty(_selectedAssetType);
-                    var allStyle = isAllSelected ? _selectedTypeButtonStyle : _typeButtonStyle; if (GUILayout.Button(LocalizationManager.GetText("AssetType_all"), allStyle))
+                    bool allPressed = GUILayout.Toggle(isAllSelected, LocalizationManager.GetText("AssetType_all"), _typeButtonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(36));
+
+                    if (allPressed && !isAllSelected)
                     {
-                        if (_selectedAssetType != "")
-                        {
-                            _selectedAssetType = "";
-                            _needsUIRefresh = true;
-                            Repaint();
-                        }
+                        _selectedAssetType = "";
+                        _needsUIRefresh = true;
+                        Repaint();
                     }
 
-                    GUILayout.Space(8);
-
-                    // Individual type buttons with improved styles
+                    GUILayout.Space(8);                    // Individual type buttons with improved styles
                     foreach (var assetType in AssetTypeManager.AllTypes)
                     {
                         bool isSelected = _selectedAssetType == assetType;
-                        var style = isSelected ? _selectedTypeButtonStyle : _typeButtonStyle;
 
                         using (new GUILayout.HorizontalScope())
                         {
-                            if (GUILayout.Button(assetType, style, GUILayout.ExpandWidth(true)))
+                            bool pressed = GUILayout.Toggle(isSelected, assetType, _typeButtonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(36));
+
+                            if (pressed && !isSelected)
                             {
-                                if (_selectedAssetType != assetType)
-                                {
-                                    _selectedAssetType = assetType;
-                                    _needsUIRefresh = true;
-                                    Repaint();
-                                }
+                                _selectedAssetType = assetType;
+                                _needsUIRefresh = true;
+                                Repaint();
                             }
 
                             // Show delete button for custom types
@@ -820,6 +823,17 @@ namespace AMU.AssetManager.UI
             {
                 _dataManager.UpdateAsset(asset);
             }
+        }
+
+        /// <summary>
+        /// Creates a solid color texture for UI backgrounds
+        /// </summary>
+        private Texture2D CreateColorTexture(Color color)
+        {
+            var texture = new Texture2D(1, 1);
+            texture.SetPixel(0, 0, color);
+            texture.Apply();
+            return texture;
         }
     }
 }
