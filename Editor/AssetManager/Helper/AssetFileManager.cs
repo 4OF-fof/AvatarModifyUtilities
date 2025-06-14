@@ -144,6 +144,8 @@ namespace AMU.AssetManager.Helper
                 case ".obj":
                 case ".blend":
                     return "Avatar";
+                case ".unitypackage":
+                    return "Package";
                 default:
                     return "Other";
             }
@@ -171,6 +173,53 @@ namespace AMU.AssetManager.Helper
                 return "Assets" + fullPath.Substring(Application.dataPath.Length).Replace('\\', '/');
             }
             return fullPath.Replace('\\', '/');
+        }
+
+        /// <summary>
+        /// UnityPackageファイルをプロジェクトにインポートする
+        /// </summary>
+        public void ImportUnityPackage(AssetInfo asset)
+        {
+            if (asset == null || string.IsNullOrEmpty(asset.filePath))
+            {
+                Debug.LogWarning("[AssetFileManager] Invalid asset or file path");
+                return;
+            }
+
+            string fullPath = GetFullPath(asset.filePath);
+            if (!File.Exists(fullPath))
+            {
+                Debug.LogWarning($"[AssetFileManager] File not found: {fullPath}");
+                return;
+            }
+
+            string extension = Path.GetExtension(fullPath).ToLower();
+            if (extension != ".unitypackage")
+            {
+                Debug.LogWarning($"[AssetFileManager] File is not a Unity Package: {fullPath}");
+                return;
+            }
+
+            try
+            {
+                Debug.Log($"[AssetFileManager] Importing Unity Package: {asset.name}");
+                AssetDatabase.ImportPackage(fullPath, true);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[AssetFileManager] Failed to import Unity Package {asset.name}: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// ファイルがUnityPackageかどうかを判定する
+        /// </summary>
+        public bool IsUnityPackage(AssetInfo asset)
+        {
+            if (asset == null || string.IsNullOrEmpty(asset.filePath))
+                return false;
+
+            return Path.GetExtension(asset.filePath).ToLower() == ".unitypackage";
         }
     }
 }

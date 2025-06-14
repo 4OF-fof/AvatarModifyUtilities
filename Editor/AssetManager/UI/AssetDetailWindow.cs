@@ -241,6 +241,21 @@ namespace AMU.AssetManager.UI
                     }
                 }
 
+                // Import ボタン（UnityPackageの場合のみ表示）
+                if (_fileManager.IsUnityPackage(_asset))
+                {
+                    GUILayout.Space(5);
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        GUILayout.Space(10); // ボタンの左マージン
+                        if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_importPackage")))
+                        {
+                            ImportUnityPackage();
+                        }
+                        GUILayout.FlexibleSpace();
+                    }
+                }
+
                 // 下側にもフレキシブルスペースを追加
                 GUILayout.Space(20);
                 GUILayout.FlexibleSpace();
@@ -578,6 +593,17 @@ namespace AMU.AssetManager.UI
 
                 // Update file info
                 _asset.fileSize = _fileManager.GetFileSize(_asset.filePath);
+            }
+        }
+        private void ImportUnityPackage()
+        {
+            try
+            {
+                _fileManager.ImportUnityPackage(_asset);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to import Unity Package: {ex.Message}");
             }
         }
 
