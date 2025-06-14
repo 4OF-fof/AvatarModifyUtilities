@@ -216,23 +216,33 @@ namespace AMU.AssetManager.UI
         {
             using (new GUILayout.VerticalScope(GUILayout.Width(200)))
             {
-                GUILayout.Label(LocalizationManager.GetText("AssetDetail_thumbnail"), EditorStyles.boldLabel);
+                GUILayout.Space(10); // 左マージンを追加
 
                 // サムネイルを中央に配置するためのフレキシブルスペース
                 GUILayout.FlexibleSpace();
 
-                _thumbnailManager.DrawThumbnail(_asset, 180);
-
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUILayout.Space(10); // サムネイルの左マージン
+                    _thumbnailManager.DrawThumbnail(_asset, 180);
+                    GUILayout.FlexibleSpace();
+                }
                 if (_isEditMode)
                 {
                     GUILayout.Space(5);
-                    if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_selectThumbnail")))
+                    using (new GUILayout.HorizontalScope())
                     {
-                        SelectThumbnail();
+                        GUILayout.Space(10); // ボタンの左マージン
+                        if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_selectThumbnail")))
+                        {
+                            SelectThumbnail();
+                        }
+                        GUILayout.FlexibleSpace();
                     }
                 }
 
                 // 下側にもフレキシブルスペースを追加
+                GUILayout.Space(20);
                 GUILayout.FlexibleSpace();
             }
         }
