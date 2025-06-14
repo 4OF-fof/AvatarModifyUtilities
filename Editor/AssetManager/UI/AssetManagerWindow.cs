@@ -26,8 +26,8 @@ namespace AMU.AssetManager.UI
             LocalizationManager.LoadLanguage(language);
 
             var window = GetWindow<AssetManagerWindow>(LocalizationManager.GetText("AssetManager_windowTitle"));
-            window.minSize = new Vector2(1000, 600);
-            window.maxSize = new Vector2(1000, 600);
+            window.minSize = new Vector2(1100, 700);
+            window.maxSize = new Vector2(1100, 700);
             window.Show();
         }
 

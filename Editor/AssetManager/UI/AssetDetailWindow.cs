@@ -15,8 +15,8 @@ namespace AMU.AssetManager.UI
         public static void ShowWindow(AssetInfo asset, bool editMode = false)
         {
             var window = GetWindow<AssetDetailWindow>(LocalizationManager.GetText("AssetDetail_windowTitle"));
-            window.minSize = new Vector2(600, 500);
-            window.maxSize = new Vector2(600, 500);
+            window.minSize = new Vector2(700, 400);
+            window.maxSize = new Vector2(700, 400);
 
             // シングルトンインスタンスから最新データを取得
             var updatedAsset = AssetDataManager.Instance.GetAsset(asset.uid) ?? asset;
