@@ -184,10 +184,6 @@ namespace AMU.AssetManager.UI
                 }
                 else
                 {
-                    if (GUILayout.Button(LocalizationManager.GetText("Common_refresh"), EditorStyles.toolbarButton))
-                    {
-                        RefreshAssetInfo();
-                    }
                     if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_edit"), EditorStyles.toolbarButton))
                     {
                         // 編集モードに入る前にアセット情報を最新に更新
