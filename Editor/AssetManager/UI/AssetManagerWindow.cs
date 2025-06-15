@@ -947,10 +947,14 @@ namespace AMU.AssetManager.UI
                 menu.AddItem(new GUIContent($"{_selectedAssets.Count}個のアセットを削除"), false, () =>
                 {
                     if (EditorUtility.DisplayDialog("確認",
-                        $"{_selectedAssets.Count}個のアセットを削除しますか？",
-                        "削除", "キャンセル"))
+                    $"{_selectedAssets.Count}個のアセットを削除しますか？",
+                    "削除", "キャンセル"))
                     {
-                        foreach (var selectedAsset in _selectedAssets.ToList())
+                        // コレクション変更を避けるため、事前にコピーを作成
+                        var assetsToDelete = _selectedAssets.ToList();
+
+                        // 削除処理
+                        foreach (var selectedAsset in assetsToDelete)
                         {
                             if (selectedAsset.isGroup)
                             {
@@ -962,6 +966,7 @@ namespace AMU.AssetManager.UI
                             }
                         }
 
+                        // 選択状態をクリア
                         _selectedAssets.Clear();
                         _selectedAsset = null;
                         _needsUIRefresh = true;
@@ -1004,11 +1009,16 @@ namespace AMU.AssetManager.UI
                             $"グループ '{asset.name}' を解散しますか？子アセットは独立したアセットになります。",
                             "解散", "キャンセル"))
                         {
-                            _dataManager.DisbandGroup(asset.uid);
+                                                // グループ解散処理
+                                                _dataManager.DisbandGroup(asset.uid);
+
+                                                // 選択状態をクリア（解散されたグループを選択リストから削除）
+                                                _selectedAssets.Remove(asset);
                             if (_selectedAsset == asset)
                             {
                                 _selectedAsset = null;
                             }
+
                             _needsUIRefresh = true;
                         }
                     });
@@ -1219,14 +1229,16 @@ namespace AMU.AssetManager.UI
                     {
                         confirmMessage = $"{_selectedAssets.Count}個のアセットを削除しますか？";
                     }
-
                     if (EditorUtility.DisplayDialog("Confirm Delete",
                         confirmMessage,
                         LocalizationManager.GetText("Common_yes"),
                         LocalizationManager.GetText("Common_no")))
                     {
-                        // 複数選択されたアセットを削除
-                        foreach (var asset in _selectedAssets.ToList())
+                        // コレクション変更を避けるため、事前にコピーを作成
+                        var assetsToDelete = _selectedAssets.ToList();
+
+                        // 削除処理
+                        foreach (var asset in assetsToDelete)
                         {
                             if (asset.isGroup)
                             {
@@ -1238,6 +1250,7 @@ namespace AMU.AssetManager.UI
                             }
                         }
 
+                        // 選択状態をクリア
                         _selectedAssets.Clear();
                         _selectedAsset = null;
                         _needsUIRefresh = true;
@@ -1420,14 +1433,18 @@ namespace AMU.AssetManager.UI
                             if (GUILayout.Button("解散", GUILayout.Width(40), GUILayout.Height(28)))
                             {
                                 if (EditorUtility.DisplayDialog("グループ解散の確認",
-                                    $"グループ '{group.name}' を解散しますか？子アセットは独立したアセットになります。",
-                                    "解散", "キャンセル"))
+       $"グループ '{group.name}' を解散しますか？子アセットは独立したアセットになります。",
+       "解散", "キャンセル"))
                                 {
                                     _dataManager.DisbandGroup(group.uid);
+
+                                    // 選択状態をクリア（解散されたグループを選択リストから削除）
+                                    _selectedAssets.Remove(group);
                                     if (_selectedAsset == group)
                                     {
                                         _selectedAsset = null;
                                     }
+
                                     _needsUIRefresh = true;
                                 }
                             }
