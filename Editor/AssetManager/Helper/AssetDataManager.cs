@@ -674,6 +674,18 @@ namespace AMU.AssetManager.Helper
 
             var importedAssets = new List<AssetInfo>();
             var existingDownloadUrls = GetExistingDownloadUrls();
+            
+            // BPMLibraryのlastUpdatedを取得してパース
+            DateTime bmpLastUpdated = DateTime.Now; // デフォルト値
+            if (!string.IsNullOrEmpty(bpmManager.Library.lastUpdated))
+            {
+                if (!DateTime.TryParse(bpmManager.Library.lastUpdated, out bmpLastUpdated))
+                {
+                    // パースに失敗した場合は現在時刻を使用
+                    bmpLastUpdated = DateTime.Now;
+                    Debug.LogWarning($"[AssetDataManager] Failed to parse BPM lastUpdated: {bpmManager.Library.lastUpdated}");
+                }
+            }
 
             foreach (var author in bpmManager.Library.authors)
             {
@@ -691,7 +703,7 @@ namespace AMU.AssetManager.Helper
                                 continue;
                             }
 
-                            var assetInfo = CreateAssetFromBPMPackage(package, file, authorName, defaultAssetType, defaultTags);
+                            var assetInfo = CreateAssetFromBPMPackage(package, file, authorName, defaultAssetType, defaultTags, bmpLastUpdated);
                             importedAssets.Add(assetInfo);
                         }
                     }
@@ -738,7 +750,7 @@ namespace AMU.AssetManager.Helper
         /// <summary>
         /// BPMPackageからAssetInfoを作成
         /// </summary>
-        private AssetInfo CreateAssetFromBPMPackage(BPMPackage package, BPMFileInfo file, string authorName, string assetType, List<string> tags)
+        private AssetInfo CreateAssetFromBPMPackage(BPMPackage package, BPMFileInfo file, string authorName, string assetType, List<string> tags, DateTime bmpLastUpdated)
         {
             var asset = new AssetInfo
             {
@@ -749,7 +761,7 @@ namespace AMU.AssetManager.Helper
                 filePath = "", // 空に設定
                 thumbnailPath = "",
                 authorName = authorName,
-                createdDate = DateTime.MinValue, // 空に設定
+                createdDate = bmpLastUpdated, // BPMLibraryのlastUpdatedを設定
                 fileSize = 0, // 空に設定
                 tags = tags != null ? new List<string>(tags) : new List<string>(),
                 dependencies = new List<string>(),
