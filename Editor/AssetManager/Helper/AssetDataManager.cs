@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading;
@@ -28,12 +29,15 @@ namespace AMU.AssetManager.Helper
         private AssetLibrary _assetLibrary;
         private string _dataFilePath;
         private bool _isLoading = false;
-        private DateTime _lastFileModified = DateTime.MinValue;
-
-        // ファイルアクセス排他制御
+        private DateTime _lastFileModified = DateTime.MinValue;        // ファイルアクセス排他制御
         private readonly SemaphoreSlim _fileLock = new SemaphoreSlim(1, 1);
         private readonly object _saveLock = new object();
         private bool _isSaving = false;
+
+        // HTTP関連の制御
+        private static readonly HttpClient _httpClient = new HttpClient();
+        private static readonly SemaphoreSlim _httpSemaphore = new SemaphoreSlim(3, 3); // 同時HTTP要求数を制限
+        private const int HTTP_TIMEOUT_SECONDS = 10;
 
         // 高速化されたインデックスシステム
         private Dictionary<string, AssetInfo> _assetByIdIndex = new Dictionary<string, AssetInfo>();
@@ -81,6 +85,9 @@ namespace AMU.AssetManager.Helper
 
             // 初期化時にディレクトリを確保
             EnsureDirectoryExists();
+
+            // HttpClientの設定
+            _httpClient.Timeout = TimeSpan.FromSeconds(HTTP_TIMEOUT_SECONDS);
         }
 
         /// <summary>
@@ -591,10 +598,10 @@ namespace AMU.AssetManager.Helper
                 assets = new List<AssetInfo>()
             };
         }
-
         public void Dispose()
         {
             _fileLock?.Dispose();
+            _httpClient?.Dispose();
 
             // シングルトンインスタンスをクリア
             lock (_lockObject)
@@ -665,7 +672,7 @@ namespace AMU.AssetManager.Helper
                 return criteria.selectedTags.Any(selectedTag =>
                     asset.tags.Any(assetTag => assetTag.ToLower().Contains(selectedTag.ToLower())));
             }
-        }        
+        }
         /// <summary>
         /// BPMLibraryからアセットをインポート（同じitemUrlのアイテムは自動グループ化）
         /// </summary>
@@ -772,10 +779,12 @@ namespace AMU.AssetManager.Helper
                 {
                     _assetLibrary = CreateDefaultAssetLibrary();
                 }
-
                 _assetLibrary.assets.AddRange(importedAssets);
                 InvalidateCache();
                 SaveData();
+
+                // 画像を非同期で取得してサムネイルとして設定
+                _ = ProcessThumbnailsFromBPMAsync(importedAssets, bmpManager);
 
                 Debug.Log($"[AssetDataManager] Imported {importedAssets.Count} assets from BPMLibrary (with auto-grouping)");
             }
@@ -828,9 +837,180 @@ namespace AMU.AssetManager.Helper
                     boothfileName = file.fileName,
                     boothDownloadUrl = file.downloadLink
                 }
-            };
+            }; return asset;
+        }
 
-            return asset;
+        /// <summary>
+        /// BPMインポート後のサムネイル処理を非同期で実行
+        /// </summary>
+        private async Task ProcessThumbnailsFromBPMAsync(List<AssetInfo> importedAssets, BPMDataManager bmpManager)
+        {
+            try
+            {
+                // グループアセットと個別アセットを分離
+                var groupAssets = importedAssets.Where(a => a.isGroup).ToList();
+                var individualAssets = importedAssets.Where(a => !a.isGroup).ToList();
+
+                // 処理済みのimageUrlを記録（重複回避）
+                var processedImageUrls = new HashSet<string>();
+
+                // グループアセットのサムネイル処理
+                foreach (var groupAsset in groupAssets)
+                {
+                    if (!string.IsNullOrEmpty(groupAsset.boothItem?.boothItemUrl))
+                    {
+                        var packageInfo = FindPackageByItemUrl(bmpManager, groupAsset.boothItem.boothItemUrl);
+                        if (packageInfo != null && !string.IsNullOrEmpty(packageInfo.imageUrl) &&
+                            !processedImageUrls.Contains(packageInfo.imageUrl))
+                        {
+                            processedImageUrls.Add(packageInfo.imageUrl);
+                            await DownloadAndSetThumbnailAsync(groupAsset, packageInfo.imageUrl);
+
+                            // サーバー負荷軽減のため、リクエスト間に遅延を追加
+                            await Task.Delay(500);
+                        }
+                    }
+                }
+
+                Debug.Log($"[AssetDataManager] Processed thumbnails for {processedImageUrls.Count} items from BMP import");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[AssetDataManager] Failed to process thumbnails from BMP: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// itemUrlからBPMPackage情報を検索
+        /// </summary>
+        private BPMPackage FindPackageByItemUrl(BPMDataManager bmpManager, string itemUrl)
+        {
+            if (bmpManager?.Library?.authors == null || string.IsNullOrEmpty(itemUrl))
+                return null;
+
+            foreach (var author in bmpManager.Library.authors)
+            {
+                foreach (var package in author.Value)
+                {
+                    if (package.itemUrl == itemUrl)
+                    {
+                        return package;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// 画像をダウンロードしてサムネイルとして設定
+        /// </summary>
+        private async Task DownloadAndSetThumbnailAsync(AssetInfo asset, string imageUrl)
+        {
+            if (string.IsNullOrEmpty(imageUrl) || asset == null)
+                return;
+
+            await _httpSemaphore.WaitAsync();
+            try
+            {
+                Debug.Log($"[AssetDataManager] Downloading thumbnail for {asset.name}: {imageUrl}");
+
+                byte[] imageBytes = await _httpClient.GetByteArrayAsync(imageUrl);
+
+                if (imageBytes?.Length > 0)
+                {
+                    // BoothItem専用のサムネイルディレクトリを使用
+                    string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
+                        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
+                    string boothThumbnailDir = Path.Combine(coreDir, "AssetManager", "BoothItem", "Thumbnail");
+
+                    if (!Directory.Exists(boothThumbnailDir))
+                    {
+                        Directory.CreateDirectory(boothThumbnailDir);
+                    }
+
+                    // ファイル拡張子を推測
+                    string extension = GetImageExtension(imageUrl, imageBytes);
+                    string fileName = $"{asset.uid}{extension}";
+                    string filePath = Path.Combine(boothThumbnailDir, fileName);
+
+                    // 画像ファイルを保存
+                    await File.WriteAllBytesAsync(filePath, imageBytes);
+
+                    // AssetThumbnailManagerを使ってサムネイルを設定
+                    EditorApplication.delayCall += () =>
+                    {
+                        try
+                        {
+                            AssetThumbnailManager.Instance.SetCustomThumbnail(asset, filePath);
+                            Debug.Log($"[AssetDataManager] Thumbnail set for {asset.name}: {filePath}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.LogError($"[AssetDataManager] Failed to set thumbnail for {asset.name}: {ex.Message}");
+                        }
+                    };
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                Debug.LogWarning($"[AssetDataManager] Failed to download thumbnail for {asset.name}: {ex.Message}");
+            }
+            catch (TaskCanceledException ex)
+            {
+                Debug.LogWarning($"[AssetDataManager] Thumbnail download timeout for {asset.name}: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[AssetDataManager] Unexpected error downloading thumbnail for {asset.name}: {ex.Message}");
+            }
+            finally
+            {
+                _httpSemaphore.Release();
+            }
+        }
+
+        /// <summary>
+        /// 画像のファイル拡張子を推測
+        /// </summary>
+        private string GetImageExtension(string url, byte[] imageBytes)
+        {
+            // URLから拡張子を推測
+            string urlLower = url.ToLower();
+            if (urlLower.Contains(".jpg") || urlLower.Contains(".jpeg"))
+                return ".jpg";
+            if (urlLower.Contains(".png"))
+                return ".png";
+            if (urlLower.Contains(".gif"))
+                return ".gif";
+            if (urlLower.Contains(".bmp"))
+                return ".bmp";
+            if (urlLower.Contains(".webp"))
+                return ".webp";
+
+            // バイト配列からファイル形式を判定
+            if (imageBytes?.Length >= 8)
+            {
+                // PNG signature
+                if (imageBytes[0] == 0x89 && imageBytes[1] == 0x50 && imageBytes[2] == 0x4E && imageBytes[3] == 0x47)
+                    return ".png";
+
+                // JPEG signature
+                if (imageBytes[0] == 0xFF && imageBytes[1] == 0xD8)
+                    return ".jpg";
+
+                // GIF signature
+                if (imageBytes[0] == 0x47 && imageBytes[1] == 0x49 && imageBytes[2] == 0x46)
+                    return ".gif";
+
+                // WebP signature
+                if (imageBytes[0] == 0x52 && imageBytes[1] == 0x49 && imageBytes[2] == 0x46 && imageBytes[3] == 0x46 &&
+                    imageBytes[8] == 0x57 && imageBytes[9] == 0x45 && imageBytes[10] == 0x42 && imageBytes[11] == 0x50)
+                    return ".webp";
+            }
+
+            // デフォルトはPNG
+            return ".png";
         }
 
         #region グループ管理機能

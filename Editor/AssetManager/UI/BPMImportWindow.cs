@@ -344,11 +344,15 @@ namespace AMU.AssetManager.UI
                 {
                     _statusMessage = string.Format(LocalizationManager.GetText("BPMImport_importSuccess"), importedAssets.Count);
 
-                    // 完了後に少し待ってからウィンドウを閉じる
+                    // サムネイル処理の完了を少し待ってからウィンドウを閉じる
                     EditorApplication.delayCall += () =>
                     {
                         _onImportComplete?.Invoke();
-                        EditorApplication.delayCall += () => Close();
+                        // サムネイル処理に時間がかかる場合があるため、追加の遅延を設ける
+                        EditorApplication.delayCall += () =>
+                        {
+                            EditorApplication.delayCall += () => Close();
+                        };
                     };
                 }
                 else
