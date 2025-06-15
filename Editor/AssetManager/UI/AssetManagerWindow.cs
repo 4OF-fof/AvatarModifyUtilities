@@ -919,15 +919,17 @@ namespace AMU.AssetManager.UI
                         selectedAsset.isFavorite = !allFavorites;
                         _dataManager.UpdateAsset(selectedAsset);
                     }
+                    _selectedAssets.Clear();
+                    _selectedAsset = null;
                     _needsUIRefresh = true;
-                });                // 一括アーカイブ設定
+                });// 一括アーカイブ設定
                 bool allHidden = _selectedAssets.All(a => a.isHidden);
                 bool hasHidden = _selectedAssets.Any(a => a.isHidden);
                 bool hasVisible = _selectedAssets.Any(a => !a.isHidden);
 
                 if (allHidden)
                 {
-                    // すべてがアーカイブされている場合：復元のみ
+                    // すべてがアーカイブされている場合：復元のみ                    
                     menu.AddItem(new GUIContent($"{_selectedAssets.Count}個のアセットをアーカイブから復元"), false, () =>
                     {
                         foreach (var selectedAsset in _selectedAssets)
@@ -935,6 +937,8 @@ namespace AMU.AssetManager.UI
                             selectedAsset.isHidden = false;
                             _dataManager.UpdateAsset(selectedAsset);
                         }
+                        _selectedAssets.Clear();
+                        _selectedAsset = null;
                         _needsUIRefresh = true;
                     });
                 }
@@ -948,22 +952,24 @@ namespace AMU.AssetManager.UI
                             selectedAsset.isHidden = false;
                             _dataManager.UpdateAsset(selectedAsset);
                         }
+                        _selectedAssets.Clear();
+                        _selectedAsset = null;
                         _needsUIRefresh = true;
-                    });
-
-                    menu.AddItem(new GUIContent($"表示中の{_selectedAssets.Count(a => !a.isHidden)}個のアセットをアーカイブ"), false, () =>
-                    {
-                        foreach (var selectedAsset in _selectedAssets.Where(a => !a.isHidden))
-                        {
-                            selectedAsset.isHidden = true;
-                            _dataManager.UpdateAsset(selectedAsset);
-                        }
-                        _needsUIRefresh = true;
-                    });
+                    }); menu.AddItem(new GUIContent($"表示中の{_selectedAssets.Count(a => !a.isHidden)}個のアセットをアーカイブ"), false, () =>
+ {
+     foreach (var selectedAsset in _selectedAssets.Where(a => !a.isHidden))
+     {
+         selectedAsset.isHidden = true;
+         _dataManager.UpdateAsset(selectedAsset);
+     }
+     _selectedAssets.Clear();
+     _selectedAsset = null;
+     _needsUIRefresh = true;
+ });
                 }
                 else
                 {
-                    // すべてが表示されている場合：アーカイブのみ
+                    // すべてが表示されている場合：アーカイブのみ                    
                     menu.AddItem(new GUIContent($"{_selectedAssets.Count}個のアセットをアーカイブ"), false, () =>
                     {
                         foreach (var selectedAsset in _selectedAssets)
@@ -971,6 +977,8 @@ namespace AMU.AssetManager.UI
                             selectedAsset.isHidden = true;
                             _dataManager.UpdateAsset(selectedAsset);
                         }
+                        _selectedAssets.Clear();
+                        _selectedAsset = null;
                         _needsUIRefresh = true;
                     });
                 }
@@ -1083,25 +1091,25 @@ namespace AMU.AssetManager.UI
 
                 string favoriteText = asset.isFavorite ?
                     LocalizationManager.GetText("AssetManager_removeFromFavorites") :
-                    LocalizationManager.GetText("AssetManager_addToFavorites");
-
-                menu.AddItem(new GUIContent(favoriteText), false, () =>
-                {
-                    asset.isFavorite = !asset.isFavorite;
-                    _dataManager.UpdateAsset(asset);
-                    _needsUIRefresh = true;
-                }); menu.AddSeparator("");
+                    LocalizationManager.GetText("AssetManager_addToFavorites"); menu.AddItem(new GUIContent(favoriteText), false, () =>
+ {
+     asset.isFavorite = !asset.isFavorite;
+     _dataManager.UpdateAsset(asset);
+     _selectedAssets.Clear();
+     _selectedAsset = null;
+     _needsUIRefresh = true;
+ }); menu.AddSeparator("");
 
                 string hiddenText = asset.isHidden ?
                     "アーカイブから復元" :
-                    "アーカイブ";
-
-                menu.AddItem(new GUIContent(hiddenText), false, () =>
-                {
-                    asset.isHidden = !asset.isHidden;
-                    _dataManager.UpdateAsset(asset);
-                    _needsUIRefresh = true;
-                });
+                    "アーカイブ"; menu.AddItem(new GUIContent(hiddenText), false, () =>
+ {
+     asset.isHidden = !asset.isHidden;
+     _dataManager.UpdateAsset(asset);
+     _selectedAssets.Clear();
+     _selectedAsset = null;
+     _needsUIRefresh = true;
+ });
 
                 if (!asset.isGroup)
                 {
