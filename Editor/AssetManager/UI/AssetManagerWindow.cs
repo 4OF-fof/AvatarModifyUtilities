@@ -432,12 +432,6 @@ namespace AMU.AssetManager.UI
 
                         GUILayout.Space(2);
                     }
-
-                    GUILayout.Space(10);
-
-                    // グループ管理セクション
-                    DrawGroupManagementSection();
-
                     GUILayout.Space(10);
 
                     // Add new type form at the bottom
@@ -1374,131 +1368,9 @@ namespace AMU.AssetManager.UI
             _needsUIRefresh = true;
         }
 
-        // グループ機能関連の変数
-        private bool _showGroupManagement = false;
         private string _newGroupName = "";
         private bool _isGroupMode = false;  // グループ作成モード
-        private List<string> _selectedAssetsForGroup = new List<string>();  // グループ化対象のアセット
-
-        private void DrawGroupManagementSection()
-        {
-            // Separator line
-            var rect = GUILayoutUtility.GetRect(1, 2, GUILayout.ExpandWidth(true));
-            EditorGUI.DrawRect(rect, new Color(0.5f, 0.5f, 0.5f, 0.7f));
-            GUILayout.Space(8);
-
-            // Group Management Header
-            using (new GUILayout.HorizontalScope())
-            {
-                _showGroupManagement = EditorGUILayout.Foldout(_showGroupManagement, "グループ管理", true);
-
-                // グループ作成モードのトグル
-                var oldColor = GUI.color;
-                if (_isGroupMode)
-                    GUI.color = new Color(0.8f, 1f, 0.8f);
-
-                if (GUILayout.Button(_isGroupMode ? "完了" : "新規", GUILayout.Width(40)))
-                {
-                    if (_isGroupMode)
-                    {
-                        // グループ作成モード終了
-                        _isGroupMode = false;
-                        _selectedAssetsForGroup.Clear();
-                    }
-                    else
-                    {
-                        // グループ作成モード開始
-                        _isGroupMode = true;
-                        _selectedAssetsForGroup.Clear();
-                    }
-                    _needsUIRefresh = true;
-                }
-                GUI.color = oldColor;
-            }
-
-            if (_showGroupManagement)
-            {
-                GUILayout.Space(5);
-
-                // グループ作成フォーム
-                if (_isGroupMode)
-                {
-                    using (new GUILayout.VerticalScope(EditorStyles.helpBox))
-                    {
-                        GUILayout.Label("新しいグループを作成", EditorStyles.boldLabel);
-
-                        GUILayout.Label("グループ名:");
-                        _newGroupName = EditorGUILayout.TextField(_newGroupName);
-
-                        GUILayout.Label($"選択中のアセット: {_selectedAssetsForGroup.Count}個");
-
-                        using (new GUILayout.HorizontalScope())
-                        {
-                            if (GUILayout.Button("グループ作成") && !string.IsNullOrEmpty(_newGroupName) && _selectedAssetsForGroup.Count > 0)
-                            {
-                                CreateGroupFromSelectedAssets();
-                            }
-
-                            if (GUILayout.Button("クリア"))
-                            {
-                                _selectedAssetsForGroup.Clear();
-                                _needsUIRefresh = true;
-                            }
-                        }
-                    }
-                    GUILayout.Space(5);
-                }
-
-                // 既存のグループ一覧
-                var groups = _dataManager.GetGroupAssets();
-                if (groups.Count > 0)
-                {
-                    GUILayout.Label("既存のグループ:", EditorStyles.boldLabel);
-
-                    foreach (var group in groups)
-                    {
-                        using (new GUILayout.HorizontalScope())
-                        {
-                            bool isSelected = _selectedAsset == group;
-                            if (GUILayout.Toggle(isSelected, group.name, _typeButtonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(28)))
-                            {
-                                if (!isSelected)
-                                {
-                                    _selectedAsset = group;
-                                    Repaint();
-                                }
-                            }
-
-                            // グループ解散ボタン
-                            if (GUILayout.Button("解散", GUILayout.Width(40), GUILayout.Height(28)))
-                            {
-                                if (EditorUtility.DisplayDialog("グループ解散の確認",
-       $"グループ '{group.name}' を解散しますか？子アセットは独立したアセットになります。",
-       "解散", "キャンセル"))
-                                {
-                                    _dataManager.DisbandGroup(group.uid);
-
-                                    // 選択状態をクリア（解散されたグループを選択リストから削除）
-                                    _selectedAssets.Remove(group);
-                                    if (_selectedAsset == group)
-                                    {
-                                        _selectedAsset = null;
-                                    }
-
-                                    _needsUIRefresh = true;
-                                }
-                            }
-                        }
-                        GUILayout.Space(2);
-                    }
-                }
-                else
-                {
-                    GUILayout.Label("グループがありません", EditorStyles.miniLabel);
-                }
-            }
-        }
-
+        private List<string> _selectedAssetsForGroup = new List<string>();  // グループ化対象のアセット        
         private void CreateGroupFromSelectedAssets()
         {
             if (string.IsNullOrEmpty(_newGroupName) || _selectedAssetsForGroup.Count == 0)
@@ -1515,15 +1387,17 @@ namespace AMU.AssetManager.UI
 
             // 状態をリセット
             _newGroupName = "";
-            _selectedAssetsForGroup.Clear();
-            _isGroupMode = false;
-            _needsUIRefresh = true;
-            _selectedAsset = newGroup;
+                    _selectedAssetsForGroup.Clear();
+                    _isGroupMode = false;
+                    _needsUIRefresh = true;
+                    _selectedAsset = newGroup;
 
-            Debug.Log($"グループ '{newGroup.name}' を作成しました。{_selectedAssetsForGroup.Count}個のアセットを追加しました。");
-        }        /// <summary>
-                 /// 選択されたアセットからグループを作成するダイアログを表示
-                 /// </summary>
+                    Debug.Log($"グループ '{newGroup.name}' を作成しました。{_selectedAssetsForGroup.Count}個のアセットを追加しました。");
+                }        
+        
+        /// <summary>
+        /// 選択されたアセットからグループを作成するダイアログを表示
+        /// </summary>
         private void ShowCreateGroupDialog()
         {
             // EditorWindowを継承したカスタムダイアログを使用
@@ -1534,9 +1408,11 @@ namespace AMU.AssetManager.UI
                     CreateGroupFromSelectedAssets(groupName);
                 }
             });
-        }        /// <summary>
-                 /// 選択されたアセットからグループを作成
-                 /// </summary>
+        }        
+
+        /// <summary>
+        /// 選択されたアセットからグループを作成
+        /// </summary>
         private void CreateGroupFromSelectedAssets(string groupName)
         {
             if (string.IsNullOrEmpty(groupName) || _selectedAssets.Count == 0)
