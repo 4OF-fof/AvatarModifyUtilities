@@ -1072,15 +1072,15 @@ namespace AMU.AssetManager.UI
                 string favoriteText = asset.isFavorite ?
                     LocalizationManager.GetText("AssetManager_removeFromFavorites") :
                     LocalizationManager.GetText("AssetManager_addToFavorites");
-                    menu.AddItem(new GUIContent(favoriteText), false, () =>
-                    {
-                        asset.isFavorite = !asset.isFavorite;
-                        _dataManager.UpdateAsset(asset);
-                        _selectedAssets.Clear();
-                        _selectedAsset = null;
-                        _needsUIRefresh = true;
-                    });
-                    menu.AddSeparator("");
+                menu.AddItem(new GUIContent(favoriteText), false, () =>
+                {
+                    asset.isFavorite = !asset.isFavorite;
+                    _dataManager.UpdateAsset(asset);
+                    _selectedAssets.Clear();
+                    _selectedAsset = null;
+                    _needsUIRefresh = true;
+                });
+                menu.AddSeparator("");
 
                 string hiddenText = asset.isHidden ?
                     "アーカイブから復元" :
@@ -1376,14 +1376,14 @@ namespace AMU.AssetManager.UI
 
             // 状態をリセット
             _newGroupName = "";
-                    _selectedAssetsForGroup.Clear();
-                    _isGroupMode = false;
-                    _needsUIRefresh = true;
-                    _selectedAsset = newGroup;
+            _selectedAssetsForGroup.Clear();
+            _isGroupMode = false;
+            _needsUIRefresh = true;
+            _selectedAsset = newGroup;
 
-                    Debug.Log($"グループ '{newGroup.name}' を作成しました。{_selectedAssetsForGroup.Count}個のアセットを追加しました。");
-                }        
-        
+            Debug.Log($"グループ '{newGroup.name}' を作成しました。{_selectedAssetsForGroup.Count}個のアセットを追加しました。");
+        }
+
         /// <summary>
         /// 選択されたアセットからグループを作成するダイアログを表示
         /// </summary>
@@ -1397,7 +1397,7 @@ namespace AMU.AssetManager.UI
                     CreateGroupFromSelectedAssets(groupName);
                 }
             });
-        }        
+        }
 
         /// <summary>
         /// 選択されたアセットからグループを作成

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -873,6 +874,9 @@ namespace AMU.AssetManager.Helper
             if (group == null || !group.isGroup)
                 return false;
 
+            // グループ解散前に詳細ウィンドウを閉じる
+            CloseDetailWindowsForAsset(groupId);
+
             // 子アセットをすべて独立させる
             var childIds = new List<string>(group.childAssetIds);
             foreach (var childId in childIds)
@@ -884,6 +888,31 @@ namespace AMU.AssetManager.Helper
             RemoveAsset(groupId);
 
             return true;
+        }
+
+        /// <summary>
+        /// 指定されたアセットの詳細ウィンドウを閉じる
+        /// </summary>
+        private void CloseDetailWindowsForAsset(string assetId)
+        {
+            // 現在開いているすべてのAssetDetailWindowを取得
+            var detailWindows = UnityEngine.Resources.FindObjectsOfTypeAll<UI.AssetDetailWindow>();
+
+            foreach (var window in detailWindows)
+            {
+                // プライベートフィールドにアクセスするためにリフレクションを使用
+                var assetField = typeof(UI.AssetDetailWindow).GetField("_asset",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+                if (assetField != null)
+                {
+                    var windowAsset = assetField.GetValue(window) as Data.AssetInfo;
+                    if (windowAsset != null && windowAsset.uid == assetId)
+                    {
+                        window.Close();
+                    }
+                }
+            }
         }
 
         /// <summary>
