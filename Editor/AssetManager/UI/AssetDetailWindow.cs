@@ -35,13 +35,18 @@ namespace AMU.AssetManager.UI
         private AssetFileManager _fileManager;        // UI state for tags and dependencies
         private string _newTag = "";
         private string _newDependency = "";
-        private int _dependencySelectionMode = 0; // 0: Asset Selection, 1: Manual Input
-        private int _selectedAssetIndex = -1;
-        private List<AssetInfo> _availableAssets = new List<AssetInfo>();        // Tag suggestion state
+
+        // Tag suggestion state
         private List<string> _allTags = new List<string>();
         private List<string> _filteredTags = new List<string>();
         private bool _showTagSuggestions = false;
         private Vector2 _tagSuggestionScrollPos = Vector2.zero;
+
+        // Dependency suggestion state
+        private List<AssetInfo> _allAssets = new List<AssetInfo>();
+        private List<AssetInfo> _filteredAssets = new List<AssetInfo>();
+        private bool _showDependencySuggestions = false;
+        private Vector2 _dependencySuggestionScrollPos = Vector2.zero;
 
         // UI Style
         private GUIStyle _tabStyle;
@@ -53,11 +58,21 @@ namespace AMU.AssetManager.UI
             AssetTypeManager.LoadCustomTypes();
             InitializeManagers();
             LoadTagSuggestions();
+            LoadAssetSuggestions();
         }
         private void LoadTagSuggestions()
         {
             // 新しいTagTypeManagerからタグ一覧を取得
             _allTags = AssetTagManager.GetAllTags();
+        }
+        private void LoadAssetSuggestions()
+        {
+            // 依存関係サジェスト用のアセット一覧を取得
+            _allAssets.Clear();
+            if (_dataManager?.Library?.assets != null)
+            {
+                _allAssets = _dataManager.GetAllAssets().ToList();
+            }
         }
         private void OnDisable()
         {
@@ -127,7 +142,6 @@ namespace AMU.AssetManager.UI
                 Repaint();
             }
         }
-
         private void LoadAllTags()
         {
             _allTags.Clear();
@@ -149,6 +163,9 @@ namespace AMU.AssetManager.UI
                 }
                 _allTags = tagSet.OrderBy(tag => tag).ToList();
             }
+
+            // 依存関係サジェスト用のアセット一覧も更新
+            LoadAssetSuggestions();
         }
         private void OnGUI()
         {
@@ -193,7 +210,6 @@ namespace AMU.AssetManager.UI
                         // Reset UI state when entering edit mode
                         _newTag = "";
                         _newDependency = "";
-                        _selectedAssetIndex = -1;
                     }
                 }
             }
@@ -488,63 +504,10 @@ namespace AMU.AssetManager.UI
                                     }
                                 }
                             }
-
                             if (_isEditMode)
                             {
                                 GUILayout.FlexibleSpace();
-                                // Selection mode toggle
-                                using (new GUILayout.HorizontalScope())
-                                {
-                                    GUILayout.Label("Mode:", GUILayout.Width(40));
-                                    string[] modes = {
-                                    LocalizationManager.GetText("AssetDetail_dependencyModeAsset"),
-                                    LocalizationManager.GetText("AssetDetail_dependencyModeManual")
-                                };
-                                    _dependencySelectionMode = GUILayout.Toolbar(_dependencySelectionMode, modes, _tabStyle);
-                                }
-
-                                GUILayout.Space(3);
-
-                                using (new GUILayout.HorizontalScope())
-                                {
-                                    if (_dependencySelectionMode == 0)
-                                    {
-                                        // Asset selection mode
-                                        _availableAssets = _dataManager.GetAllAssets().Where(a => a.uid != _asset.uid).ToList(); // Exclude self
-                                        var assetNames = _availableAssets.Select(a => a.name).ToArray();
-
-                                        if (assetNames.Length > 0)
-                                        {
-                                            _selectedAssetIndex = EditorGUILayout.Popup(_selectedAssetIndex, assetNames);
-
-                                            if (_selectedAssetIndex >= 0 && _selectedAssetIndex < _availableAssets.Count)
-                                            {
-                                                if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_addDependency"), GUILayout.Width(80)))
-                                                {
-                                                    var selectedAsset = _availableAssets[_selectedAssetIndex];
-                                                    if (!_asset.dependencies.Contains(selectedAsset.uid))
-                                                    {
-                                                        _asset.dependencies.Add(selectedAsset.uid); // Add UUID instead of name
-                                                        _selectedAssetIndex = -1; // Reset selection
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        else
-                                        {
-                                            GUILayout.Label(LocalizationManager.GetText("AssetDetail_noOtherAssets"), EditorStyles.miniLabel);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // Manual input mode
-                                        _newDependency = EditorGUILayout.TextField(_newDependency);
-                                        if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_addDependency"), GUILayout.Width(80)))
-                                        {
-                                            AddDependency();
-                                        }
-                                    }
-                                }
+                                DrawDependencyInput();
                             }
                         }
                     }
@@ -701,14 +664,145 @@ namespace AMU.AssetManager.UI
                 }
             }
         }
-
         private void AddDependency()
         {
-            if (!string.IsNullOrEmpty(_newDependency) && !_asset.dependencies.Contains(_newDependency))
+            if (!string.IsNullOrEmpty(_newDependency.Trim()))
             {
-                _asset.dependencies.Add(_newDependency);
+                var trimmedInput = _newDependency.Trim();
+
+                // Try to find a matching asset by name first
+                var matchingAsset = _allAssets.FirstOrDefault(a => a.name.Equals(trimmedInput, StringComparison.OrdinalIgnoreCase) && a.uid != _asset.uid);
+
+                if (matchingAsset != null)
+                {
+                    // Add the asset UID if it's an existing asset
+                    if (!_asset.dependencies.Contains(matchingAsset.uid))
+                    {
+                        _asset.dependencies.Add(matchingAsset.uid);
+                    }
+                }
+                else
+                {
+                    // Add as manual dependency if it's not an existing asset
+                    if (!_asset.dependencies.Contains(trimmedInput))
+                    {
+                        _asset.dependencies.Add(trimmedInput);
+                    }
+                }
+
                 _newDependency = "";
+                _showDependencySuggestions = false;
                 GUI.FocusControl(null);
+            }
+        }
+
+        private void DrawDependencyInput()
+        {
+            using (new GUILayout.VerticalScope())
+            {
+                using (new GUILayout.HorizontalScope())
+                {
+                    var newDependencyInput = EditorGUILayout.TextField(_newDependency);
+
+                    // Check if input changed to update suggestions
+                    if (newDependencyInput != _newDependency)
+                    {
+                        _newDependency = newDependencyInput;
+                        UpdateDependencySuggestions();
+                    }
+
+                    if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_addDependency"), GUILayout.Width(80)))
+                    {
+                        AddDependency();
+                    }
+                }
+
+                // Show suggestions if available and input is not empty
+                if (_showDependencySuggestions && _filteredAssets.Count > 0 && !string.IsNullOrEmpty(_newDependency))
+                {
+                    DrawDependencySuggestions();
+                }
+            }
+        }
+
+        private void UpdateDependencySuggestions()
+        {
+            _filteredAssets.Clear();
+            _showDependencySuggestions = false;
+
+            if (string.IsNullOrEmpty(_newDependency))
+            {
+                return;
+            }
+
+            var input = _newDependency.ToLower();
+            foreach (var asset in _allAssets)
+            {
+                // Skip self and already added dependencies
+                if (asset.uid == _asset.uid || _asset.dependencies.Contains(asset.uid))
+                    continue;
+
+                // Filter assets that contain the input text in their name
+                if (asset.name.ToLower().Contains(input))
+                {
+                    _filteredAssets.Add(asset);
+                }
+            }
+
+            _showDependencySuggestions = _filteredAssets.Count > 0;
+        }
+
+        private void DrawDependencySuggestions()
+        {
+            var suggestionHeight = Mathf.Min(_filteredAssets.Count * 20f, 100f);
+
+            using (new GUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Height(suggestionHeight)))
+            {
+                _dependencySuggestionScrollPos = GUILayout.BeginScrollView(_dependencySuggestionScrollPos);
+
+                for (int i = 0; i < _filteredAssets.Count; i++)
+                {
+                    var asset = _filteredAssets[i];
+                    var rect = GUILayoutUtility.GetRect(GUIContent.none, EditorStyles.label, GUILayout.Height(18));
+
+                    if (GUI.Button(rect, asset.name, EditorStyles.label))
+                    {
+                        _newDependency = asset.name;
+                        AddDependency();
+                        _showDependencySuggestions = false;
+                        GUI.FocusControl(null);
+                        break;
+                    }
+
+                    // Highlight on hover
+                    if (rect.Contains(Event.current.mousePosition))
+                    {
+                        EditorGUI.DrawRect(rect, new Color(0.5f, 0.5f, 1f, 0.3f));
+                        GUI.Label(rect, asset.name);
+                    }
+                }
+
+                GUILayout.EndScrollView();
+            }
+
+            // Handle keyboard input for dependency suggestions
+            if (Event.current.type == EventType.KeyDown)
+            {
+                if (Event.current.keyCode == KeyCode.Escape)
+                {
+                    _showDependencySuggestions = false;
+                    Event.current.Use();
+                }
+                else if (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter)
+                {
+                    if (_filteredAssets.Count > 0)
+                    {
+                        _newDependency = _filteredAssets[0].name;
+                        AddDependency();
+                        _showDependencySuggestions = false;
+                        Event.current.Use();
+                    }
+                }
             }
         }
         private void SaveAsset()
@@ -739,12 +833,12 @@ namespace AMU.AssetManager.UI
         }
         private void CancelEdit()
         {
-            _asset = _originalAsset?.Clone();
-            _isEditMode = false;
+            _asset = _originalAsset?.Clone(); _isEditMode = false;
             // Reset UI state when canceling edit
             _newTag = "";
             _newDependency = "";
-            _selectedAssetIndex = -1;
+            _showTagSuggestions = false;
+            _showDependencySuggestions = false;
         }
         private void OnThumbnailSaved(AssetInfo asset)
         {
