@@ -127,6 +127,7 @@ namespace AMU.AssetManager.UI
 
             using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
+                GUILayout.Space(5);
                 // 名前検索
                 using (new EditorGUILayout.HorizontalScope())
                 {
@@ -151,6 +152,7 @@ namespace AMU.AssetManager.UI
                     GUILayout.Label("作者", GUILayout.Width(80));
                     _searchCriteria.authorQuery = EditorGUILayout.TextField(_searchCriteria.authorQuery);
                 }
+                GUILayout.Space(5);
             }
         }
 
