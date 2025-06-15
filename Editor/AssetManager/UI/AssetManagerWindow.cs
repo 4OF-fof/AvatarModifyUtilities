@@ -555,14 +555,19 @@ namespace AMU.AssetManager.UI
                 }
             }
         }
-
         private void DrawAssetItem(AssetInfo asset)
         {
             using (new GUILayout.VerticalScope(GUILayout.Width(_thumbnailSize + 10)))
             {
                 // Thumbnail
                 var thumbnailRect = GUILayoutUtility.GetRect(_thumbnailSize, _thumbnailSize);
-                var thumbnail = _thumbnailManager.GetThumbnail(asset);
+
+                // サムネイルの取得を遅延させる（可視範囲内の場合のみ）
+                Texture2D thumbnail = null;
+                if (IsRectVisible(thumbnailRect))
+                {
+                    thumbnail = _thumbnailManager.GetThumbnail(asset);
+                }
 
                 bool isSelected = _selectedAsset == asset;
                 if (isSelected)
@@ -582,81 +587,162 @@ namespace AMU.AssetManager.UI
                 }
                 else
                 {
-                    GUI.Box(thumbnailRect, "No Image");
-                }                // Favorite indicator
-                if (asset.isFavorite)
-                {
-                    var starSize = 25f; // サイズをさらに拡大
-                    var starRect = new Rect(thumbnailRect.x + thumbnailRect.width - starSize - 3, thumbnailRect.y + 3, starSize, starSize);
-
-                    // 黒い縁取りを描画（少しずらして描画）
-                    var outlineOffsets = new Vector2[] {
-                        new Vector2(-1, -1), new Vector2(0, -1), new Vector2(1, -1),
-                        new Vector2(-1, 0),                       new Vector2(1, 0),
-                        new Vector2(-1, 1),  new Vector2(0, 1),  new Vector2(1, 1)
-                    };
-
-                    var originalColor = GUI.color;
-                    var starStyle = new GUIStyle(GUI.skin.label)
+                    // デフォルトアイコンまたはプレースホルダーを表示
+                    var defaultIcon = GetDefaultIcon(asset.assetType);
+                    if (defaultIcon != null)
                     {
-                        fontSize = Mathf.RoundToInt(starSize * 0.8f),
-                        alignment = TextAnchor.MiddleCenter
-                    };
-
-                    // 黒い縁取りを描画
-                    GUI.color = Color.black;
-                    foreach (var offset in outlineOffsets)
-                    {
-                        var outlineRect = new Rect(starRect.x + offset.x, starRect.y + offset.y, starRect.width, starRect.height);
-                        GUI.Label(outlineRect, "★", starStyle);
+                        GUI.DrawTexture(thumbnailRect, defaultIcon, ScaleMode.ScaleToFit);
                     }
-
-                    // メインの星を描画
-                    GUI.color = Color.yellow;
-                    GUI.Label(starRect, "★", starStyle);
-
-                    GUI.color = originalColor;
+                    else
+                    {
+                        GUI.Box(thumbnailRect, "No Image");
+                    }
                 }
 
-                // Archived indicator
-                if (asset.isHidden)
-                {
-                    var hiddenRect = new Rect(thumbnailRect.x + 5, thumbnailRect.y + 5, 15, 15);
-                    var oldColor = GUI.color;
-                    GUI.color = Color.red;
-                    GUI.Label(hiddenRect, "👁");
-                    GUI.color = oldColor;
-                }
+                // インジケーターの描画を最適化
+                DrawAssetIndicators(asset, thumbnailRect);
 
                 // Asset name
-                var nameStyle = new GUIStyle(EditorStyles.label)
-                {
-                    wordWrap = true,
-                    alignment = TextAnchor.UpperCenter,
-                    fontSize = 10
-                };
-
-                GUILayout.Label(asset.name, nameStyle, GUILayout.Height(30));
+                DrawAssetName(asset);
 
                 // Handle click events
-                if (Event.current.type == EventType.MouseDown && thumbnailRect.Contains(Event.current.mousePosition))
+                HandleAssetItemEvents(asset, thumbnailRect);
+            }
+        }
+
+        /// <summary>
+        /// 矩形が現在表示されている範囲内にあるかチェック
+        /// </summary>
+        private bool IsRectVisible(Rect rect)
+        {
+            var scrollViewRect = new Rect(0, _rightScrollPosition.y, position.width, position.height);
+            return rect.Overlaps(scrollViewRect);
+        }
+
+        /// <summary>
+        /// アセットタイプに応じたデフォルトアイコンを取得
+        /// </summary>
+        private Texture2D GetDefaultIcon(string assetType)
+        {
+            switch (assetType)
+            {
+                case "Avatar":
+                case "Prefab":
+                    return EditorGUIUtility.IconContent("Prefab Icon").image as Texture2D;
+                case "Material":
+                    return EditorGUIUtility.IconContent("Material Icon").image as Texture2D;
+                case "Texture":
+                    return EditorGUIUtility.IconContent("Texture Icon").image as Texture2D;
+                case "Animation":
+                    return EditorGUIUtility.IconContent("AnimationClip Icon").image as Texture2D;
+                case "Script":
+                    return EditorGUIUtility.IconContent("cs Script Icon").image as Texture2D;
+                default:
+                    return EditorGUIUtility.IconContent("DefaultAsset Icon").image as Texture2D;
+            }
+        }
+
+        /// <summary>
+        /// アセットのインジケーター（お気に入り、非表示など）を描画
+        /// </summary>
+        private void DrawAssetIndicators(AssetInfo asset, Rect thumbnailRect)
+        {
+            // Favorite indicator
+            if (asset.isFavorite)
+            {
+                DrawFavoriteIndicator(thumbnailRect);
+            }
+
+            // Archived indicator
+            if (asset.isHidden)
+            {
+                DrawArchivedIndicator(thumbnailRect);
+            }
+        }
+
+        /// <summary>
+        /// お気に入りインジケーターを描画
+        /// </summary>
+        private void DrawFavoriteIndicator(Rect thumbnailRect)
+        {
+            var starSize = 25f;
+            var starRect = new Rect(thumbnailRect.x + thumbnailRect.width - starSize - 3, thumbnailRect.y + 3, starSize, starSize);
+
+            var originalColor = GUI.color;
+            var starStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = Mathf.RoundToInt(starSize * 0.8f),
+                alignment = TextAnchor.MiddleCenter
+            };
+
+            // 黒い縁取りを描画（最適化）
+            GUI.color = Color.black;
+            for (int x = -1; x <= 1; x++)
+            {
+                for (int y = -1; y <= 1; y++)
                 {
-                    _selectedAsset = asset;
-
-                    if (Event.current.clickCount == 2)
-                    {
-                        // Double click - open details
-                        AssetDetailWindow.ShowWindow(asset);
-                    }
-                    else if (Event.current.button == 1)
-                    {
-                        // Right click - context menu
-                        ShowContextMenu(asset);
-                    }
-
-                    Event.current.Use();
-                    Repaint();
+                    if (x == 0 && y == 0) continue;
+                    var outlineRect = new Rect(starRect.x + x, starRect.y + y, starRect.width, starRect.height);
+                    GUI.Label(outlineRect, "★", starStyle);
                 }
+            }
+
+            // メインの星を描画
+            GUI.color = Color.yellow;
+            GUI.Label(starRect, "★", starStyle);
+
+            GUI.color = originalColor;
+        }
+
+        /// <summary>
+        /// アーカイブインジケーターを描画
+        /// </summary>
+        private void DrawArchivedIndicator(Rect thumbnailRect)
+        {
+            var hiddenRect = new Rect(thumbnailRect.x + 5, thumbnailRect.y + 5, 15, 15);
+            var oldColor = GUI.color;
+            GUI.color = Color.red;
+            GUI.Label(hiddenRect, "👁");
+            GUI.color = oldColor;
+        }
+
+        /// <summary>
+        /// アセット名を描画
+        /// </summary>
+        private void DrawAssetName(AssetInfo asset)
+        {
+            var nameStyle = new GUIStyle(EditorStyles.label)
+            {
+                wordWrap = true,
+                alignment = TextAnchor.UpperCenter,
+                fontSize = 10
+            };
+
+            GUILayout.Label(asset.name, nameStyle, GUILayout.Height(30));
+        }
+
+        /// <summary>
+        /// アセットアイテムのイベントを処理
+        /// </summary>
+        private void HandleAssetItemEvents(AssetInfo asset, Rect thumbnailRect)
+        {
+            if (Event.current.type == EventType.MouseDown && thumbnailRect.Contains(Event.current.mousePosition))
+            {
+                _selectedAsset = asset;
+
+                if (Event.current.clickCount == 2)
+                {
+                    // Double click - open details
+                    AssetDetailWindow.ShowWindow(asset);
+                }
+                else if (Event.current.button == 1)
+                {
+                    // Right click - context menu
+                    ShowContextMenu(asset);
+                }
+
+                Event.current.Use();
+                Repaint();
             }
         }
 

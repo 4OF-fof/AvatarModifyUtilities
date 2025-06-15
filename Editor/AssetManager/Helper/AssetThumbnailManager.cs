@@ -11,12 +11,17 @@ namespace AMU.AssetManager.Helper
 {
     public class AssetThumbnailManager
     {
+        // LRUキャッシュの実装
+        private LinkedList<string> _cacheOrder = new LinkedList<string>();
+        private Dictionary<string, LinkedListNode<string>> _cacheNodes = new Dictionary<string, LinkedListNode<string>>();
         private Dictionary<string, Texture2D> _thumbnailCache = new Dictionary<string, Texture2D>();
         private Dictionary<string, DateTime> _thumbnailFileModified = new Dictionary<string, DateTime>();
         private HashSet<string> _loadingThumbnails = new HashSet<string>();
         private Queue<string> _loadQueue = new Queue<string>();
         private string _thumbnailDirectory;
         private int _maxCacheSize = 200; // キャッシュサイズを制限
+        private const float FILE_CHECK_INTERVAL = 5.0f; // ファイル変更チェックの間隔（秒）
+        private Dictionary<string, float> _lastFileCheckTime = new Dictionary<string, float>();
 
         public event Action<AssetInfo> OnThumbnailSaved;
         public event Action OnThumbnailLoaded;
@@ -35,6 +40,8 @@ namespace AMU.AssetManager.Helper
             // キャッシュから取得
             if (_thumbnailCache.TryGetValue(asset.uid, out var cachedTexture) && cachedTexture != null)
             {
+                // LRUキャッシュを更新
+                UpdateCacheOrder(asset.uid);
                 return cachedTexture;
             }
 
@@ -48,11 +55,9 @@ namespace AMU.AssetManager.Helper
             LoadThumbnailAsync(asset);
 
             return GetDefaultThumbnail(asset.assetType);
-        }
-
-        /// <summary>
-        /// サムネイルを非同期で読み込む
-        /// </summary>
+        }        /// <summary>
+                 /// サムネイルを非同期で読み込む
+                 /// </summary>
         private async void LoadThumbnailAsync(AssetInfo asset)
         {
             if (_loadingThumbnails.Contains(asset.uid)) return;
@@ -61,8 +66,12 @@ namespace AMU.AssetManager.Helper
 
             try
             {
-                // サムネイルファイルの変更をチェック
-                CheckThumbnailFileChanges(asset);
+                // ファイル変更チェックを間隔を空けて実行
+                bool shouldCheckFile = ShouldCheckFile(asset.uid);
+                if (shouldCheckFile)
+                {
+                    CheckThumbnailFileChanges(asset);
+                }
 
                 Texture2D texture = null;
 
@@ -78,7 +87,10 @@ namespace AMU.AssetManager.Helper
                     EditorApplication.delayCall += () =>
                     {
                         AddToCache(asset.uid, texture);
-                        UpdateThumbnailModifiedTime(asset);
+                        if (shouldCheckFile)
+                        {
+                            UpdateThumbnailModifiedTime(asset);
+                        }
                         OnThumbnailLoaded?.Invoke();
                     };
                 }
@@ -91,11 +103,9 @@ namespace AMU.AssetManager.Helper
             {
                 _loadingThumbnails.Remove(asset.uid);
             }
-        }
-
-        /// <summary>
-        /// テクスチャファイルを非同期で読み込む
-        /// </summary>
+        }        /// <summary>
+                 /// テクスチャファイルを非同期で読み込む（最適化版）
+                 /// </summary>
         private async Task<Texture2D> LoadTextureFromFileAsync(string filePath)
         {
             try
@@ -112,22 +122,31 @@ namespace AMU.AssetManager.Helper
 
                     if (fileData != null)
                     {
-                        // テクスチャ作成はメインスレッドで実行
-                        Texture2D texture = null;
-                        await Task.Run(() =>
+                        // メインスレッドでテクスチャを作成
+                        var tcs = new TaskCompletionSource<Texture2D>();
+
+                        EditorApplication.delayCall += () =>
                         {
-                            EditorApplication.delayCall += () =>
+                            try
                             {
-                                texture = new Texture2D(2, 2);
-                                if (!texture.LoadImage(fileData))
+                                var texture = new Texture2D(2, 2);
+                                if (texture.LoadImage(fileData))
+                                {
+                                    tcs.SetResult(texture);
+                                }
+                                else
                                 {
                                     UnityEngine.Object.DestroyImmediate(texture);
-                                    texture = null;
+                                    tcs.SetResult(null);
                                 }
-                            };
-                        });
+                            }
+                            catch (Exception ex)
+                            {
+                                tcs.SetException(ex);
+                            }
+                        };
 
-                        return texture;
+                        return await tcs.Task;
                     }
                 }
             }
@@ -150,25 +169,76 @@ namespace AMU.AssetManager.Helper
                 await fileStream.ReadAsync(buffer, 0, buffer.Length);
                 return buffer;
             }
+        }        /// <summary>
+                 /// LRUキャッシュにテクスチャを追加
+                 /// </summary>
+        private void AddToCache(string assetUid, Texture2D texture)
+        {
+            // 既存のエントリを削除
+            if (_thumbnailCache.ContainsKey(assetUid))
+            {
+                RemoveFromCache(assetUid);
+            }
+
+            // キャッシュサイズを制限
+            while (_thumbnailCache.Count >= _maxCacheSize)
+            {
+                // LRU: 最も古いエントリを削除
+                var oldestUid = _cacheOrder.Last.Value;
+                RemoveFromCache(oldestUid);
+            }
+
+            // 新しいエントリを追加
+            _thumbnailCache[assetUid] = texture;
+            var node = _cacheOrder.AddFirst(assetUid);
+            _cacheNodes[assetUid] = node;
         }
 
         /// <summary>
-        /// キャッシュにテクスチャを追加（サイズ制限付き）
+        /// キャッシュの使用順序を更新
         /// </summary>
-        private void AddToCache(string assetUid, Texture2D texture)
+        private void UpdateCacheOrder(string assetUid)
         {
-            // キャッシュサイズを制限
-            if (_thumbnailCache.Count >= _maxCacheSize)
+            if (_cacheNodes.TryGetValue(assetUid, out var node))
             {
-                var oldestEntry = _thumbnailCache.First();
-                if (oldestEntry.Value != null)
-                {
-                    UnityEngine.Object.DestroyImmediate(oldestEntry.Value);
-                }
-                _thumbnailCache.Remove(oldestEntry.Key);
+                _cacheOrder.Remove(node);
+                _cacheOrder.AddFirst(node);
             }
+        }
 
-            _thumbnailCache[assetUid] = texture;
+        /// <summary>
+        /// キャッシュからエントリを削除
+        /// </summary>
+        private void RemoveFromCache(string assetUid)
+        {
+            if (_thumbnailCache.TryGetValue(assetUid, out var texture) && texture != null)
+            {
+                UnityEngine.Object.DestroyImmediate(texture);
+            }
+            _thumbnailCache.Remove(assetUid);
+
+            if (_cacheNodes.TryGetValue(assetUid, out var node))
+            {
+                _cacheOrder.Remove(node);
+                _cacheNodes.Remove(assetUid);
+            }
+        }
+
+        /// <summary>
+        /// ファイルチェックが必要かどうかを判定
+        /// </summary>
+        private bool ShouldCheckFile(string assetUid)
+        {
+            float currentTime = Time.realtimeSinceStartup;
+            if (_lastFileCheckTime.TryGetValue(assetUid, out var lastTime))
+            {
+                if (currentTime - lastTime < FILE_CHECK_INTERVAL)
+                {
+                    return false;
+                }
+            }
+            _lastFileCheckTime[assetUid] = currentTime;
+            return true;
         }
 
         /// <summary>
@@ -202,19 +272,14 @@ namespace AMU.AssetManager.Helper
             {
                 Debug.LogError($"[AssetThumbnailManager] Failed to check thumbnail file changes for {asset.uid}: {ex.Message}");
             }
-        }
-
-        /// <summary>
-        /// 特定のアセットのサムネイルキャッシュを無効化する
-        /// </summary>
+        }        /// <summary>
+                 /// 特定のアセットのサムネイルキャッシュを無効化する
+                 /// </summary>
         private void InvalidateThumbnailCache(string assetUid)
         {
-            if (_thumbnailCache.TryGetValue(assetUid, out var texture) && texture != null)
-            {
-                UnityEngine.Object.DestroyImmediate(texture);
-            }
-            _thumbnailCache.Remove(assetUid);
+            RemoveFromCache(assetUid);
             _thumbnailFileModified.Remove(assetUid);
+            _lastFileCheckTime.Remove(assetUid);
         }
 
         /// <summary>
@@ -269,7 +334,10 @@ namespace AMU.AssetManager.Helper
                 }
             }
             _thumbnailCache.Clear();
+            _cacheOrder.Clear();
+            _cacheNodes.Clear();
             _thumbnailFileModified.Clear();
+            _lastFileCheckTime.Clear();
         }
         private Texture2D LoadTextureFromFileSync(string filePath)
         {
