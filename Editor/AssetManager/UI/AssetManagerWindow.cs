@@ -331,7 +331,12 @@ namespace AMU.AssetManager.UI
             using (new GUILayout.VerticalScope(GUILayout.Width(_leftPanelWidth)))
             {
                 // Header with improved style
-                GUILayout.Label("Asset Types", _typeHeaderStyle);
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Label("Asset Types", _typeHeaderStyle);
+                    GUILayout.FlexibleSpace();
+                }
                 GUILayout.Space(5);
 
                 // Asset types list with scroll view
