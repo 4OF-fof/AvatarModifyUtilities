@@ -79,7 +79,7 @@ namespace AMU.AssetManager.Helper
             {
                 name = Path.GetFileNameWithoutExtension(filePath),
                 filePath = GetRelativePath(coreDirFilePath),
-                assetType = DetermineAssetType(filePath),
+                assetType = "Other",
                 fileSize = GetFileSize(coreDirFilePath),
                 createdDate = DateTime.Now,
             };
@@ -118,40 +118,7 @@ namespace AMU.AssetManager.Helper
             }
             return $"{len:0.##} {sizes[order]}";
         }
-        private string DetermineAssetType(string filePath)
-        {
-            string extension = Path.GetExtension(filePath).ToLower();
 
-            switch (extension)
-            {
-                case ".prefab":
-                    return "Prefab";
-                case ".mat":
-                    return "Material";
-                case ".png":
-                case ".jpg":
-                case ".jpeg":
-                case ".tga":
-                case ".psd":
-                case ".tiff":
-                    return "Texture";
-                case ".anim":
-                case ".controller":
-                    return "Animation";
-                case ".cs":
-                    return "Script";
-                case ".shader":
-                    return "Shader";
-                case ".fbx":
-                case ".obj":
-                case ".blend":
-                    return "Avatar";
-                case ".unitypackage":
-                    return "Package";
-                default:
-                    return "Other";
-            }
-        }
         private string GetFullPath(string relativePath)
         {
             if (Path.IsPathRooted(relativePath))
