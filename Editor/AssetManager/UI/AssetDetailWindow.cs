@@ -669,6 +669,7 @@ namespace AMU.AssetManager.UI
             if (!string.IsNullOrEmpty(_newDependency.Trim()))
             {
                 var trimmedInput = _newDependency.Trim();
+                bool wasAdded = false;
 
                 // Try to find a matching asset by name first
                 var matchingAsset = _allAssets.FirstOrDefault(a => a.name.Equals(trimmedInput, StringComparison.OrdinalIgnoreCase) && a.uid != _asset.uid);
@@ -679,6 +680,7 @@ namespace AMU.AssetManager.UI
                     if (!_asset.dependencies.Contains(matchingAsset.uid))
                     {
                         _asset.dependencies.Add(matchingAsset.uid);
+                        wasAdded = true;
                     }
                 }
                 else
@@ -687,10 +689,15 @@ namespace AMU.AssetManager.UI
                     if (!_asset.dependencies.Contains(trimmedInput))
                     {
                         _asset.dependencies.Add(trimmedInput);
+                        wasAdded = true;
                     }
                 }
 
-                _newDependency = "";
+                // Only clear the input if the dependency was actually added
+                if (wasAdded)
+                {
+                    _newDependency = "";
+                }
                 _showDependencySuggestions = false;
                 GUI.FocusControl(null);
             }
