@@ -619,27 +619,23 @@ namespace AMU.AssetManager.Helper
             assets = ApplyAdvancedSearch(assets, criteria);
 
             return assets;
-        }
-
-        /// <summary>
-        /// 詳細検索条件を適用
-        /// </summary>
+        }        /// <summary>
+                 /// 詳細検索条件を適用
+                 /// </summary>
         private List<AssetInfo> ApplyAdvancedSearch(List<AssetInfo> assets, AdvancedSearchCriteria criteria)
         {
             return assets.Where(asset =>
             {
-                bool matchesName = !criteria.searchInName || string.IsNullOrEmpty(criteria.nameQuery) ||
+                bool matchesName = string.IsNullOrEmpty(criteria.nameQuery) ||
                                    asset.name.ToLower().Contains(criteria.nameQuery.ToLower());
 
-                bool matchesDescription = !criteria.searchInDescription || string.IsNullOrEmpty(criteria.descriptionQuery) ||
+                bool matchesDescription = string.IsNullOrEmpty(criteria.descriptionQuery) ||
                                           asset.description.ToLower().Contains(criteria.descriptionQuery.ToLower());
 
-                bool matchesAuthor = !criteria.searchInAuthor || string.IsNullOrEmpty(criteria.authorQuery) ||
+                bool matchesAuthor = string.IsNullOrEmpty(criteria.authorQuery) ||
                                      asset.authorName.ToLower().Contains(criteria.authorQuery.ToLower());
 
-                bool matchesTags = criteria.selectedTags.Count == 0 || CheckTagMatch(asset, criteria);
-
-                return matchesName && matchesDescription && matchesAuthor && matchesTags;
+                bool matchesTags = criteria.selectedTags.Count == 0 || CheckTagMatch(asset, criteria); return matchesName && matchesDescription && matchesAuthor && matchesTags;
             }).ToList();
         }
 

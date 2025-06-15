@@ -130,11 +130,8 @@ namespace AMU.AssetManager.UI
                 // 名前検索
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    _searchCriteria.searchInName = EditorGUILayout.Toggle(_searchCriteria.searchInName, GUILayout.Width(20));
-                    GUI.enabled = _searchCriteria.searchInName;
                     GUILayout.Label("名前", GUILayout.Width(80));
                     _searchCriteria.nameQuery = EditorGUILayout.TextField(_searchCriteria.nameQuery);
-                    GUI.enabled = true;
                 }
 
                 GUILayout.Space(5);
@@ -142,11 +139,8 @@ namespace AMU.AssetManager.UI
                 // 説明検索
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    _searchCriteria.searchInDescription = EditorGUILayout.Toggle(_searchCriteria.searchInDescription, GUILayout.Width(20));
-                    GUI.enabled = _searchCriteria.searchInDescription;
                     GUILayout.Label("説明", GUILayout.Width(80));
                     _searchCriteria.descriptionQuery = EditorGUILayout.TextField(_searchCriteria.descriptionQuery);
-                    GUI.enabled = true;
                 }
 
                 GUILayout.Space(5);
@@ -154,11 +148,8 @@ namespace AMU.AssetManager.UI
                 // 作者検索
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    _searchCriteria.searchInAuthor = EditorGUILayout.Toggle(_searchCriteria.searchInAuthor, GUILayout.Width(20));
-                    GUI.enabled = _searchCriteria.searchInAuthor;
                     GUILayout.Label("作者", GUILayout.Width(80));
                     _searchCriteria.authorQuery = EditorGUILayout.TextField(_searchCriteria.authorQuery);
-                    GUI.enabled = true;
                 }
             }
         }
@@ -254,7 +245,7 @@ namespace AMU.AssetManager.UI
                 if (_searchCriteria.selectedTags.Count > 1)
                 {
                     _searchCriteria.useAndLogicForTags = EditorGUILayout.Toggle(
-                        "すべてのタグを含む（AND検索）",
+                        "AND検索",
                         _searchCriteria.useAndLogicForTags);
 
                     var logicText = _searchCriteria.useAndLogicForTags
