@@ -33,7 +33,8 @@ namespace AMU.Editor.TagType
         public static void ShowWindow()
         {
             var window = GetWindow<TagTypeManagerWindow>("Tag & Type Manager");
-            window.minSize = new Vector2(600, 400);
+            window.minSize = new Vector2(400, 800);
+            window.maxSize = new Vector2(400, 800);
             window.Show();
         }
 
