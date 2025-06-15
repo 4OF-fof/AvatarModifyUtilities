@@ -225,7 +225,6 @@ namespace AMU.AssetManager.UI
                 {
                     GUILayout.Space(10); // サムネイルの左マージン
                     _thumbnailManager.DrawThumbnail(_asset, 180);
-                    GUILayout.FlexibleSpace();
                 }
                 if (_isEditMode)
                 {
@@ -237,10 +236,9 @@ namespace AMU.AssetManager.UI
                         {
                             SelectThumbnail();
                         }
-                        GUILayout.FlexibleSpace();
                     }
-                }                // Import ボタン（UnityPackageの場合かつ編集モードでない場合のみ表示）
-                if (_fileManager.IsUnityPackage(_asset) && !_isEditMode)
+                }
+                else if (_fileManager.IsUnityPackage(_asset))
                 {
                     GUILayout.Space(5);
                     using (new GUILayout.HorizontalScope())
@@ -250,7 +248,6 @@ namespace AMU.AssetManager.UI
                         {
                             ImportUnityPackage();
                         }
-                        GUILayout.FlexibleSpace();
                     }
                 }
 
