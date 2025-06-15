@@ -15,7 +15,6 @@ namespace AMU.AssetManager.UI
         private Vector2 _scrollPosition;
         private List<string> _availableTags;
         private bool[] _tagSelections;
-        private string _tagSearchQuery = "";
         private Action<AdvancedSearchCriteria> _onSearchCallback;
 
         // Tag input UI state (similar to AssetDetailWindow)
@@ -411,7 +410,6 @@ namespace AMU.AssetManager.UI
                 {
                     _searchCriteria = new AdvancedSearchCriteria();
                     InitializeTags();
-                    _tagSearchQuery = "";
                     _newTagInput = "";
                     _showTagSuggestions = false;
                 }
