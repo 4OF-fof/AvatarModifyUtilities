@@ -252,7 +252,7 @@ namespace AMU.AssetManager.UI
                     GUILayout.Space(10); // ボタンの左マージン
                     if (_isEditMode)
                     {
-                        if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_selectThumbnail")))
+                        if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_selectThumbnail"), GUILayout.Width(180)))
                         {
                             SelectThumbnail();
                         }
@@ -300,11 +300,11 @@ namespace AMU.AssetManager.UI
                     GUILayout.Label(LocalizationManager.GetText("AssetDetail_name"), GUILayout.Width(100));
                     if (_isEditMode)
                     {
-                        _asset.name = EditorGUILayout.TextField(_asset.name, GUILayout.Width(360));
+                        _asset.name = EditorGUILayout.TextField(_asset.name, GUILayout.Width(460));
                     }
                     else
                     {
-                        GUILayout.Label(_asset.name, GUILayout.Width(360));
+                        GUILayout.Label(_asset.name, GUILayout.Width(460));
                     }
                 }                // Description
                 using (new GUILayout.HorizontalScope())
@@ -312,11 +312,11 @@ namespace AMU.AssetManager.UI
                     GUILayout.Label(LocalizationManager.GetText("AssetDetail_description"), GUILayout.Width(100));
                     if (_isEditMode)
                     {
-                        _asset.description = EditorGUILayout.TextArea(_asset.description, GUILayout.Height(60), GUILayout.Width(360));
+                        _asset.description = EditorGUILayout.TextArea(_asset.description, GUILayout.Height(60), GUILayout.Width(460));
                     }
                     else
                     {
-                        GUILayout.Label(_asset.description, EditorStyles.wordWrappedLabel, GUILayout.Width(360));
+                        GUILayout.Label(_asset.description, EditorStyles.wordWrappedLabel, GUILayout.Width(460));
                     }
                 }                // Type
                 using (new GUILayout.HorizontalScope())
@@ -328,7 +328,7 @@ namespace AMU.AssetManager.UI
                         var currentIndex = allTypes.IndexOf(_asset.assetType);
                         if (currentIndex < 0) currentIndex = 0;
 
-                        var newIndex = EditorGUILayout.Popup(currentIndex, allTypes.ToArray(), GUILayout.Width(360));
+                        var newIndex = EditorGUILayout.Popup(currentIndex, allTypes.ToArray(), GUILayout.Width(460));
                         if (newIndex >= 0 && newIndex < allTypes.Count)
                         {
                             _asset.assetType = allTypes[newIndex];
@@ -336,7 +336,7 @@ namespace AMU.AssetManager.UI
                     }
                     else
                     {
-                        GUILayout.Label(_asset.assetType, GUILayout.Width(360));
+                        GUILayout.Label(_asset.assetType, GUILayout.Width(460));
                     }
                 }                // Author
                 using (new GUILayout.HorizontalScope())
@@ -344,11 +344,11 @@ namespace AMU.AssetManager.UI
                     GUILayout.Label(LocalizationManager.GetText("AssetDetail_author"), GUILayout.Width(100));
                     if (_isEditMode)
                     {
-                        _asset.authorName = EditorGUILayout.TextField(_asset.authorName, GUILayout.Width(360));
+                        _asset.authorName = EditorGUILayout.TextField(_asset.authorName, GUILayout.Width(460));
                     }
                     else
                     {
-                        GUILayout.Label(_asset.authorName, GUILayout.Width(360));
+                        GUILayout.Label(_asset.authorName, GUILayout.Width(460));
                     }
                 }
             }
@@ -366,7 +366,7 @@ namespace AMU.AssetManager.UI
                     {
                         using (new GUILayout.HorizontalScope())
                         {
-                            _asset.filePath = EditorGUILayout.TextField(_asset.filePath, GUILayout.Width(280));
+                            _asset.filePath = EditorGUILayout.TextField(_asset.filePath, GUILayout.Width(380));
                             if (GUILayout.Button(LocalizationManager.GetText("Common_browse"), GUILayout.Width(80)))
                             {
                                 BrowseForFile();
@@ -375,18 +375,18 @@ namespace AMU.AssetManager.UI
                     }
                     else
                     {
-                        GUILayout.Label(_asset.filePath, GUILayout.Width(360));
+                        GUILayout.Label(_asset.filePath, GUILayout.Width(460));
                     }
                 }                // File Size
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label(LocalizationManager.GetText("AssetDetail_fileSize"), GUILayout.Width(100));
-                    GUILayout.Label(_fileManager.FormatFileSize(_asset.fileSize), GUILayout.Width(360));
+                    GUILayout.Label(_fileManager.FormatFileSize(_asset.fileSize), GUILayout.Width(460));
                 }                // Created Date
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label(LocalizationManager.GetText("AssetDetail_createdDate"), GUILayout.Width(100));
-                    GUILayout.Label(_asset.createdDate.ToString("yyyy/MM/dd HH:mm:ss"), GUILayout.Width(360));
+                    GUILayout.Label(_asset.createdDate.ToString("yyyy/MM/dd HH:mm:ss"), GUILayout.Width(460));
                 }
 
             }
