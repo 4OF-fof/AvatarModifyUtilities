@@ -349,6 +349,17 @@ namespace AMU.AssetManager.UI
                         GUILayout.Label(_asset.authorName, GUILayout.Width(460));
                     }
                 }
+                if (_asset.boothItem != null && !string.IsNullOrEmpty(_asset.boothItem.boothItemUrl))
+                {
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        GUILayout.Label("Booth URL", GUILayout.Width(100));
+                        if (GUILayout.Button(_asset.boothItem.boothItemUrl, EditorStyles.linkLabel, GUILayout.Width(460)))
+                        {
+                            Application.OpenURL(_asset.boothItem.boothItemUrl);
+                        }
+                    }
+                }
             }
         }
         private void DrawFileInfo()
