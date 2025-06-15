@@ -755,7 +755,7 @@ namespace AMU.AssetManager.Helper
             var asset = new AssetInfo
             {
                 uid = Guid.NewGuid().ToString(),
-                name = package.packageName ?? "Unknown Package",
+                name = file.fileName ?? "Unknown File",
                 description = "", // 空に設定
                 assetType = assetType,
                 filePath = "", // 空に設定
