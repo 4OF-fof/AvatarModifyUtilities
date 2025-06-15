@@ -19,12 +19,6 @@ namespace AMU.AssetManager.Data
                     types.Add(type.name);
                 }
 
-                // グループタイプを追加
-                if (!types.Contains("Group"))
-                {
-                    types.Add("Group");
-                }
-
                 return types;
             }
         }
