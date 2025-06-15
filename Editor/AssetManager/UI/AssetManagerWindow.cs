@@ -1093,8 +1093,7 @@ namespace AMU.AssetManager.UI
                     _selectedAsset = null;
                     _needsUIRefresh = true;
                 });
-
-                if (!asset.isGroup)
+                if (!asset.isGroup && !string.IsNullOrEmpty(asset.filePath))
                 {
                     menu.AddSeparator("");
 
