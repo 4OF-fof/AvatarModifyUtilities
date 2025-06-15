@@ -804,7 +804,8 @@ namespace AMU.AssetManager.UI
 
         private void ShowAddAssetDialog()
         {
-            string path = EditorUtility.OpenFilePanel("Select Asset File", Application.dataPath, "");
+            string downloadPath = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile), "Downloads");
+            string path = EditorUtility.OpenFilePanel("Select Asset File", downloadPath, "");
             if (!string.IsNullOrEmpty(path))
             {
                 var asset = _fileManager.CreateAssetFromFile(path); if (asset != null)
@@ -814,9 +815,11 @@ namespace AMU.AssetManager.UI
                     _needsUIRefresh = true;
                 }
             }
-        }        /// <summary>
-                 /// 高速化されたアセットリスト更新
-                 /// </summary>
+        }
+        
+        /// <summary>
+         /// 高速化されたアセットリスト更新
+         /// </summary>
         private void RefreshAssetList()
         {
             if (_dataManager?.Library?.assets == null)
