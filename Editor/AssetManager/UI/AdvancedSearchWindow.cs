@@ -215,7 +215,6 @@ namespace AMU.AssetManager.UI
                 if (_searchCriteria.selectedTags.Count > 0)
                 {
                     GUILayout.Space(5);
-                    GUILayout.Label($"選択済みタグ: {_searchCriteria.selectedTags.Count}", EditorStyles.miniLabel);
 
                     using (new EditorGUILayout.HorizontalScope())
                     {
@@ -234,6 +233,10 @@ namespace AMU.AssetManager.UI
 
         private void DrawSearchLogicSettings()
         {
+            // タグが選択されていない場合は何も表示しない
+            if (_searchCriteria.selectedTags.Count == 0)
+                return;
+
             var sectionStyle = new GUIStyle(EditorStyles.boldLabel)
             {
                 fontSize = 14
@@ -252,6 +255,10 @@ namespace AMU.AssetManager.UI
                         ? "選択したすべてのタグが含まれているアセットを検索します"
                         : "選択したタグのいずれかが含まれているアセットを検索します";
                     EditorGUILayout.HelpBox(logicText, MessageType.Info);
+                }
+                else if (_searchCriteria.selectedTags.Count == 1)
+                {
+                    EditorGUILayout.HelpBox($"タグ「{_searchCriteria.selectedTags[0]}」を含むアセットを検索します", MessageType.Info);
                 }
             }
         }
