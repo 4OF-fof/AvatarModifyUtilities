@@ -430,6 +430,11 @@ namespace AMU.AssetManager.UI
 
                     GUILayout.Space(10);
 
+                    // グループ管理セクション
+                    DrawGroupManagementSection();
+
+                    GUILayout.Space(10);
+
                     // Add new type form at the bottom
                     DrawAddTypeForm();
                 }
@@ -600,9 +605,16 @@ namespace AMU.AssetManager.UI
                 }
 
                 bool isSelected = _selectedAsset == asset;
+                bool isSelectedForGroup = _selectedAssetsForGroup.Contains(asset.uid);
+
+                // 選択状態の描画
                 if (isSelected)
                 {
                     EditorGUI.DrawRect(thumbnailRect, new Color(0.3f, 0.5f, 1f, 0.3f));
+                }
+                else if (isSelectedForGroup && _isGroupMode)
+                {
+                    EditorGUI.DrawRect(thumbnailRect, new Color(0.3f, 1f, 0.3f, 0.3f));
                 }
 
                 // Show archived overlay
@@ -670,13 +682,17 @@ namespace AMU.AssetManager.UI
                 default:
                     return EditorGUIUtility.IconContent("DefaultAsset Icon").image as Texture2D;
             }
-        }
-
-        /// <summary>
-        /// アセットのインジケーター（お気に入り、非表示など）を描画
-        /// </summary>
+        }        /// <summary>
+                 /// アセットのインジケーター（お気に入り、非表示など）を描画
+                 /// </summary>
         private void DrawAssetIndicators(AssetInfo asset, Rect thumbnailRect)
         {
+            // Group indicator (グループアセットの場合)
+            if (asset.isGroup)
+            {
+                DrawGroupIndicator(thumbnailRect);
+            }
+
             // Favorite indicator
             if (asset.isFavorite)
             {
@@ -737,6 +753,25 @@ namespace AMU.AssetManager.UI
         }
 
         /// <summary>
+        /// グループインジケーターを描画
+        /// </summary>
+        private void DrawGroupIndicator(Rect thumbnailRect)
+        {
+            var indicatorRect = new Rect(thumbnailRect.x + 2, thumbnailRect.y + 2, 16, 16);
+            EditorGUI.DrawRect(indicatorRect, new Color(0.2f, 0.6f, 1f, 0.8f));
+
+            var labelStyle = new GUIStyle(EditorStyles.miniLabel)
+            {
+                fontSize = 10,
+                fontStyle = FontStyle.Bold,
+                normal = { textColor = Color.white },
+                alignment = TextAnchor.MiddleCenter
+            };
+
+            GUI.Label(indicatorRect, "G", labelStyle);
+        }
+
+        /// <summary>
         /// アセット名を描画
         /// </summary>
         private void DrawAssetName(AssetInfo asset)
@@ -753,286 +788,544 @@ namespace AMU.AssetManager.UI
 
         /// <summary>
         /// アセットアイテムのイベントを処理
-        /// </summary>
+        /// </summary>        
         private void HandleAssetItemEvents(AssetInfo asset, Rect thumbnailRect)
         {
             if (Event.current.type == EventType.MouseDown && thumbnailRect.Contains(Event.current.mousePosition))
             {
+                if (_isGroupMode)
+                {
+                    // グループ作成モード時の処理
+                    if (!asset.isGroup) // グループアセット自体は選択できない
+                    {
+                        if (_selectedAssetsForGroup.Contains(asset.uid))
+                        {
+                            _selectedAssetsForGroup.Remove(asset.uid);
+                        }
+                        else
+                        {
+                            _selectedAssetsForGroup.Add(asset.uid);
+                        }
+                        Event.current.Use();
+                        Repaint();
+                        return;
+                    }
+                }
+
                 _selectedAsset = asset;
 
-                if (Event.current.clickCount == 2)
-                {
-                    // Double click - open details
-                    AssetDetailWindow.ShowWindow(asset);
-                }
-                else if (Event.current.button == 1)
-                {
-                    // Right click - context menu
-                    ShowContextMenu(asset);
-                }
+if (Event.current.clickCount == 2)
+{
+    if (asset.isGroup)
+    {
+        // グループの場合、子アセットを展開表示
+        ShowGroupDetails(asset);
+    }
+    else
+    {
+        // Double click - open details
+        AssetDetailWindow.ShowWindow(asset);
+    }
+}
+else if (Event.current.button == 1)
+{
+    // Right click - context menu
+    ShowContextMenu(asset);
+}
 
-                Event.current.Use();
-                Repaint();
+Event.current.Use();
+Repaint();
             }
-        }
+        }        private void ShowContextMenu(AssetInfo asset)
+{
+    var menu = new GenericMenu();
 
-        private void ShowContextMenu(AssetInfo asset)
+    menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_viewDetails")), false, () =>
+    {
+        if (asset.isGroup)
         {
-            var menu = new GenericMenu();
-
-            menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_viewDetails")), false, () =>
-            {
-                AssetDetailWindow.ShowWindow(asset);
-            });
-
-            menu.AddSeparator("");
-
-            menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_editAsset")), false, () =>
-            {
-                AssetDetailWindow.ShowWindow(asset, true);
-            });
-
-            menu.AddSeparator("");
-
-            string favoriteText = asset.isFavorite ?
-                LocalizationManager.GetText("AssetManager_removeFromFavorites") :
-                LocalizationManager.GetText("AssetManager_addToFavorites"); menu.AddItem(new GUIContent(favoriteText), false, () =>
- {
-     asset.isFavorite = !asset.isFavorite;
-     _dataManager.UpdateAsset(asset);
-     _needsUIRefresh = true;
- });
-
-            menu.AddSeparator("");
-
-            string hiddenText = asset.isHidden ?
-                LocalizationManager.GetText("AssetManager_showAsset") :
-                LocalizationManager.GetText("AssetManager_hideAsset"); menu.AddItem(new GUIContent(hiddenText), false, () =>
- {
-     asset.isHidden = !asset.isHidden;
-     _dataManager.UpdateAsset(asset);
-     _needsUIRefresh = true;
- });
-
-            menu.AddSeparator("");
-
-            menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_openLocation")), false, () =>
-            {
-                _fileManager.OpenFileLocation(asset);
-            });
-
-            menu.AddSeparator(""); menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_deleteAsset")), false, () =>
- {
-     if (EditorUtility.DisplayDialog("Confirm Delete",
-         LocalizationManager.GetText("AssetManager_confirmDelete"),
-         LocalizationManager.GetText("Common_yes"), LocalizationManager.GetText("Common_no")))
-     {
-         _dataManager.RemoveAsset(asset.uid);
-         _needsUIRefresh = true;
-     }
- });
-
-            menu.ShowAsContext();
+            ShowGroupDetails(asset);
         }
-        private void ShowAddAssetDialog()
+        else
         {
-            string downloadPath = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile), "Downloads");
-            string path = EditorUtility.OpenFilePanel("Select Asset File", downloadPath, "");
-            if (!string.IsNullOrEmpty(path))
-            {
-                // BPMLibrary.jsonファイルが選択された場合、BPMImportWindowを開く
-                if (System.IO.Path.GetFileName(path).Equals("BPMLibrary.json", System.StringComparison.OrdinalIgnoreCase))
-                {
-                    BPMImportWindow.ShowWindowWithFile(_dataManager, path, () =>
-                    {
-                        _needsUIRefresh = true;
-                        RefreshAssetList();
-                    });
-                    return;
-                }
+            AssetDetailWindow.ShowWindow(asset);
+        }
+    });
 
-                var asset = _fileManager.CreateAssetFromFile(path); if (asset != null)
+    menu.AddSeparator("");
+
+    if (!asset.isGroup)
+    {
+        menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_editAsset")), false, () =>
+        {
+            AssetDetailWindow.ShowWindow(asset, true);
+        });
+
+        menu.AddSeparator("");
+    }
+
+    // グループ関連のメニュー
+    if (asset.isGroup)
+    {
+        menu.AddItem(new GUIContent("グループ解散"), false, () =>
+        {
+            if (EditorUtility.DisplayDialog("グループ解散の確認",
+                $"グループ '{asset.name}' を解散しますか？子アセットは独立したアセットになります。",
+                "解散", "キャンセル"))
+            {
+                _dataManager.DisbandGroup(asset.uid);
+                if (_selectedAsset == asset)
                 {
-                    _dataManager.AddAsset(asset);
-                    AssetDetailWindow.ShowWindow(asset, true);
-                    _needsUIRefresh = true;
+                    _selectedAsset = null;
                 }
+                _needsUIRefresh = true;
             }
-        }
+        });
 
-        private void ShowBPMImportDialog()
+        var children = _dataManager.GetGroupChildren(asset.uid);
+        menu.AddItem(new GUIContent($"子アセット表示 ({children.Count}個)"), false, () =>
         {
-            BPMImportWindow.ShowWindow(_dataManager, () =>
+            ShowGroupDetails(asset);
+        });
+
+        menu.AddSeparator("");
+    }
+    else if (asset.HasParent())
+    {
+        menu.AddItem(new GUIContent("グループから削除"), false, () =>
+        {
+            if (EditorUtility.DisplayDialog("グループから削除",
+                $"アセット '{asset.name}' をグループから削除しますか？",
+                "削除", "キャンセル"))
+            {
+                _dataManager.RemoveAssetFromGroup(asset.uid);
+                _needsUIRefresh = true;
+            }
+        });
+
+        menu.AddSeparator("");
+    }
+
+    string favoriteText = asset.isFavorite ?
+        LocalizationManager.GetText("AssetManager_removeFromFavorites") :
+        LocalizationManager.GetText("AssetManager_addToFavorites"); menu.AddItem(new GUIContent(favoriteText), false, () =>
+{
+asset.isFavorite = !asset.isFavorite;
+_dataManager.UpdateAsset(asset);
+_needsUIRefresh = true;
+});
+
+    menu.AddSeparator("");
+
+    string hiddenText = asset.isHidden ?
+        LocalizationManager.GetText("AssetManager_showAsset") :
+        LocalizationManager.GetText("AssetManager_hideAsset"); menu.AddItem(new GUIContent(hiddenText), false, () =>
+{
+asset.isHidden = !asset.isHidden;
+_dataManager.UpdateAsset(asset);
+_needsUIRefresh = true;
+});
+
+    if (!asset.isGroup)
+    {
+        menu.AddSeparator("");
+
+        menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_openLocation")), false, () =>
+        {
+            _fileManager.OpenFileLocation(asset);
+        });
+    }
+
+    menu.AddSeparator(""); menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_deleteAsset")), false, () =>
+{
+if (EditorUtility.DisplayDialog("Confirm Delete",
+ LocalizationManager.GetText("AssetManager_confirmDelete"),
+ LocalizationManager.GetText("Common_yes"), LocalizationManager.GetText("Common_no")))
+{
+ if (asset.isGroup)
+ {
+     _dataManager.DisbandGroup(asset.uid);
+ }
+ else
+ {
+     _dataManager.RemoveAsset(asset.uid);
+ }
+ _needsUIRefresh = true;
+}
+});
+
+    menu.ShowAsContext();
+}
+private void ShowAddAssetDialog()
+{
+    string downloadPath = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile), "Downloads");
+    string path = EditorUtility.OpenFilePanel("Select Asset File", downloadPath, "");
+    if (!string.IsNullOrEmpty(path))
+    {
+        // BPMLibrary.jsonファイルが選択された場合、BPMImportWindowを開く
+        if (System.IO.Path.GetFileName(path).Equals("BPMLibrary.json", System.StringComparison.OrdinalIgnoreCase))
+        {
+            BPMImportWindow.ShowWindowWithFile(_dataManager, path, () =>
             {
                 _needsUIRefresh = true;
                 RefreshAssetList();
             });
+            return;
         }
-        /// <summary>
-        /// 高速化されたアセットリスト更新
-        /// </summary>
-        private void RefreshAssetList()
+
+        var asset = _fileManager.CreateAssetFromFile(path); if (asset != null)
         {
-            if (_dataManager?.Library?.assets == null)
+            _dataManager.AddAsset(asset);
+            AssetDetailWindow.ShowWindow(asset, true);
+            _needsUIRefresh = true;
+        }
+    }
+}
+
+private void ShowBPMImportDialog()
+{
+    BPMImportWindow.ShowWindow(_dataManager, () =>
+    {
+        _needsUIRefresh = true;
+        RefreshAssetList();
+    });
+}        /// <summary>
+         /// 高速化されたアセットリスト更新
+         /// </summary>
+private void RefreshAssetList()
+{
+    if (_dataManager?.Library?.assets == null)
+    {
+        _filteredAssets = new List<AssetInfo>();
+        return;
+    }
+
+    // フィルター条件を設定
+    bool? favoritesOnly = null;
+    bool? archivedOnly = null;
+    bool showHidden = false;
+
+    switch (_currentFilter)
+    {
+        case AssetFilterType.Favorites:
+            favoritesOnly = true;
+            showHidden = false;
+            break;
+        case AssetFilterType.ArchivedOnly:
+            archivedOnly = true;
+            showHidden = true;
+            break;
+        case AssetFilterType.All:
+        default:
+            showHidden = false;
+            break;
+    }
+
+    // 詳細検索または通常検索を実行
+    if (_isUsingAdvancedSearch && _advancedSearchCriteria != null)
+    {
+        _filteredAssets = _dataManager.AdvancedSearchAssets(_advancedSearchCriteria, _selectedAssetType, favoritesOnly, showHidden, archivedOnly);
+    }
+    else
+    {
+        _filteredAssets = _dataManager.SearchAssets(_searchText, _selectedAssetType, favoritesOnly, showHidden, archivedOnly);
+    }
+
+    // グループ機能に対応：表示対象のアセットのみをフィルタリング
+    // （親グループを持つアセットは非表示）
+    _filteredAssets = _filteredAssets.Where(asset => asset.IsVisibleInList()).ToList();
+
+    // ソート処理の最適化
+    ApplySorting();
+
+    Repaint();
+}
+
+/// <summary>
+/// ソート処理を分離して高速化
+/// </summary>
+private void ApplySorting()
+{
+    switch (_selectedSortOption)
+    {
+        case 0: // Name
+            _filteredAssets.Sort((a, b) => _sortDescending ?
+                string.Compare(b.name, a.name, StringComparison.OrdinalIgnoreCase) :
+                string.Compare(a.name, b.name, StringComparison.OrdinalIgnoreCase));
+            break;
+        case 1: // Date
+            _filteredAssets.Sort((a, b) => _sortDescending ?
+                DateTime.Compare(b.createdDate, a.createdDate) :
+                DateTime.Compare(a.createdDate, b.createdDate));
+            break;
+        case 2: // Size
+            _filteredAssets.Sort((a, b) => _sortDescending ?
+                b.fileSize.CompareTo(a.fileSize) :
+                a.fileSize.CompareTo(b.fileSize));
+            break;
+    }
+}
+
+private void HandleEvents()
+{
+    if (Event.current.type == EventType.KeyDown)
+    {
+        if (Event.current.keyCode == KeyCode.Delete && _selectedAsset != null)
+        {
+            if (EditorUtility.DisplayDialog("Confirm Delete",
+                LocalizationManager.GetText("AssetManager_confirmDelete"),
+                LocalizationManager.GetText("Common_yes"),
+                LocalizationManager.GetText("Common_no")))
             {
-                _filteredAssets = new List<AssetInfo>();
-                return;
+                _dataManager.RemoveAsset(_selectedAsset.uid);
+                _selectedAsset = null;
+                _needsUIRefresh = true;
             }
+            Event.current.Use();
+        }
+    }
+}
+private void OnThumbnailSaved(AssetInfo asset)
+{
+    if (asset != null && _dataManager != null)
+    {
+        _dataManager.UpdateAsset(asset);
+    }
+}
 
-            // フィルター条件を設定
-            bool? favoritesOnly = null;
-            bool? archivedOnly = null;
-            bool showHidden = false;
+private void OnThumbnailUpdated(string assetUid)
+{
+    // 特定のアセットのサムネイルが更新された時の処理
+    Repaint();
+}
 
-            switch (_currentFilter)
+/// <summary>
+/// Creates a solid color texture for UI backgrounds
+/// </summary>
+private Texture2D CreateColorTexture(Color color)
+{
+    var texture = new Texture2D(1, 1);
+    texture.SetPixel(0, 0, color);
+    texture.Apply();
+    return texture;
+}
+
+private void ShowAdvancedSearchWindow()
+{
+    AdvancedSearchWindow.ShowWindow(_advancedSearchCriteria, OnAdvancedSearchApplied);
+}
+
+private void OnAdvancedSearchApplied(AdvancedSearchCriteria criteria)
+{
+    _advancedSearchCriteria = criteria;
+    _isUsingAdvancedSearch = criteria.HasCriteria();
+    if (_isUsingAdvancedSearch)
+    {
+        _searchText = ""; // 通常検索をクリア
+    }
+    _needsUIRefresh = true;
+}
+
+private string GetAdvancedSearchStatusText()
+{
+    if (_advancedSearchCriteria == null) return "";
+
+    var parts = new List<string>();
+
+    if (!string.IsNullOrEmpty(_advancedSearchCriteria.nameQuery))
+        parts.Add($"名前:{_advancedSearchCriteria.nameQuery}");
+
+    if (!string.IsNullOrEmpty(_advancedSearchCriteria.descriptionQuery))
+        parts.Add($"説明:{_advancedSearchCriteria.descriptionQuery}");
+
+    if (!string.IsNullOrEmpty(_advancedSearchCriteria.authorQuery))
+        parts.Add($"作者:{_advancedSearchCriteria.authorQuery}");
+
+    if (_advancedSearchCriteria.selectedTags.Count > 0)
+    {
+        var tagText = string.Join(", ", _advancedSearchCriteria.selectedTags);
+        parts.Add($"タグ:{tagText}");
+    }
+
+    if (parts.Count == 0) return "詳細検索中";
+
+    var result = string.Join(", ", parts);
+    return result.Length > 30 ? result.Substring(0, 27) + "..." : result;
+}
+
+private void ClearAdvancedSearch()
+{
+    _isUsingAdvancedSearch = false;
+    _advancedSearchCriteria = null;
+    _needsUIRefresh = true;
+}
+
+// グループ機能関連の変数
+private bool _showGroupManagement = false;
+private string _newGroupName = "";
+private bool _isGroupMode = false;  // グループ作成モード
+private List<string> _selectedAssetsForGroup = new List<string>();  // グループ化対象のアセット
+
+private void DrawGroupManagementSection()
+{
+    // Separator line
+    var rect = GUILayoutUtility.GetRect(1, 2, GUILayout.ExpandWidth(true));
+    EditorGUI.DrawRect(rect, new Color(0.5f, 0.5f, 0.5f, 0.7f));
+    GUILayout.Space(8);
+
+    // Group Management Header
+    using (new GUILayout.HorizontalScope())
+    {
+        _showGroupManagement = EditorGUILayout.Foldout(_showGroupManagement, "グループ管理", true);
+
+        // グループ作成モードのトグル
+        var oldColor = GUI.color;
+        if (_isGroupMode)
+            GUI.color = new Color(0.8f, 1f, 0.8f);
+
+        if (GUILayout.Button(_isGroupMode ? "完了" : "新規", GUILayout.Width(40)))
+        {
+            if (_isGroupMode)
             {
-                case AssetFilterType.Favorites:
-                    favoritesOnly = true;
-                    showHidden = false;
-                    break;
-                case AssetFilterType.ArchivedOnly:
-                    archivedOnly = true;
-                    showHidden = true;
-                    break;
-                case AssetFilterType.All:
-                default:
-                    showHidden = false;
-                    break;
-            }
-
-            // 詳細検索または通常検索を実行
-            if (_isUsingAdvancedSearch && _advancedSearchCriteria != null)
-            {
-                _filteredAssets = _dataManager.AdvancedSearchAssets(_advancedSearchCriteria, _selectedAssetType, favoritesOnly, showHidden, archivedOnly);
+                // グループ作成モード終了
+                _isGroupMode = false;
+                _selectedAssetsForGroup.Clear();
             }
             else
             {
-                _filteredAssets = _dataManager.SearchAssets(_searchText, _selectedAssetType, favoritesOnly, showHidden, archivedOnly);
+                // グループ作成モード開始
+                _isGroupMode = true;
+                _selectedAssetsForGroup.Clear();
             }
-
-            // ソート処理の最適化
-            ApplySorting();
-
-            Repaint();
+            _needsUIRefresh = true;
         }
+        GUI.color = oldColor;
+    }
 
-        /// <summary>
-        /// ソート処理を分離して高速化
-        /// </summary>
-        private void ApplySorting()
-        {
-            switch (_selectedSortOption)
-            {
-                case 0: // Name
-                    _filteredAssets.Sort((a, b) => _sortDescending ?
-                        string.Compare(b.name, a.name, StringComparison.OrdinalIgnoreCase) :
-                        string.Compare(a.name, b.name, StringComparison.OrdinalIgnoreCase));
-                    break;
-                case 1: // Date
-                    _filteredAssets.Sort((a, b) => _sortDescending ?
-                        DateTime.Compare(b.createdDate, a.createdDate) :
-                        DateTime.Compare(a.createdDate, b.createdDate));
-                    break;
-                case 2: // Size
-                    _filteredAssets.Sort((a, b) => _sortDescending ?
-                        b.fileSize.CompareTo(a.fileSize) :
-                        a.fileSize.CompareTo(b.fileSize));
-                    break;
-            }
-        }
+    if (_showGroupManagement)
+    {
+        GUILayout.Space(5);
 
-        private void HandleEvents()
+        // グループ作成フォーム
+        if (_isGroupMode)
         {
-            if (Event.current.type == EventType.KeyDown)
+            using (new GUILayout.VerticalScope(EditorStyles.helpBox))
             {
-                if (Event.current.keyCode == KeyCode.Delete && _selectedAsset != null)
+                GUILayout.Label("新しいグループを作成", EditorStyles.boldLabel);
+
+                GUILayout.Label("グループ名:");
+                _newGroupName = EditorGUILayout.TextField(_newGroupName);
+
+                GUILayout.Label($"選択中のアセット: {_selectedAssetsForGroup.Count}個");
+
+                using (new GUILayout.HorizontalScope())
                 {
-                    if (EditorUtility.DisplayDialog("Confirm Delete",
-                        LocalizationManager.GetText("AssetManager_confirmDelete"),
-                        LocalizationManager.GetText("Common_yes"),
-                        LocalizationManager.GetText("Common_no")))
+                    if (GUILayout.Button("グループ作成") && !string.IsNullOrEmpty(_newGroupName) && _selectedAssetsForGroup.Count > 0)
                     {
-                        _dataManager.RemoveAsset(_selectedAsset.uid);
-                        _selectedAsset = null;
+                        CreateGroupFromSelectedAssets();
+                    }
+
+                    if (GUILayout.Button("クリア"))
+                    {
+                        _selectedAssetsForGroup.Clear();
                         _needsUIRefresh = true;
                     }
-                    Event.current.Use();
                 }
             }
+            GUILayout.Space(5);
         }
-        private void OnThumbnailSaved(AssetInfo asset)
+
+        // 既存のグループ一覧
+        var groups = _dataManager.GetGroupAssets();
+        if (groups.Count > 0)
         {
-            if (asset != null && _dataManager != null)
+            GUILayout.Label("既存のグループ:", EditorStyles.boldLabel);
+
+            foreach (var group in groups)
             {
-                _dataManager.UpdateAsset(asset);
+                using (new GUILayout.HorizontalScope())
+                {
+                    bool isSelected = _selectedAsset == group;
+                    if (GUILayout.Toggle(isSelected, group.name, _typeButtonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(28)))
+                    {
+                        if (!isSelected)
+                        {
+                            _selectedAsset = group;
+                            Repaint();
+                        }
+                    }
+
+                    // グループ解散ボタン
+                    if (GUILayout.Button("解散", GUILayout.Width(40), GUILayout.Height(28)))
+                    {
+                        if (EditorUtility.DisplayDialog("グループ解散の確認",
+                            $"グループ '{group.name}' を解散しますか？子アセットは独立したアセットになります。",
+                            "解散", "キャンセル"))
+                        {
+                            _dataManager.DisbandGroup(group.uid);
+                            if (_selectedAsset == group)
+                            {
+                                _selectedAsset = null;
+                            }
+                            _needsUIRefresh = true;
+                        }
+                    }
+                }
+                GUILayout.Space(2);
             }
         }
-
-        private void OnThumbnailUpdated(string assetUid)
+        else
         {
-            // 特定のアセットのサムネイルが更新された時の処理
-            Repaint();
+            GUILayout.Label("グループがありません", EditorStyles.miniLabel);
         }
+    }
+}
 
-        /// <summary>
-        /// Creates a solid color texture for UI backgrounds
-        /// </summary>
-        private Texture2D CreateColorTexture(Color color)
-        {
-            var texture = new Texture2D(1, 1);
-            texture.SetPixel(0, 0, color);
-            texture.Apply();
-            return texture;
-        }
+private void CreateGroupFromSelectedAssets()
+{
+    if (string.IsNullOrEmpty(_newGroupName) || _selectedAssetsForGroup.Count == 0)
+        return;
 
-        private void ShowAdvancedSearchWindow()
-        {
-            AdvancedSearchWindow.ShowWindow(_advancedSearchCriteria, OnAdvancedSearchApplied);
-        }
+    // グループを作成
+    var newGroup = _dataManager.CreateGroup(_newGroupName);
 
-        private void OnAdvancedSearchApplied(AdvancedSearchCriteria criteria)
-        {
-            _advancedSearchCriteria = criteria;
-            _isUsingAdvancedSearch = criteria.HasCriteria();
-            if (_isUsingAdvancedSearch)
-            {
-                _searchText = ""; // 通常検索をクリア
-            }
-            _needsUIRefresh = true;
-        }
+    // 選択されたアセットをグループに追加
+    foreach (var assetId in _selectedAssetsForGroup)
+    {
+        _dataManager.AddAssetToGroup(assetId, newGroup.uid);
+    }
 
-        private string GetAdvancedSearchStatusText()
-        {
-            if (_advancedSearchCriteria == null) return "";
+    // 状態をリセット
+    _newGroupName = "";
+    _selectedAssetsForGroup.Clear();
+    _isGroupMode = false;
+    _needsUIRefresh = true;
+    _selectedAsset = newGroup;
 
-            var parts = new List<string>();
+    Debug.Log($"グループ '{newGroup.name}' を作成しました。{_selectedAssetsForGroup.Count}個のアセットを追加しました。");
+}
 
-            if (!string.IsNullOrEmpty(_advancedSearchCriteria.nameQuery))
-                parts.Add($"名前:{_advancedSearchCriteria.nameQuery}");
+/// <summary>
+/// グループの詳細表示（子アセット一覧）
+/// </summary>
+private void ShowGroupDetails(AssetInfo groupAsset)
+{
+    var children = _dataManager.GetGroupChildren(groupAsset.uid);
 
-            if (!string.IsNullOrEmpty(_advancedSearchCriteria.descriptionQuery))
-                parts.Add($"説明:{_advancedSearchCriteria.descriptionQuery}");
+    if (children.Count == 0)
+    {
+        EditorUtility.DisplayDialog("グループの詳細",
+            $"グループ '{groupAsset.name}' には子アセットがありません。", "OK");
+        return;
+    }
 
-            if (!string.IsNullOrEmpty(_advancedSearchCriteria.authorQuery))
-                parts.Add($"作者:{_advancedSearchCriteria.authorQuery}");
+    var message = $"グループ '{groupAsset.name}' の子アセット ({children.Count}個):\n\n";
+    foreach (var child in children)
+    {
+        message += $"• {child.name} ({child.assetType})\n";
+    }
 
-            if (_advancedSearchCriteria.selectedTags.Count > 0)
-            {
-                var tagText = string.Join(", ", _advancedSearchCriteria.selectedTags);
-                parts.Add($"タグ:{tagText}");
-            }
-
-            if (parts.Count == 0) return "詳細検索中";
-
-            var result = string.Join(", ", parts);
-            return result.Length > 30 ? result.Substring(0, 27) + "..." : result;
-        }
-
-        private void ClearAdvancedSearch()
-        {
-            _isUsingAdvancedSearch = false;
-            _advancedSearchCriteria = null;
-            _needsUIRefresh = true;
-        }
+    EditorUtility.DisplayDialog("グループの詳細", message, "OK");
+}
     }
 }

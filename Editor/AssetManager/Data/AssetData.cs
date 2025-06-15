@@ -18,6 +18,13 @@ namespace AMU.AssetManager.Data
                 {
                     types.Add(type.name);
                 }
+
+                // グループタイプを追加
+                if (!types.Contains("Group"))
+                {
+                    types.Add("Group");
+                }
+
                 return types;
             }
         }
@@ -141,6 +148,10 @@ namespace AMU.AssetManager.Data
         public bool isHidden;
         public BoothItem boothItem;
 
+        // グループ機能用の追加プロパティ
+        public string parentGroupId;  // 親グループのUID
+        public List<string> childAssetIds;  // 子アセットのUIDリスト（このアセットがグループの場合）
+        public bool isGroup;  // このアセットがグループかどうか        
         public AssetInfo()
         {
             uid = Guid.NewGuid().ToString();
@@ -157,8 +168,12 @@ namespace AMU.AssetManager.Data
             isFavorite = false;
             isHidden = false;
             boothItem = null; // デフォルトでは値が割り振られていない
-        }
 
+            // グループ機能用プロパティの初期化
+            parentGroupId = null;
+            childAssetIds = new List<string>();
+            isGroup = false;
+        }
         public AssetInfo Clone()
         {
             return new AssetInfo
@@ -177,7 +192,63 @@ namespace AMU.AssetManager.Data
                 isFavorite = this.isFavorite,
                 isHidden = this.isHidden,
                 boothItem = this.boothItem?.Clone(),
+
+                // グループ機能用プロパティのコピー
+                parentGroupId = this.parentGroupId,
+                childAssetIds = new List<string>(this.childAssetIds),
+                isGroup = this.isGroup,
             };
+        }
+
+        // グループ機能用のヘルパーメソッド
+        public bool HasParent()
+        {
+            return !string.IsNullOrEmpty(parentGroupId);
+        }
+
+        public bool HasChildren()
+        {
+            return childAssetIds != null && childAssetIds.Count > 0;
+        }
+
+        public void AddChildAsset(string childAssetId)
+        {
+            if (childAssetIds == null)
+                childAssetIds = new List<string>();
+
+            if (!childAssetIds.Contains(childAssetId))
+            {
+                childAssetIds.Add(childAssetId);
+                isGroup = true; // 子要素を持つ場合はグループとして扱う
+            }
+        }
+
+        public void RemoveChildAsset(string childAssetId)
+        {
+            if (childAssetIds != null)
+            {
+                childAssetIds.Remove(childAssetId);
+                if (childAssetIds.Count == 0)
+                {
+                    isGroup = false; // 子要素がなくなったらグループではない
+                }
+            }
+        }
+
+        public void SetParentGroup(string parentId)
+        {
+            parentGroupId = parentId;
+        }
+
+        public void RemoveFromParentGroup()
+        {
+            parentGroupId = null;
+        }
+
+        public bool IsVisibleInList()
+        {
+            // 親グループが存在するアセットは非表示
+            return !HasParent();
         }
     }
     [Serializable]

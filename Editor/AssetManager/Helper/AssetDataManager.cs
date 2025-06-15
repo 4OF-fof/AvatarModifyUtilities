@@ -165,12 +165,15 @@ namespace AMU.AssetManager.Helper
                     // ファイルを非同期で読み込み
                     string json = await ReadFileAsync(_dataFilePath);
 
-                    // JSONのデシリアライズを別スレッドで実行
+                    // JSONのデシリアライズを別スレッドで実行                    
                     _assetLibrary = await Task.Run(() =>
-                        JsonConvert.DeserializeObject<AssetLibrary>(json) ?? CreateDefaultAssetLibrary());
+                    JsonConvert.DeserializeObject<AssetLibrary>(json) ?? CreateDefaultAssetLibrary());
 
                     UpdateFileTrackingInfo();
                     UpdateIndexes();
+
+                    // グループの整合性をチェック・修復
+                    RepairOrphanedAssets();
                 }
 
                 _isLoading = false;
@@ -414,11 +417,9 @@ namespace AMU.AssetManager.Helper
             CacheSearchResult(searchHash, assets);
 
             return assets;
-        }
-
-        /// <summary>
-        /// フィルタを適用してアセットを取得
-        /// </summary>
+        }        /// <summary>
+                 /// フィルタを適用してアセットを取得
+                 /// </summary>
         private List<AssetInfo> GetFilteredAssets(string filterType, bool? favoritesOnly, bool showHidden, bool? archivedOnly)
         {
             List<AssetInfo> assets;
@@ -433,6 +434,10 @@ namespace AMU.AssetManager.Helper
             {
                 assets = GetAllAssets();
             }
+
+            // グループ機能：表示対象のアセットのみをフィルタリング
+            // （親グループを持つアセットは除外）
+            assets = assets.Where(a => a.IsVisibleInList()).ToList();
 
             // お気に入りフィルター
             if (favoritesOnly.HasValue && favoritesOnly.Value)
@@ -777,5 +782,197 @@ namespace AMU.AssetManager.Helper
 
             return asset;
         }
+
+        #region グループ管理機能
+
+        /// <summary>
+        /// 新しいグループを作成
+        /// </summary>
+        public AssetInfo CreateGroup(string groupName, string description = "")
+        {
+            var groupAsset = new AssetInfo
+            {
+                uid = Guid.NewGuid().ToString(),
+                name = groupName,
+                description = description,
+                assetType = "Group", // グループ専用のタイプ
+                isGroup = true,
+                filePath = "", // グループは物理ファイルを持たない
+                thumbnailPath = "",
+                authorName = "",
+                createdDate = DateTime.Now,
+                fileSize = 0,
+                tags = new List<string>(),
+                dependencies = new List<string>(),
+                isFavorite = false,
+                isHidden = false,
+                parentGroupId = null,
+                childAssetIds = new List<string>()
+            };
+
+            AddAsset(groupAsset);
+            return groupAsset;
+        }
+
+        /// <summary>
+        /// アセットをグループに追加
+        /// </summary>
+        public bool AddAssetToGroup(string assetId, string groupId)
+        {
+            var asset = GetAsset(assetId);
+            var group = GetAsset(groupId);
+
+            if (asset == null || group == null || !group.isGroup)
+                return false;
+
+            // 既に別のグループに属している場合は先に削除
+            if (asset.HasParent())
+            {
+                RemoveAssetFromGroup(assetId);
+            }
+
+            // グループに追加
+            group.AddChildAsset(assetId);
+            asset.SetParentGroup(groupId);
+
+            InvalidateCache();
+            SaveData();
+
+            return true;
+        }
+
+        /// <summary>
+        /// アセットをグループから削除
+        /// </summary>
+        public bool RemoveAssetFromGroup(string assetId)
+        {
+            var asset = GetAsset(assetId);
+            if (asset == null || !asset.HasParent())
+                return false;
+
+            var group = GetAsset(asset.parentGroupId);
+            if (group != null)
+            {
+                group.RemoveChildAsset(assetId);
+            }
+
+            asset.RemoveFromParentGroup();
+
+            InvalidateCache();
+            SaveData();
+
+            return true;
+        }
+
+        /// <summary>
+        /// グループを解散（子アセットをすべて独立させる）
+        /// </summary>
+        public bool DisbandGroup(string groupId)
+        {
+            var group = GetAsset(groupId);
+            if (group == null || !group.isGroup)
+                return false;
+
+            // 子アセットをすべて独立させる
+            var childIds = new List<string>(group.childAssetIds);
+            foreach (var childId in childIds)
+            {
+                RemoveAssetFromGroup(childId);
+            }
+
+            // グループ自体を削除
+            RemoveAsset(groupId);
+
+            return true;
+        }
+
+        /// <summary>
+        /// グループの子アセットを取得
+        /// </summary>
+        public List<AssetInfo> GetGroupChildren(string groupId)
+        {
+            var group = GetAsset(groupId);
+            if (group == null || !group.isGroup)
+                return new List<AssetInfo>();
+
+            var children = new List<AssetInfo>();
+            foreach (var childId in group.childAssetIds)
+            {
+                var child = GetAsset(childId);
+                if (child != null)
+                {
+                    children.Add(child);
+                }
+            }
+
+            return children;
+        }
+
+        /// <summary>
+        /// 表示対象のアセットのみを取得（親グループを持つアセットは除外）
+        /// </summary>
+        public List<AssetInfo> GetVisibleAssets()
+        {
+            if (_assetLibrary?.assets == null)
+                return new List<AssetInfo>();
+
+            return _assetLibrary.assets.Where(asset => asset.IsVisibleInList()).ToList();
+        }
+
+        /// <summary>
+        /// すべてのグループアセットを取得
+        /// </summary>
+        public List<AssetInfo> GetGroupAssets()
+        {
+            if (_assetLibrary?.assets == null)
+                return new List<AssetInfo>();
+
+            return _assetLibrary.assets.Where(asset => asset.isGroup).ToList();
+        }
+
+        /// <summary>
+        /// 孤立した子アセット（親グループが存在しない子アセット）を修復
+        /// </summary>
+        public void RepairOrphanedAssets()
+        {
+            if (_assetLibrary?.assets == null)
+                return;
+
+            var allAssetIds = _assetLibrary.assets.Select(a => a.uid).ToHashSet();
+            bool hasChanges = false;
+
+            foreach (var asset in _assetLibrary.assets)
+            {
+                // 親グループが存在しない場合は親を削除
+                if (asset.HasParent() && !allAssetIds.Contains(asset.parentGroupId))
+                {
+                    asset.RemoveFromParentGroup();
+                    hasChanges = true;
+                }
+
+                // 存在しない子アセットIDを削除
+                if (asset.isGroup && asset.childAssetIds.Count > 0)
+                {
+                    var validChildren = asset.childAssetIds.Where(id => allAssetIds.Contains(id)).ToList();
+                    if (validChildren.Count != asset.childAssetIds.Count)
+                    {
+                        asset.childAssetIds = validChildren;
+                        if (asset.childAssetIds.Count == 0)
+                        {
+                            asset.isGroup = false;
+                        }
+                        hasChanges = true;
+                    }
+                }
+            }
+
+            if (hasChanges)
+            {
+                InvalidateCache();
+                SaveData();
+            }
+        }
+
+        #endregion
     }
 }
