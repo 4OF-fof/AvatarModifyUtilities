@@ -665,14 +665,13 @@ namespace AMU.AssetManager.Helper
                 return criteria.selectedTags.Any(selectedTag =>
                     asset.tags.Any(assetTag => assetTag.ToLower().Contains(selectedTag.ToLower())));
             }
-        }
-
+        }        
         /// <summary>
-        /// BPMLibraryからアセットをインポート
+        /// BPMLibraryからアセットをインポート（同じitemUrlのアイテムは自動グループ化）
         /// </summary>
-        public List<AssetInfo> ImportFromBPMLibrary(BPMDataManager bpmManager, string defaultAssetType, List<string> defaultTags = null)
+        public List<AssetInfo> ImportFromBPMLibrary(BPMDataManager bmpManager, string defaultAssetType, List<string> defaultTags = null)
         {
-            if (bpmManager?.Library?.authors == null)
+            if (bmpManager?.Library?.authors == null)
             {
                 Debug.LogWarning("[AssetDataManager] BPMLibrary is not loaded or empty");
                 return new List<AssetInfo>();
@@ -680,26 +679,68 @@ namespace AMU.AssetManager.Helper
 
             var importedAssets = new List<AssetInfo>();
             var existingDownloadUrls = GetExistingDownloadUrls();
+            var packageGroups = new Dictionary<string, AssetInfo>(); // itemUrl -> グループアセット
 
             // BPMLibraryのlastUpdatedを取得してパース
             DateTime bmpLastUpdated = DateTime.Now; // デフォルト値
-            if (!string.IsNullOrEmpty(bpmManager.Library.lastUpdated))
+            if (!string.IsNullOrEmpty(bmpManager.Library.lastUpdated))
             {
-                if (!DateTime.TryParse(bpmManager.Library.lastUpdated, out bmpLastUpdated))
+                if (!DateTime.TryParse(bmpManager.Library.lastUpdated, out bmpLastUpdated))
                 {
                     // パースに失敗した場合は現在時刻を使用
                     bmpLastUpdated = DateTime.Now;
-                    Debug.LogWarning($"[AssetDataManager] Failed to parse BPM lastUpdated: {bpmManager.Library.lastUpdated}");
+                    Debug.LogWarning($"[AssetDataManager] Failed to parse BPM lastUpdated: {bmpManager.Library.lastUpdated}");
                 }
             }
 
-            foreach (var author in bpmManager.Library.authors)
+            foreach (var author in bmpManager.Library.authors)
             {
                 string authorName = author.Key;
                 foreach (var package in author.Value)
                 {
                     if (package.files?.Count > 0)
                     {
+                        // 同じitemUrlの複数ファイルがある場合、グループ化の対象となる
+                        bool needsGrouping = package.files.Count > 1;
+                        AssetInfo groupAsset = null;
+
+                        if (needsGrouping)
+                        {
+                            // グループが既に存在するかチェック
+                            if (!packageGroups.TryGetValue(package.itemUrl, out groupAsset))
+                            {
+                                // 新しいグループを作成
+                                groupAsset = new AssetInfo
+                                {
+                                    uid = Guid.NewGuid().ToString(),
+                                    name = package.packageName ?? "Unknown Package",
+                                    description = "",
+                                    assetType = defaultAssetType,
+                                    isGroup = true,
+                                    filePath = "", // グループは物理ファイルを持たない
+                                    thumbnailPath = "",
+                                    authorName = authorName,
+                                    createdDate = bmpLastUpdated,
+                                    fileSize = 0,
+                                    tags = defaultTags != null ? new List<string>(defaultTags) : new List<string>(),
+                                    dependencies = new List<string>(),
+                                    isFavorite = false,
+                                    isHidden = false,
+                                    parentGroupId = null,
+                                    childAssetIds = new List<string>(),
+                                    boothItem = new BoothItem
+                                    {
+                                        boothItemUrl = package.itemUrl,
+                                        boothfileName = "",
+                                        boothDownloadUrl = ""
+                                    }
+                                };
+
+                                packageGroups[package.itemUrl] = groupAsset;
+                                importedAssets.Add(groupAsset);
+                            }
+                        }
+
                         foreach (var file in package.files)
                         {
                             // 既に同じダウンロードリンクが存在する場合はスキップ
@@ -710,6 +751,14 @@ namespace AMU.AssetManager.Helper
                             }
 
                             var assetInfo = CreateAssetFromBPMPackage(package, file, authorName, defaultAssetType, defaultTags, bmpLastUpdated);
+
+                            if (needsGrouping && groupAsset != null)
+                            {
+                                // グループの子アセットとして設定
+                                assetInfo.SetParentGroup(groupAsset.uid);
+                                groupAsset.AddChildAsset(assetInfo.uid);
+                            }
+
                             importedAssets.Add(assetInfo);
                         }
                     }
@@ -728,7 +777,7 @@ namespace AMU.AssetManager.Helper
                 InvalidateCache();
                 SaveData();
 
-                Debug.Log($"[AssetDataManager] Imported {importedAssets.Count} assets from BPMLibrary");
+                Debug.Log($"[AssetDataManager] Imported {importedAssets.Count} assets from BPMLibrary (with auto-grouping)");
             }
 
             return importedAssets;
