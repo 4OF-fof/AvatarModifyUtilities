@@ -61,16 +61,16 @@ namespace AMU.AssetManager.Helper
             // 既に読み込み中の場合はデフォルトを返す
             if (_loadingThumbnails.Contains(asset.uid))
             {
-                return GetDefaultThumbnail(asset.assetType);
+                return GetDefaultThumbnail(asset);
             }
 
             // 非同期で読み込みを開始
             LoadThumbnailAsync(asset);
 
-            return GetDefaultThumbnail(asset.assetType);
-        }        /// <summary>
-                 /// サムネイルを非同期で読み込む
-                 /// </summary>
+            return GetDefaultThumbnail(asset);
+        }/// <summary>
+         /// サムネイルを非同期で読み込む
+         /// </summary>
         private async void LoadThumbnailAsync(AssetInfo asset)
         {
             if (_loadingThumbnails.Contains(asset.uid)) return;
@@ -413,8 +413,14 @@ namespace AMU.AssetManager.Helper
                 Debug.LogError($"[AssetThumbnailManager] Failed to save texture to {filePath}: {ex.Message}");
             }
         }
-        private Texture2D GetDefaultThumbnail(string assetType)
+        private Texture2D GetDefaultThumbnail(AssetInfo asset)
         {
+            // グループの場合はフォルダアイコンを表示
+            if (asset.isGroup)
+            {
+                return EditorGUIUtility.IconContent("Folder Icon").image as Texture2D;
+            }
+
             // サムネイルが設定されていない場合は、ファイル形式に関わらずPrefabアイコンを表示
             return EditorGUIUtility.IconContent("Prefab Icon").image as Texture2D;
         }
@@ -438,7 +444,16 @@ namespace AMU.AssetManager.Helper
             }
             else
             {
-                GUI.Box(rect, "No Image");
+                // サムネイルがない場合はデフォルトアイコンを表示
+                var defaultIcon = GetDefaultThumbnail(asset);
+                if (defaultIcon != null)
+                {
+                    GUI.DrawTexture(rect, defaultIcon, ScaleMode.ScaleToFit);
+                }
+                else
+                {
+                    GUI.Box(rect, "No Image");
+                }
             }
         }
     }

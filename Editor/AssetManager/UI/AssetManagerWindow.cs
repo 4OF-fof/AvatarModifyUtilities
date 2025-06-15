@@ -630,7 +630,7 @@ namespace AMU.AssetManager.UI
                 else
                 {
                     // デフォルトアイコンまたはプレースホルダーを表示
-                    var defaultIcon = GetDefaultIcon(asset.assetType);
+                    var defaultIcon = GetDefaultIcon(asset);
                     if (defaultIcon != null)
                     {
                         GUI.DrawTexture(thumbnailRect, defaultIcon, ScaleMode.ScaleToFit);
@@ -659,14 +659,19 @@ namespace AMU.AssetManager.UI
         {
             var scrollViewRect = new Rect(0, _rightScrollPosition.y, position.width, position.height);
             return rect.Overlaps(scrollViewRect);
-        }
-
+        }      
         /// <summary>
         /// アセットタイプに応じたデフォルトアイコンを取得
         /// </summary>
-        private Texture2D GetDefaultIcon(string assetType)
+        private Texture2D GetDefaultIcon(AssetInfo asset)
         {
-            switch (assetType)
+            // グループの場合はフォルダアイコンを表示
+            if (asset.isGroup)
+            {
+                return EditorGUIUtility.IconContent("Folder Icon").image as Texture2D;
+            }
+
+            switch (asset.assetType)
             {
                 case "Avatar":
                 case "Prefab":
@@ -682,9 +687,10 @@ namespace AMU.AssetManager.UI
                 default:
                     return EditorGUIUtility.IconContent("DefaultAsset Icon").image as Texture2D;
             }
-        }        /// <summary>
-                 /// アセットのインジケーター（お気に入り、非表示など）を描画
-                 /// </summary>
+        }        
+        /// <summary>
+        /// アセットのインジケーター（お気に入り、非表示など）を描画
+        /// </summary>
         private void DrawAssetIndicators(AssetInfo asset, Rect thumbnailRect)
         {
             // Group indicator (グループアセットの場合)
