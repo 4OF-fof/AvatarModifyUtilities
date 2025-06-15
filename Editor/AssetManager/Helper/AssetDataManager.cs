@@ -793,22 +793,147 @@ namespace AMU.AssetManager.Helper
         }
 
         /// <summary>
-        /// 既存のダウンロードURLのセットを取得
+        /// BPMLibraryからアセットをインポート（個別設定使用）
         /// </summary>
-        private HashSet<string> GetExistingDownloadUrls()
+        public List<AssetInfo> ImportFromBPMLibraryWithIndividualSettings(
+            BPMDataManager bmpManager,
+            Dictionary<string, AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings> packageSettings,
+            Dictionary<string, AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings> fileSettings)
         {
-            var urls = new HashSet<string>();
-            if (_assetLibrary?.assets != null)
+            if (bmpManager?.Library?.authors == null)
             {
-                foreach (var asset in _assetLibrary.assets)
+                Debug.LogWarning("[AssetDataManager] BPMLibrary is not loaded or empty");
+                return new List<AssetInfo>();
+            }
+
+            var importedAssets = new List<AssetInfo>();
+            var existingDownloadUrls = GetExistingDownloadUrls();
+            var packageGroups = new Dictionary<string, AssetInfo>(); // itemUrl -> グループアセット
+
+            // BPMLibraryのlastUpdatedを取得してパース
+            DateTime bmpLastUpdated = DateTime.Now;
+            if (!string.IsNullOrEmpty(bmpManager.Library.lastUpdated))
+            {
+                if (!DateTime.TryParse(bmpManager.Library.lastUpdated, out bmpLastUpdated))
                 {
-                    if (asset.boothItem?.boothDownloadUrl != null)
+                    bmpLastUpdated = DateTime.Now;
+                    Debug.LogWarning($"[AssetDataManager] Failed to parse BPM lastUpdated: {bmpManager.Library.lastUpdated}");
+                }
+            }
+
+            foreach (var author in bmpManager.Library.authors)
+            {
+                string authorName = author.Key;
+                foreach (var package in author.Value)
+                {
+                    if (package.files?.Count > 0)
                     {
-                        urls.Add(asset.boothItem.boothDownloadUrl);
+                        bool needsGrouping = package.files.Count > 1;
+                        AssetInfo groupAsset = null;
+                        string packageKey = $"{authorName}|{package.itemUrl}";
+
+                        if (needsGrouping)
+                        {
+                            // グループが既に存在するかチェック
+                            if (!packageGroups.TryGetValue(package.itemUrl, out groupAsset))
+                            {
+                                // パッケージ設定を取得
+                                var packageSetting = packageSettings.ContainsKey(packageKey)
+                                    ? packageSettings[packageKey]
+                                    : new AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings();
+
+                                // 新しいグループを作成
+                                groupAsset = new AssetInfo
+                                {
+                                    uid = Guid.NewGuid().ToString(),
+                                    name = package.packageName ?? "Unknown Package",
+                                    description = "",
+                                    assetType = packageSetting.assetType,
+                                    isGroup = true,
+                                    filePath = "",
+                                    thumbnailPath = "",
+                                    authorName = authorName,
+                                    createdDate = bmpLastUpdated,
+                                    fileSize = 0,
+                                    tags = new List<string>(packageSetting.tags),
+                                    dependencies = new List<string>(),
+                                    isFavorite = false,
+                                    isHidden = false,
+                                    parentGroupId = null,
+                                    childAssetIds = new List<string>(),
+                                    boothItem = new BoothItem
+                                    {
+                                        boothItemUrl = package.itemUrl,
+                                        boothfileName = "",
+                                        boothDownloadUrl = ""
+                                    }
+                                };
+
+                                packageGroups[package.itemUrl] = groupAsset;
+                                importedAssets.Add(groupAsset);
+                            }
+                        }
+
+                        foreach (var file in package.files)
+                        {
+                            // 既に同じダウンロードリンクが存在する場合はスキップ
+                            if (existingDownloadUrls.Contains(file.downloadLink))
+                            {
+                                Debug.Log($"[AssetDataManager] Skipping duplicate download link: {file.downloadLink}");
+                                continue;
+                            }
+
+                            // ファイル設定を取得
+                            AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings fileSetting;
+                            if (needsGrouping)
+                            {
+                                // グループ化される場合はパッケージ設定を使用
+                                fileSetting = packageSettings.ContainsKey(packageKey)
+                                    ? packageSettings[packageKey]
+                                    : new AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings();
+                            }
+                            else
+                            {
+                                // 個別ファイルの場合は個別設定を使用
+                                string fileKey = $"{authorName}|{package.itemUrl}|{file.fileName}";
+                                fileSetting = fileSettings.ContainsKey(fileKey)
+                                    ? fileSettings[fileKey]
+                                    : new AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings();
+                            }
+
+                            var assetInfo = CreateAssetFromBPMPackageWithSettings(package, file, authorName, fileSetting, bmpLastUpdated);
+
+                            if (needsGrouping && groupAsset != null)
+                            {
+                                // グループの子アセットとして設定
+                                assetInfo.SetParentGroup(groupAsset.uid);
+                                groupAsset.AddChildAsset(assetInfo.uid);
+                            }
+
+                            importedAssets.Add(assetInfo);
+                        }
                     }
                 }
             }
-            return urls;
+
+            // インポートしたアセットをライブラリに追加
+            if (importedAssets.Count > 0)
+            {
+                if (_assetLibrary?.assets == null)
+                {
+                    _assetLibrary = CreateDefaultAssetLibrary();
+                }
+                _assetLibrary.assets.AddRange(importedAssets);
+                InvalidateCache();
+                SaveData();
+
+                // 画像を非同期で取得してサムネイルとして設定
+                _ = ProcessThumbnailsFromBPMAsync(importedAssets, bmpManager);
+
+                Debug.Log($"[AssetDataManager] Imported {importedAssets.Count} assets from BPMLibrary with individual settings");
+            }
+
+            return importedAssets;
         }
 
         /// <summary>
@@ -820,13 +945,13 @@ namespace AMU.AssetManager.Helper
             {
                 uid = Guid.NewGuid().ToString(),
                 name = file.fileName ?? "Unknown File",
-                description = "", // 空に設定
+                description = "",
                 assetType = assetType,
-                filePath = "", // 空に設定
+                filePath = "",
                 thumbnailPath = "",
                 authorName = authorName,
-                createdDate = bmpLastUpdated, // BPMLibraryのlastUpdatedを設定
-                fileSize = 0, // 空に設定
+                createdDate = bmpLastUpdated,
+                fileSize = 0,
                 tags = tags != null ? new List<string>(tags) : new List<string>(),
                 dependencies = new List<string>(),
                 isFavorite = false,
@@ -837,7 +962,40 @@ namespace AMU.AssetManager.Helper
                     boothfileName = file.fileName,
                     boothDownloadUrl = file.downloadLink
                 }
-            }; return asset;
+            };
+
+            return asset;
+        }
+
+        /// <summary>
+        /// BPMPackageからAssetInfoを作成（設定付き）
+        /// </summary>
+        private AssetInfo CreateAssetFromBPMPackageWithSettings(BPMPackage package, BPMFileInfo file, string authorName, AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings settings, DateTime bmpLastUpdated)
+        {
+            var asset = new AssetInfo
+            {
+                uid = Guid.NewGuid().ToString(),
+                name = file.fileName ?? "Unknown File",
+                description = "",
+                assetType = settings.assetType,
+                filePath = "",
+                thumbnailPath = "",
+                authorName = authorName,
+                createdDate = bmpLastUpdated,
+                fileSize = 0,
+                tags = new List<string>(settings.tags),
+                dependencies = new List<string>(),
+                isFavorite = false,
+                isHidden = false,
+                boothItem = new BoothItem
+                {
+                    boothItemUrl = package.itemUrl,
+                    boothfileName = file.fileName,
+                    boothDownloadUrl = file.downloadLink
+                }
+            };
+
+            return asset;
         }
 
         /// <summary>
@@ -1247,6 +1405,25 @@ namespace AMU.AssetManager.Helper
                 InvalidateCache();
                 SaveData();
             }
+        }
+
+        /// <summary>
+        /// 既存のダウンロードURLのセットを取得
+        /// </summary>
+        private HashSet<string> GetExistingDownloadUrls()
+        {
+            var urls = new HashSet<string>();
+            if (_assetLibrary?.assets != null)
+            {
+                foreach (var asset in _assetLibrary.assets)
+                {
+                    if (asset.boothItem?.boothDownloadUrl != null)
+                    {
+                        urls.Add(asset.boothItem.boothDownloadUrl);
+                    }
+                }
+            }
+            return urls;
         }
 
         #endregion
