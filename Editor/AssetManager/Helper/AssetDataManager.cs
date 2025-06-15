@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEditor;
 using Newtonsoft.Json;
 using AMU.AssetManager.Data;
+using AMU.BoothPackageManager.Helper;
 
 namespace AMU.AssetManager.Helper
 {
@@ -658,6 +659,111 @@ namespace AMU.AssetManager.Helper
                 return criteria.selectedTags.Any(selectedTag =>
                     asset.tags.Any(assetTag => assetTag.ToLower().Contains(selectedTag.ToLower())));
             }
+        }
+
+        /// <summary>
+        /// BPMLibraryからアセットをインポート
+        /// </summary>
+        public List<AssetInfo> ImportFromBPMLibrary(BPMDataManager bpmManager, string defaultAssetType, List<string> defaultTags = null)
+        {
+            if (bpmManager?.Library?.authors == null)
+            {
+                Debug.LogWarning("[AssetDataManager] BPMLibrary is not loaded or empty");
+                return new List<AssetInfo>();
+            }
+
+            var importedAssets = new List<AssetInfo>();
+            var existingDownloadUrls = GetExistingDownloadUrls();
+
+            foreach (var author in bpmManager.Library.authors)
+            {
+                string authorName = author.Key;
+                foreach (var package in author.Value)
+                {
+                    if (package.files?.Count > 0)
+                    {
+                        foreach (var file in package.files)
+                        {
+                            // 既に同じダウンロードリンクが存在する場合はスキップ
+                            if (existingDownloadUrls.Contains(file.downloadLink))
+                            {
+                                Debug.Log($"[AssetDataManager] Skipping duplicate download link: {file.downloadLink}");
+                                continue;
+                            }
+
+                            var assetInfo = CreateAssetFromBPMPackage(package, file, authorName, defaultAssetType, defaultTags);
+                            importedAssets.Add(assetInfo);
+                        }
+                    }
+                }
+            }
+
+            // インポートしたアセットをライブラリに追加
+            if (importedAssets.Count > 0)
+            {
+                if (_assetLibrary?.assets == null)
+                {
+                    _assetLibrary = CreateDefaultAssetLibrary();
+                }
+
+                _assetLibrary.assets.AddRange(importedAssets);
+                InvalidateCache();
+                SaveData();
+
+                Debug.Log($"[AssetDataManager] Imported {importedAssets.Count} assets from BPMLibrary");
+            }
+
+            return importedAssets;
+        }
+
+        /// <summary>
+        /// 既存のダウンロードURLのセットを取得
+        /// </summary>
+        private HashSet<string> GetExistingDownloadUrls()
+        {
+            var urls = new HashSet<string>();
+            if (_assetLibrary?.assets != null)
+            {
+                foreach (var asset in _assetLibrary.assets)
+                {
+                    if (asset.boothItem?.boothDownloadUrl != null)
+                    {
+                        urls.Add(asset.boothItem.boothDownloadUrl);
+                    }
+                }
+            }
+            return urls;
+        }
+
+        /// <summary>
+        /// BPMPackageからAssetInfoを作成
+        /// </summary>
+        private AssetInfo CreateAssetFromBPMPackage(BPMPackage package, BPMFileInfo file, string authorName, string assetType, List<string> tags)
+        {
+            var asset = new AssetInfo
+            {
+                uid = Guid.NewGuid().ToString(),
+                name = package.packageName ?? "Unknown Package",
+                description = "", // 空に設定
+                assetType = assetType,
+                filePath = "", // 空に設定
+                thumbnailPath = "",
+                authorName = authorName,
+                createdDate = DateTime.MinValue, // 空に設定
+                fileSize = 0, // 空に設定
+                tags = tags != null ? new List<string>(tags) : new List<string>(),
+                dependencies = new List<string>(),
+                isFavorite = false,
+                isHidden = false,
+                boothItem = new BoothItem
+                {
+                    boothItemUrl = package.itemUrl,
+                    boothfileName = file.fileName,
+                    boothDownloadUrl = file.downloadLink
+                }
+            };
+
+            return asset;
         }
     }
 }

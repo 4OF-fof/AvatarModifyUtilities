@@ -8,6 +8,7 @@ using AMU.AssetManager.Helper;
 using AMU.Editor.Core.Helper;
 using AMU.Data.Lang;
 using AMU.Data.TagType;
+using AMU.BoothPackageManager.Helper;
 
 namespace AMU.AssetManager.UI
 {
@@ -329,12 +330,16 @@ namespace AMU.AssetManager.UI
                         _needsUIRefresh = true;
                     }
 
-                    GUILayout.Space(10);
-
-                    if (GUILayout.Button(LocalizationManager.GetText("AssetManager_addAsset"), EditorStyles.toolbarButton))
+                    GUILayout.Space(10); if (GUILayout.Button(LocalizationManager.GetText("AssetManager_addAsset"), EditorStyles.toolbarButton))
                     {
                         ShowAddAssetDialog();
                     }
+
+                    if (GUILayout.Button(LocalizationManager.GetText("AssetManager_importFromBPM"), EditorStyles.toolbarButton))
+                    {
+                        ShowBPMImportDialog();
+                    }
+
                     if (GUILayout.Button(LocalizationManager.GetText("Common_refresh"), EditorStyles.toolbarButton))
                     {
                         RefreshData();
@@ -848,6 +853,15 @@ namespace AMU.AssetManager.UI
                     _needsUIRefresh = true;
                 }
             }
+        }
+
+        private void ShowBPMImportDialog()
+        {
+            BPMImportWindow.ShowWindow(_dataManager, () =>
+            {
+                _needsUIRefresh = true;
+                RefreshAssetList();
+            });
         }
         /// <summary>
         /// 高速化されたアセットリスト更新
