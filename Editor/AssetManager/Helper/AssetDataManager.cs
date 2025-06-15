@@ -163,11 +163,15 @@ namespace AMU.AssetManager.Helper
                 else
                 {
                     // ファイルを非同期で読み込み
-                    string json = await ReadFileAsync(_dataFilePath);
-
-                    // JSONのデシリアライズを別スレッドで実行
+                    string json = await ReadFileAsync(_dataFilePath);                    // JSONのデシリアライズを別スレッドで実行
                     _assetLibrary = await Task.Run(() =>
                         JsonConvert.DeserializeObject<AssetLibrary>(json) ?? CreateDefaultAssetLibrary());
+
+                    // 後方互換性: groupsプロパティが存在しない場合は初期化
+                    if (_assetLibrary.groups == null)
+                    {
+                        _assetLibrary.groups = new List<GroupInfo>();
+                    }
 
                     UpdateFileTrackingInfo();
                     UpdateIndexes();
@@ -576,13 +580,13 @@ namespace AMU.AssetManager.Helper
                 Directory.CreateDirectory(directory);
             }
         }
-
         private AssetLibrary CreateDefaultAssetLibrary()
         {
             return new AssetLibrary
             {
                 lastUpdated = DateTime.Now,
-                assets = new List<AssetInfo>()
+                assets = new List<AssetInfo>(),
+                groups = new List<GroupInfo>()
             };
         }
 
@@ -674,7 +678,7 @@ namespace AMU.AssetManager.Helper
 
             var importedAssets = new List<AssetInfo>();
             var existingDownloadUrls = GetExistingDownloadUrls();
-            
+
             // BPMLibraryのlastUpdatedを取得してパース
             DateTime bmpLastUpdated = DateTime.Now; // デフォルト値
             if (!string.IsNullOrEmpty(bpmManager.Library.lastUpdated))
@@ -776,6 +780,174 @@ namespace AMU.AssetManager.Helper
             };
 
             return asset;
+        }
+
+        // グループ関連のメソッド
+        public void AddGroup(GroupInfo group)
+        {
+            if (_assetLibrary?.groups == null)
+            {
+                Debug.Log("[AssetDataManager] AssetLibrary not initialized. Creating new instance.");
+                _assetLibrary = CreateDefaultAssetLibrary();
+            }
+
+            _assetLibrary.groups.Add(group);
+            InvalidateCache();
+            SaveData();
+        }
+
+        public void UpdateGroup(GroupInfo group)
+        {
+            if (_assetLibrary?.groups == null) return;
+
+            var existingGroup = _assetLibrary.groups.FirstOrDefault(g => g.groupUid == group.groupUid);
+            if (existingGroup != null)
+            {
+                var index = _assetLibrary.groups.IndexOf(existingGroup);
+                _assetLibrary.groups[index] = group;
+                InvalidateCache();
+                SaveData();
+            }
+        }
+
+        public void RemoveGroup(string groupUid)
+        {
+            if (_assetLibrary?.groups == null) return;
+
+            var group = _assetLibrary.groups.FirstOrDefault(g => g.groupUid == groupUid);
+            if (group != null)
+            {
+                // グループに属するアセットのグループ情報をクリア
+                GroupManager.UngroupAssets(group, _assetLibrary.assets);
+
+                _assetLibrary.groups.Remove(group);
+                InvalidateCache();
+                SaveData();
+            }
+        }
+
+        public GroupInfo GetGroup(string groupUid)
+        {
+            return GetAllGroups().FirstOrDefault(g => g.groupUid == groupUid);
+        }
+
+        public GroupInfo GetGroupByName(string groupName)
+        {
+            return GetAllGroups().FirstOrDefault(g => g.groupName == groupName);
+        }
+
+        public List<GroupInfo> GetAllGroups()
+        {
+            return _assetLibrary?.groups ?? new List<GroupInfo>();
+        }
+
+        public List<AssetInfo> GetGroupAssets(string groupUid)
+        {
+            var group = GetGroup(groupUid);
+            if (group == null) return new List<AssetInfo>();
+
+            return GroupManager.GetGroupAssets(group, GetAllAssets());
+        }
+
+        public GroupInfo CreateGroupFromAssets(string groupName, List<AssetInfo> assets)
+        {
+            var group = GroupManager.CreateGroupFromAssets(groupName, assets);
+            AddGroup(group);
+
+            // アセットの更新を保存
+            foreach (var asset in assets)
+            {
+                UpdateAsset(asset);
+            }
+
+            return group;
+        }
+
+        public void AddAssetToGroup(string groupUid, string assetUid)
+        {
+            var group = GetGroup(groupUid);
+            var asset = GetAsset(assetUid);
+
+            if (group != null && asset != null)
+            {
+                GroupManager.AddAssetToGroup(group, asset);
+                UpdateGroup(group);
+                UpdateAsset(asset);
+            }
+        }
+
+        public void RemoveAssetFromGroup(string assetUid)
+        {
+            var asset = GetAsset(assetUid);
+            if (asset != null && !string.IsNullOrEmpty(asset.groupUid))
+            {
+                var group = GetGroup(asset.groupUid);
+                if (group != null)
+                {
+                    GroupManager.RemoveAssetFromGroup(group, asset);
+                    UpdateGroup(group);
+                }
+                UpdateAsset(asset);
+            }
+        }
+
+        public void CleanupEmptyGroups()
+        {
+            if (_assetLibrary != null)
+            {
+                GroupManager.CleanupEmptyGroups(_assetLibrary);
+                SaveData();
+            }
+        }
+
+        public List<AssetInfo> SearchGroups(string searchText, string filterType = null, bool? favoritesOnly = null, bool showHidden = false)
+        {
+            var groups = GetAllGroups();
+            var results = new List<AssetInfo>();
+
+            foreach (var group in groups)
+            {
+                // グループの表示用AssetInfoを作成
+                var groupAsset = ConvertGroupToAssetInfo(group);
+
+                // フィルタリング
+                if (!string.IsNullOrEmpty(searchText) &&
+                    !group.groupName.ToLower().Contains(searchText.ToLower()) &&
+                    !group.description.ToLower().Contains(searchText.ToLower()))
+                    continue;
+
+                if (favoritesOnly.HasValue && favoritesOnly.Value && !group.isFavorite)
+                    continue;
+
+                if (!showHidden && group.isHidden)
+                    continue;
+
+                results.Add(groupAsset);
+            }
+
+            return results;
+        }
+
+        private AssetInfo ConvertGroupToAssetInfo(GroupInfo group)
+        {
+            return new AssetInfo
+            {
+                uid = group.groupUid,
+                name = group.groupName,
+                description = group.description,
+                assetType = "Group",
+                filePath = "", // グループはファイルパスを持たない
+                thumbnailPath = group.thumbnailPath,
+                authorName = group.authorName,
+                createdDate = group.createdDate,
+                fileSize = 0, // グループ自体のサイズは0
+                tags = new List<string>(group.tags),
+                dependencies = new List<string>(),
+                isFavorite = group.isFavorite,
+                isHidden = group.isHidden,
+                boothItem = null,
+                groupUid = null // グループ自体は別のグループに属さない
+            };
         }
     }
 }
