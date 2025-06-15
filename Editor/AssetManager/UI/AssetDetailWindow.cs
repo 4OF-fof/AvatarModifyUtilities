@@ -239,16 +239,14 @@ namespace AMU.AssetManager.UI
                         }
                         GUILayout.FlexibleSpace();
                     }
-                }
-
-                // Import ボタン（UnityPackageの場合のみ表示）
-                if (_fileManager.IsUnityPackage(_asset))
+                }                // Import ボタン（UnityPackageの場合かつ編集モードでない場合のみ表示）
+                if (_fileManager.IsUnityPackage(_asset) && !_isEditMode)
                 {
                     GUILayout.Space(5);
                     using (new GUILayout.HorizontalScope())
                     {
                         GUILayout.Space(10); // ボタンの左マージン
-                        if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_importPackage")))
+                        if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_importPackage"), GUILayout.Width(180)))
                         {
                             ImportUnityPackage();
                         }
@@ -275,6 +273,7 @@ namespace AMU.AssetManager.UI
                 DrawTagsAndDependencies();
 
                 // 下側にもフレキシブルスペースを追加
+                GUILayout.Space(20);
                 GUILayout.FlexibleSpace();
             }
         }
