@@ -531,7 +531,7 @@ namespace AMU.AssetManager.UI
             {
                 GUI.backgroundColor = originalColor;
                 DrawAssetGrid();
-                
+
                 // 右パネル全体でのイベント処理
                 HandleRightPanelEvents();
             }
@@ -901,128 +901,197 @@ namespace AMU.AssetManager.UI
         {
             var menu = new GenericMenu();
 
-            menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_viewDetails")), false, () =>
+            // 複数選択時は限定されたメニューのみ表示
+            if (_selectedAssets.Count > 1)
             {
+                // グループ化オプション
+                if (_selectedAssets.All(a => !a.isGroup && !a.HasParent()))
+                {
+                    menu.AddItem(new GUIContent($"選択した{_selectedAssets.Count}個のアセットをグループ化"), false, () =>
+                    {
+                        ShowCreateGroupDialog();
+                    });
+
+                    menu.AddSeparator("");
+                }
+
+                // 一括お気に入り設定
+                bool allFavorites = _selectedAssets.All(a => a.isFavorite);
+                string favoriteText = allFavorites ? "お気に入りから削除" : "お気に入りに追加";
+                menu.AddItem(new GUIContent(favoriteText), false, () =>
+                {
+                    foreach (var selectedAsset in _selectedAssets)
+                    {
+                        selectedAsset.isFavorite = !allFavorites;
+                        _dataManager.UpdateAsset(selectedAsset);
+                    }
+                    _needsUIRefresh = true;
+                });
+
+                // 一括アーカイブ設定
+                bool allHidden = _selectedAssets.All(a => a.isHidden);
+                string hiddenText = allHidden ? "表示" : "アーカイブ";
+                menu.AddItem(new GUIContent(hiddenText), false, () =>
+                {
+                    foreach (var selectedAsset in _selectedAssets)
+                    {
+                        selectedAsset.isHidden = !allHidden;
+                        _dataManager.UpdateAsset(selectedAsset);
+                    }
+                    _needsUIRefresh = true;
+                });
+
+                menu.AddSeparator("");
+
+                // 一括削除
+                menu.AddItem(new GUIContent($"{_selectedAssets.Count}個のアセットを削除"), false, () =>
+                {
+                    if (EditorUtility.DisplayDialog("確認",
+                        $"{_selectedAssets.Count}個のアセットを削除しますか？",
+                        "削除", "キャンセル"))
+                    {
+                        foreach (var selectedAsset in _selectedAssets.ToList())
+                        {
+                            if (selectedAsset.isGroup)
+                            {
+                                _dataManager.DisbandGroup(selectedAsset.uid);
+                            }
+                            else
+                            {
+                                _dataManager.RemoveAsset(selectedAsset.uid);
+                            }
+                        }
+
+                        _selectedAssets.Clear();
+                        _selectedAsset = null;
+                        _needsUIRefresh = true;
+                    }
+                });
+            }
+            else
+            {
+                // 単一選択時の通常メニュー
+                menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_viewDetails")), false, () =>
+                {
+                    if (asset.isGroup)
+                    {
+                        ShowGroupDetails(asset);
+                    }
+                    else
+                    {
+                        AssetDetailWindow.ShowWindow(asset);
+                    }
+                });
+
+                menu.AddSeparator("");
+
+                if (!asset.isGroup)
+                {
+                    menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_editAsset")), false, () =>
+                    {
+                        AssetDetailWindow.ShowWindow(asset, true);
+                    });
+
+                    menu.AddSeparator("");
+                }
+
+                // グループ関連のメニュー
                 if (asset.isGroup)
                 {
-                    ShowGroupDetails(asset);
-                }
-                else
-                {
-                    AssetDetailWindow.ShowWindow(asset);
-                }
-            }); menu.AddSeparator("");
-
-            // 複数選択時のグループ化オプション
-            if (_selectedAssets.Count > 1 && _selectedAssets.All(a => !a.isGroup && !a.HasParent()))
-            {
-                menu.AddItem(new GUIContent("選択したアセットをグループ化"), false, () =>
-                {
-                    ShowCreateGroupDialog();
-                });
-
-                menu.AddSeparator("");
-            }
-
-            if (!asset.isGroup)
-            {
-                menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_editAsset")), false, () =>
-                {
-                    AssetDetailWindow.ShowWindow(asset, true);
-                });
-
-                menu.AddSeparator("");
-            }
-
-            // グループ関連のメニュー
-            if (asset.isGroup)
-            {
-                menu.AddItem(new GUIContent("グループ解散"), false, () =>
-                {
-                    if (EditorUtility.DisplayDialog("グループ解散の確認",
-                        $"グループ '{asset.name}' を解散しますか？子アセットは独立したアセットになります。",
-                        "解散", "キャンセル"))
+                    menu.AddItem(new GUIContent("グループ解散"), false, () =>
                     {
-                        _dataManager.DisbandGroup(asset.uid);
-                        if (_selectedAsset == asset)
+                        if (EditorUtility.DisplayDialog("グループ解散の確認",
+                            $"グループ '{asset.name}' を解散しますか？子アセットは独立したアセットになります。",
+                            "解散", "キャンセル"))
                         {
-                            _selectedAsset = null;
+                            _dataManager.DisbandGroup(asset.uid);
+                            if (_selectedAsset == asset)
+                            {
+                                _selectedAsset = null;
+                            }
+                            _needsUIRefresh = true;
+                        }
+                    });
+
+                    var children = _dataManager.GetGroupChildren(asset.uid);
+                    menu.AddItem(new GUIContent($"子アセット表示 ({children.Count}個)"), false, () =>
+                    {
+                        ShowGroupDetails(asset);
+                    });
+
+                    menu.AddSeparator("");
+                }
+                else if (asset.HasParent())
+                {
+                    menu.AddItem(new GUIContent("グループから削除"), false, () =>
+                    {
+                        if (EditorUtility.DisplayDialog("グループから削除",
+                            $"アセット '{asset.name}' をグループから削除しますか？",
+                            "削除", "キャンセル"))
+                        {
+                            _dataManager.RemoveAssetFromGroup(asset.uid);
+                            _needsUIRefresh = true;
+                        }
+                    });
+
+                    menu.AddSeparator("");
+                }
+
+                string favoriteText = asset.isFavorite ?
+                    LocalizationManager.GetText("AssetManager_removeFromFavorites") :
+                    LocalizationManager.GetText("AssetManager_addToFavorites");
+
+                menu.AddItem(new GUIContent(favoriteText), false, () =>
+                {
+                    asset.isFavorite = !asset.isFavorite;
+                    _dataManager.UpdateAsset(asset);
+                    _needsUIRefresh = true;
+                });
+
+                menu.AddSeparator("");
+
+                string hiddenText = asset.isHidden ?
+                    LocalizationManager.GetText("AssetManager_showAsset") :
+                    LocalizationManager.GetText("AssetManager_hideAsset");
+
+                menu.AddItem(new GUIContent(hiddenText), false, () =>
+                {
+                    asset.isHidden = !asset.isHidden;
+                    _dataManager.UpdateAsset(asset);
+                    _needsUIRefresh = true;
+                });
+
+                if (!asset.isGroup)
+                {
+                    menu.AddSeparator("");
+
+                    menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_openLocation")), false, () =>
+                    {
+                        _fileManager.OpenFileLocation(asset);
+                    });
+                }
+
+                menu.AddSeparator("");
+
+                menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_deleteAsset")), false, () =>
+                {
+                    if (EditorUtility.DisplayDialog("Confirm Delete",
+                        LocalizationManager.GetText("AssetManager_confirmDelete"),
+                        LocalizationManager.GetText("Common_yes"),
+                        LocalizationManager.GetText("Common_no")))
+                    {
+                        if (asset.isGroup)
+                        {
+                            _dataManager.DisbandGroup(asset.uid);
+                        }
+                        else
+                        {
+                            _dataManager.RemoveAsset(asset.uid);
                         }
                         _needsUIRefresh = true;
                     }
                 });
-
-                var children = _dataManager.GetGroupChildren(asset.uid);
-                menu.AddItem(new GUIContent($"子アセット表示 ({children.Count}個)"), false, () =>
-                {
-                    ShowGroupDetails(asset);
-                });
-
-                menu.AddSeparator("");
             }
-            else if (asset.HasParent())
-            {
-                menu.AddItem(new GUIContent("グループから削除"), false, () =>
-                {
-                    if (EditorUtility.DisplayDialog("グループから削除",
-                        $"アセット '{asset.name}' をグループから削除しますか？",
-                        "削除", "キャンセル"))
-                    {
-                        _dataManager.RemoveAssetFromGroup(asset.uid);
-                        _needsUIRefresh = true;
-                    }
-                });
-
-                menu.AddSeparator("");
-            }
-
-            string favoriteText = asset.isFavorite ?
-                LocalizationManager.GetText("AssetManager_removeFromFavorites") :
-                LocalizationManager.GetText("AssetManager_addToFavorites"); menu.AddItem(new GUIContent(favoriteText), false, () =>
-        {
-            asset.isFavorite = !asset.isFavorite;
-            _dataManager.UpdateAsset(asset);
-            _needsUIRefresh = true;
-        });
-
-            menu.AddSeparator("");
-
-            string hiddenText = asset.isHidden ?
-                LocalizationManager.GetText("AssetManager_showAsset") :
-                LocalizationManager.GetText("AssetManager_hideAsset"); menu.AddItem(new GUIContent(hiddenText), false, () =>
-        {
-            asset.isHidden = !asset.isHidden;
-            _dataManager.UpdateAsset(asset);
-            _needsUIRefresh = true;
-        });
-
-            if (!asset.isGroup)
-            {
-                menu.AddSeparator("");
-
-                menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_openLocation")), false, () =>
-                {
-                    _fileManager.OpenFileLocation(asset);
-                });
-            }
-
-            menu.AddSeparator(""); menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_deleteAsset")), false, () =>
-        {
-            if (EditorUtility.DisplayDialog("Confirm Delete",
-     LocalizationManager.GetText("AssetManager_confirmDelete"),
-     LocalizationManager.GetText("Common_yes"), LocalizationManager.GetText("Common_no")))
-            {
-                if (asset.isGroup)
-                {
-                    _dataManager.DisbandGroup(asset.uid);
-                }
-                else
-                {
-                    _dataManager.RemoveAsset(asset.uid);
-                }
-                _needsUIRefresh = true;
-            }
-        });
 
             menu.ShowAsContext();
         }
@@ -1488,86 +1557,13 @@ namespace AMU.AssetManager.UI
                         // 背景での右クリック時のコンテキストメニュー
                         if (_selectedAssets.Count > 1)
                         {
-                            ShowMultiSelectContextMenu();
+                            // 背景右クリック時も通常のコンテキストメニューを使用
+                            ShowContextMenu(_selectedAssets.First());
                             Event.current.Use();
                         }
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// 複数選択時のコンテキストメニュー
-        /// </summary>
-        private void ShowMultiSelectContextMenu()
-        {
-            var menu = new GenericMenu();
-
-            // 複数選択時のグループ化オプション
-            if (_selectedAssets.Count > 1 && _selectedAssets.All(a => !a.isGroup && !a.HasParent()))
-            {
-                menu.AddItem(new GUIContent($"選択した{_selectedAssets.Count}個のアセットをグループ化"), false, () =>
-                {
-                    ShowCreateGroupDialog();
-                });
-
-                menu.AddSeparator("");
-            }
-
-            // 一括お気に入り設定
-            bool allFavorites = _selectedAssets.All(a => a.isFavorite);
-            string favoriteText = allFavorites ? "お気に入りから削除" : "お気に入りに追加";
-            menu.AddItem(new GUIContent(favoriteText), false, () =>
-            {
-                foreach (var asset in _selectedAssets)
-                {
-                    asset.isFavorite = !allFavorites;
-                    _dataManager.UpdateAsset(asset);
-                }
-                _needsUIRefresh = true;
-            });
-
-            // 一括非表示設定
-            bool allHidden = _selectedAssets.All(a => a.isHidden);
-            string hiddenText = allHidden ? "表示" : "非表示";
-            menu.AddItem(new GUIContent(hiddenText), false, () =>
-            {
-                foreach (var asset in _selectedAssets)
-                {
-                    asset.isHidden = !allHidden;
-                    _dataManager.UpdateAsset(asset);
-                }
-                _needsUIRefresh = true;
-            });
-
-            menu.AddSeparator("");
-
-            // 一括削除
-            menu.AddItem(new GUIContent($"{_selectedAssets.Count}個のアセットを削除"), false, () =>
-            {
-                if (EditorUtility.DisplayDialog("確認",
-                    $"{_selectedAssets.Count}個のアセットを削除しますか？",
-                    "削除", "キャンセル"))
-                {
-                    foreach (var asset in _selectedAssets.ToList())
-                    {
-                        if (asset.isGroup)
-                        {
-                            _dataManager.DisbandGroup(asset.uid);
-                        }
-                        else
-                        {
-                            _dataManager.RemoveAsset(asset.uid);
-                        }
-                    }
-                    
-                    _selectedAssets.Clear();
-                    _selectedAsset = null;
-                    _needsUIRefresh = true;
-                }
-            });
-
-            menu.ShowAsContext();
         }
     }
 }
