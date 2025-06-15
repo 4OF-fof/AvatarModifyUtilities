@@ -872,6 +872,24 @@ namespace AMU.AssetManager.Helper
                     }
                 }
 
+                // 個別アセット（グループでないアセット）のサムネイル処理
+                foreach (var asset in individualAssets)
+                {
+                    if (!string.IsNullOrEmpty(asset.boothItem?.boothItemUrl))
+                    {
+                        var packageInfo = FindPackageByItemUrl(bmpManager, asset.boothItem.boothItemUrl);
+                        if (packageInfo != null && !string.IsNullOrEmpty(packageInfo.imageUrl) &&
+                            !processedImageUrls.Contains(packageInfo.imageUrl))
+                        {
+                            processedImageUrls.Add(packageInfo.imageUrl);
+                            await DownloadAndSetThumbnailAsync(asset, packageInfo.imageUrl);
+
+                            // サーバー負荷軽減のため、リクエスト間に遅延を追加
+                            await Task.Delay(500);
+                        }
+                    }
+                }
+
                 Debug.Log($"[AssetDataManager] Processed thumbnails for {processedImageUrls.Count} items from BMP import");
             }
             catch (Exception ex)
