@@ -926,20 +926,60 @@ namespace AMU.AssetManager.UI
                         _dataManager.UpdateAsset(selectedAsset);
                     }
                     _needsUIRefresh = true;
-                });
-
-                // 一括アーカイブ設定
+                });                // 一括アーカイブ設定
                 bool allHidden = _selectedAssets.All(a => a.isHidden);
-                string hiddenText = allHidden ? "表示" : "アーカイブ";
-                menu.AddItem(new GUIContent(hiddenText), false, () =>
+                bool hasHidden = _selectedAssets.Any(a => a.isHidden);
+                bool hasVisible = _selectedAssets.Any(a => !a.isHidden);
+
+                if (allHidden)
                 {
-                    foreach (var selectedAsset in _selectedAssets)
+                    // すべてがアーカイブされている場合：復元のみ
+                    menu.AddItem(new GUIContent($"{_selectedAssets.Count}個のアセットをアーカイブから復元"), false, () =>
                     {
-                        selectedAsset.isHidden = !allHidden;
-                        _dataManager.UpdateAsset(selectedAsset);
-                    }
-                    _needsUIRefresh = true;
-                });
+                        foreach (var selectedAsset in _selectedAssets)
+                        {
+                            selectedAsset.isHidden = false;
+                            _dataManager.UpdateAsset(selectedAsset);
+                        }
+                        _needsUIRefresh = true;
+                    });
+                }
+                else if (hasHidden && hasVisible)
+                {
+                    // 混在している場合：両方のオプションを提供
+                    menu.AddItem(new GUIContent($"アーカイブされた{_selectedAssets.Count(a => a.isHidden)}個のアセットを復元"), false, () =>
+                    {
+                        foreach (var selectedAsset in _selectedAssets.Where(a => a.isHidden))
+                        {
+                            selectedAsset.isHidden = false;
+                            _dataManager.UpdateAsset(selectedAsset);
+                        }
+                        _needsUIRefresh = true;
+                    });
+
+                    menu.AddItem(new GUIContent($"表示中の{_selectedAssets.Count(a => !a.isHidden)}個のアセットをアーカイブ"), false, () =>
+                    {
+                        foreach (var selectedAsset in _selectedAssets.Where(a => !a.isHidden))
+                        {
+                            selectedAsset.isHidden = true;
+                            _dataManager.UpdateAsset(selectedAsset);
+                        }
+                        _needsUIRefresh = true;
+                    });
+                }
+                else
+                {
+                    // すべてが表示されている場合：アーカイブのみ
+                    menu.AddItem(new GUIContent($"{_selectedAssets.Count}個のアセットをアーカイブ"), false, () =>
+                    {
+                        foreach (var selectedAsset in _selectedAssets)
+                        {
+                            selectedAsset.isHidden = true;
+                            _dataManager.UpdateAsset(selectedAsset);
+                        }
+                        _needsUIRefresh = true;
+                    });
+                }
 
                 menu.AddSeparator("");
 
@@ -1009,11 +1049,11 @@ namespace AMU.AssetManager.UI
                             $"グループ '{asset.name}' を解散しますか？子アセットは独立したアセットになります。",
                             "解散", "キャンセル"))
                         {
-                                                // グループ解散処理
-                                                _dataManager.DisbandGroup(asset.uid);
+                            // グループ解散処理
+                            _dataManager.DisbandGroup(asset.uid);
 
-                                                // 選択状態をクリア（解散されたグループを選択リストから削除）
-                                                _selectedAssets.Remove(asset);
+                            // 選択状態をクリア（解散されたグループを選択リストから削除）
+                            _selectedAssets.Remove(asset);
                             if (_selectedAsset == asset)
                             {
                                 _selectedAsset = null;
@@ -1056,13 +1096,11 @@ namespace AMU.AssetManager.UI
                     asset.isFavorite = !asset.isFavorite;
                     _dataManager.UpdateAsset(asset);
                     _needsUIRefresh = true;
-                });
-
-                menu.AddSeparator("");
+                }); menu.AddSeparator("");
 
                 string hiddenText = asset.isHidden ?
-                    LocalizationManager.GetText("AssetManager_showAsset") :
-                    LocalizationManager.GetText("AssetManager_hideAsset");
+                    "アーカイブから復元" :
+                    "アーカイブ";
 
                 menu.AddItem(new GUIContent(hiddenText), false, () =>
                 {
