@@ -239,10 +239,9 @@ namespace AMU.AssetManager.UI
 
             _showTagSuggestions = _filteredTagSuggestions.Count > 0;
         }
-
         private void DrawTagSuggestions()
         {
-            var suggestionHeight = Mathf.Min(_filteredTagSuggestions.Count * 20f, 100f);
+            var suggestionHeight = Mathf.Min(_filteredTagSuggestions.Count * 20f, 200f);
 
             using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Height(suggestionHeight)))
             {
