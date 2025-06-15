@@ -576,14 +576,10 @@ namespace AMU.AssetManager.Helper
             }
         }
 
-        /// <summary>
-        /// デフォルトのAssetLibraryを作成
-        /// </summary>
         private AssetLibrary CreateDefaultAssetLibrary()
         {
             return new AssetLibrary
             {
-                version = "1.0",
                 lastUpdated = DateTime.Now,
                 assets = new List<AssetInfo>()
             };

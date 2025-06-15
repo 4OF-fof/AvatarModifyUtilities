@@ -139,17 +139,14 @@ namespace AMU.AssetManager.Data
             };
         }
     }
-
     [Serializable]
     public class AssetLibrary
     {
-        public string version;
         public DateTime lastUpdated;
         public List<AssetInfo> assets;
 
         public AssetLibrary()
         {
-            version = "1.0";
             lastUpdated = DateTime.Now;
             assets = new List<AssetInfo>();
         }
