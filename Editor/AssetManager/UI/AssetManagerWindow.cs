@@ -993,9 +993,12 @@ namespace AMU.AssetManager.UI
 
             if (!string.IsNullOrEmpty(_advancedSearchCriteria.authorQuery))
                 parts.Add($"作者:{_advancedSearchCriteria.authorQuery}");
-
+                
             if (_advancedSearchCriteria.selectedTags.Count > 0)
-                parts.Add($"タグ:{_advancedSearchCriteria.selectedTags.Count}個");
+            {
+                var tagText = string.Join(", ", _advancedSearchCriteria.selectedTags);
+                parts.Add($"タグ:{tagText}");
+            }
 
             if (parts.Count == 0) return "詳細検索中";
 
