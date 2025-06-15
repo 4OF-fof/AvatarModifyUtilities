@@ -39,6 +39,17 @@ namespace AMU.AssetManager.UI
             window.Show();
         }
 
+        public static void ShowWindowWithFile(AssetDataManager assetDataManager, string bpmLibraryPath, Action onImportComplete = null)
+        {
+            var window = GetWindow<BPMImportWindow>(LocalizationManager.GetText("BPMImport_windowTitle"));
+            window.minSize = new Vector2(500, 400);
+            window.maxSize = new Vector2(500, 400);
+            window._assetDataManager = assetDataManager;
+            window._onImportComplete = onImportComplete;
+            window.LoadFromSpecificFile(bpmLibraryPath);
+            window.Show();
+        }
+
         private void OnEnable()
         {
             _bpmDataManager = new BPMDataManager();
@@ -49,6 +60,31 @@ namespace AMU.AssetManager.UI
             _isLoading = true;
             _statusMessage = LocalizationManager.GetText("BPMImport_loadingLibrary");
             _bpmDataManager.LoadJsonIfNeeded();
+        }
+
+        private void LoadFromSpecificFile(string filePath)
+        {
+            if (_bpmDataManager == null)
+            {
+                _bpmDataManager = new BPMDataManager();
+                _bpmDataManager.OnDataLoaded += OnBPMDataLoaded;
+                _bpmDataManager.OnLoadError += OnBPMLoadError;
+            }
+
+            _isLoading = true;
+            _statusMessage = LocalizationManager.GetText("BPMImport_loadingLibrary");
+
+            // 指定されたファイルから読み込み
+            try
+            {
+                _bpmDataManager.LoadFromFile(filePath);
+            }
+            catch (System.Exception ex)
+            {
+                _isLoading = false;
+                _statusMessage = $"Failed to load from file: {ex.Message}";
+                Debug.LogError($"[BPMImportWindow] Failed to load from file: {ex}");
+            }
         }
 
         private void OnDisable()

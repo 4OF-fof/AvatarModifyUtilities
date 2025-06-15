@@ -674,7 +674,7 @@ namespace AMU.AssetManager.Helper
 
             var importedAssets = new List<AssetInfo>();
             var existingDownloadUrls = GetExistingDownloadUrls();
-            
+
             // BPMLibraryのlastUpdatedを取得してパース
             DateTime bmpLastUpdated = DateTime.Now; // デフォルト値
             if (!string.IsNullOrEmpty(bpmManager.Library.lastUpdated))

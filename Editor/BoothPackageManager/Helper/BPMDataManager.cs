@@ -258,5 +258,18 @@ namespace AMU.BoothPackageManager.Helper
             cachedJsonPath = null;
             lastJsonWriteTime = DateTime.MinValue;
         }
+
+        public void LoadFromFile(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+            {
+                loadError = $"ファイルが見つかりません: {filePath}";
+                triedLoad = true;
+                OnLoadError?.Invoke();
+                return;
+            }
+
+            LoadJsonAsync(filePath);
+        }
     }
 }

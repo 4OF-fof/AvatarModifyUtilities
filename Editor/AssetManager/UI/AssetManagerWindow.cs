@@ -329,15 +329,10 @@ namespace AMU.AssetManager.UI
                         _sortDescending = newSortDescending;
                         _needsUIRefresh = true;
                     }
-
-                    GUILayout.Space(10); if (GUILayout.Button(LocalizationManager.GetText("AssetManager_addAsset"), EditorStyles.toolbarButton))
+                    GUILayout.Space(10);
+                    if (GUILayout.Button(LocalizationManager.GetText("AssetManager_addAsset"), EditorStyles.toolbarButton))
                     {
                         ShowAddAssetDialog();
-                    }
-
-                    if (GUILayout.Button(LocalizationManager.GetText("AssetManager_importFromBPM"), EditorStyles.toolbarButton))
-                    {
-                        ShowBPMImportDialog();
                     }
 
                     if (GUILayout.Button(LocalizationManager.GetText("Common_refresh"), EditorStyles.toolbarButton))
@@ -839,13 +834,23 @@ namespace AMU.AssetManager.UI
 
             menu.ShowAsContext();
         }
-
         private void ShowAddAssetDialog()
         {
             string downloadPath = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile), "Downloads");
             string path = EditorUtility.OpenFilePanel("Select Asset File", downloadPath, "");
             if (!string.IsNullOrEmpty(path))
             {
+                // BPMLibrary.jsonファイルが選択された場合、BPMImportWindowを開く
+                if (System.IO.Path.GetFileName(path).Equals("BPMLibrary.json", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    BPMImportWindow.ShowWindowWithFile(_dataManager, path, () =>
+                    {
+                        _needsUIRefresh = true;
+                        RefreshAssetList();
+                    });
+                    return;
+                }
+
                 var asset = _fileManager.CreateAssetFromFile(path); if (asset != null)
                 {
                     _dataManager.AddAsset(asset);
