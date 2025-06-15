@@ -1153,16 +1153,9 @@ namespace AMU.AssetManager.UI
             }
         }
 
-        private void ShowBPMImportDialog()
-        {
-            BPMImportWindow.ShowWindow(_dataManager, () =>
-            {
-                _needsUIRefresh = true;
-                RefreshAssetList();
-            });
-        }        /// <summary>
-                 /// 高速化されたアセットリスト更新
-                 /// </summary>
+        /// <summary>
+        /// 高速化されたアセットリスト更新
+        /// </summary>
         private void RefreshAssetList()
         {
             if (_dataManager?.Library?.assets == null)

@@ -45,16 +45,6 @@ namespace AMU.AssetManager.UI
         private GUIStyle _packageHeaderStyle;
         private GUIStyle _fileItemStyle;
         private bool _stylesInitialized = false;
-        
-        public static void ShowWindow(AssetDataManager assetDataManager, Action onImportComplete = null)
-        {
-            var window = GetWindow<BPMImportWindow>(LocalizationManager.GetText("BPMImport_windowTitle"));
-            window.minSize = new Vector2(600, 800);
-            window.maxSize = new Vector2(600, 800);
-            window._assetDataManager = assetDataManager;
-            window._onImportComplete = onImportComplete;
-            window.Show();
-        }
 
         public static void ShowWindowWithFile(AssetDataManager assetDataManager, string bpmLibraryPath, Action onImportComplete = null)
         {
