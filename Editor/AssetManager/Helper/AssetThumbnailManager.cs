@@ -415,23 +415,8 @@ namespace AMU.AssetManager.Helper
         }
         private Texture2D GetDefaultThumbnail(string assetType)
         {
-            // Return default Unity icons based on asset type
-            switch (assetType)
-            {
-                case "Avatar":
-                case "Prefab":
-                    return EditorGUIUtility.IconContent("Prefab Icon").image as Texture2D;
-                case "Material":
-                    return EditorGUIUtility.IconContent("Material Icon").image as Texture2D;
-                case "Texture":
-                    return EditorGUIUtility.IconContent("Texture Icon").image as Texture2D;
-                case "Animation":
-                    return EditorGUIUtility.IconContent("AnimationClip Icon").image as Texture2D;
-                case "Script":
-                    return EditorGUIUtility.IconContent("cs Script Icon").image as Texture2D;
-                default:
-                    return EditorGUIUtility.IconContent("DefaultAsset Icon").image as Texture2D;
-            }
+            // サムネイルが設定されていない場合は、ファイル形式に関わらずPrefabアイコンを表示
+            return EditorGUIUtility.IconContent("Prefab Icon").image as Texture2D;
         }
 
         private void EnsureThumbnailDirectory()
