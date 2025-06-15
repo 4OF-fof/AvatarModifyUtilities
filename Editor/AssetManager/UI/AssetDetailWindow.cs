@@ -829,6 +829,12 @@ namespace AMU.AssetManager.UI
         {
             try
             {
+                // ファイルパスが空の場合はファイルサイズを0にする
+                if (string.IsNullOrEmpty(_asset.filePath))
+                {
+                    _asset.fileSize = 0;
+                }
+
                 _dataManager.UpdateAsset(_asset);
                 _originalAsset = _asset.Clone();
                 _isEditMode = false;
