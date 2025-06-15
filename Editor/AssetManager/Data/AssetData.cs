@@ -134,12 +134,12 @@ namespace AMU.AssetManager.Data
         public string thumbnailPath;
         public string authorName;
         public DateTime createdDate;
-        public long fileSize; public List<string> tags;
+        public long fileSize;
+        public List<string> tags;
         public List<string> dependencies;
         public bool isFavorite;
         public bool isHidden;
         public BoothItem boothItem;
-        public string groupUid; // グループのUUID（グループに属さない場合はnullまたは空文字）
 
         public AssetInfo()
         {
@@ -157,7 +157,6 @@ namespace AMU.AssetManager.Data
             isFavorite = false;
             isHidden = false;
             boothItem = null; // デフォルトでは値が割り振られていない
-            groupUid = null; // デフォルトではグループに属さない
         }
 
         public AssetInfo Clone()
@@ -178,13 +177,7 @@ namespace AMU.AssetManager.Data
                 isFavorite = this.isFavorite,
                 isHidden = this.isHidden,
                 boothItem = this.boothItem?.Clone(),
-                groupUid = this.groupUid,
             };
-        }
-
-        public bool IsGrouped()
-        {
-            return !string.IsNullOrEmpty(groupUid);
         }
     }
     [Serializable]
@@ -192,13 +185,11 @@ namespace AMU.AssetManager.Data
     {
         public DateTime lastUpdated;
         public List<AssetInfo> assets;
-        public List<GroupInfo> groups;
 
         public AssetLibrary()
         {
             lastUpdated = DateTime.Now;
             assets = new List<AssetInfo>();
-            groups = new List<GroupInfo>();
         }
     }
     [Serializable]
@@ -265,198 +256,6 @@ namespace AMU.AssetManager.Data
         public static List<string> GetTagCategories()
         {
             return TagTypeManager.GetTagCategories();
-        }
-    }
-    [Serializable]
-    public class GroupInfo
-    {
-        public string groupUid;
-        public string groupName;
-        public string description;
-        public string thumbnailPath;
-        public List<string> childAssetUids;
-        public List<string> tags;
-        public string authorName;
-        public DateTime createdDate;
-        public bool isFavorite;
-        public bool isHidden;
-
-        public GroupInfo()
-        {
-            groupUid = Guid.NewGuid().ToString();
-            groupName = "";
-            description = "";
-            thumbnailPath = "";
-            childAssetUids = new List<string>();
-            tags = new List<string>();
-            authorName = "";
-            createdDate = DateTime.Now;
-            isFavorite = false;
-            isHidden = false;
-        }
-
-        public GroupInfo Clone()
-        {
-            return new GroupInfo
-            {
-                groupUid = this.groupUid,
-                groupName = this.groupName,
-                description = this.description,
-                thumbnailPath = this.thumbnailPath,
-                childAssetUids = new List<string>(this.childAssetUids),
-                tags = new List<string>(this.tags),
-                authorName = this.authorName,
-                createdDate = this.createdDate,
-                isFavorite = this.isFavorite,
-                isHidden = this.isHidden
-            };
-        }
-
-        public int GetChildCount()
-        {
-            return childAssetUids?.Count ?? 0;
-        }
-
-        public bool HasChild(string assetUid)
-        {
-            return childAssetUids != null && childAssetUids.Contains(assetUid);
-        }
-
-        public void AddChild(string assetUid)
-        {
-            if (childAssetUids == null)
-                childAssetUids = new List<string>();
-
-            if (!childAssetUids.Contains(assetUid))
-                childAssetUids.Add(assetUid);
-        }
-
-        public void RemoveChild(string assetUid)
-        {
-            childAssetUids?.Remove(assetUid);
-        }
-    }
-    [Serializable]
-    public class GroupManager
-    {
-        public static GroupInfo CreateGroup(string groupName)
-        {
-            var group = new GroupInfo();
-            group.groupName = groupName;
-            return group;
-        }
-
-        public static GroupInfo CreateGroupFromAssets(string groupName, List<AssetInfo> assets)
-        {
-            var group = CreateGroup(groupName);
-
-            foreach (var asset in assets)
-            {
-                group.AddChild(asset.uid);
-                asset.groupUid = group.groupUid;
-            }
-
-            // 最初のアセットのサムネイルをグループのサムネイルとして使用
-            if (assets.Count > 0 && !string.IsNullOrEmpty(assets[0].thumbnailPath))
-            {
-                group.thumbnailPath = assets[0].thumbnailPath;
-            }
-
-            return group;
-        }
-
-        public static void AddAssetToGroup(GroupInfo group, AssetInfo asset)
-        {
-            if (group == null || asset == null) return;
-
-            // 既存のグループから削除
-            if (!string.IsNullOrEmpty(asset.groupUid))
-            {
-                RemoveAssetFromGroup(asset);
-            }
-
-            group.AddChild(asset.uid);
-            asset.groupUid = group.groupUid;
-        }
-
-        public static void RemoveAssetFromGroup(AssetInfo asset)
-        {
-            if (asset == null) return;
-            asset.groupUid = null;
-        }
-
-        public static void RemoveAssetFromGroup(GroupInfo group, AssetInfo asset)
-        {
-            if (group == null || asset == null) return;
-
-            group.RemoveChild(asset.uid);
-            if (asset.groupUid == group.groupUid)
-            {
-                asset.groupUid = null;
-            }
-        }
-
-        public static List<AssetInfo> GetGroupAssets(GroupInfo group, List<AssetInfo> allAssets)
-        {
-            if (group == null || allAssets == null) return new List<AssetInfo>();
-
-            var groupAssets = new List<AssetInfo>();
-            foreach (var asset in allAssets)
-            {
-                if (group.HasChild(asset.uid))
-                {
-                    groupAssets.Add(asset);
-                }
-            }
-            return groupAssets;
-        }
-
-        public static void UngroupAssets(GroupInfo group, List<AssetInfo> allAssets)
-        {
-            if (group == null || allAssets == null) return;
-
-            foreach (var asset in allAssets)
-            {
-                if (asset.groupUid == group.groupUid)
-                {
-                    asset.groupUid = null;
-                }
-            }
-
-            group.childAssetUids.Clear();
-        }
-
-        public static bool IsValidGroup(GroupInfo group)
-        {
-            return group != null &&
-                   !string.IsNullOrEmpty(group.groupUid) &&
-                   !string.IsNullOrEmpty(group.groupName) &&
-                   group.GetChildCount() > 0;
-        }
-
-        public static void CleanupEmptyGroups(AssetLibrary library)
-        {
-            if (library?.groups == null) return;
-
-            for (int i = library.groups.Count - 1; i >= 0; i--)
-            {
-                var group = library.groups[i];
-                var actualChildren = GetGroupAssets(group, library.assets);
-
-                if (actualChildren.Count == 0)
-                {
-                    library.groups.RemoveAt(i);
-                }
-                else
-                {
-                    // グループの子リストを実際のアセットと同期
-                    group.childAssetUids.Clear();
-                    foreach (var asset in actualChildren)
-                    {
-                        group.childAssetUids.Add(asset.uid);
-                    }
-                }
-            }
         }
     }
 }

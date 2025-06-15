@@ -21,44 +21,17 @@ namespace AMU.AssetManager.UI
             // ウィンドウ表示前にライブラリファイルの存在を確保
             AssetDataManager.Instance.EnsureLibraryFileExists();
 
-            // グループかアセットかを判定
-            bool isGroup = asset.assetType == "Group";
+            // シングルトンインスタンスから最新データを取得
+            var updatedAsset = AssetDataManager.Instance.GetAsset(asset.uid) ?? asset;
 
-            if (isGroup)
-            {
-                // グループの場合は、グループ情報を取得
-                var group = AssetDataManager.Instance.GetGroup(asset.uid);
-                if (group != null)
-                {
-                    window._group = group.Clone();
-                    window._originalGroup = group;
-                    window._isGroup = true;
-                }
-                else
-                {
-                    // グループが見つからない場合はassetInfoから作成
-                    window._asset = asset.Clone();
-                    window._originalAsset = asset;
-                    window._isGroup = false;
-                }
-            }
-            else
-            {
-                // シングルトンインスタンスから最新データを取得
-                var updatedAsset = AssetDataManager.Instance.GetAsset(asset.uid) ?? asset;
-                window._asset = updatedAsset.Clone();
-                window._originalAsset = updatedAsset;
-                window._isGroup = false;
-            }
-
+            window._asset = updatedAsset.Clone();
+            window._originalAsset = updatedAsset;
             window._isEditMode = editMode;
             window.Show();
         }
+
         private AssetInfo _asset;
         private AssetInfo _originalAsset;
-        private GroupInfo _group;
-        private GroupInfo _originalGroup;
-        private bool _isGroup = false;
         private bool _isEditMode = false;
         private Vector2 _scrollPosition = Vector2.zero; private AssetDataManager _dataManager;
         private AssetThumbnailManager _thumbnailManager;
@@ -200,26 +173,14 @@ namespace AMU.AssetManager.UI
         {
             InitializeStyles();
 
-            if (_isGroup)
+            if (_asset == null)
             {
-                if (_group == null)
-                {
-                    GUILayout.Label("No group selected", EditorStyles.centeredGreyMiniLabel);
-                    return;
-                }
-                DrawGroupHeader();
-                DrawGroupContent();
+                GUILayout.Label("No asset selected", EditorStyles.centeredGreyMiniLabel);
+                return;
             }
-            else
-            {
-                if (_asset == null)
-                {
-                    GUILayout.Label("No asset selected", EditorStyles.centeredGreyMiniLabel);
-                    return;
-                }
-                DrawHeader();
-                DrawContent();
-            }
+
+            DrawHeader();
+            DrawContent();
         }
         private void DrawHeader()
         {
@@ -892,16 +853,7 @@ namespace AMU.AssetManager.UI
         }
         private void CancelEdit()
         {
-            if (_isGroup)
-            {
-                _group = _originalGroup?.Clone();
-            }
-            else
-            {
-                _asset = _originalAsset?.Clone();
-            }
-
-            _isEditMode = false;
+            _asset = _originalAsset?.Clone(); _isEditMode = false;
             // Reset UI state when canceling edit
             _newTag = "";
             _newDependency = "";
@@ -994,243 +946,6 @@ namespace AMU.AssetManager.UI
 
             var random = new System.Random();
             return visibleColors[random.Next(visibleColors.Length)];
-        }
-
-        private void DrawGroupHeader()
-        {
-            using (new GUILayout.HorizontalScope(EditorStyles.toolbar))
-            {
-                GUILayout.Label(_group.groupName, EditorStyles.boldLabel);
-                GUILayout.FlexibleSpace();
-
-                if (_isEditMode)
-                {
-                    if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_save"), EditorStyles.toolbarButton))
-                    {
-                        SaveGroup();
-                    }
-                    if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_cancel"), EditorStyles.toolbarButton))
-                    {
-                        CancelEdit();
-                    }
-                }
-                else
-                {
-                    if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_edit"), EditorStyles.toolbarButton))
-                    {
-                        _isEditMode = true;
-                    }
-                }
-            }
-        }
-
-        private void DrawGroupContent()
-        {
-            _scrollPosition = GUILayout.BeginScrollView(_scrollPosition);
-
-            // グループ基本情報
-            DrawGroupBasicInfo();
-
-            GUILayout.Space(10);
-
-            // グループに含まれるアセット一覧
-            DrawGroupAssetList();
-
-            GUILayout.EndScrollView();
-        }
-
-        private void DrawGroupBasicInfo()
-        {
-            EditorGUILayout.LabelField("グループ情報", EditorStyles.boldLabel);
-
-            using (new GUILayout.VerticalScope("box"))
-            {
-                // グループ名
-                EditorGUILayout.LabelField("グループ名");
-                if (_isEditMode)
-                {
-                    _group.groupName = EditorGUILayout.TextField(_group.groupName);
-                }
-                else
-                {
-                    EditorGUILayout.SelectableLabel(_group.groupName, EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
-                }
-
-                GUILayout.Space(5);
-
-                // 説明
-                EditorGUILayout.LabelField("説明");
-                if (_isEditMode)
-                {
-                    _group.description = EditorGUILayout.TextArea(_group.description, GUILayout.Height(60));
-                }
-                else
-                {
-                    EditorGUILayout.SelectableLabel(_group.description, EditorStyles.textArea, GUILayout.Height(60));
-                }
-
-                GUILayout.Space(5);
-
-                // 作成者
-                EditorGUILayout.LabelField("作成者");
-                if (_isEditMode)
-                {
-                    _group.authorName = EditorGUILayout.TextField(_group.authorName);
-                }
-                else
-                {
-                    EditorGUILayout.SelectableLabel(_group.authorName, EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
-                }
-
-                GUILayout.Space(5);
-
-                // 作成日時
-                EditorGUILayout.LabelField("作成日時");
-                EditorGUILayout.SelectableLabel(_group.createdDate.ToString("yyyy/MM/dd HH:mm:ss"), EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
-
-                GUILayout.Space(5);
-
-                // タグ
-                DrawGroupTags();
-
-                GUILayout.Space(5);
-
-                // お気に入り・非表示フラグ
-                using (new GUILayout.HorizontalScope())
-                {
-                    if (_isEditMode)
-                    {
-                        _group.isFavorite = EditorGUILayout.Toggle("お気に入り", _group.isFavorite);
-                        _group.isHidden = EditorGUILayout.Toggle("非表示", _group.isHidden);
-                    }
-                    else
-                    {
-                        EditorGUILayout.LabelField("お気に入り", _group.isFavorite ? "はい" : "いいえ");
-                        EditorGUILayout.LabelField("非表示", _group.isHidden ? "はい" : "いいえ");
-                    }
-                }
-            }
-        }
-
-        private void DrawGroupTags()
-        {
-            EditorGUILayout.LabelField("タグ");
-
-            if (_group.tags != null && _group.tags.Count > 0)
-            {
-                for (int i = 0; i < _group.tags.Count; i++)
-                {
-                    using (new GUILayout.HorizontalScope())
-                    {
-                        var tagColor = AssetTagManager.GetTagColor(_group.tags[i]);
-                        var tagStyle = new GUIStyle(GUI.skin.label);
-                        tagStyle.normal.textColor = tagColor;
-
-                        EditorGUILayout.LabelField(_group.tags[i], tagStyle);
-
-                        if (_isEditMode && GUILayout.Button("×", GUILayout.Width(20)))
-                        {
-                            _group.tags.RemoveAt(i);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (_isEditMode)
-            {
-                using (new GUILayout.HorizontalScope())
-                {
-                    _newTag = EditorGUILayout.TextField("新しいタグ", _newTag);
-                    if (GUILayout.Button("追加", GUILayout.Width(50)) && !string.IsNullOrEmpty(_newTag))
-                    {
-                        if (!_group.tags.Contains(_newTag))
-                        {
-                            _group.tags.Add(_newTag);
-                            _newTag = "";
-                        }
-                    }
-                }
-            }
-        }
-
-        private void DrawGroupAssetList()
-        {
-            EditorGUILayout.LabelField("含まれるアセット", EditorStyles.boldLabel);
-
-            var groupAssets = _dataManager.GetGroupAssets(_group.groupUid);
-
-            using (new GUILayout.VerticalScope("box"))
-            {
-                if (groupAssets.Count == 0)
-                {
-                    EditorGUILayout.LabelField("このグループには現在アセットが含まれていません。", EditorStyles.centeredGreyMiniLabel);
-                }
-                else
-                {
-                    EditorGUILayout.LabelField($"アセット数: {groupAssets.Count}");
-
-                    foreach (var asset in groupAssets)
-                    {
-                        using (new GUILayout.HorizontalScope("box"))
-                        {
-                            // サムネイル
-                            var thumbnail = _thumbnailManager.GetThumbnail(asset);
-                            if (thumbnail != null)
-                            {
-                                GUILayout.Label(thumbnail, GUILayout.Width(40), GUILayout.Height(40));
-                            }
-                            else
-                            {
-                                GUILayout.Box("", GUILayout.Width(40), GUILayout.Height(40));
-                            }
-
-                            // アセット情報
-                            using (new GUILayout.VerticalScope())
-                            {
-                                EditorGUILayout.LabelField(asset.name, EditorStyles.boldLabel);
-                                EditorGUILayout.LabelField($"タイプ: {asset.assetType}");
-                                EditorGUILayout.LabelField($"サイズ: {_fileManager.FormatFileSize(asset.fileSize)}");
-                            }
-
-                            // 操作ボタン
-                            using (new GUILayout.VerticalScope(GUILayout.Width(100)))
-                            {
-                                if (GUILayout.Button("詳細"))
-                                {
-                                    AssetDetailWindow.ShowWindow(asset);
-                                }
-
-                                if (_isEditMode && GUILayout.Button("削除"))
-                                {
-                                    _dataManager.RemoveAssetFromGroup(asset.uid);
-                                    // グループ情報を再読み込み
-                                    _group = _dataManager.GetGroup(_group.groupUid);
-                                    break;
-                                }
-                            }
-                        }
-
-                        GUILayout.Space(5);
-                    }
-                }
-            }
-        }
-
-        private void SaveGroup()
-        {
-            try
-            {
-                _dataManager.UpdateGroup(_group);
-                _originalGroup = _group.Clone();
-                _isEditMode = false;
-                Debug.Log($"[AssetDetailWindow] Group '{_group.groupName}' updated successfully.");
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[AssetDetailWindow] Failed to save group: {ex.Message}");
-                EditorUtility.DisplayDialog("Error", "グループの保存に失敗しました。", "OK");
-            }
         }
     }
 }

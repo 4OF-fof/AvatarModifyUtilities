@@ -47,12 +47,6 @@ namespace AMU.AssetManager.UI
         private int _selectedSortOption = 1;
         private bool _sortDescending = true;
 
-        // Group Display
-        private bool _showGroupsMode = false;
-        private List<string> _selectedAssetUids = new List<string>();
-        private string _newGroupName = "";
-        private bool _isCreatingGroup = false;
-
         // Advanced Search
         private AdvancedSearchCriteria _advancedSearchCriteria = null;
         private bool _isUsingAdvancedSearch = false;
@@ -336,23 +330,7 @@ namespace AMU.AssetManager.UI
                         _needsUIRefresh = true;
                     }
 
-                    GUILayout.Space(10);
-
-                    // Group view toggle
-                    var groupToggleStyle = _showGroupsMode
-                        ? new GUIStyle(EditorStyles.toolbarButton) { fontStyle = FontStyle.Bold }
-                        : EditorStyles.toolbarButton;
-                    var newShowGroupsMode = GUILayout.Toggle(_showGroupsMode, "グループ", groupToggleStyle);
-                    if (newShowGroupsMode != _showGroupsMode)
-                    {
-                        _showGroupsMode = newShowGroupsMode;
-                        _needsUIRefresh = true;
-                        ClearSelection();
-                    }
-
-                    GUILayout.Space(10);
-
-                    if (GUILayout.Button(LocalizationManager.GetText("AssetManager_addAsset"), EditorStyles.toolbarButton))
+                    GUILayout.Space(10); if (GUILayout.Button(LocalizationManager.GetText("AssetManager_addAsset"), EditorStyles.toolbarButton))
                     {
                         ShowAddAssetDialog();
                     }
@@ -915,23 +893,16 @@ namespace AMU.AssetManager.UI
                 default:
                     showHidden = false;
                     break;
-            }            // グループ表示モードかアセット表示モードかで分岐
-            if (_showGroupsMode)
+            }
+
+            // 詳細検索または通常検索を実行
+            if (_isUsingAdvancedSearch && _advancedSearchCriteria != null)
             {
-                // グループ検索を実行
-                _filteredAssets = _dataManager.SearchGroups(_searchText, _selectedAssetType, favoritesOnly, showHidden);
+                _filteredAssets = _dataManager.AdvancedSearchAssets(_advancedSearchCriteria, _selectedAssetType, favoritesOnly, showHidden, archivedOnly);
             }
             else
             {
-                // 詳細検索または通常検索を実行
-                if (_isUsingAdvancedSearch && _advancedSearchCriteria != null)
-                {
-                    _filteredAssets = _dataManager.AdvancedSearchAssets(_advancedSearchCriteria, _selectedAssetType, favoritesOnly, showHidden, archivedOnly);
-                }
-                else
-                {
-                    _filteredAssets = _dataManager.SearchAssets(_searchText, _selectedAssetType, favoritesOnly, showHidden, archivedOnly);
-                }
+                _filteredAssets = _dataManager.SearchAssets(_searchText, _selectedAssetType, favoritesOnly, showHidden, archivedOnly);
             }
 
             // ソート処理の最適化
@@ -1057,13 +1028,6 @@ namespace AMU.AssetManager.UI
             _isUsingAdvancedSearch = false;
             _advancedSearchCriteria = null;
             _needsUIRefresh = true;
-        }
-
-        private void ClearSelection()
-        {
-            _selectedAsset = null;
-            _selectedAssetUids.Clear();
-            _isCreatingGroup = false;
         }
     }
 }
