@@ -37,9 +37,7 @@ namespace AMU.AssetManager.UI
         // Managers - シングルトンを使用
         private AssetDataManager _dataManager;
         private AssetThumbnailManager _thumbnailManager;
-        private AssetFileManager _fileManager;
-
-        // UI State
+        private AssetFileManager _fileManager;        // UI State
         private Vector2 _leftScrollPosition = Vector2.zero;
         private Vector2 _rightScrollPosition = Vector2.zero;
         private string _searchText = "";
@@ -47,6 +45,10 @@ namespace AMU.AssetManager.UI
         private AssetFilterType _currentFilter = AssetFilterType.All;
         private int _selectedSortOption = 1;
         private bool _sortDescending = true;
+
+        // Advanced Search
+        private AdvancedSearchCriteria _advancedSearchCriteria = null;
+        private bool _isUsingAdvancedSearch = false;
 
         // データ管理の簡素化
         private bool _needsUIRefresh = false;   // UIの再描画のみ必要
@@ -239,7 +241,35 @@ namespace AMU.AssetManager.UI
                     if (newSearchText != _searchText)
                     {
                         _searchText = newSearchText;
+                        _isUsingAdvancedSearch = false; // 通常検索に切り替え
+                        _advancedSearchCriteria = null;
                         _needsUIRefresh = true;
+                    }
+
+                    // 詳細検索ボタン
+                    var advancedSearchButtonStyle = _isUsingAdvancedSearch
+                        ? new GUIStyle(EditorStyles.toolbarButton) { fontStyle = FontStyle.Bold }
+                        : EditorStyles.toolbarButton;
+                    if (GUILayout.Button("詳細", advancedSearchButtonStyle, GUILayout.Width(40)))
+                    {
+                        ShowAdvancedSearchWindow();
+                    }
+
+                    // 詳細検索の状態表示
+                    if (_isUsingAdvancedSearch)
+                    {
+                        var statusText = GetAdvancedSearchStatusText();
+                        var statusStyle = new GUIStyle(EditorStyles.miniLabel)
+                        {
+                            normal = { textColor = new Color(0.3f, 0.6f, 1f) }
+                        };
+                        GUILayout.Label(statusText, statusStyle, GUILayout.Width(150));
+
+                        // クリアボタン
+                        if (GUILayout.Button("×", EditorStyles.toolbarButton, GUILayout.Width(20)))
+                        {
+                            ClearAdvancedSearch();
+                        }
                     }
                 }
 
@@ -816,10 +846,9 @@ namespace AMU.AssetManager.UI
                 }
             }
         }
-        
         /// <summary>
-         /// 高速化されたアセットリスト更新
-         /// </summary>
+        /// 高速化されたアセットリスト更新
+        /// </summary>
         private void RefreshAssetList()
         {
             if (_dataManager?.Library?.assets == null)
@@ -849,8 +878,15 @@ namespace AMU.AssetManager.UI
                     break;
             }
 
-            // 高速化された検索を実行
-            _filteredAssets = _dataManager.SearchAssets(_searchText, _selectedAssetType, favoritesOnly, showHidden, archivedOnly);
+            // 詳細検索または通常検索を実行
+            if (_isUsingAdvancedSearch && _advancedSearchCriteria != null)
+            {
+                _filteredAssets = _dataManager.AdvancedSearchAssets(_advancedSearchCriteria, _selectedAssetType, favoritesOnly, showHidden, archivedOnly);
+            }
+            else
+            {
+                _filteredAssets = _dataManager.SearchAssets(_searchText, _selectedAssetType, favoritesOnly, showHidden, archivedOnly);
+            }
 
             // ソート処理の最適化
             ApplySorting();
@@ -925,6 +961,53 @@ namespace AMU.AssetManager.UI
             texture.SetPixel(0, 0, color);
             texture.Apply();
             return texture;
+        }
+
+        private void ShowAdvancedSearchWindow()
+        {
+            AdvancedSearchWindow.ShowWindow(_advancedSearchCriteria, OnAdvancedSearchApplied);
+        }
+
+        private void OnAdvancedSearchApplied(AdvancedSearchCriteria criteria)
+        {
+            _advancedSearchCriteria = criteria;
+            _isUsingAdvancedSearch = criteria.HasCriteria();
+            if (_isUsingAdvancedSearch)
+            {
+                _searchText = ""; // 通常検索をクリア
+            }
+            _needsUIRefresh = true;
+        }
+
+        private string GetAdvancedSearchStatusText()
+        {
+            if (_advancedSearchCriteria == null) return "";
+
+            var parts = new List<string>();
+
+            if (!string.IsNullOrEmpty(_advancedSearchCriteria.nameQuery))
+                parts.Add($"名前:{_advancedSearchCriteria.nameQuery}");
+
+            if (!string.IsNullOrEmpty(_advancedSearchCriteria.descriptionQuery))
+                parts.Add($"説明:{_advancedSearchCriteria.descriptionQuery}");
+
+            if (!string.IsNullOrEmpty(_advancedSearchCriteria.authorQuery))
+                parts.Add($"作者:{_advancedSearchCriteria.authorQuery}");
+
+            if (_advancedSearchCriteria.selectedTags.Count > 0)
+                parts.Add($"タグ:{_advancedSearchCriteria.selectedTags.Count}個");
+
+            if (parts.Count == 0) return "詳細検索中";
+
+            var result = string.Join(", ", parts);
+            return result.Length > 30 ? result.Substring(0, 27) + "..." : result;
+        }
+
+        private void ClearAdvancedSearch()
+        {
+            _isUsingAdvancedSearch = false;
+            _advancedSearchCriteria = null;
+            _needsUIRefresh = true;
         }
     }
 }

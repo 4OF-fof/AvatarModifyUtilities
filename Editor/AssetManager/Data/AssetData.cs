@@ -253,7 +253,6 @@ namespace AMU.AssetManager.Data
 
             return false;
         }
-
         public static List<string> GetTagCategories()
         {
             return TagTypeManager.GetTagCategories();

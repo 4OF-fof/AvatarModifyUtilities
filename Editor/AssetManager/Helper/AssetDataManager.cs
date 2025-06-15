@@ -598,5 +598,71 @@ namespace AMU.AssetManager.Helper
                 }
             }
         }
+
+        /// <summary>
+        /// 詳細検索機能
+        /// </summary>
+        public List<AssetInfo> AdvancedSearchAssets(AdvancedSearchCriteria criteria, string filterType = null, bool? favoritesOnly = null, bool showHidden = false, bool? archivedOnly = null)
+        {
+            if (criteria == null || !criteria.HasCriteria())
+            {
+                return SearchAssets("", filterType, favoritesOnly, showHidden, archivedOnly);
+            }
+
+            // インデックスの更新
+            if (_indexNeedsUpdate)
+                UpdateIndexes();
+
+            var assets = GetFilteredAssets(filterType, favoritesOnly, showHidden, archivedOnly);
+
+            // 詳細検索の適用
+            assets = ApplyAdvancedSearch(assets, criteria);
+
+            return assets;
+        }
+
+        /// <summary>
+        /// 詳細検索条件を適用
+        /// </summary>
+        private List<AssetInfo> ApplyAdvancedSearch(List<AssetInfo> assets, AdvancedSearchCriteria criteria)
+        {
+            return assets.Where(asset =>
+            {
+                bool matchesName = !criteria.searchInName || string.IsNullOrEmpty(criteria.nameQuery) ||
+                                   asset.name.ToLower().Contains(criteria.nameQuery.ToLower());
+
+                bool matchesDescription = !criteria.searchInDescription || string.IsNullOrEmpty(criteria.descriptionQuery) ||
+                                          asset.description.ToLower().Contains(criteria.descriptionQuery.ToLower());
+
+                bool matchesAuthor = !criteria.searchInAuthor || string.IsNullOrEmpty(criteria.authorQuery) ||
+                                     asset.authorName.ToLower().Contains(criteria.authorQuery.ToLower());
+
+                bool matchesTags = !criteria.searchInTags || criteria.selectedTags.Count == 0 ||
+                                   CheckTagMatch(asset, criteria);
+
+                return matchesName && matchesDescription && matchesAuthor && matchesTags;
+            }).ToList();
+        }
+
+        /// <summary>
+        /// タグマッチング処理
+        /// </summary>
+        private bool CheckTagMatch(AssetInfo asset, AdvancedSearchCriteria criteria)
+        {
+            if (criteria.selectedTags.Count == 0) return true;
+
+            if (criteria.useAndLogicForTags)
+            {
+                // AND ロジック: 選択されたすべてのタグが含まれている必要がある
+                return criteria.selectedTags.All(selectedTag =>
+                    asset.tags.Any(assetTag => assetTag.ToLower().Contains(selectedTag.ToLower())));
+            }
+            else
+            {
+                // OR ロジック: 選択されたタグのいずれかが含まれていれば良い
+                return criteria.selectedTags.Any(selectedTag =>
+                    asset.tags.Any(assetTag => assetTag.ToLower().Contains(selectedTag.ToLower())));
+            }
+        }
     }
 }
