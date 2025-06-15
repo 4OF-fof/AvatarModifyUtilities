@@ -58,12 +58,11 @@ namespace AMU.AssetManager.UI
         private string _newTypeName = "";
 
         // Layout
-        private float _leftPanelWidth = 250f;
-
-        // Asset Grid
+        private float _leftPanelWidth = 250f;        // Asset Grid
         private float _thumbnailSize = 100f;
         private List<AssetInfo> _filteredAssets = new List<AssetInfo>();
         private AssetInfo _selectedAsset;
+        private List<AssetInfo> _selectedAssets = new List<AssetInfo>(); // 複数選択対応
 
         // UI Styles
         private GUIStyle _typeButtonStyle;
@@ -334,10 +333,16 @@ namespace AMU.AssetManager.UI
                     {
                         ShowAddAssetDialog();
                     }
-
                     if (GUILayout.Button(LocalizationManager.GetText("Common_refresh"), EditorStyles.toolbarButton))
                     {
                         RefreshData();
+                    }
+
+                    // 選択状態の表示
+                    if (_selectedAssets.Count > 1)
+                    {
+                        GUILayout.Space(10);
+                        GUILayout.Label($"{_selectedAssets.Count}個選択中", EditorStyles.toolbarButton);
                     }
                 }
             }
@@ -526,6 +531,9 @@ namespace AMU.AssetManager.UI
             {
                 GUI.backgroundColor = originalColor;
                 DrawAssetGrid();
+                
+                // 右パネル全体でのイベント処理
+                HandleRightPanelEvents();
             }
         }
         private void DrawAssetGrid()
@@ -603,13 +611,24 @@ namespace AMU.AssetManager.UI
                 {
                     thumbnail = _thumbnailManager.GetThumbnail(asset);
                 }
-
                 bool isSelected = _selectedAsset == asset;
+                bool isMultiSelected = _selectedAssets.Contains(asset);
                 bool isSelectedForGroup = _selectedAssetsForGroup.Contains(asset.uid);
 
                 // 選択状態の描画
-                if (isSelected)
+                if (isSelected && isMultiSelected && _selectedAssets.Count > 1)
                 {
+                    // 複数選択時のメイン選択
+                    EditorGUI.DrawRect(thumbnailRect, new Color(0.3f, 0.5f, 1f, 0.5f));
+                }
+                else if (isMultiSelected)
+                {
+                    // 複数選択時のサブ選択
+                    EditorGUI.DrawRect(thumbnailRect, new Color(0.3f, 0.5f, 1f, 0.3f));
+                }
+                else if (isSelected)
+                {
+                    // 単一選択
                     EditorGUI.DrawRect(thumbnailRect, new Color(0.3f, 0.5f, 1f, 0.3f));
                 }
                 else if (isSelectedForGroup && _isGroupMode)
@@ -659,7 +678,7 @@ namespace AMU.AssetManager.UI
         {
             var scrollViewRect = new Rect(0, _rightScrollPosition.y, position.width, position.height);
             return rect.Overlaps(scrollViewRect);
-        }      
+        }
         /// <summary>
         /// アセットタイプに応じたデフォルトアイコンを取得
         /// </summary>
@@ -687,7 +706,7 @@ namespace AMU.AssetManager.UI
                 default:
                     return EditorGUIUtility.IconContent("DefaultAsset Icon").image as Texture2D;
             }
-        }        
+        }
         /// <summary>
         /// アセットのインジケーター（お気に入り、非表示など）を描画
         /// </summary>
@@ -790,15 +809,29 @@ namespace AMU.AssetManager.UI
             };
 
             GUILayout.Label(asset.name, nameStyle, GUILayout.Height(30));
-        }
-
-        /// <summary>
-        /// アセットアイテムのイベントを処理
-        /// </summary>        
+        }        /// <summary>
+                 /// アセットアイテムのイベントを処理
+                 /// </summary>        
         private void HandleAssetItemEvents(AssetInfo asset, Rect thumbnailRect)
         {
             if (Event.current.type == EventType.MouseDown && thumbnailRect.Contains(Event.current.mousePosition))
             {
+                if (Event.current.button == 1)
+                {
+                    // Right click - context menu
+                    // 右クリック時は選択状態を変更せず、右クリックされたアセットが選択されていない場合のみ追加
+                    if (!_selectedAssets.Contains(asset))
+                    {
+                        // 右クリックされたアセットが選択されていない場合は、そのアセットを選択に追加
+                        _selectedAssets.Add(asset);
+                        _selectedAsset = asset;
+                    }
+                    ShowContextMenu(asset);
+                    Event.current.Use();
+                    Repaint();
+                    return;
+                }
+
                 if (_isGroupMode)
                 {
                     // グループ作成モード時の処理
@@ -818,7 +851,33 @@ namespace AMU.AssetManager.UI
                     }
                 }
 
-                _selectedAsset = asset;
+                // コントロールキー押下時の複数選択処理
+                bool isCtrlPressed = Event.current.control;
+
+                if (isCtrlPressed)
+                {
+                    // 複数選択モード
+                    if (_selectedAssets.Contains(asset))
+                    {
+                        _selectedAssets.Remove(asset);
+                        if (_selectedAsset == asset)
+                        {
+                            _selectedAsset = _selectedAssets.LastOrDefault();
+                        }
+                    }
+                    else
+                    {
+                        _selectedAssets.Add(asset);
+                        _selectedAsset = asset;
+                    }
+                }
+                else
+                {
+                    // 単一選択モード
+                    _selectedAssets.Clear();
+                    _selectedAssets.Add(asset);
+                    _selectedAsset = asset;
+                }
 
                 if (Event.current.clickCount == 2)
                 {
@@ -832,11 +891,6 @@ namespace AMU.AssetManager.UI
                         // Double click - open details
                         AssetDetailWindow.ShowWindow(asset);
                     }
-                }
-                else if (Event.current.button == 1)
-                {
-                    // Right click - context menu
-                    ShowContextMenu(asset);
                 }
 
                 Event.current.Use();
@@ -857,9 +911,18 @@ namespace AMU.AssetManager.UI
                 {
                     AssetDetailWindow.ShowWindow(asset);
                 }
-            });
+            }); menu.AddSeparator("");
 
-            menu.AddSeparator("");
+            // 複数選択時のグループ化オプション
+            if (_selectedAssets.Count > 1 && _selectedAssets.All(a => !a.isGroup && !a.HasParent()))
+            {
+                menu.AddItem(new GUIContent("選択したアセットをグループ化"), false, () =>
+                {
+                    ShowCreateGroupDialog();
+                });
+
+                menu.AddSeparator("");
+            }
 
             if (!asset.isGroup)
             {
@@ -1072,19 +1135,41 @@ namespace AMU.AssetManager.UI
                     break;
             }
         }
-
         private void HandleEvents()
         {
             if (Event.current.type == EventType.KeyDown)
             {
-                if (Event.current.keyCode == KeyCode.Delete && _selectedAsset != null)
+                if (Event.current.keyCode == KeyCode.Delete && _selectedAssets.Count > 0)
                 {
+                    string confirmMessage;
+                    if (_selectedAssets.Count == 1)
+                    {
+                        confirmMessage = LocalizationManager.GetText("AssetManager_confirmDelete");
+                    }
+                    else
+                    {
+                        confirmMessage = $"{_selectedAssets.Count}個のアセットを削除しますか？";
+                    }
+
                     if (EditorUtility.DisplayDialog("Confirm Delete",
-                        LocalizationManager.GetText("AssetManager_confirmDelete"),
+                        confirmMessage,
                         LocalizationManager.GetText("Common_yes"),
                         LocalizationManager.GetText("Common_no")))
                     {
-                        _dataManager.RemoveAsset(_selectedAsset.uid);
+                        // 複数選択されたアセットを削除
+                        foreach (var asset in _selectedAssets.ToList())
+                        {
+                            if (asset.isGroup)
+                            {
+                                _dataManager.DisbandGroup(asset.uid);
+                            }
+                            else
+                            {
+                                _dataManager.RemoveAsset(asset.uid);
+                            }
+                        }
+
+                        _selectedAssets.Clear();
                         _selectedAsset = null;
                         _needsUIRefresh = true;
                     }
@@ -1310,6 +1395,48 @@ namespace AMU.AssetManager.UI
             _selectedAsset = newGroup;
 
             Debug.Log($"グループ '{newGroup.name}' を作成しました。{_selectedAssetsForGroup.Count}個のアセットを追加しました。");
+        }        /// <summary>
+                 /// 選択されたアセットからグループを作成するダイアログを表示
+                 /// </summary>
+        private void ShowCreateGroupDialog()
+        {
+            // EditorWindowを継承したカスタムダイアログを使用
+            GroupNameInputWindow.ShowWindow((groupName) =>
+            {
+                if (!string.IsNullOrEmpty(groupName))
+                {
+                    CreateGroupFromSelectedAssets(groupName);
+                }
+            });
+        }        /// <summary>
+                 /// 選択されたアセットからグループを作成
+                 /// </summary>
+        private void CreateGroupFromSelectedAssets(string groupName)
+        {
+            if (string.IsNullOrEmpty(groupName) || _selectedAssets.Count == 0)
+                return;
+
+            // グループを作成
+            var newGroup = _dataManager.CreateGroup(groupName);
+            int addedCount = 0;
+
+            // 選択されたアセットをグループに追加
+            foreach (var asset in _selectedAssets.ToList())
+            {
+                if (!asset.isGroup && !asset.HasParent())
+                {
+                    _dataManager.AddAssetToGroup(asset.uid, newGroup.uid);
+                    addedCount++;
+                }
+            }
+
+            // 状態をリセット
+            _selectedAssets.Clear();
+            _selectedAssets.Add(newGroup);
+            _selectedAsset = newGroup;
+            _needsUIRefresh = true;
+
+            Debug.Log($"グループ '{newGroup.name}' を作成しました。{addedCount}個のアセットを追加しました。");
         }
 
         /// <summary>
@@ -1333,6 +1460,114 @@ namespace AMU.AssetManager.UI
             }
 
             EditorUtility.DisplayDialog("グループの詳細", message, "OK");
+        }
+
+        /// <summary>
+        /// 右パネル全体でのイベント処理（背景クリック時の選択解除など）
+        /// </summary>
+        private void HandleRightPanelEvents()
+        {
+            if (Event.current.type == EventType.MouseDown)
+            {
+                var rightPanelRect = GUILayoutUtility.GetLastRect();
+                if (rightPanelRect.Contains(Event.current.mousePosition))
+                {
+                    if (Event.current.button == 0) // 左クリック
+                    {
+                        // 背景をクリックした場合、選択を解除
+                        if (!Event.current.control)
+                        {
+                            _selectedAssets.Clear();
+                            _selectedAsset = null;
+                            Event.current.Use();
+                            Repaint();
+                        }
+                    }
+                    else if (Event.current.button == 1) // 右クリック
+                    {
+                        // 背景での右クリック時のコンテキストメニュー
+                        if (_selectedAssets.Count > 1)
+                        {
+                            ShowMultiSelectContextMenu();
+                            Event.current.Use();
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 複数選択時のコンテキストメニュー
+        /// </summary>
+        private void ShowMultiSelectContextMenu()
+        {
+            var menu = new GenericMenu();
+
+            // 複数選択時のグループ化オプション
+            if (_selectedAssets.Count > 1 && _selectedAssets.All(a => !a.isGroup && !a.HasParent()))
+            {
+                menu.AddItem(new GUIContent($"選択した{_selectedAssets.Count}個のアセットをグループ化"), false, () =>
+                {
+                    ShowCreateGroupDialog();
+                });
+
+                menu.AddSeparator("");
+            }
+
+            // 一括お気に入り設定
+            bool allFavorites = _selectedAssets.All(a => a.isFavorite);
+            string favoriteText = allFavorites ? "お気に入りから削除" : "お気に入りに追加";
+            menu.AddItem(new GUIContent(favoriteText), false, () =>
+            {
+                foreach (var asset in _selectedAssets)
+                {
+                    asset.isFavorite = !allFavorites;
+                    _dataManager.UpdateAsset(asset);
+                }
+                _needsUIRefresh = true;
+            });
+
+            // 一括非表示設定
+            bool allHidden = _selectedAssets.All(a => a.isHidden);
+            string hiddenText = allHidden ? "表示" : "非表示";
+            menu.AddItem(new GUIContent(hiddenText), false, () =>
+            {
+                foreach (var asset in _selectedAssets)
+                {
+                    asset.isHidden = !allHidden;
+                    _dataManager.UpdateAsset(asset);
+                }
+                _needsUIRefresh = true;
+            });
+
+            menu.AddSeparator("");
+
+            // 一括削除
+            menu.AddItem(new GUIContent($"{_selectedAssets.Count}個のアセットを削除"), false, () =>
+            {
+                if (EditorUtility.DisplayDialog("確認",
+                    $"{_selectedAssets.Count}個のアセットを削除しますか？",
+                    "削除", "キャンセル"))
+                {
+                    foreach (var asset in _selectedAssets.ToList())
+                    {
+                        if (asset.isGroup)
+                        {
+                            _dataManager.DisbandGroup(asset.uid);
+                        }
+                        else
+                        {
+                            _dataManager.RemoveAsset(asset.uid);
+                        }
+                    }
+                    
+                    _selectedAssets.Clear();
+                    _selectedAsset = null;
+                    _needsUIRefresh = true;
+                }
+            });
+
+            menu.ShowAsContext();
         }
     }
 }
