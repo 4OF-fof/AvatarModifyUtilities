@@ -65,20 +65,22 @@ namespace AMU.AssetManager.Helper
                 return false;
             }
         }
-
         public AssetInfo CreateAssetFromFile(string filePath)
         {
-            if (string.IsNullOrEmpty(filePath) || !FileExists(filePath))
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
             {
                 return null;
             }
 
+            // ファイルをCoreDirに移動
+            string coreDirFilePath = MoveAssetToCoreDir(filePath);
+
             var asset = new AssetInfo
             {
                 name = Path.GetFileNameWithoutExtension(filePath),
-                filePath = GetRelativePath(filePath),
+                filePath = GetRelativePath(coreDirFilePath),
                 assetType = DetermineAssetType(filePath),
-                fileSize = GetFileSize(filePath),
+                fileSize = GetFileSize(coreDirFilePath),
                 createdDate = DateTime.Now,
             };
 
@@ -150,7 +152,6 @@ namespace AMU.AssetManager.Helper
                     return "Other";
             }
         }
-
         private string GetFullPath(string relativePath)
         {
             if (Path.IsPathRooted(relativePath))
@@ -163,21 +164,31 @@ namespace AMU.AssetManager.Helper
                 return Path.Combine(Application.dataPath, relativePath.Substring(7));
             }
 
-            return Path.Combine(Application.dataPath, relativePath);
-        }
+            // CoreDirからの相対パスの場合
+            string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
 
+            return Path.Combine(coreDir, relativePath.Replace('/', '\\'));
+        }
         private string GetRelativePath(string fullPath)
         {
+            // CoreDirからの相対パスを優先して計算
+            string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
+
+            if (fullPath.StartsWith(coreDir))
+            {
+                return fullPath.Substring(coreDir.Length + 1).Replace('\\', '/');
+            }
+
             if (fullPath.StartsWith(Application.dataPath))
             {
                 return "Assets" + fullPath.Substring(Application.dataPath.Length).Replace('\\', '/');
             }
             return fullPath.Replace('\\', '/');
-        }
-
-        /// <summary>
-        /// UnityPackageファイルをプロジェクトにインポートする
-        /// </summary>
+        }        /// <summary>
+                 /// UnityPackageファイルをプロジェクトにインポートする
+                 /// </summary>
         public void ImportUnityPackage(AssetInfo asset)
         {
             if (asset == null || string.IsNullOrEmpty(asset.filePath))
@@ -204,6 +215,17 @@ namespace AMU.AssetManager.Helper
             {
                 Debug.Log($"[AssetFileManager] Importing Unity Package: {asset.name}");
                 AssetDatabase.ImportPackage(fullPath, true);
+
+                // インポート後、ファイルがCoreDirに存在しない場合は移動
+                string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
+
+                if (!fullPath.StartsWith(coreDir))
+                {
+                    string newPath = MoveAssetToCoreDir(fullPath);
+                    asset.filePath = GetRelativePath(newPath);
+                    Debug.Log($"[AssetFileManager] Unity Package moved to CoreDir: {newPath}");
+                }
             }
             catch (Exception ex)
             {
@@ -220,6 +242,59 @@ namespace AMU.AssetManager.Helper
                 return false;
 
             return Path.GetExtension(asset.filePath).ToLower() == ".unitypackage";
+        }
+
+        /// <summary>
+        /// アセットファイルをCoreDirに移動する
+        /// </summary>
+        public string MoveAssetToCoreDir(string originalFilePath)
+        {
+            if (string.IsNullOrEmpty(originalFilePath) || !File.Exists(originalFilePath))
+            {
+                Debug.LogWarning($"[AssetFileManager] Invalid file path or file not found: {originalFilePath}");
+                return originalFilePath;
+            }
+
+            try
+            {
+                // CoreDirパスを取得
+                string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
+
+                // AssetManagerディレクトリを作成
+                string assetManagerDir = Path.Combine(coreDir, "AssetManager", "Files");
+                if (!Directory.Exists(assetManagerDir))
+                {
+                    Directory.CreateDirectory(assetManagerDir);
+                }
+
+                // ファイル名を取得し、重複を避ける
+                string fileName = Path.GetFileName(originalFilePath);
+                string targetPath = Path.Combine(assetManagerDir, fileName);
+
+                // ファイルが既に存在する場合は、番号を付けて重複を避ける
+                int counter = 1;
+                string nameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+                string extension = Path.GetExtension(fileName);
+
+                while (File.Exists(targetPath))
+                {
+                    string newFileName = $"{nameWithoutExtension}_{counter}{extension}";
+                    targetPath = Path.Combine(assetManagerDir, newFileName);
+                    counter++;
+                }
+
+                // ファイルをコピー（移動ではなくコピーで安全性を確保）
+                File.Copy(originalFilePath, targetPath);
+
+                Debug.Log($"[AssetFileManager] Asset file copied to CoreDir: {targetPath}");
+                return targetPath;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[AssetFileManager] Failed to move asset to CoreDir: {ex.Message}");
+                return originalFilePath;
+            }
         }
     }
 }
