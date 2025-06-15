@@ -226,24 +226,19 @@ namespace AMU.AssetManager.UI
                     GUILayout.Space(10); // サムネイルの左マージン
                     _thumbnailManager.DrawThumbnail(_asset, 180);
                 }
-                if (_isEditMode)
+                GUILayout.Space(5);
+                using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Space(5);
-                    using (new GUILayout.HorizontalScope())
+                    GUILayout.Space(10); // ボタンの左マージン
+                    if (_isEditMode)
                     {
-                        GUILayout.Space(10); // ボタンの左マージン
                         if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_selectThumbnail")))
                         {
                             SelectThumbnail();
                         }
                     }
-                }
-                else if (_fileManager.IsUnityPackage(_asset))
-                {
-                    GUILayout.Space(5);
-                    using (new GUILayout.HorizontalScope())
+                    else if (_fileManager.IsUnityPackage(_asset))
                     {
-                        GUILayout.Space(10); // ボタンの左マージン
                         if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_importPackage"), GUILayout.Width(180)))
                         {
                             ImportUnityPackage();
