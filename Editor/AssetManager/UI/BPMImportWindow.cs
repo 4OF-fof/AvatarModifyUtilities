@@ -16,29 +16,19 @@ namespace AMU.AssetManager.UI
         public class AssetImportSettings
         {
             public string assetType = "Avatar";
-            public List<string> tags = new List<string>();
         }
-
         private AssetDataManager _assetDataManager;
         private BPMDataManager _bpmDataManager;
         private Action _onImportComplete;
-
-        // グローバル設定
-        private string _globalAssetType = "Avatar";
-        private List<string> _globalTags = new List<string>();
-        private string _newGlobalTag = "";
 
         // 個別設定
         private Dictionary<string, AssetImportSettings> _packageSettings = new Dictionary<string, AssetImportSettings>();
         private Dictionary<string, AssetImportSettings> _fileSettings = new Dictionary<string, AssetImportSettings>();
 
         private Vector2 _scrollPosition = Vector2.zero;
-        private Vector2 _globalTagsScrollPosition = Vector2.zero;
         private Vector2 _packageListScrollPosition = Vector2.zero;
-
         private bool _isLoading = false;
         private string _statusMessage = "";
-        private bool _useGlobalSettings = true;
 
         private GUIStyle _headerStyle;
         private GUIStyle _boxStyle;
@@ -151,7 +141,7 @@ namespace AMU.AssetManager.UI
                     using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition))
                     {
                         _scrollPosition = scrollView.scrollPosition;
-                        DrawImportSettings();
+                        DrawIndividualSettings();
                         DrawImportButton();
                     }
                 }
@@ -245,110 +235,13 @@ namespace AMU.AssetManager.UI
                 GUILayout.FlexibleSpace();
             }
         }
-        private void DrawImportSettings()
-        {
-            // 設定モード選択
-            using (new GUILayout.VerticalScope(_boxStyle))
-            {
-                GUILayout.Label("Settings Mode", EditorStyles.boldLabel);
-
-                bool newUseGlobalSettings = EditorGUILayout.Toggle("Use Global Settings", _useGlobalSettings);
-                if (newUseGlobalSettings != _useGlobalSettings)
-                {
-                    _useGlobalSettings = newUseGlobalSettings;
-                    if (_useGlobalSettings)
-                    {
-                        // グローバル設定に切り替えた時、個別設定をクリア
-                        _packageSettings.Clear();
-                        _fileSettings.Clear();
-                    }
-                }
-            }
-
-            GUILayout.Space(5);
-
-            if (_useGlobalSettings)
-            {
-                DrawGlobalSettings();
-            }
-            else
-            {
-                DrawIndividualSettings();
-            }
-        }
-
-        private void DrawGlobalSettings()
-        {
-            using (new GUILayout.VerticalScope(_boxStyle))
-            {
-                GUILayout.Label("Global Import Settings", EditorStyles.boldLabel);
-                GUILayout.Space(10);
-
-                // Asset Type selection
-                GUILayout.Label(LocalizationManager.GetText("BPMImport_assetType"), EditorStyles.label);
-                var allTypes = AssetTypeManager.AllTypes;
-                int selectedIndex = allTypes.IndexOf(_globalAssetType);
-                if (selectedIndex == -1) selectedIndex = 0;
-
-                selectedIndex = EditorGUILayout.Popup(selectedIndex, allTypes.ToArray());
-                if (selectedIndex >= 0 && selectedIndex < allTypes.Count)
-                {
-                    _globalAssetType = allTypes[selectedIndex];
-                }
-
-                GUILayout.Space(10);
-
-                // Tags section
-                GUILayout.Label(LocalizationManager.GetText("BPMImport_tags"), EditorStyles.label);
-
-                // New tag input
-                using (new GUILayout.HorizontalScope())
-                {
-                    _newGlobalTag = EditorGUILayout.TextField(LocalizationManager.GetText("BPMImport_addTag"), _newGlobalTag);
-                    if (GUILayout.Button("Add", GUILayout.Width(50)) && !string.IsNullOrWhiteSpace(_newGlobalTag))
-                    {
-                        if (!_globalTags.Contains(_newGlobalTag.Trim()))
-                        {
-                            _globalTags.Add(_newGlobalTag.Trim());
-                        }
-                        _newGlobalTag = "";
-                    }
-                }
-
-                // Selected tags display
-                if (_globalTags.Count > 0)
-                {
-                    using (var scrollView = new GUILayout.ScrollViewScope(_globalTagsScrollPosition, GUILayout.Height(80)))
-                    {
-                        _globalTagsScrollPosition = scrollView.scrollPosition;
-
-                        for (int i = _globalTags.Count - 1; i >= 0; i--)
-                        {
-                            using (new GUILayout.HorizontalScope())
-                            {
-                                GUILayout.Label(_globalTags[i], EditorStyles.miniLabel);
-                                if (GUILayout.Button("×", GUILayout.Width(20)))
-                                {
-                                    _globalTags.RemoveAt(i);
-                                }
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    GUILayout.Label(LocalizationManager.GetText("BPMImport_noTagsSelected"), EditorStyles.centeredGreyMiniLabel);
-                }
-            }
-        }
-
         private void DrawIndividualSettings()
         {
             using (new GUILayout.VerticalScope(_boxStyle))
             {
                 GUILayout.Label("Individual Package Settings", EditorStyles.boldLabel);
                 GUILayout.Space(5);
-                GUILayout.Label("Configure tags and types for each package or file individually.", EditorStyles.wordWrappedMiniLabel);
+                GUILayout.Label("Configure asset types for each package or file individually.", EditorStyles.wordWrappedMiniLabel);
                 GUILayout.Space(10);
 
                 if (_bpmDataManager?.Library?.authors != null)
@@ -432,7 +325,6 @@ namespace AMU.AssetManager.UI
                 }
             }
         }
-
         private void DrawAssetSettings(AssetImportSettings settings, string label)
         {
             using (new GUILayout.VerticalScope("box"))
@@ -448,42 +340,6 @@ namespace AMU.AssetManager.UI
                 if (selectedIndex >= 0 && selectedIndex < allTypes.Count)
                 {
                     settings.assetType = allTypes[selectedIndex];
-                }
-
-                // Tags
-                using (new GUILayout.HorizontalScope())
-                {
-                    string newTag = EditorGUILayout.TextField("Add Tag", "");
-                    if (GUILayout.Button("Add", GUILayout.Width(50)) && !string.IsNullOrWhiteSpace(newTag))
-                    {
-                        if (!settings.tags.Contains(newTag.Trim()))
-                        {
-                            settings.tags.Add(newTag.Trim());
-                        }
-                    }
-                }
-
-                // Display tags
-                if (settings.tags.Count > 0)
-                {
-                    using (new GUILayout.HorizontalScope())
-                    {
-                        GUILayout.Label("Tags: ", GUILayout.Width(40));
-                        using (new GUILayout.VerticalScope())
-                        {
-                            for (int i = settings.tags.Count - 1; i >= 0; i--)
-                            {
-                                using (new GUILayout.HorizontalScope())
-                                {
-                                    GUILayout.Label(settings.tags[i], EditorStyles.miniLabel);
-                                    if (GUILayout.Button("×", GUILayout.Width(20)))
-                                    {
-                                        settings.tags.RemoveAt(i);
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -534,24 +390,12 @@ namespace AMU.AssetManager.UI
 
                 List<AssetInfo> importedAssets;
 
-                if (_useGlobalSettings)
-                {
-                    // グローバル設定を使用
-                    importedAssets = _assetDataManager.ImportFromBPMLibrary(
-                        _bpmDataManager,
-                        _globalAssetType,
-                        _globalTags.Count > 0 ? _globalTags : null
-                    );
-                }
-                else
-                {
-                    // 個別設定を使用
-                    importedAssets = _assetDataManager.ImportFromBPMLibraryWithIndividualSettings(
-                        _bpmDataManager,
-                        _packageSettings,
-                        _fileSettings
-                    );
-                }
+                // 個別設定を使用
+                importedAssets = _assetDataManager.ImportFromBPMLibraryWithIndividualSettings(
+                    _bpmDataManager,
+                    _packageSettings,
+                    _fileSettings
+                );
 
                 _isLoading = false;
 
