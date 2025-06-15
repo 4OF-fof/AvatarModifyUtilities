@@ -636,12 +636,6 @@ namespace AMU.AssetManager.UI
                     EditorGUI.DrawRect(thumbnailRect, new Color(0.3f, 1f, 0.3f, 0.3f));
                 }
 
-                // Show archived overlay
-                if (asset.isHidden)
-                {
-                    EditorGUI.DrawRect(thumbnailRect, new Color(0f, 0f, 0f, 0.5f));
-                }
-
                 if (thumbnail != null)
                 {
                     GUI.DrawTexture(thumbnailRect, thumbnail, ScaleMode.ScaleToFit);
