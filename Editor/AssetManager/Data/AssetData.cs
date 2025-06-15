@@ -86,6 +86,44 @@ namespace AMU.AssetManager.Data
         }
     }
     [Serializable]
+    public class BoothItem
+    {
+        public string boothItemUrl;
+        public string boothfileName;
+        public string boothDownloadUrl;
+
+        public BoothItem()
+        {
+            boothItemUrl = null;
+            boothfileName = null;
+            boothDownloadUrl = null;
+        }
+
+        public BoothItem(string itemUrl, string fileName, string downloadUrl)
+        {
+            boothItemUrl = itemUrl;
+            boothfileName = fileName;
+            boothDownloadUrl = downloadUrl;
+        }
+
+        public BoothItem Clone()
+        {
+            return new BoothItem
+            {
+                boothItemUrl = this.boothItemUrl,
+                boothfileName = this.boothfileName,
+                boothDownloadUrl = this.boothDownloadUrl
+            };
+        }
+
+        public bool HasData()
+        {
+            return !string.IsNullOrEmpty(boothItemUrl) ||
+                   !string.IsNullOrEmpty(boothfileName) ||
+                   !string.IsNullOrEmpty(boothDownloadUrl);
+        }
+    }
+    [Serializable]
     public class AssetInfo
     {
         public string uid;
@@ -101,6 +139,7 @@ namespace AMU.AssetManager.Data
         public List<string> dependencies;
         public bool isFavorite;
         public bool isHidden;
+        public BoothItem boothItem;
 
         public AssetInfo()
         {
@@ -117,6 +156,7 @@ namespace AMU.AssetManager.Data
             dependencies = new List<string>();
             isFavorite = false;
             isHidden = false;
+            boothItem = null; // デフォルトでは値が割り振られていない
         }
 
         public AssetInfo Clone()
@@ -136,6 +176,7 @@ namespace AMU.AssetManager.Data
                 dependencies = new List<string>(this.dependencies),
                 isFavorite = this.isFavorite,
                 isHidden = this.isHidden,
+                boothItem = this.boothItem?.Clone(),
             };
         }
     }
