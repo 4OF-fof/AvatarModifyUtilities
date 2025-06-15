@@ -173,75 +173,67 @@ namespace AMU.AssetManager.UI
 
             using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
-                // タグ検索有効/無効
-                _searchCriteria.searchInTags = EditorGUILayout.Toggle(
-                    "タグ検索を有効にする",
-                    _searchCriteria.searchInTags);
+                GUILayout.Space(5);
 
-                if (_searchCriteria.searchInTags)
+                // タグ検索ボックス
+                using (new EditorGUILayout.HorizontalScope())
                 {
-                    GUILayout.Space(5);
+                    GUILayout.Label("タグ絞込", GUILayout.Width(80));
+                    _tagSearchQuery = EditorGUILayout.TextField(_tagSearchQuery);
+                }
 
-                    // タグ検索ボックス
-                    using (new EditorGUILayout.HorizontalScope())
+                GUILayout.Space(5);
+
+                // タグ選択
+                var filteredTags = string.IsNullOrEmpty(_tagSearchQuery)
+                    ? _availableTags
+                    : _availableTags.Where(tag => tag.ToLower().Contains(_tagSearchQuery.ToLower())).ToList();
+
+                if (filteredTags.Any())
+                {
+                    var tagAreaHeight = Mathf.Min(200f, filteredTags.Count * 20f + 10f);
+                    using (var tagScrollView = new EditorGUILayout.ScrollViewScope(Vector2.zero, GUILayout.Height(tagAreaHeight)))
                     {
-                        GUILayout.Label("タグ絞込", GUILayout.Width(80));
-                        _tagSearchQuery = EditorGUILayout.TextField(_tagSearchQuery);
-                    }
-
-                    GUILayout.Space(5);
-
-                    // タグ選択
-                    var filteredTags = string.IsNullOrEmpty(_tagSearchQuery)
-                        ? _availableTags
-                        : _availableTags.Where(tag => tag.ToLower().Contains(_tagSearchQuery.ToLower())).ToList();
-
-                    if (filteredTags.Any())
-                    {
-                        var tagAreaHeight = Mathf.Min(200f, filteredTags.Count * 20f + 10f);
-                        using (var tagScrollView = new EditorGUILayout.ScrollViewScope(Vector2.zero, GUILayout.Height(tagAreaHeight)))
+                        foreach (var tag in filteredTags)
                         {
-                            foreach (var tag in filteredTags)
+                            var originalIndex = _availableTags.IndexOf(tag);
+                            if (originalIndex >= 0 && originalIndex < _tagSelections.Length)
                             {
-                                var originalIndex = _availableTags.IndexOf(tag);
-                                if (originalIndex >= 0 && originalIndex < _tagSelections.Length)
-                                {
-                                    var wasSelected = _tagSelections[originalIndex];
-                                    _tagSelections[originalIndex] = EditorGUILayout.Toggle(tag, _tagSelections[originalIndex]);
+                                var wasSelected = _tagSelections[originalIndex];
+                                _tagSelections[originalIndex] = EditorGUILayout.Toggle(tag, _tagSelections[originalIndex]);
 
-                                    // 選択状態が変わった場合、selectedTagsリストを更新
-                                    if (wasSelected != _tagSelections[originalIndex])
+                                // 選択状態が変わった場合、selectedTagsリストを更新
+                                if (wasSelected != _tagSelections[originalIndex])
+                                {
+                                    if (_tagSelections[originalIndex])
                                     {
-                                        if (_tagSelections[originalIndex])
-                                        {
-                                            if (!_searchCriteria.selectedTags.Contains(tag))
-                                                _searchCriteria.selectedTags.Add(tag);
-                                        }
-                                        else
-                                        {
-                                            _searchCriteria.selectedTags.Remove(tag);
-                                        }
+                                        if (!_searchCriteria.selectedTags.Contains(tag))
+                                            _searchCriteria.selectedTags.Add(tag);
+                                    }
+                                    else
+                                    {
+                                        _searchCriteria.selectedTags.Remove(tag);
                                     }
                                 }
                             }
                         }
                     }
+                }
 
-                    // 選択されたタグの表示
-                    if (_searchCriteria.selectedTags.Count > 0)
+                // 選択されたタグの表示
+                if (_searchCriteria.selectedTags.Count > 0)
+                {
+                    GUILayout.Space(5);
+                    GUILayout.Label($"選択済みタグ: {_searchCriteria.selectedTags.Count}", EditorStyles.miniLabel);
+
+                    using (new EditorGUILayout.HorizontalScope())
                     {
-                        GUILayout.Space(5);
-                        GUILayout.Label($"選択済みタグ: {_searchCriteria.selectedTags.Count}", EditorStyles.miniLabel);
-
-                        using (new EditorGUILayout.HorizontalScope())
+                        if (GUILayout.Button("すべてクリア", GUILayout.Width(100)))
                         {
-                            if (GUILayout.Button("すべてクリア", GUILayout.Width(100)))
+                            _searchCriteria.selectedTags.Clear();
+                            for (int i = 0; i < _tagSelections.Length; i++)
                             {
-                                _searchCriteria.selectedTags.Clear();
-                                for (int i = 0; i < _tagSelections.Length; i++)
-                                {
-                                    _tagSelections[i] = false;
-                                }
+                                _tagSelections[i] = false;
                             }
                         }
                     }
@@ -259,7 +251,7 @@ namespace AMU.AssetManager.UI
 
             using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
-                if (_searchCriteria.searchInTags && _searchCriteria.selectedTags.Count > 1)
+                if (_searchCriteria.selectedTags.Count > 1)
                 {
                     _searchCriteria.useAndLogicForTags = EditorGUILayout.Toggle(
                         "すべてのタグを含む（AND検索）",

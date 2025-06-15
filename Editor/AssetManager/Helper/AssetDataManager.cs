@@ -637,8 +637,7 @@ namespace AMU.AssetManager.Helper
                 bool matchesAuthor = !criteria.searchInAuthor || string.IsNullOrEmpty(criteria.authorQuery) ||
                                      asset.authorName.ToLower().Contains(criteria.authorQuery.ToLower());
 
-                bool matchesTags = !criteria.searchInTags || criteria.selectedTags.Count == 0 ||
-                                   CheckTagMatch(asset, criteria);
+                bool matchesTags = criteria.selectedTags.Count == 0 || CheckTagMatch(asset, criteria);
 
                 return matchesName && matchesDescription && matchesAuthor && matchesTags;
             }).ToList();
