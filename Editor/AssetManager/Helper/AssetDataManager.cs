@@ -71,12 +71,14 @@ namespace AMU.AssetManager.Helper
                 return _instance;
             }
         }
-
         private AssetDataManager()
         {
             string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
             _dataFilePath = Path.Combine(coreDir, "AssetManager", "AssetLibrary.json");
+
+            // 初期化時にディレクトリを確保
+            EnsureDirectoryExists();
         }
 
         /// <summary>
@@ -84,13 +86,44 @@ namespace AMU.AssetManager.Helper
         /// </summary>
         public void Initialize()
         {
+            // まず同期的にファイルの存在確認と作成を行う
+            EnsureLibraryFileExists();
+
             if (_assetLibrary == null && !_isLoading)
             {
                 LoadData();
             }
-        }        /// <summary>
-                 /// データをロード（初回または明示的なリフレッシュ時のみ）
-                 /// </summary>
+        }
+
+        /// <summary>
+        /// AssetLibrary.jsonファイルが存在することを保証（同期処理）
+        /// </summary>
+        public void EnsureLibraryFileExists()
+        {
+            EnsureDirectoryExists();
+
+            if (!File.Exists(_dataFilePath))
+            {
+                Debug.Log($"[AssetDataManager] AssetLibrary.json not found. Creating new file at: {_dataFilePath}");
+
+                try
+                {
+                    var defaultLibrary = CreateDefaultAssetLibrary();
+                    string json = JsonConvert.SerializeObject(defaultLibrary, Formatting.Indented);
+                    File.WriteAllText(_dataFilePath, json);
+
+                    Debug.Log($"[AssetDataManager] Successfully created new AssetLibrary.json");
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[AssetDataManager] Failed to create AssetLibrary.json: {ex.Message}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// データをロード（初回または明示的なリフレッシュ時のみ）
+        /// </summary>
         public void LoadData()
         {
             if (_isLoading) return;
@@ -115,10 +148,16 @@ namespace AMU.AssetManager.Helper
             await _fileLock.WaitAsync();
             try
             {
+                // ディレクトリが存在しない場合は作成
+                EnsureDirectoryExists();
+
                 if (!File.Exists(_dataFilePath))
                 {
-                    _assetLibrary = new AssetLibrary();
+                    // AssetLibrary.jsonが存在しない場合、デフォルトの空のライブラリを作成
+                    Debug.Log($"[AssetDataManager] AssetLibrary.json not found. Creating new file at: {_dataFilePath}");
+                    _assetLibrary = CreateDefaultAssetLibrary();
                     await SaveDataAsync();
+                    Debug.Log($"[AssetDataManager] Successfully created new AssetLibrary.json");
                 }
                 else
                 {
@@ -127,7 +166,7 @@ namespace AMU.AssetManager.Helper
 
                     // JSONのデシリアライズを別スレッドで実行
                     _assetLibrary = await Task.Run(() =>
-                        JsonConvert.DeserializeObject<AssetLibrary>(json) ?? new AssetLibrary());
+                        JsonConvert.DeserializeObject<AssetLibrary>(json) ?? CreateDefaultAssetLibrary());
 
                     UpdateFileTrackingInfo();
                     UpdateIndexes();
@@ -141,7 +180,8 @@ namespace AMU.AssetManager.Helper
             catch (Exception ex)
             {
                 Debug.LogError($"[AssetDataManager] Failed to load data: {ex.Message}");
-                _assetLibrary = new AssetLibrary();
+                Debug.Log($"[AssetDataManager] Creating default AssetLibrary due to error");
+                _assetLibrary = CreateDefaultAssetLibrary();
                 _isLoading = false;
                 EditorApplication.delayCall += () => OnDataLoaded?.Invoke();
             }
@@ -282,7 +322,10 @@ namespace AMU.AssetManager.Helper
         public void AddAsset(AssetInfo asset)
         {
             if (_assetLibrary?.assets == null)
-                _assetLibrary = new AssetLibrary();
+            {
+                Debug.Log("[AssetDataManager] AssetLibrary not initialized. Creating new instance.");
+                _assetLibrary = CreateDefaultAssetLibrary();
+            }
 
             _assetLibrary.assets.Add(asset);
             InvalidateCache();
@@ -531,6 +574,19 @@ namespace AMU.AssetManager.Helper
             {
                 Directory.CreateDirectory(directory);
             }
+        }
+
+        /// <summary>
+        /// デフォルトのAssetLibraryを作成
+        /// </summary>
+        private AssetLibrary CreateDefaultAssetLibrary()
+        {
+            return new AssetLibrary
+            {
+                version = "1.0",
+                lastUpdated = DateTime.Now,
+                assets = new List<AssetInfo>()
+            };
         }
 
         public void Dispose()

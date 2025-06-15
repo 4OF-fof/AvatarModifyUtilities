@@ -60,8 +60,7 @@
   "AssetPreview_resetView": "Reset View",
   "AssetPreview_wireframe": "Wireframe",
   "AssetPreview_lighting": "Lighting",
-  "AssetPreview_background": "Background",
-  "Common_ok": "OK",
+  "AssetPreview_background": "Background",  "Common_ok": "OK",
   "Common_cancel": "Cancel",
   "Common_yes": "Yes",
   "Common_no": "No",
@@ -72,5 +71,7 @@
   "Common_browse": "Browse...",
   "Common_clear": "Clear",
   "Common_refresh": "Refresh",
-  "Common_close": "Close"
+  "Common_close": "Close",
+  "AssetManager_libraryCreated": "Created new asset library",
+  "AssetManager_libraryAutoCreated": "AssetLibrary.json not found, automatically created"
 }

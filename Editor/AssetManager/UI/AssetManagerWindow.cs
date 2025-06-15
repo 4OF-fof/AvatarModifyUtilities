@@ -25,6 +25,9 @@ namespace AMU.AssetManager.UI
             var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
             LocalizationManager.LoadLanguage(language);
 
+            // ウィンドウ表示前にライブラリファイルの存在を確保
+            AssetDataManager.Instance.EnsureLibraryFileExists();
+
             var window = GetWindow<AssetManagerWindow>(LocalizationManager.GetText("AssetManager_windowTitle"));
             window.minSize = new Vector2(1100, 700);
             window.maxSize = new Vector2(1100, 700);
@@ -47,7 +50,6 @@ namespace AMU.AssetManager.UI
 
         // データ管理の簡素化
         private bool _needsUIRefresh = false;   // UIの再描画のみ必要
-        private bool _isFirstLoad = true;       // 初回ロードフラグ
 
         // Type Management
         private string _newTypeName = "";
@@ -72,23 +74,16 @@ namespace AMU.AssetManager.UI
             AssetTypeManager.LoadCustomTypes();
             InitializeManagers();
 
-            // 初回のみデータ読み込み
-            if (_isFirstLoad)
-            {
-                _dataManager.Initialize();
-                _isFirstLoad = false;
-            }
-
             _needsUIRefresh = true;
 
             // TagTypeManagerとの統合初期化
             InitializeTagTypeIntegration();
         }
-
         private void InitializeManagers()
         {
-            // シングルトンインスタンスを取得
+            // シングルトンインスタンスを取得し初期化
             _dataManager = AssetDataManager.Instance;
+            _dataManager.Initialize(); // 明示的に初期化を実行
             _dataManager.OnDataLoaded += OnDataLoaded;
             _dataManager.OnDataChanged += OnDataChanged;
 

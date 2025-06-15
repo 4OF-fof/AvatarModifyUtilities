@@ -18,6 +18,9 @@ namespace AMU.AssetManager.UI
             window.minSize = new Vector2(800, 500);
             window.maxSize = new Vector2(800, 500);
 
+            // ウィンドウ表示前にライブラリファイルの存在を確保
+            AssetDataManager.Instance.EnsureLibraryFileExists();
+
             // シングルトンインスタンスから最新データを取得
             var updatedAsset = AssetDataManager.Instance.GetAsset(asset.uid) ?? asset;
 
@@ -96,8 +99,9 @@ namespace AMU.AssetManager.UI
         }
         private void InitializeManagers()
         {
-            // シングルトンインスタンスを使用
+            // シングルトンインスタンスを使用し初期化
             _dataManager = AssetDataManager.Instance;
+            _dataManager.Initialize(); // 明示的に初期化を実行
 
             if (_thumbnailManager == null)
             {

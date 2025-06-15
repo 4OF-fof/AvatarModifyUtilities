@@ -61,8 +61,7 @@
   "AssetPreview_resetView": "ビューリセット",
   "AssetPreview_wireframe": "ワイヤーフレーム",
   "AssetPreview_lighting": "ライティング",
-  "AssetPreview_background": "背景",
-  "Common_ok": "OK",
+  "AssetPreview_background": "背景",  "Common_ok": "OK",
   "Common_cancel": "キャンセル",
   "Common_yes": "はい",
   "Common_no": "いいえ",
@@ -73,5 +72,7 @@
   "Common_browse": "参照...",
   "Common_clear": "クリア",
   "Common_refresh": "更新",
-  "Common_close": "閉じる"
+  "Common_close": "閉じる",
+  "AssetManager_libraryCreated": "新しいアセットライブラリを作成しました",
+  "AssetManager_libraryAutoCreated": "AssetLibrary.jsonが見つからなかったため、自動作成しました"
 }
