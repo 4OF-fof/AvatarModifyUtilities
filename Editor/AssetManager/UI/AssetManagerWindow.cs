@@ -254,16 +254,19 @@ namespace AMU.AssetManager.UI
                     {
                         ShowAdvancedSearchWindow();
                     }
-
-                    // 詳細検索の状態表示
                     if (_isUsingAdvancedSearch)
                     {
                         var statusText = GetAdvancedSearchStatusText();
                         var statusStyle = new GUIStyle(EditorStyles.miniLabel)
                         {
-                            normal = { textColor = new Color(0.3f, 0.6f, 1f) }
+                            normal = { textColor = new Color(0.3f, 0.6f, 1f) },
                         };
-                        GUILayout.Label(statusText, statusStyle, GUILayout.Width(150));
+                        using (new GUILayout.VerticalScope())
+                        {
+                            GUILayout.FlexibleSpace();
+                            GUILayout.Label(statusText, statusStyle, GUILayout.Width(150));
+                            GUILayout.FlexibleSpace();
+                        }
 
                         // クリアボタン
                         if (GUILayout.Button("×", EditorStyles.toolbarButton, GUILayout.Width(20)))
@@ -993,7 +996,7 @@ namespace AMU.AssetManager.UI
 
             if (!string.IsNullOrEmpty(_advancedSearchCriteria.authorQuery))
                 parts.Add($"作者:{_advancedSearchCriteria.authorQuery}");
-                
+
             if (_advancedSearchCriteria.selectedTags.Count > 0)
             {
                 var tagText = string.Join(", ", _advancedSearchCriteria.selectedTags);
