@@ -11,6 +11,20 @@ namespace AMU.AssetManager.Helper
 {
     public class AssetThumbnailManager
     {
+        // シングルトンインスタンス
+        private static AssetThumbnailManager _instance;
+        public static AssetThumbnailManager Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new AssetThumbnailManager();
+                }
+                return _instance;
+            }
+        }
+
         // LRUキャッシュの実装
         private LinkedList<string> _cacheOrder = new LinkedList<string>();
         private Dictionary<string, LinkedListNode<string>> _cacheNodes = new Dictionary<string, LinkedListNode<string>>();
@@ -21,12 +35,11 @@ namespace AMU.AssetManager.Helper
         private string _thumbnailDirectory;
         private int _maxCacheSize = 200; // キャッシュサイズを制限
         private const float FILE_CHECK_INTERVAL = 5.0f; // ファイル変更チェックの間隔（秒）
-        private Dictionary<string, float> _lastFileCheckTime = new Dictionary<string, float>();
-
-        public event Action<AssetInfo> OnThumbnailSaved;
+        private Dictionary<string, float> _lastFileCheckTime = new Dictionary<string, float>(); public event Action<AssetInfo> OnThumbnailSaved;
         public event Action OnThumbnailLoaded;
+        public event Action<string> OnThumbnailUpdated; // 特定のアセットのサムネイル更新通知
 
-        public AssetThumbnailManager()
+        private AssetThumbnailManager()
         {
             string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
@@ -260,6 +273,7 @@ namespace AMU.AssetManager.Helper
                     {
                         // ファイルが更新されているのでキャッシュを無効化
                         InvalidateThumbnailCache(asset.uid);
+                        OnThumbnailUpdated?.Invoke(asset.uid);
                     }
                 }
                 else
@@ -315,13 +329,26 @@ namespace AMU.AssetManager.Helper
                 // Convert path to use forward slashes for JSON storage
                 asset.thumbnailPath = thumbnailPath.Replace('\\', '/');
 
-                // 古いキャッシュを無効化してから新しいテクスチャをキャッシュ
+                // 古いキャッシュを完全に無効化してから新しいテクスチャをキャッシュ
                 InvalidateThumbnailCache(asset.uid);
                 AddToCache(asset.uid, texture);
-                UpdateThumbnailModifiedTime(asset);
+                UpdateThumbnailModifiedTime(asset);                // サムネイル更新をより確実に通知するため、EditorApplication.delayCallを使用
+                EditorApplication.delayCall += () =>
+                {
+                    OnThumbnailLoaded?.Invoke();
+                    OnThumbnailSaved?.Invoke(asset);
+                    OnThumbnailUpdated?.Invoke(asset.uid);
 
-                OnThumbnailLoaded?.Invoke();
-                OnThumbnailSaved?.Invoke(asset);
+                    // 全てのEditorWindowを再描画
+                    foreach (var window in Resources.FindObjectsOfTypeAll<EditorWindow>())
+                    {
+                        if (window.GetType().Name == "AssetManagerWindow" ||
+                            window.GetType().Name == "AssetDetailWindow")
+                        {
+                            window.Repaint();
+                        }
+                    }
+                };
             }
         }
         public void ClearCache()

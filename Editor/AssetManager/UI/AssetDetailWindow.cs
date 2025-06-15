@@ -79,7 +79,8 @@ namespace AMU.AssetManager.UI
         }
         private void OnDisable()
         {
-            _thumbnailManager?.ClearCache();
+            // シングルトンインスタンスのため、他のウィンドウでも使用されている可能性があるのでキャッシュクリアしない
+            // _thumbnailManager?.ClearCache();
         }
 
         private void InitializeStyles()
@@ -101,14 +102,11 @@ namespace AMU.AssetManager.UI
         {
             // シングルトンインスタンスを使用し初期化
             _dataManager = AssetDataManager.Instance;
-            _dataManager.Initialize(); // 明示的に初期化を実行
-
-            if (_thumbnailManager == null)
-            {
-                _thumbnailManager = new AssetThumbnailManager();
-                _thumbnailManager.OnThumbnailLoaded += Repaint;
-                _thumbnailManager.OnThumbnailSaved += OnThumbnailSaved;
-            }
+            _dataManager.Initialize(); // 明示的に初期化を実行            // シングルトンインスタンスを使用
+            _thumbnailManager = AssetThumbnailManager.Instance;
+            _thumbnailManager.OnThumbnailLoaded += Repaint;
+            _thumbnailManager.OnThumbnailSaved += OnThumbnailSaved;
+            _thumbnailManager.OnThumbnailUpdated += OnThumbnailUpdated;
 
             if (_fileManager == null)
             {
@@ -865,6 +863,15 @@ namespace AMU.AssetManager.UI
                     Debug.Log($"サムネイルが保存されアセット情報を更新しました: {asset.name}");
                     Repaint();
                 }
+            }
+        }
+
+        private void OnThumbnailUpdated(string assetUid)
+        {
+            // 現在編集中のアセットのサムネイルが更新された場合
+            if (_asset != null && _asset.uid == assetUid)
+            {
+                Repaint();
             }
         }
         private void AddTag()

@@ -85,14 +85,11 @@ namespace AMU.AssetManager.UI
             _dataManager = AssetDataManager.Instance;
             _dataManager.Initialize(); // 明示的に初期化を実行
             _dataManager.OnDataLoaded += OnDataLoaded;
-            _dataManager.OnDataChanged += OnDataChanged;
-
-            if (_thumbnailManager == null)
-            {
-                _thumbnailManager = new AssetThumbnailManager();
-                _thumbnailManager.OnThumbnailLoaded += Repaint;
-                _thumbnailManager.OnThumbnailSaved += OnThumbnailSaved;
-            }
+            _dataManager.OnDataChanged += OnDataChanged;            // シングルトンインスタンスを使用
+            _thumbnailManager = AssetThumbnailManager.Instance;
+            _thumbnailManager.OnThumbnailLoaded += Repaint;
+            _thumbnailManager.OnThumbnailSaved += OnThumbnailSaved;
+            _thumbnailManager.OnThumbnailUpdated += OnThumbnailUpdated;
 
             if (_fileManager == null)
             {
@@ -128,11 +125,11 @@ namespace AMU.AssetManager.UI
                 _dataManager.OnDataChanged -= OnDataChanged;
                 // シングルトンなのでDisposeは呼ばない
             }
-
             if (_thumbnailManager != null)
             {
                 _thumbnailManager.OnThumbnailLoaded -= Repaint;
                 _thumbnailManager.OnThumbnailSaved -= OnThumbnailSaved;
+                _thumbnailManager.OnThumbnailUpdated -= OnThumbnailUpdated;
             }
         }
         private void OnTagTypeDataChanged()
@@ -902,13 +899,18 @@ namespace AMU.AssetManager.UI
                 }
             }
         }
-
         private void OnThumbnailSaved(AssetInfo asset)
         {
             if (asset != null && _dataManager != null)
             {
                 _dataManager.UpdateAsset(asset);
             }
+        }
+
+        private void OnThumbnailUpdated(string assetUid)
+        {
+            // 特定のアセットのサムネイルが更新された時の処理
+            Repaint();
         }
 
         /// <summary>
