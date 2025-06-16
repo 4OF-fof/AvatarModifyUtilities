@@ -143,5 +143,15 @@
   "AdvancedSearch_orLogicDescription": "選択したタグのいずれかが含まれているアセットを検索します",
   "AdvancedSearch_singleTagDescription": "タグ「{0}」を含むアセットを検索します",
   "AdvancedSearch_search": "検索",
-  "AdvancedSearch_clear": "クリア"
+  "AdvancedSearch_clear": "クリア",
+  "BPMImport_loadFromFileError": "ファイルからの読み込みに失敗しました: {0}",
+  "BPMImport_loadSuccess": "BPMライブラリが正常に読み込まれました。{0}個のパッケージが見つかりました。",
+  "BPMImport_loadError": "BPMライブラリの読み込みに失敗しました: {0}",
+  "BPMImport_unknownError": "不明なエラー",
+  "BPMImport_individualSettings": "個別パッケージ設定",
+  "BPMImport_individualSettingsDesc": "各パッケージまたはファイルのアセットタイプを個別に設定します。",
+  "BPMImport_type": "タイプ",
+  "BPMImport_unknownPackage": "不明なパッケージ",
+  "BPMImport_groupFiles": "[グループ - {0}ファイル]",
+  "BPMImport_groupSettings": "グループ設定:"
 }

@@ -79,7 +79,7 @@ namespace AMU.AssetManager.UI
             catch (System.Exception ex)
             {
                 _isLoading = false;
-                _statusMessage = $"Failed to load from file: {ex.Message}";
+                _statusMessage = string.Format(LocalizationManager.GetText("BPMImport_loadFromFileError"), ex.Message);
                 Debug.LogError($"[BPMImportWindow] Failed to load from file: {ex}");
             }
         }
@@ -96,7 +96,7 @@ namespace AMU.AssetManager.UI
         private void OnBPMDataLoaded()
         {
             _isLoading = false;
-            _statusMessage = $"BPM Library loaded successfully. Found {GetTotalPackageCount()} packages.";
+            _statusMessage = string.Format(LocalizationManager.GetText("BPMImport_loadSuccess"), GetTotalPackageCount());
             Repaint();
         }
 
@@ -239,9 +239,9 @@ namespace AMU.AssetManager.UI
         {
             using (new GUILayout.VerticalScope(_boxStyle))
             {
-                GUILayout.Label("Individual Package Settings", EditorStyles.boldLabel);
+                GUILayout.Label(LocalizationManager.GetText("BPMImport_individualSettings"), EditorStyles.boldLabel);
                 GUILayout.Space(5);
-                GUILayout.Label("Configure asset types for each package or file individually.", EditorStyles.wordWrappedMiniLabel);
+                GUILayout.Label(LocalizationManager.GetText("BPMImport_individualSettingsDesc"), EditorStyles.wordWrappedMiniLabel);
                 GUILayout.Space(10);
 
                 if (_bpmDataManager?.Library?.authors != null)
@@ -276,15 +276,14 @@ namespace AMU.AssetManager.UI
         private void DrawPackageSection(BPMPackage package, string authorName)
         {
             using (new GUILayout.VerticalScope("box"))
-            {
-                // パッケージヘッダー
-                GUILayout.Label(package.packageName ?? "Unknown Package", _packageHeaderStyle);
+            {                // パッケージヘッダー
+                GUILayout.Label(package.packageName ?? LocalizationManager.GetText("BPMImport_unknownPackage"), _packageHeaderStyle);
 
                 // グループ化されるかどうかの表示
                 bool isGrouped = package.files?.Count > 1;
                 if (isGrouped)
                 {
-                    GUILayout.Label($"[Group - {package.files.Count} files]", EditorStyles.miniLabel);
+                    GUILayout.Label(string.Format(LocalizationManager.GetText("BPMImport_groupFiles"), package.files.Count), EditorStyles.miniLabel);
 
                     // グループ設定
                     string packageKey = $"{authorName}|{package.itemUrl}";
@@ -293,7 +292,7 @@ namespace AMU.AssetManager.UI
                         _packageSettings[packageKey] = new AssetImportSettings();
                     }
 
-                    DrawAssetSettings(_packageSettings[packageKey], "Group Settings:");
+                    DrawAssetSettings(_packageSettings[packageKey], LocalizationManager.GetText("BPMImport_groupSettings"));
                 }
 
                 // 個別ファイル
@@ -336,7 +335,7 @@ namespace AMU.AssetManager.UI
                 int selectedIndex = allTypes.IndexOf(settings.assetType);
                 if (selectedIndex == -1) selectedIndex = 0;
 
-                selectedIndex = EditorGUILayout.Popup("Type", selectedIndex, allTypes.ToArray());
+                selectedIndex = EditorGUILayout.Popup(LocalizationManager.GetText("BPMImport_type"), selectedIndex, allTypes.ToArray());
                 if (selectedIndex >= 0 && selectedIndex < allTypes.Count)
                 {
                     settings.assetType = allTypes[selectedIndex];
