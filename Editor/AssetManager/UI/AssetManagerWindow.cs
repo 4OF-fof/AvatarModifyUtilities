@@ -55,11 +55,9 @@ namespace AMU.AssetManager.UI
         private bool _needsUIRefresh = false;   // UIの再描画のみ必要
 
         // Type Management
-        private string _newTypeName = "";
-
-        // Layout
-        private float _leftPanelWidth = 250f;        // Asset Grid
-        private float _thumbnailSize = 100f;
+        private string _newTypeName = "";        // Layout
+        private float _leftPanelWidth = 280f;  // 左パネルの幅を拡大        // Asset Grid
+        private float _thumbnailSize = 110f;  // サムネイルサイズを拡大
         private List<AssetInfo> _filteredAssets = new List<AssetInfo>();
         private AssetInfo _selectedAsset;
         private List<AssetInfo> _selectedAssets = new List<AssetInfo>(); // 複数選択対応
@@ -782,24 +780,37 @@ namespace AMU.AssetManager.UI
             };
 
             GUI.Label(indicatorRect, "G", labelStyle);
-        }
-
-        /// <summary>
-        /// アセット名を描画
-        /// </summary>
+        }        /// <summary>
+                 /// アセット名を描画（改善版：動的な高さとツールチップ対応）
+                 /// </summary>
         private void DrawAssetName(AssetInfo asset)
         {
             var nameStyle = new GUIStyle(EditorStyles.label)
             {
                 wordWrap = true,
                 alignment = TextAnchor.UpperCenter,
-                fontSize = 10
+                fontSize = 10,
+                richText = true
             };
 
-            GUILayout.Label(asset.name, nameStyle, GUILayout.Height(30));
-        }        /// <summary>
-                 /// アセットアイテムのイベントを処理
-                 /// </summary>        
+            // 名前の長さに応じて高さを動的に調整
+            var content = new GUIContent(asset.name, asset.name); // ツールチップとして完全な名前を表示
+            var height = nameStyle.CalcHeight(content, _thumbnailSize + 10);
+            height = Mathf.Max(height, 20); // 最小高さを確保
+            height = Mathf.Min(height, 60); // 最大高さを制限
+
+            var rect = GUILayoutUtility.GetRect(_thumbnailSize + 10, height);
+
+            // 名前が長い場合は背景色を少し変える
+            if (asset.name.Length > 20)
+            {
+                EditorGUI.DrawRect(rect, new Color(0.2f, 0.2f, 0.2f, 0.1f));
+            }
+
+            GUI.Label(rect, content, nameStyle);
+        }/// <summary>
+         /// アセットアイテムのイベントを処理
+         /// </summary>        
         private void HandleAssetItemEvents(AssetInfo asset, Rect thumbnailRect)
         {
             if (Event.current.type == EventType.MouseDown && thumbnailRect.Contains(Event.current.mousePosition))
