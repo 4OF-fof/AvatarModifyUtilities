@@ -646,6 +646,8 @@ namespace AMU.AssetManager.UI
                     }
                 }
 
+                GUI.Label(thumbnailRect, new GUIContent("", asset.name));
+
                 // インジケーターの描画を最適化
                 DrawAssetIndicators(asset, thumbnailRect);
 
@@ -780,9 +782,10 @@ namespace AMU.AssetManager.UI
             };
 
             GUI.Label(indicatorRect, "G", labelStyle);
-        }        /// <summary>
-                 /// アセット名を描画（2行固定表示）
-                 /// </summary>
+        }
+        /// <summary>
+        /// アセット名を描画（2行固定表示）
+        /// </summary>
         private void DrawAssetName(AssetInfo asset)
         {
             var nameStyle = new GUIStyle(EditorStyles.label)
@@ -842,8 +845,7 @@ namespace AMU.AssetManager.UI
                     displayText = testText;
                 }
             }
-
-            var content = new GUIContent(displayText, asset.name); // ツールチップとして完全な名前を表示
+            var content = new GUIContent(displayText);
             var rect = GUILayoutUtility.GetRect(availableWidth, fixedHeight);
 
             // 名前が長い場合は背景色を少し変える
@@ -853,9 +855,11 @@ namespace AMU.AssetManager.UI
             }
 
             GUI.Label(rect, content, nameStyle);
-        }/// <summary>
-         /// アセットアイテムのイベントを処理
-         /// </summary>        
+        }
+
+        /// <summary>
+        /// アセットアイテムのイベントを処理
+        /// </summary>        
         private void HandleAssetItemEvents(AssetInfo asset, Rect thumbnailRect)
         {
             if (Event.current.type == EventType.MouseDown && thumbnailRect.Contains(Event.current.mousePosition))
