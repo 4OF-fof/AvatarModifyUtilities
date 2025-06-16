@@ -212,6 +212,126 @@ namespace AMU.AssetManager.Helper
         }
 
         /// <summary>
+        /// ファイルがインポート可能かどうかを判定する（圧縮ファイル以外）
+        /// </summary>
+        public bool IsImportable(AssetInfo asset)
+        {
+            if (asset == null || string.IsNullOrEmpty(asset.filePath))
+                return false;
+
+            string extension = Path.GetExtension(asset.filePath).ToLower();
+
+            // 設定から除外する拡張子を取得
+            string excludedExtensions = EditorPrefs.GetString("Setting.AssetManager_excludedImportExtensions", ".zip,.psd");
+            var excludedList = excludedExtensions.Split(',')
+                .Select(ext => ext.Trim().ToLower())
+                .Where(ext => !string.IsNullOrEmpty(ext))
+                .ToArray();
+
+            // 除外リストに含まれている場合はインポート不可
+            return !excludedList.Contains(extension);
+        }
+
+        /// <summary>
+        /// インポートボタンを表示すべきかどうかを判定する
+        /// </summary>
+        public bool ShouldShowImportButton(AssetInfo asset)
+        {
+            if (asset == null || string.IsNullOrEmpty(asset.filePath))
+                return false;
+
+            // ファイルが存在しない場合は表示しない
+            if (!FileExists(asset.filePath))
+                return false;
+
+            // UnityPackageまたはその他のインポート可能ファイルの場合に表示
+            return IsUnityPackage(asset) || IsImportable(asset);
+        }
+
+        /// <summary>
+        /// ファイルをUnityプロジェクトにインポートする（拡張版）
+        /// </summary>
+        public void ImportAsset(AssetInfo asset)
+        {
+            if (asset == null || string.IsNullOrEmpty(asset.filePath))
+            {
+                Debug.LogWarning("[AssetFileManager] Invalid asset or file path");
+                return;
+            }
+
+            string fullPath = GetFullPath(asset.filePath);
+            if (!File.Exists(fullPath))
+            {
+                Debug.LogWarning($"[AssetFileManager] File not found: {fullPath}");
+                return;
+            }
+
+            try
+            {
+                if (IsUnityPackage(asset))
+                {
+                    // UnityPackageの場合は既存のメソッドを使用
+                    ImportUnityPackage(asset);
+                }
+                else if (IsImportable(asset))
+                {
+                    // その他のファイルの場合はAssetsフォルダ直下にコピー
+                    ImportFileToAssets(asset, fullPath);
+                }
+                else
+                {
+                    Debug.LogWarning($"[AssetFileManager] File type not supported for import: {fullPath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[AssetFileManager] Failed to import asset {asset.name}: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// ファイルをAssetsフォルダ直下にインポートする
+        /// </summary>
+        private void ImportFileToAssets(AssetInfo asset, string sourceFilePath)
+        {
+            string fileName = Path.GetFileName(sourceFilePath);
+            string targetPath = Path.Combine(Application.dataPath, fileName);
+
+            // ファイルが既に存在する場合は、番号を付けて重複を避ける
+            int counter = 1;
+            string nameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+            string extension = Path.GetExtension(fileName);
+
+            while (File.Exists(targetPath))
+            {
+                string newFileName = $"{nameWithoutExtension}_{counter}{extension}";
+                targetPath = Path.Combine(Application.dataPath, newFileName);
+                counter++;
+            }
+
+            // ファイルをコピー
+            File.Copy(sourceFilePath, targetPath);
+
+            // AssetDatabaseを更新
+            AssetDatabase.Refresh();
+
+            // Assetsフォルダでのパスを取得
+            string assetPath = "Assets/" + Path.GetFileName(targetPath);
+
+            Debug.Log($"[AssetFileManager] File imported to Assets folder: {assetPath}");
+
+            // インポート後にファイルを選択状態にする
+            EditorApplication.delayCall += () =>
+            {
+                var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath);
+                if (obj != null)
+                {
+                    Selection.activeObject = obj;
+                    EditorGUIUtility.PingObject(obj);
+                }
+            };
+        }
+        /// <summary>
         /// アセットファイルをCoreDirに移動する
         /// </summary>
         public string MoveAssetToCoreDir(string originalFilePath)

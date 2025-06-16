@@ -255,11 +255,21 @@ namespace AMU.AssetManager.UI
                             SelectThumbnail();
                         }
                     }
-                    else if (_fileManager.IsUnityPackage(_asset))
+                    else if (_fileManager.ShouldShowImportButton(_asset))
                     {
-                        if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_importPackage"), GUILayout.Width(180)))
+                        string buttonText;
+                        if (_fileManager.IsUnityPackage(_asset))
                         {
-                            ImportUnityPackage();
+                            buttonText = LocalizationManager.GetText("AssetDetail_importPackage");
+                        }
+                        else
+                        {
+                            buttonText = LocalizationManager.GetText("AssetDetail_importFile");
+                        }
+
+                        if (GUILayout.Button(buttonText, GUILayout.Width(180)))
+                        {
+                            ImportAsset();
                         }
                     }
                     // Display download button when boothDownloadUrl exists and no file path is set
@@ -665,15 +675,16 @@ namespace AMU.AssetManager.UI
                 _asset.fileSize = _fileManager.GetFileSize(_asset.filePath);
             }
         }
-        private void ImportUnityPackage()
+        private void ImportAsset()
         {
             try
             {
-                _fileManager.ImportUnityPackage(_asset);
+                _fileManager.ImportAsset(_asset);
             }
             catch (System.Exception ex)
             {
-                Debug.LogError($"Failed to import Unity Package: {ex.Message}");
+                Debug.LogError($"Failed to import asset: {ex.Message}");
+                EditorUtility.DisplayDialog("Error", $"Failed to import asset: {ex.Message}", "OK");
             }
         }
 
