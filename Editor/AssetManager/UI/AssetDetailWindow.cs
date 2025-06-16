@@ -511,6 +511,7 @@ namespace AMU.AssetManager.UI
                     {
                         ShowZipFileSelector();
                     }
+                    GUILayout.Space(5);
                 }
             }
         }
