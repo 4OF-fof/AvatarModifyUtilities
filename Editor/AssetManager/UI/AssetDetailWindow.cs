@@ -235,10 +235,7 @@ namespace AMU.AssetManager.UI
         {
             using (new GUILayout.VerticalScope(GUILayout.Width(200)))
             {
-                GUILayout.Space(10); // 左マージンを追加
-
-                // サムネイルを中央に配置するためのフレキシブルスペース
-                GUILayout.FlexibleSpace();
+                GUILayout.Space(130);
 
                 using (new GUILayout.HorizontalScope())
                 {
