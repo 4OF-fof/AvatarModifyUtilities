@@ -51,6 +51,9 @@ namespace AMU.AssetManager.Helper
         private readonly Queue<int> _searchCacheKeys = new Queue<int>();
         private const int MaxCacheSize = 50;
 
+        // ダウンロードフォルダ監視
+        private DownloadFolderWatcher _downloadWatcher;
+
         public AssetLibrary Library => _assetLibrary;
         public bool IsLoading => _isLoading;
 
@@ -88,9 +91,7 @@ namespace AMU.AssetManager.Helper
 
             // HttpClientの設定
             _httpClient.Timeout = TimeSpan.FromSeconds(HTTP_TIMEOUT_SECONDS);
-        }
-
-        /// <summary>
+        }        /// <summary>
         /// インスタンスを初期化（初回のみデータロード）
         /// </summary>
         public void Initialize()
@@ -102,6 +103,9 @@ namespace AMU.AssetManager.Helper
             {
                 LoadData();
             }
+
+            // DownloadFolderWatcherを初期化
+            InitializeDownloadWatcher();
         }
 
         /// <summary>
@@ -401,6 +405,21 @@ namespace AMU.AssetManager.Helper
         {
             return GetAllAssets().FirstOrDefault(a => a.name == name);
         }
+
+        /// <summary>
+        /// boothfileNameでアセットを検索
+        /// </summary>
+        public AssetInfo GetAssetByBoothFileName(string boothFileName)
+        {
+            if (string.IsNullOrEmpty(boothFileName))
+                return null;
+
+            return GetAllAssets().FirstOrDefault(a => 
+                a.boothItem != null && 
+                !string.IsNullOrEmpty(a.boothItem.boothfileName) &&
+                string.Equals(a.boothItem.boothfileName, boothFileName, StringComparison.OrdinalIgnoreCase));
+        }
+
         public List<AssetInfo> GetAllAssets()
         {
             return _assetLibrary?.assets ?? new List<AssetInfo>();
@@ -625,9 +644,47 @@ namespace AMU.AssetManager.Helper
                 lastUpdated = DateTime.Now,
                 assets = new List<AssetInfo>()
             };
+        }        /// <summary>
+        /// DownloadFolderWatcherを初期化
+        /// </summary>
+        private void InitializeDownloadWatcher()
+        {
+            if (_downloadWatcher == null)
+            {
+                var fileManager = new AssetFileManager();
+                _downloadWatcher = new DownloadFolderWatcher(this, fileManager);
+                
+                // ファイル処理イベントを購読
+                _downloadWatcher.OnFileProcessed += (fileName, targetPath) =>
+                {
+                    Debug.Log($"[AssetDataManager] Auto-moved file: {fileName} -> {targetPath}");
+                    EditorApplication.delayCall += () => OnDataChanged?.Invoke();
+                };
+            }
+            
+            // 監視状態を更新
+            _downloadWatcher.UpdateWatcherState();
         }
+
+        /// <summary>
+        /// ダウンロードフォルダ監視の設定を更新
+        /// </summary>
+        public void UpdateDownloadWatcherSettings()
+        {
+            _downloadWatcher?.UpdateWatcherState();
+        }
+
+        /// <summary>
+        /// ダウンロードフォルダを手動スキャン
+        /// </summary>
+        public void ScanDownloadFolder()
+        {
+            _downloadWatcher?.ScanDownloadFolder();
+        }
+
         public void Dispose()
         {
+            _downloadWatcher?.Dispose();
             _fileLock?.Dispose();
             _httpClient?.Dispose();
 

@@ -330,10 +330,29 @@ namespace AMU.AssetManager.UI
                     if (GUILayout.Button(LocalizationManager.GetText("AssetManager_addAsset"), EditorStyles.toolbarButton))
                     {
                         ShowAddAssetDialog();
-                    }
-                    if (GUILayout.Button(LocalizationManager.GetText("Common_refresh"), EditorStyles.toolbarButton))
+                    }                    if (GUILayout.Button(LocalizationManager.GetText("Common_refresh"), EditorStyles.toolbarButton))
                     {
                         RefreshData();
+                    }
+
+                    // ダウンロードフォルダ監視設定
+                    bool watchDownloadFolder = EditorPrefs.GetBool("Setting.AssetManager_watchDownloadFolder", false);
+                    var watchButtonText = watchDownloadFolder ? "📁🔍" : "📁";
+                    var watchButtonTooltip = watchDownloadFolder ? "ダウンロードフォルダ監視: ON" : "ダウンロードフォルダ監視: OFF";
+                    
+                    if (GUILayout.Button(new GUIContent(watchButtonText, watchButtonTooltip), EditorStyles.toolbarButton, GUILayout.Width(30)))
+                    {
+                        bool newValue = !watchDownloadFolder;
+                        EditorPrefs.SetBool("Setting.AssetManager_watchDownloadFolder", newValue);
+                        _dataManager.UpdateDownloadWatcherSettings();
+                        Debug.Log($"[AssetManager] ダウンロードフォルダ監視: {(newValue ? "有効" : "無効")}");
+                    }
+
+                    // ダウンロードフォルダ手動スキャン
+                    if (GUILayout.Button(new GUIContent("🔍", "ダウンロードフォルダをスキャン"), EditorStyles.toolbarButton, GUILayout.Width(25)))
+                    {
+                        _dataManager.ScanDownloadFolder();
+                        Debug.Log("[AssetManager] ダウンロードフォルダをスキャンしました");
                     }
 
                     // 選択状態の表示

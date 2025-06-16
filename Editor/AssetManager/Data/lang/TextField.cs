@@ -27,6 +27,9 @@ namespace AMU.Data.Lang
             public string AssetManager_confirmDelete;
             public string AssetManager_noAssets;
             public string AssetManager_loading;
+            public string AssetManager_watchDownloadFolder;
+            public string AssetManager_scanDownloadFolder;
+            public string AssetManager_filterArchived;
 
             // Asset Detail
             public string AssetDetail_windowTitle;
