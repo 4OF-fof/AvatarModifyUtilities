@@ -357,14 +357,26 @@ namespace AMU.AssetManager.UI
                         GUILayout.Label(_asset.authorName, GUILayout.Width(460));
                     }
                 }
-                if (_asset.boothItem != null && !string.IsNullOrEmpty(_asset.boothItem.boothItemUrl))
+                if (_asset.boothItem != null && (!string.IsNullOrEmpty(_asset.boothItem.boothItemUrl) || _isEditMode))
                 {
                     using (new GUILayout.HorizontalScope())
                     {
-                        GUILayout.Label("Booth URL", GUILayout.Width(100));
-                        if (GUILayout.Button(_asset.boothItem.boothItemUrl, EditorStyles.linkLabel, GUILayout.Width(460)))
+                        GUILayout.Label("URL", GUILayout.Width(100));
+                        if (_isEditMode)
                         {
-                            Application.OpenURL(_asset.boothItem.boothItemUrl);
+                            if (_asset.boothItem == null)
+                            {
+                                _asset.boothItem = new BoothItem();
+                            }
+                            _asset.boothItem.boothItemUrl = EditorGUILayout.TextField(_asset.boothItem.boothItemUrl ?? "", GUILayout.Width(460));
+                        }
+                        else
+                        {
+                            // 表示モードの場合、クリック可能なリンクとして表示
+                            if (GUILayout.Button(_asset.boothItem.boothItemUrl, EditorStyles.linkLabel, GUILayout.Width(460)))
+                            {
+                                Application.OpenURL(_asset.boothItem.boothItemUrl);
+                            }
                         }
                     }
                 }
