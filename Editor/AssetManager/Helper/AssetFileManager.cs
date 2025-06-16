@@ -211,23 +211,22 @@ namespace AMU.AssetManager.Helper
             return Path.GetExtension(asset.filePath).ToLower() == ".unitypackage";
         }
         /// <summary>
-        /// ファイルがインポート可能かどうかを判定する（圧縮ファイル以外）
+        /// ファイルがインポート可能かどうかを判定する
         /// </summary>
         public bool IsImportable(AssetInfo asset)
         {
             if (asset == null || string.IsNullOrEmpty(asset.filePath))
                 return false;
 
-            string extension = Path.GetExtension(asset.filePath).ToLower();
-
-            // 設定から除外する拡張子を取得
-            string excludedExtensions = EditorPrefs.GetString("Setting.AssetManager_excludedImportExtensions", ".zip\n.psd");
+            string extension = Path.GetExtension(asset.filePath).ToLower();            // 設定から除外する拡張子を取得
+            string excludedExtensions = EditorPrefs.GetString("Setting.AssetManager_excludedImportExtensions", ".zip .rar .7z\n.tar .gz .bz2\npsd blend");
 
             // カンマ、スペース、改行で分割
             var separators = new char[] { ',', ' ', '\n', '\r', '\t' };
             var excludedList = excludedExtensions.Split(separators, StringSplitOptions.RemoveEmptyEntries)
                 .Select(ext => ext.Trim().ToLower())
                 .Where(ext => !string.IsNullOrEmpty(ext))
+                .Select(ext => ext.StartsWith(".") ? ext : "." + ext) // ドットが無い場合は追加
                 .ToArray();
 
             // 除外リストに含まれている場合はインポート不可
