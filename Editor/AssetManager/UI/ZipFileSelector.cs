@@ -235,7 +235,6 @@ namespace AMU.AssetManager.UI
 
             return files.Where(f => f.ToLower().Contains(_searchFilter.ToLower())).ToList();
         }
-
         private void ExtractAndImportSelectedFiles()
         {
             var selectedFiles = _selectedFiles.Where(kvp => kvp.Value).Select(kvp => kvp.Key).ToList();
@@ -255,12 +254,16 @@ namespace AMU.AssetManager.UI
             string zipFileName = Path.GetFileNameWithoutExtension(_asset.filePath);
             string assetUnzipDir = Path.Combine(unzipDir, zipFileName);
 
+            Debug.Log($"[ZipFileSelector] Target extraction directory: {assetUnzipDir}");
+
             if (!Directory.Exists(assetUnzipDir))
             {
                 Directory.CreateDirectory(assetUnzipDir);
+                Debug.Log($"[ZipFileSelector] Created extraction directory: {assetUnzipDir}");
             }
 
             int processedCount = 0;
+            int successCount = 0;
             foreach (var file in selectedFiles)
             {
                 try
@@ -284,27 +287,43 @@ namespace AMU.AssetManager.UI
                         counter++;
                     }
 
+                    Debug.Log($"[ZipFileSelector] Extracting file: {file} -> {outputPath}");
+
                     if (_fileManager.ExtractFileFromZip(_asset.filePath, file, outputPath))
                     {
-                        // AssetManager/unzip 以下の相対パスを保存（スラッシュ区切りで）
-                        string relativePath = $"AssetManager/unzip/{zipFileName}/{Path.GetFileName(outputPath)}";
-                        extractedPaths.Add(relativePath);
+                        // ファイルが実際に作成されたかを確認
+                        if (File.Exists(outputPath))
+                        {
+                            // AssetManager/unzip 以下の相対パスを保存（スラッシュ区切りで）
+                            string relativePath = $"AssetManager/unzip/{zipFileName}/{Path.GetFileName(outputPath)}";
+                            extractedPaths.Add(relativePath);
+                            successCount++;
+                            Debug.Log($"[ZipFileSelector] Successfully extracted: {relativePath}");
+                        }
+                        else
+                        {
+                            Debug.LogError($"[ZipFileSelector] File was not created after extraction: {outputPath}");
+                        }
                     }
                     else
                     {
-                        Debug.LogWarning($"Failed to extract file: {file}");
+                        Debug.LogWarning($"[ZipFileSelector] Failed to extract file: {file}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error extracting file {file}: {ex.Message}");
+                    Debug.LogError($"[ZipFileSelector] Error extracting file {file}: {ex.Message}");
+                    Debug.LogError($"[ZipFileSelector] Stack trace: {ex.StackTrace}");
                 }
             }
 
             _isProcessing = false;
 
+            Debug.Log($"[ZipFileSelector] Extraction completed. Success: {successCount}/{selectedFiles.Count}");
+
             if (extractedPaths.Count > 0)
             {
+                SetStatus($"Successfully extracted {extractedPaths.Count} files");
                 _onSelectionComplete?.Invoke(extractedPaths);
             }
             else

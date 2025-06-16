@@ -442,6 +442,7 @@ namespace AMU.AssetManager.Helper
                 string fullZipPath = GetFullPath(zipFilePath);
                 if (!File.Exists(fullZipPath) || !IsZipFile(fullZipPath))
                 {
+                    Debug.LogError($"[AssetFileManager] Zip file not found or invalid: {fullZipPath}");
                     return false;
                 }
 
@@ -449,13 +450,31 @@ namespace AMU.AssetManager.Helper
                 string tempDir = GetTempExtractionDir(fullZipPath);
                 if (string.IsNullOrEmpty(tempDir))
                 {
+                    Debug.LogError($"[AssetFileManager] Failed to get temp extraction directory for: {fullZipPath}");
                     return false;
                 }
 
-                string sourceFile = Path.Combine(tempDir, entryPath.Replace('/', '\\'));
+                // パスの正規化とファイル検索
+                string normalizedEntryPath = entryPath.Replace('/', Path.DirectorySeparatorChar);
+                string sourceFile = Path.Combine(tempDir, normalizedEntryPath);
+
+                // ファイルが見つからない場合、ディレクトリ内を再帰的に検索
                 if (!File.Exists(sourceFile))
                 {
-                    return false;
+                    string fileName = Path.GetFileName(entryPath);
+                    var foundFiles = Directory.GetFiles(tempDir, fileName, SearchOption.AllDirectories);
+
+                    if (foundFiles.Length > 0)
+                    {
+                        sourceFile = foundFiles[0]; // 最初に見つかったファイルを使用
+                        Debug.Log($"[AssetFileManager] Found file at alternative path: {sourceFile}");
+                    }
+                    else
+                    {
+                        Debug.LogError($"[AssetFileManager] Source file not found in temp directory: {sourceFile}");
+                        Debug.LogError($"[AssetFileManager] Temp directory contents: {string.Join(", ", Directory.GetFiles(tempDir, "*", SearchOption.AllDirectories))}");
+                        return false;
+                    }
                 }
 
                 // 出力ディレクトリが存在しない場合は作成
@@ -467,11 +486,13 @@ namespace AMU.AssetManager.Helper
 
                 // ファイルをコピー
                 File.Copy(sourceFile, outputPath, true);
+                Debug.Log($"[AssetFileManager] Successfully extracted file: {entryPath} -> {outputPath}");
                 return true;
             }
             catch (Exception ex)
             {
                 Debug.LogError($"[AssetFileManager] Failed to extract file {entryPath} from {zipFilePath}: {ex.Message}");
+                Debug.LogError($"[AssetFileManager] Stack trace: {ex.StackTrace}");
                 return false;
             }
         }
@@ -488,11 +509,10 @@ namespace AMU.AssetManager.Helper
 
             return unzipDir;
         }
-
         private string GetCoreDirectory()
         {
             return EditorPrefs.GetString("Setting.Core_dirPath",
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AvatarModifyUtilities"));
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
         }
         private string ExtractZipToTemp(string zipFilePath)
         {
@@ -503,6 +523,7 @@ namespace AMU.AssetManager.Helper
                 {
                     if (Directory.Exists(existingTempDir))
                     {
+                        Debug.Log($"[AssetFileManager] Using existing temp directory: {existingTempDir}");
                         return existingTempDir;
                     }
                     else
@@ -514,35 +535,53 @@ namespace AMU.AssetManager.Helper
                 // 新しい一時ディレクトリを作成
                 string tempDir = Path.Combine(Path.GetTempPath(), "AMU_ZipExtract", Path.GetRandomFileName());
                 Directory.CreateDirectory(tempDir);
+                Debug.Log($"[AssetFileManager] Created temp directory: {tempDir}");
 
+                int extractedCount = 0;
                 // Shift_JISエンコーディングでZIPファイルを展開
                 using (var fileStream = new FileStream(zipFilePath, FileMode.Open, FileAccess.Read))
                 {
                     using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Read, false, Encoding.GetEncoding("Shift_JIS")))
                     {
+                        Debug.Log($"[AssetFileManager] Archive contains {archive.Entries.Count} entries");
+
                         foreach (var entry in archive.Entries)
                         {
-                            if (string.IsNullOrEmpty(entry.Name)) continue; // ディレクトリエントリをスキップ
-
-                            string entryPath = Path.Combine(tempDir, entry.FullName);
-                            string entryDir = Path.GetDirectoryName(entryPath);
-
-                            if (!Directory.Exists(entryDir))
+                            if (string.IsNullOrEmpty(entry.Name))
                             {
-                                Directory.CreateDirectory(entryDir);
+                                // ディレクトリエントリをスキップ
+                                continue;
                             }
 
-                            entry.ExtractToFile(entryPath, true);
+                            try
+                            {
+                                string entryPath = Path.Combine(tempDir, entry.FullName);
+                                string entryDir = Path.GetDirectoryName(entryPath);
+
+                                if (!Directory.Exists(entryDir))
+                                {
+                                    Directory.CreateDirectory(entryDir);
+                                }
+
+                                entry.ExtractToFile(entryPath, true);
+                                extractedCount++;
+                                Debug.Log($"[AssetFileManager] Extracted: {entry.FullName} -> {entryPath}");
+                            }
+                            catch (Exception entryEx)
+                            {
+                                Debug.LogWarning($"[AssetFileManager] Failed to extract entry {entry.FullName}: {entryEx.Message}");
+                            }
                         }
                     }
                 }
-
+                Debug.Log($"[AssetFileManager] Successfully extracted {extractedCount} files to temp directory");
                 _tempExtractionDirs[zipFilePath] = tempDir;
                 return tempDir;
             }
             catch (Exception ex)
             {
                 Debug.LogError($"[AssetFileManager] Failed to extract zip to temp: {ex.Message}");
+                Debug.LogError($"[AssetFileManager] Stack trace: {ex.StackTrace}");
                 return null;
             }
         }
