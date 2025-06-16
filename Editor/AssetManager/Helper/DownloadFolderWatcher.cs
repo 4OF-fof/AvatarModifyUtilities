@@ -310,65 +310,134 @@ namespace AMU.AssetManager.Helper
         }
 
         /// <summary>
-        /// ファイルのダウンロードが完了するまで待機
+        /// ファイルのダウンロードが完了しているかをチェック
+        /// </summary>
+        private bool IsFileDownloadComplete(string filePath)
+        {
+            try
+            {
+                var fileInfo = new FileInfo(filePath);
+                if (!fileInfo.Exists)
+                    return false;
+
+                // ファイルサイズが0の場合は未完了
+                if (fileInfo.Length == 0)
+                    return false;
+
+                // ファイルがロックされていないかチェック（排他アクセステスト）
+                if (!TryAccessFile(filePath))
+                    return false;
+
+                // ブラウザの一時ファイル拡張子をチェック
+                if (IsTemporaryFile(fileInfo.Name))
+                    return false;
+
+                // ファイルの最終更新時刻をチェック（直近で更新されていない）
+                var timeSinceLastWrite = DateTime.Now - fileInfo.LastWriteTime;
+                if (timeSinceLastWrite.TotalSeconds < 2) // 2秒以内に更新されている場合は待機
+                    return false;
+
+                // NTFS代替データストリーム（Zone.Identifier）のチェック
+                // ダウンロード中のファイルには通常このストリームが存在する
+                if (HasDownloadInProgressMarker(filePath))
+                    return false;
+
+                Debug.Log($"[DownloadFolderWatcher] File appears to be download complete: {Path.GetFileName(filePath)} ({fileInfo.Length:N0} bytes)");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[DownloadFolderWatcher] Error checking file completion: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// ダウンロード進行中マーカーをチェック
+        /// </summary>
+        private bool HasDownloadInProgressMarker(string filePath)
+        {
+            try
+            {
+                // Zone.Identifierストリームの存在をチェック
+                string zoneIdentifierPath = filePath + ":Zone.Identifier";
+                if (File.Exists(zoneIdentifierPath))
+                {
+                    // Zone.Identifierの内容をチェック
+                    string content = File.ReadAllText(zoneIdentifierPath);
+                    // ダウンロード中を示すマーカーがある場合
+                    if (content.Contains("ReferrerUrl=") && content.Contains("HostUrl="))
+                    {
+                        // まだダウンロード中の可能性がある
+                        return true;
+                    }
+                }
+
+                // Chromeの.crdownloadファイルをチェック
+                string crdownloadPath = filePath + ".crdownload";
+                if (File.Exists(crdownloadPath))
+                    return true;
+
+                // Firefoxの.part.mozdownloadファイルをチェック
+                string mozdownloadPath = filePath + ".part";
+                if (File.Exists(mozdownloadPath))
+                    return true;
+
+                return false;
+            }
+            catch
+            {
+                // エラーの場合は安全側に倒してfalseを返す
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// ファイルのダウンロード完了を待機（非時間ベース）
         /// </summary>
         private bool WaitForFileCompletion(string filePath)
         {
-            const int maxAttempts = 60; // 30秒に延長（大きなファイル対応）
-            const int delayMs = 500;
-            long previousSize = -1;
-            int stableSizeCount = 0;
-            const int requiredStableCount = 4; // 2秒間サイズが安定していることを確認
+            const int maxRetries = 30; // 最大試行回数
+            const int baseDelayMs = 500; // 基本待機時間
+            int retryCount = 0;
 
-            for (int i = 0; i < maxAttempts; i++)
+            Debug.Log($"[DownloadFolderWatcher] Checking download status: {Path.GetFileName(filePath)}");
+
+            while (retryCount < maxRetries)
             {
-                try
+                if (IsFileDownloadComplete(filePath))
                 {
-                    // ファイルサイズをチェック
-                    var fileInfo = new FileInfo(filePath);
-                    if (!fileInfo.Exists)
-                        return false;
-
-                    long currentSize = fileInfo.Length;
-
-                    // ファイルサイズが前回と同じかチェック
-                    if (currentSize == previousSize && currentSize > 0)
-                    {
-                        stableSizeCount++;
-                        // 一定回数同じサイズならダウンロード完了と判断
-                        if (stableSizeCount >= requiredStableCount)
-                        {
-                            // 最終的にファイルがアクセス可能かチェック
-                            using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None))
-                            {
-                                Debug.Log($"[DownloadFolderWatcher] File download completed: {filePath} ({currentSize:N0} bytes)");
-                                return true;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        stableSizeCount = 0; // サイズが変わったらカウントリセット
-                        previousSize = currentSize;
-                    }
-
-                    System.Threading.Thread.Sleep(delayMs);
+                    return true;
                 }
-                catch (IOException)
-                {
-                    // ファイルがまだ使用中の場合は待機
-                    stableSizeCount = 0;
-                    System.Threading.Thread.Sleep(delayMs);
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError($"[DownloadFolderWatcher] Error checking file completion: {ex.Message}");
-                    return false;
-                }
+
+                // 指数バックオフで待機時間を調整
+                int delayMs = Math.Min(baseDelayMs * (int)Math.Pow(1.5, retryCount / 5), 5000);
+
+                Debug.Log($"[DownloadFolderWatcher] File not ready, waiting... (attempt {retryCount + 1}/{maxRetries})");
+                System.Threading.Thread.Sleep(delayMs);
+                retryCount++;
             }
 
-            Debug.LogWarning($"[DownloadFolderWatcher] Timeout waiting for file completion: {filePath}");
-            return false; // タイムアウト
+            Debug.LogWarning($"[DownloadFolderWatcher] File completion check failed after {maxRetries} attempts: {Path.GetFileName(filePath)}");
+            return false;
+        }
+
+        /// <summary>
+        /// ファイルがアクセス可能かテスト
+        /// </summary>
+        private bool TryAccessFile(string filePath)
+        {
+            try
+            {
+                using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>
