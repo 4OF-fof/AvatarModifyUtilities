@@ -336,6 +336,45 @@ namespace AMU.AssetManager.Helper
                 }
             }
         }
+        /// <summary>
+        /// Booth自動取得サムネイル用：ファイルをコピーせずに直接パスを設定
+        /// </summary>
+        public void SetBoothThumbnailDirect(AssetInfo asset, string imagePath)
+        {
+            if (asset == null || string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath))
+                return;
+
+            // 直接パスを設定（コピーを作成しない）
+            asset.thumbnailPath = imagePath.Replace('\\', '/');
+
+            // キャッシュを更新
+            var texture = LoadTextureFromFileSync(imagePath);
+            if (texture != null)
+            {
+                InvalidateThumbnailCache(asset.uid);
+                AddToCache(asset.uid, texture);
+                UpdateThumbnailModifiedTime(asset);
+            }
+
+            // サムネイル更新を通知
+            EditorApplication.delayCall += () =>
+            {
+                OnThumbnailLoaded?.Invoke();
+                OnThumbnailSaved?.Invoke(asset);
+                OnThumbnailUpdated?.Invoke(asset.uid);
+
+                // 全てのEditorWindowを再描画
+                foreach (var window in Resources.FindObjectsOfTypeAll<EditorWindow>())
+                {
+                    if (window.GetType().Name == "AssetManagerWindow" ||
+                        window.GetType().Name == "AssetDetailWindow")
+                    {
+                        window.Repaint();
+                    }
+                }
+            };
+        }
+
         public void SetCustomThumbnail(AssetInfo asset, string imagePath)
         {
             if (asset == null || string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath))
@@ -389,8 +428,8 @@ namespace AMU.AssetManager.Helper
                 OnThumbnailSaved?.Invoke(asset);
                 OnThumbnailUpdated?.Invoke(asset.uid);
 
-                    // 全てのEditorWindowを再描画
-                    foreach (var window in Resources.FindObjectsOfTypeAll<EditorWindow>())
+                // 全てのEditorWindowを再描画
+                foreach (var window in Resources.FindObjectsOfTypeAll<EditorWindow>())
                 {
                     if (window.GetType().Name == "AssetManagerWindow" ||
                         window.GetType().Name == "AssetDetailWindow")

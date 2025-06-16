@@ -1214,19 +1214,17 @@ namespace AMU.AssetManager.Helper
                 // ファイルが既に存在する場合はダウンロードをスキップ
                 if (!string.IsNullOrEmpty(existingFilePath))
                 {
-                    Debug.Log($"[AssetDataManager] Using existing thumbnail for {asset.name}: {existingFilePath}");
-
-                    // AssetThumbnailManagerを使ってサムネイルを設定
+                    Debug.Log($"[AssetDataManager] Using existing thumbnail for {asset.name}: {existingFilePath}");                    // Booth自動取得の場合はコピーを作成せずに直接パスを設定
                     EditorApplication.delayCall += () =>
                     {
                         try
                         {
-                            AssetThumbnailManager.Instance.SetCustomThumbnail(asset, existingFilePath);
-                            Debug.Log($"[AssetDataManager] Thumbnail set for {asset.name}: {existingFilePath}");
+                            AssetThumbnailManager.Instance.SetBoothThumbnailDirect(asset, existingFilePath);
+                            Debug.Log($"[AssetDataManager] Booth thumbnail path set for {asset.name}: {existingFilePath}");
                         }
                         catch (Exception ex)
                         {
-                            Debug.LogError($"[AssetDataManager] Failed to set thumbnail for {asset.name}: {ex.Message}");
+                            Debug.LogError($"[AssetDataManager] Failed to set booth thumbnail for {asset.name}: {ex.Message}");
                         }
                     };
                     return;
@@ -1244,19 +1242,17 @@ namespace AMU.AssetManager.Helper
                     string filePath = Path.Combine(boothThumbnailDir, fileName);
 
                     // 画像ファイルを保存
-                    await File.WriteAllBytesAsync(filePath, imageBytes);
-
-                    // AssetThumbnailManagerを使ってサムネイルを設定
+                    await File.WriteAllBytesAsync(filePath, imageBytes);                    // Booth自動取得の場合はコピーを作成せずに直接パスを設定
                     EditorApplication.delayCall += () =>
                     {
                         try
                         {
-                            AssetThumbnailManager.Instance.SetCustomThumbnail(asset, filePath);
-                            Debug.Log($"[AssetDataManager] Thumbnail set for {asset.name}: {filePath}");
+                            AssetThumbnailManager.Instance.SetBoothThumbnailDirect(asset, filePath);
+                            Debug.Log($"[AssetDataManager] Booth thumbnail downloaded and set for {asset.name}: {filePath}");
                         }
                         catch (Exception ex)
                         {
-                            Debug.LogError($"[AssetDataManager] Failed to set thumbnail for {asset.name}: {ex.Message}");
+                            Debug.LogError($"[AssetDataManager] Failed to set downloaded booth thumbnail for {asset.name}: {ex.Message}");
                         }
                     };
                 }
