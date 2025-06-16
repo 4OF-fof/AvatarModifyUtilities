@@ -224,6 +224,31 @@ namespace AMU.AssetManager.Helper
         {
             try
             {
+                // ファイルサイズをチェック
+                var sourceFileInfo = new FileInfo(sourcePath);
+                if (!sourceFileInfo.Exists)
+                {
+                    Debug.LogError($"[DownloadFolderWatcher] Source file not found: {sourcePath}");
+                    return;
+                }
+
+                long fileSize = sourceFileInfo.Length;
+
+                // 移動先ドライブの空き容量をチェック
+                string targetDrive = Path.GetPathRoot(targetPath);
+                var driveInfo = new DriveInfo(targetDrive);
+                if (driveInfo.AvailableFreeSpace < fileSize * 1.1) // 10%のマージンを確保
+                {
+                    Debug.LogError($"[DownloadFolderWatcher] Insufficient disk space. Required: {fileSize:N0} bytes, Available: {driveInfo.AvailableFreeSpace:N0} bytes");
+                    return;
+                }
+
+                // 大きなファイルの場合は警告ログ
+                if (fileSize > 1024 * 1024 * 100) // 100MB以上
+                {
+                    Debug.Log($"[DownloadFolderWatcher] Moving large file: {Path.GetFileName(sourcePath)} ({fileSize:N0} bytes)");
+                }
+
                 // ファイルを移動
                 File.Move(sourcePath, targetPath);
                 Debug.Log($"[DownloadFolderWatcher] Moved file: {sourcePath} -> {targetPath}");
@@ -236,6 +261,10 @@ namespace AMU.AssetManager.Helper
                 if (_fileManager != null)
                 {
                     asset.fileSize = _fileManager.GetFileSize(relativePath);
+                }
+                else
+                {
+                    asset.fileSize = fileSize; // FileManagerがない場合は直接設定
                 }
 
                 // データを保存
@@ -285,30 +314,60 @@ namespace AMU.AssetManager.Helper
         /// </summary>
         private bool WaitForFileCompletion(string filePath)
         {
-            const int maxAttempts = 10;
+            const int maxAttempts = 60; // 30秒に延長（大きなファイル対応）
             const int delayMs = 500;
+            long previousSize = -1;
+            int stableSizeCount = 0;
+            const int requiredStableCount = 4; // 2秒間サイズが安定していることを確認
 
             for (int i = 0; i < maxAttempts; i++)
             {
                 try
                 {
-                    // ファイルがアクセス可能かチェック
-                    using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None))
+                    // ファイルサイズをチェック
+                    var fileInfo = new FileInfo(filePath);
+                    if (!fileInfo.Exists)
+                        return false;
+
+                    long currentSize = fileInfo.Length;
+
+                    // ファイルサイズが前回と同じかチェック
+                    if (currentSize == previousSize && currentSize > 0)
                     {
-                        return true; // ファイルが正常にアクセスできる
+                        stableSizeCount++;
+                        // 一定回数同じサイズならダウンロード完了と判断
+                        if (stableSizeCount >= requiredStableCount)
+                        {
+                            // 最終的にファイルがアクセス可能かチェック
+                            using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None))
+                            {
+                                Debug.Log($"[DownloadFolderWatcher] File download completed: {filePath} ({currentSize:N0} bytes)");
+                                return true;
+                            }
+                        }
                     }
+                    else
+                    {
+                        stableSizeCount = 0; // サイズが変わったらカウントリセット
+                        previousSize = currentSize;
+                    }
+
+                    System.Threading.Thread.Sleep(delayMs);
                 }
                 catch (IOException)
                 {
                     // ファイルがまだ使用中の場合は待機
+                    stableSizeCount = 0;
                     System.Threading.Thread.Sleep(delayMs);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    return false; // 予期しないエラー
+                    Debug.LogError($"[DownloadFolderWatcher] Error checking file completion: {ex.Message}");
+                    return false;
                 }
             }
 
+            Debug.LogWarning($"[DownloadFolderWatcher] Timeout waiting for file completion: {filePath}");
             return false; // タイムアウト
         }
 
