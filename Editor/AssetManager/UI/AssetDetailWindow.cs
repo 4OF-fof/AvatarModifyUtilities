@@ -262,6 +262,14 @@ namespace AMU.AssetManager.UI
                             ImportUnityPackage();
                         }
                     }
+                    // Display download button when boothDownloadUrl exists and no file path is set
+                    else if (!string.IsNullOrEmpty(_asset.boothItem?.boothDownloadUrl) && string.IsNullOrEmpty(_asset.filePath))
+                    {
+                        if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_downloadFile"), GUILayout.Width(180)))
+                        {
+                            Application.OpenURL(_asset.boothItem.boothDownloadUrl);
+                        }
+                    }
                 }
 
                 // 下側にもフレキシブルスペースを追加

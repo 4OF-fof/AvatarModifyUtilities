@@ -41,6 +41,7 @@
   "AssetDetail_edit": "編集",
   "AssetDetail_selectThumbnail": "サムネイル選択",
   "AssetDetail_importPackage": "インポート",
+  "AssetDetail_downloadFile": "ダウンロード",
   "AssetDetail_addTag": "タグ追加",
   "AssetDetail_addDependency": "依存関係追加",
   "AssetDetail_dependencyModeAsset": "アセット",

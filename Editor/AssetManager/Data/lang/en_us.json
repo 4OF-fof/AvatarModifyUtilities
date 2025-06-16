@@ -41,6 +41,7 @@
   "AssetDetail_edit": "Edit",
   "AssetDetail_selectThumbnail": "Select Thumbnail",
   "AssetDetail_importPackage": "Import",
+  "AssetDetail_downloadFile": "Download",
   "AssetDetail_addTag": "Add Tag",
   "AssetDetail_addDependency": "Add Dependency",
   "AssetDetail_dependencyModeAsset": "Asset",
