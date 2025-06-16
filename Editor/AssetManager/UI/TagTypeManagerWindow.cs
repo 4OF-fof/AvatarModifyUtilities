@@ -123,10 +123,6 @@ namespace AMU.Editor.TagType
                             TagTypeManager.ResetToDefaults();
                         }
                     }
-                    if (GUILayout.Button(LocalizationManager.GetText("TagTypeManager_openFileLocation")))
-                    {
-                        EditorUtility.RevealInFinder(TagTypeManager.GetDataFilePath());
-                    }
                 }
             }
         }
@@ -381,7 +377,7 @@ namespace AMU.Editor.TagType
                             }
                         }
                     }
-                }                // 編集モード
+                }
                 if (_editingTypeId == type.id)
                 {
                     EditorGUILayout.Space();
