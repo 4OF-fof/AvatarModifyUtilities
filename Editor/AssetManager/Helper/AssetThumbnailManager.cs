@@ -374,25 +374,27 @@ namespace AMU.AssetManager.Helper
                 }
             };
         }
-
         public void SetCustomThumbnail(AssetInfo asset, string imagePath)
         {
             if (asset == null || string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath))
                 return;
 
-            // ファイルのハッシュ値を計算
-            string fileHash = GetFileHash(imagePath);
+            // CoreDirを取得
+            string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
 
-            // 既存のファイルをハッシュベースで検索
-            string existingThumbnailPath = FindExistingThumbnailByHash(fileHash);
+            // 絶対パスに変換
+            string absoluteImagePath = Path.GetFullPath(imagePath);
+            string absoluteCoreDir = Path.GetFullPath(coreDir);
 
-            if (!string.IsNullOrEmpty(existingThumbnailPath))
+            // 指定されたパスがCoreDir以下にある場合は直接参照
+            if (absoluteImagePath.StartsWith(absoluteCoreDir, StringComparison.OrdinalIgnoreCase))
             {
-                // 既存のファイルを使用
-                asset.thumbnailPath = existingThumbnailPath.Replace('\\', '/');
+                // CoreDir以下の場合は複製せずに直接参照
+                asset.thumbnailPath = imagePath.Replace('\\', '/');
 
                 // キャッシュを更新
-                var texture = LoadTextureFromFileSync(existingThumbnailPath);
+                var texture = LoadTextureFromFileSync(imagePath);
                 if (texture != null)
                 {
                     InvalidateThumbnailCache(asset.uid);
@@ -402,24 +404,48 @@ namespace AMU.AssetManager.Helper
             }
             else
             {
-                // 新しいファイルとして保存
-                var texture = LoadTextureFromFileSync(imagePath);
-                if (texture != null)
+                // CoreDir外の場合は既存の処理を実行（ハッシュベースの複製）
+                // ファイルのハッシュ値を計算
+                string fileHash = GetFileHash(imagePath);
+
+                // 既存のファイルをハッシュベースで検索
+                string existingThumbnailPath = FindExistingThumbnailByHash(fileHash);
+
+                if (!string.IsNullOrEmpty(existingThumbnailPath))
                 {
-                    string extension = Path.GetExtension(imagePath).ToLower();
-                    if (string.IsNullOrEmpty(extension))
-                        extension = ".png";
+                    // 既存のファイルを使用
+                    asset.thumbnailPath = existingThumbnailPath.Replace('\\', '/');
 
-                    string fileName = $"{fileHash}{extension}";
-                    string thumbnailPath = Path.Combine(_thumbnailDirectory, fileName);
+                    // キャッシュを更新
+                    var texture = LoadTextureFromFileSync(existingThumbnailPath);
+                    if (texture != null)
+                    {
+                        InvalidateThumbnailCache(asset.uid);
+                        AddToCache(asset.uid, texture);
+                        UpdateThumbnailModifiedTime(asset);
+                    }
+                }
+                else
+                {
+                    // 新しいファイルとして保存
+                    var texture = LoadTextureFromFileSync(imagePath);
+                    if (texture != null)
+                    {
+                        string extension = Path.GetExtension(imagePath).ToLower();
+                        if (string.IsNullOrEmpty(extension))
+                            extension = ".png";
 
-                    SaveTextureToFile(texture, thumbnailPath);
-                    asset.thumbnailPath = thumbnailPath.Replace('\\', '/');
+                        string fileName = $"{fileHash}{extension}";
+                        string thumbnailPath = Path.Combine(_thumbnailDirectory, fileName);
 
-                    // 古いキャッシュを完全に無効化してから新しいテクスチャをキャッシュ
-                    InvalidateThumbnailCache(asset.uid);
-                    AddToCache(asset.uid, texture);
-                    UpdateThumbnailModifiedTime(asset);
+                        SaveTextureToFile(texture, thumbnailPath);
+                        asset.thumbnailPath = thumbnailPath.Replace('\\', '/');
+
+                        // 古いキャッシュを完全に無効化してから新しいテクスチャをキャッシュ
+                        InvalidateThumbnailCache(asset.uid);
+                        AddToCache(asset.uid, texture);
+                        UpdateThumbnailModifiedTime(asset);
+                    }
                 }
             }// サムネイル更新をより確実に通知するため、EditorApplication.delayCallを使用
             EditorApplication.delayCall += () =>
