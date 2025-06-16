@@ -304,10 +304,6 @@ namespace AMU.AssetManager.UI
             if (extractedPaths.Count > 0)
             {
                 _onSelectionComplete?.Invoke(extractedPaths);
-                EditorUtility.DisplayDialog(
-                    LocalizationManager.GetText("ZipFileSelector_complete"),
-                    string.Format(LocalizationManager.GetText("ZipFileSelector_extractedFiles"), extractedPaths.Count),
-                    LocalizationManager.GetText("Common_ok"));
             }
             else
             {

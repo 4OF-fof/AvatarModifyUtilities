@@ -171,19 +171,9 @@
   "ZipFileSelector_selectAll": "Select All",
   "ZipFileSelector_selectNone": "Select None",
   "ZipFileSelector_fileCount": "{0} files",
-  "ZipFileSelector_selectedCount": "{0} selected",
-  "ZipFileSelector_extractImport": "Select",
+  "ZipFileSelector_selectedCount": "{0} selected",  "ZipFileSelector_extractImport": "Select",
   "ZipFileSelector_noFilesSelected": "No files selected.",
-  "ZipFileSelector_complete": "Complete",
-  "ZipFileSelector_extractedFiles": "Extracted {0} files.",
   "ZipFileSelector_extractFailed": "Failed to extract files.",
   "ZipFileSelector_extractingFiles": "Extracting files...",
-  "ZipFileSelector_extractingFile": "Extracting: {0}",
-  "ZipFileSelector_fileTypes": "File Types",
-  "ZipFileSelector_showUnityPackages": "Show UnityPackages Only",
-  "ZipFileSelector_preview": "Preview",
-  "ZipFileSelector_fileInfo": "File Information",
-  "ZipFileSelector_fileName": "File Name:",
-  "ZipFileSelector_fileSize": "Size:",
-  "ZipFileSelector_filePath": "Path:"
+  "ZipFileSelector_extractingFile": "Extracting: {0}"
 }
