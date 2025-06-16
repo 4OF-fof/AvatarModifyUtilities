@@ -28,6 +28,14 @@ namespace AMU.AssetManager.UI
             window._asset = updatedAsset.Clone();
             window._originalAsset = updatedAsset;
             window._isEditMode = editMode;
+
+            // ウィンドウ表示時にサジェストデータを更新
+            EditorApplication.delayCall += () =>
+            {
+                window.LoadAssetSuggestions();
+                window.LoadTagSuggestions();
+            };
+
             window.Show();
         }
 
@@ -73,13 +81,40 @@ namespace AMU.AssetManager.UI
         {
             // 依存関係サジェスト用のアセット一覧を取得
             _allAssets.Clear();
-            if (_dataManager?.Library?.assets != null)
+            if (_dataManager != null)
             {
-                _allAssets = _dataManager.GetAllAssets().ToList();
+                var allAssets = _dataManager.GetAllAssets();
+                if (allAssets != null)
+                {
+                    _allAssets = allAssets.ToList();
+                    Debug.Log($"[AssetDetailWindow] Loaded {_allAssets.Count} assets for dependency suggestions");
+                }
+                else
+                {
+                    Debug.LogWarning("[AssetDetailWindow] GetAllAssets() returned null");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[AssetDetailWindow] _dataManager is null");
             }
         }
         private void OnDisable()
         {
+            // イベントの購読を解除
+            if (_dataManager != null)
+            {
+                _dataManager.OnDataLoaded -= OnDataLoaded;
+                _dataManager.OnDataChanged -= OnDataChanged;
+            }
+
+            if (_thumbnailManager != null)
+            {
+                _thumbnailManager.OnThumbnailLoaded -= Repaint;
+                _thumbnailManager.OnThumbnailSaved -= OnThumbnailSaved;
+                _thumbnailManager.OnThumbnailUpdated -= OnThumbnailUpdated;
+            }
+
             // シングルトンインスタンスのため、他のウィンドウでも使用されている可能性があるのでキャッシュクリアしない
             // _thumbnailManager?.ClearCache();
         }
@@ -103,7 +138,13 @@ namespace AMU.AssetManager.UI
         {
             // シングルトンインスタンスを使用し初期化
             _dataManager = AssetDataManager.Instance;
-            _dataManager.Initialize(); // 明示的に初期化を実行            // シングルトンインスタンスを使用
+            _dataManager.Initialize(); // 明示的に初期化を実行
+
+            // データロード完了時の イベントを購読
+            _dataManager.OnDataLoaded += OnDataLoaded;
+            _dataManager.OnDataChanged += OnDataChanged;
+
+            // シングルトンインスタンスを使用
             _thumbnailManager = AssetThumbnailManager.Instance;
             _thumbnailManager.OnThumbnailLoaded += Repaint;
             _thumbnailManager.OnThumbnailSaved += OnThumbnailSaved;
@@ -139,7 +180,8 @@ namespace AMU.AssetManager.UI
                 _asset = latestAsset.Clone();
                 _originalAsset = latestAsset;
 
-                // タグ情報も更新                LoadAllTags();
+                // タグ情報も更新                
+                LoadAllTags();
                 LoadTagSuggestions();
 
                 Repaint();
@@ -874,6 +916,12 @@ namespace AMU.AssetManager.UI
         {
             if (!string.IsNullOrEmpty(_newDependency.Trim()))
             {
+                // 依存関係リストが初期化されていない場合は初期化
+                if (_asset.dependencies == null)
+                {
+                    _asset.dependencies = new List<string>();
+                }
+
                 var trimmedInput = _newDependency.Trim();
                 bool wasAdded = false;
 
@@ -908,9 +956,14 @@ namespace AMU.AssetManager.UI
                 GUI.FocusControl(null);
             }
         }
-
         private void DrawDependencyInput()
         {
+            // 依存関係リストが初期化されていない場合は初期化
+            if (_asset.dependencies == null)
+            {
+                _asset.dependencies = new List<string>();
+            }
+
             using (new GUILayout.VerticalScope())
             {
                 using (new GUILayout.HorizontalScope())
@@ -937,7 +990,6 @@ namespace AMU.AssetManager.UI
                 }
             }
         }
-
         private void UpdateDependencySuggestions()
         {
             _filteredAssets.Clear();
@@ -948,11 +1000,17 @@ namespace AMU.AssetManager.UI
                 return;
             }
 
+            if (_allAssets == null || _allAssets.Count == 0)
+            {
+                Debug.LogWarning($"[AssetDetailWindow] No assets available for dependency suggestions. _allAssets count: {_allAssets?.Count ?? 0}");
+                return;
+            }
+
             var input = _newDependency.ToLower();
             foreach (var asset in _allAssets)
             {
                 // Skip self and already added dependencies
-                if (asset.uid == _asset.uid || _asset.dependencies.Contains(asset.uid))
+                if (asset.uid == _asset.uid || (_asset.dependencies != null && _asset.dependencies.Contains(asset.uid)))
                     continue;
 
                 // Filter assets that contain the input text in their name
@@ -963,6 +1021,7 @@ namespace AMU.AssetManager.UI
             }
 
             _showDependencySuggestions = _filteredAssets.Count > 0;
+            Debug.Log($"[AssetDetailWindow] Updated dependency suggestions: input='{_newDependency}', found {_filteredAssets.Count} matches");
         }
 
         private void DrawDependencySuggestions()
@@ -1145,6 +1204,26 @@ namespace AMU.AssetManager.UI
 
             var random = new System.Random();
             return visibleColors[random.Next(visibleColors.Length)];
+        }
+
+        /// <summary>
+        /// データロード完了時のコールバック
+        /// </summary>
+        private void OnDataLoaded()
+        {
+            LoadAssetSuggestions();
+            LoadTagSuggestions();
+            Repaint();
+        }
+
+        /// <summary>
+        /// データ変更時のコールバック
+        /// </summary>
+        private void OnDataChanged()
+        {
+            LoadAssetSuggestions();
+            LoadTagSuggestions();
+            Repaint();
         }
     }
 }
