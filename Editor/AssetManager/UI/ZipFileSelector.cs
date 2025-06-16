@@ -251,7 +251,9 @@ namespace AMU.AssetManager.UI
 
             var extractedPaths = new List<string>();
             string unzipDir = _fileManager.GetUnzipDirectory();
-            string assetUnzipDir = Path.Combine(unzipDir, _asset.uid);
+            // zipファイル名（拡張子なし）をディレクトリ名として使用
+            string zipFileName = Path.GetFileNameWithoutExtension(_asset.filePath);
+            string assetUnzipDir = Path.Combine(unzipDir, zipFileName);
 
             if (!Directory.Exists(assetUnzipDir))
             {
@@ -284,8 +286,8 @@ namespace AMU.AssetManager.UI
 
                     if (_fileManager.ExtractFileFromZip(_asset.filePath, file, outputPath))
                     {
-                        // AssetManager/unzip 以下の相対パスを保存
-                        string relativePath = Path.Combine("AssetManager", "unzip", _asset.uid, Path.GetFileName(outputPath));
+                        // AssetManager/unzip 以下の相対パスを保存（スラッシュ区切りで）
+                        string relativePath = $"AssetManager/unzip/{zipFileName}/{Path.GetFileName(outputPath)}";
                         extractedPaths.Add(relativePath);
                     }
                     else
