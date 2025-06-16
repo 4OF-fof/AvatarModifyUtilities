@@ -781,7 +781,7 @@ namespace AMU.AssetManager.UI
 
             GUI.Label(indicatorRect, "G", labelStyle);
         }        /// <summary>
-                 /// アセット名を描画（改善版：動的な高さとツールチップ対応）
+                 /// アセット名を描画（2行固定表示）
                  /// </summary>
         private void DrawAssetName(AssetInfo asset)
         {
@@ -793,13 +793,58 @@ namespace AMU.AssetManager.UI
                 richText = true
             };
 
-            // 名前の長さに応じて高さを動的に調整
-            var content = new GUIContent(asset.name, asset.name); // ツールチップとして完全な名前を表示
-            var height = nameStyle.CalcHeight(content, _thumbnailSize + 10);
-            height = Mathf.Max(height, 20); // 最小高さを確保
-            height = Mathf.Min(height, 60); // 最大高さを制限
+            // 2行分の固定高さを設定
+            var lineHeight = nameStyle.lineHeight;
+            var fixedHeight = lineHeight * 2 + 4; // 2行分 + 少しの余白
 
-            var rect = GUILayoutUtility.GetRect(_thumbnailSize + 10, height);
+            // テキストを2行分に制限する処理
+            var availableWidth = _thumbnailSize + 10;
+            var tempContent = new GUIContent(asset.name);
+            var fullTextHeight = nameStyle.CalcHeight(tempContent, availableWidth);
+
+            string displayText = asset.name;
+
+            // 2行を超える場合はテキストを切り詰める
+            if (fullTextHeight > fixedHeight)
+            {
+                var words = asset.name.Split(' ');
+                var testText = "";
+
+                for (int i = 0; i < words.Length; i++)
+                {
+                    var nextText = string.IsNullOrEmpty(testText) ? words[i] : testText + " " + words[i];
+                    var testContent = new GUIContent(nextText);
+                    var testHeight = nameStyle.CalcHeight(testContent, availableWidth);
+
+                    if (testHeight > fixedHeight)
+                    {
+                        // 2行を超える場合は前の状態で終了し、省略記号を追加
+                        if (!string.IsNullOrEmpty(testText))
+                        {
+                            displayText = testText + "...";
+                        }
+                        else
+                        {
+                            // 単語が長すぎる場合は文字数で制限
+                            displayText = asset.name.Substring(0, Math.Min(asset.name.Length, 20)) + "...";
+                        }
+                        break;
+                    }
+                    testText = nextText;
+                }
+
+                if (testText == asset.name)
+                {
+                    displayText = asset.name;
+                }
+                else if (string.IsNullOrEmpty(displayText) || displayText == asset.name)
+                {
+                    displayText = testText;
+                }
+            }
+
+            var content = new GUIContent(displayText, asset.name); // ツールチップとして完全な名前を表示
+            var rect = GUILayoutUtility.GetRect(availableWidth, fixedHeight);
 
             // 名前が長い場合は背景色を少し変える
             if (asset.name.Length > 20)
