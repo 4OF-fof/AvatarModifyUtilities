@@ -872,10 +872,11 @@ namespace AMU.AssetManager.UI
                 if (Event.current.button == 1)
                 {
                     // Right click - context menu
-                    // 右クリック時は選択状態を変更せず、右クリックされたアセットが選択されていない場合のみ追加
+                    // 右クリック時は選択状態を変更しない（右クリックされたアセットが選択されていない場合のみ単一選択に変更）
                     if (!_selectedAssets.Contains(asset))
                     {
-                        // 右クリックされたアセットが選択されていない場合は、そのアセットを選択に追加
+                        // 右クリックされたアセットが選択されていない場合は、そのアセットのみを選択
+                        _selectedAssets.Clear();
                         _selectedAssets.Add(asset);
                         _selectedAsset = asset;
                     }
