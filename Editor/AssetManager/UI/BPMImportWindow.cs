@@ -17,6 +17,7 @@ namespace AMU.AssetManager.UI
         {
             public string assetType = "Other";
         }
+
         private AssetDataManager _assetDataManager;
         private BPMDataManager _bpmDataManager;
         private Action _onImportComplete;
@@ -25,6 +26,9 @@ namespace AMU.AssetManager.UI
         private Dictionary<string, AssetImportSettings> _packageSettings = new Dictionary<string, AssetImportSettings>();
         private Dictionary<string, AssetImportSettings> _fileSettings = new Dictionary<string, AssetImportSettings>();
 
+        // 未登録ファイルフィルタリング用
+        private HashSet<string> _existingDownloadUrls = new HashSet<string>();
+
         private Vector2 _scrollPosition = Vector2.zero;
         private Vector2 _packageListScrollPosition = Vector2.zero;
         private bool _isLoading = false;
@@ -32,8 +36,7 @@ namespace AMU.AssetManager.UI
 
         private GUIStyle _headerStyle;
         private GUIStyle _boxStyle;
-        private GUIStyle _packageHeaderStyle;
-        private GUIStyle _fileItemStyle;
+        private GUIStyle _packageHeaderStyle; private GUIStyle _fileItemStyle;
         private bool _stylesInitialized = false;
 
         public static void ShowWindowWithFile(AssetDataManager assetDataManager, string bpmLibraryPath, Action onImportComplete = null)
@@ -96,7 +99,8 @@ namespace AMU.AssetManager.UI
         private void OnBPMDataLoaded()
         {
             _isLoading = false;
-            _statusMessage = string.Format(LocalizationManager.GetText("BPMImport_loadSuccess"), GetTotalPackageCount());
+            UpdateExistingDownloadUrls();
+            _statusMessage = string.Format(LocalizationManager.GetText("BPMImport_loadSuccess"), GetUnregisteredPackageCount());
             Repaint();
         }
 
@@ -106,7 +110,6 @@ namespace AMU.AssetManager.UI
             _statusMessage = $"Failed to load BPM Library: {_bpmDataManager?.LoadError ?? "Unknown error"}";
             Repaint();
         }
-
         private int GetTotalPackageCount()
         {
             if (_bpmDataManager?.Library?.authors == null)
@@ -118,6 +121,59 @@ namespace AMU.AssetManager.UI
                 count += author.Value?.Count ?? 0;
             }
             return count;
+        }
+
+        private int GetUnregisteredPackageCount()
+        {
+            if (_bpmDataManager?.Library?.authors == null)
+                return 0;
+
+            int count = 0;
+            foreach (var author in _bpmDataManager.Library.authors)
+            {
+                foreach (var package in author.Value)
+                {
+                    if (HasUnregisteredFiles(package))
+                    {
+                        count++;
+                    }
+                }
+            }
+            return count;
+        }
+
+        private void UpdateExistingDownloadUrls()
+        {
+            _existingDownloadUrls.Clear();
+            if (_assetDataManager?.Library?.assets != null)
+            {
+                foreach (var asset in _assetDataManager.Library.assets)
+                {
+                    if (!string.IsNullOrEmpty(asset.boothItem?.boothDownloadUrl))
+                    {
+                        _existingDownloadUrls.Add(asset.boothItem.boothDownloadUrl);
+                    }
+                }
+            }
+        }
+
+        private bool HasUnregisteredFiles(BPMPackage package)
+        {
+            if (package.files == null) return false;
+
+            foreach (var file in package.files)
+            {
+                if (!string.IsNullOrEmpty(file.downloadLink) && !_existingDownloadUrls.Contains(file.downloadLink))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool IsFileUnregistered(BPMFileInfo file)
+        {
+            return !string.IsNullOrEmpty(file.downloadLink) && !_existingDownloadUrls.Contains(file.downloadLink);
         }
 
         private void OnGUI()
@@ -246,6 +302,8 @@ namespace AMU.AssetManager.UI
 
                 if (_bpmDataManager?.Library?.authors != null)
                 {
+                    bool hasUnregisteredAssets = false;
+
                     using (var scrollView = new GUILayout.ScrollViewScope(_packageListScrollPosition))
                     {
                         _packageListScrollPosition = scrollView.scrollPosition;
@@ -253,37 +311,66 @@ namespace AMU.AssetManager.UI
                         foreach (var author in _bpmDataManager.Library.authors)
                         {
                             string authorName = author.Key;
-                            DrawAuthorSection(authorName, author.Value);
+                            var unregisteredPackages = author.Value.Where(p => HasUnregisteredFiles(p)).ToList();
+
+                            if (unregisteredPackages.Count > 0)
+                            {
+                                hasUnregisteredAssets = true;
+                                DrawAuthorSection(authorName, author.Value);
+                            }
                         }
+                    }
+
+                    if (!hasUnregisteredAssets)
+                    {
+                        GUILayout.Space(20);
+                        using (new GUILayout.HorizontalScope())
+                        {
+                            GUILayout.FlexibleSpace();
+                            GUILayout.Label("All assets are already registered.", EditorStyles.centeredGreyMiniLabel);
+                            GUILayout.FlexibleSpace();
+                        }
+                        GUILayout.Space(20);
                     }
                 }
             }
         }
-
         private void DrawAuthorSection(string authorName, List<BPMPackage> packages)
         {
+            // 未登録のパッケージのみをフィルタリング
+            var unregisteredPackages = packages.Where(p => HasUnregisteredFiles(p)).ToList();
+
+            if (unregisteredPackages.Count == 0)
+                return; // 未登録のものがない場合はこのセクションを表示しない
+
             using (new GUILayout.VerticalScope("box"))
             {
                 GUILayout.Label($"Author: {authorName}", EditorStyles.boldLabel);
 
-                foreach (var package in packages)
+                foreach (var package in unregisteredPackages)
                 {
                     DrawPackageSection(package, authorName);
                 }
             }
         }
-
         private void DrawPackageSection(BPMPackage package, string authorName)
         {
             using (new GUILayout.VerticalScope("box"))
-            {                // パッケージヘッダー
+            {
+                // パッケージヘッダー
                 GUILayout.Label(package.packageName ?? LocalizationManager.GetText("BPMImport_unknownPackage"), _packageHeaderStyle);
 
+                // 未登録ファイルのみをフィルタリング
+                var unregisteredFiles = package.files?.Where(f => IsFileUnregistered(f)).ToList() ?? new List<BPMFileInfo>();
+
+                if (unregisteredFiles.Count == 0)
+                    return; // 未登録ファイルがない場合は表示しない
+
                 // グループ化されるかどうかの表示
-                bool isGrouped = package.files?.Count > 1;
+                bool isGrouped = unregisteredFiles.Count > 1;
                 if (isGrouped)
                 {
-                    GUILayout.Label(string.Format(LocalizationManager.GetText("BPMImport_groupFiles"), package.files.Count), EditorStyles.miniLabel);
+                    GUILayout.Label(string.Format(LocalizationManager.GetText("BPMImport_groupFiles"), unregisteredFiles.Count), EditorStyles.miniLabel);
 
                     // グループ設定
                     string packageKey = $"{authorName}|{package.itemUrl}";
@@ -295,29 +382,26 @@ namespace AMU.AssetManager.UI
                     DrawAssetSettings(_packageSettings[packageKey], LocalizationManager.GetText("BPMImport_groupSettings"));
                 }
 
-                // 個別ファイル
-                if (package.files != null)
+                // 個別ファイル（未登録のもののみ）
+                foreach (var file in unregisteredFiles)
                 {
-                    foreach (var file in package.files)
+                    using (new GUILayout.HorizontalScope())
                     {
-                        using (new GUILayout.HorizontalScope())
+                        GUILayout.Space(20);
+                        using (new GUILayout.VerticalScope())
                         {
-                            GUILayout.Space(20);
-                            using (new GUILayout.VerticalScope())
+                            GUILayout.Label($"File: {file.fileName}", _fileItemStyle);
+
+                            if (!isGrouped)
                             {
-                                GUILayout.Label($"File: {file.fileName}", _fileItemStyle);
-
-                                if (!isGrouped)
+                                // グループ化されない場合は個別設定
+                                string fileKey = $"{authorName}|{package.itemUrl}|{file.fileName}";
+                                if (!_fileSettings.ContainsKey(fileKey))
                                 {
-                                    // グループ化されない場合は個別設定
-                                    string fileKey = $"{authorName}|{package.itemUrl}|{file.fileName}";
-                                    if (!_fileSettings.ContainsKey(fileKey))
-                                    {
-                                        _fileSettings[fileKey] = new AssetImportSettings();
-                                    }
-
-                                    DrawAssetSettings(_fileSettings[fileKey], "Asset Settings:");
+                                    _fileSettings[fileKey] = new AssetImportSettings();
                                 }
+
+                                DrawAssetSettings(_fileSettings[fileKey], "Asset Settings:");
                             }
                         }
                     }
@@ -408,9 +492,9 @@ namespace AMU.AssetManager.UI
                         _onImportComplete?.Invoke();
                         // サムネイル処理に時間がかかる場合があるため、追加の遅延を設ける
                         EditorApplication.delayCall += () =>
-                        {
-                            EditorApplication.delayCall += () => Close();
-                        };
+                {
+                    EditorApplication.delayCall += () => Close();
+                };
                     };
                 }
                 else
