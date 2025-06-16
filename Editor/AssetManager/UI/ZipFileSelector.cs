@@ -18,6 +18,7 @@ namespace AMU.AssetManager.UI
         private Vector2 _scrollPosition;
         private Dictionary<string, bool> _selectedFiles = new Dictionary<string, bool>();
         private string _searchFilter = "";
+        private bool _showAllFiles = false;
 
         public static void ShowWindow(AssetInfo asset, List<string> zipFiles, AssetFileManager fileManager, Action<List<string>> onSelectionComplete)
         {
@@ -65,6 +66,14 @@ namespace AMU.AssetManager.UI
                     _searchFilter = "";
                 }
             }
+
+            // すべてのファイルを表示するトグル
+            using (new GUILayout.HorizontalScope())
+            {
+                _showAllFiles = EditorGUILayout.Toggle("Show All Files", _showAllFiles);
+                GUILayout.FlexibleSpace();
+            }
+
             GUILayout.Space(10);
 
             // ファイルリスト
@@ -75,25 +84,6 @@ namespace AMU.AssetManager.UI
                 _scrollPosition = scrollView.scrollPosition;
 
                 var filteredFiles = GetFilteredFiles();
-
-                // 全選択/全解除ボタン
-                using (new GUILayout.HorizontalScope())
-                {
-                    if (GUILayout.Button("Select All"))
-                    {
-                        foreach (var file in filteredFiles)
-                        {
-                            _selectedFiles[file] = true;
-                        }
-                    }
-                    if (GUILayout.Button("Deselect All"))
-                    {
-                        foreach (var file in filteredFiles)
-                        {
-                            _selectedFiles[file] = false;
-                        }
-                    }
-                }
 
                 GUILayout.Space(5);
 
@@ -139,12 +129,20 @@ namespace AMU.AssetManager.UI
 
         private List<string> GetFilteredFiles()
         {
-            if (string.IsNullOrEmpty(_searchFilter))
+            var files = _zipFiles;
+
+            // デフォルトでunitypackageのみ表示（_showAllFilesがfalseの場合）
+            if (!_showAllFiles)
             {
-                return _zipFiles;
+                files = files.Where(f => f.ToLower().EndsWith(".unitypackage")).ToList();
             }
 
-            return _zipFiles.Where(f => f.ToLower().Contains(_searchFilter.ToLower())).ToList();
+            if (string.IsNullOrEmpty(_searchFilter))
+            {
+                return files;
+            }
+
+            return files.Where(f => f.ToLower().Contains(_searchFilter.ToLower())).ToList();
         }
 
         private void ExtractAndImportSelectedFiles()
