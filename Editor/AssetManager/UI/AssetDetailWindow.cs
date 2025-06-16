@@ -535,21 +535,109 @@ namespace AMU.AssetManager.UI
                 }
             }
         }
-
-
-
         private void SelectThumbnail()
         {
-            string path = EditorUtility.OpenFilePanel("Select Thumbnail", "", "png,jpg,jpeg");
+            // 既存のサムネイルパスがある場合はそのディレクトリを、ない場合は空文字を使用
+            string defaultPath = "";
+            if (!string.IsNullOrEmpty(_asset.thumbnailPath))
+            {
+                try
+                {
+                    // パスの形式に応じて絶対パスに変換
+                    string absolutePath = _asset.thumbnailPath;
+
+                    if (_asset.thumbnailPath.StartsWith("Assets"))
+                    {
+                        // Assetsパスの場合
+                        absolutePath = Application.dataPath + _asset.thumbnailPath.Substring(6).Replace('/', System.IO.Path.DirectorySeparatorChar);
+                    }
+                    else if (_asset.thumbnailPath.StartsWith("AssetManager/"))
+                    {
+                        // AssetManager/から始まるパスの場合（自動登録パス）
+                        string coreDir = UnityEditor.EditorPrefs.GetString("Setting.Core_dirPath",
+                            System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
+                        absolutePath = System.IO.Path.Combine(coreDir, _asset.thumbnailPath.Replace('/', System.IO.Path.DirectorySeparatorChar));
+                    }
+                    else if (!System.IO.Path.IsPathRooted(_asset.thumbnailPath))
+                    {
+                        // 相対パスの場合（念のため）
+                        string coreDir = UnityEditor.EditorPrefs.GetString("Setting.Core_dirPath",
+                            System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
+                        absolutePath = System.IO.Path.Combine(coreDir, _asset.thumbnailPath.Replace('/', System.IO.Path.DirectorySeparatorChar));
+                    }
+
+                    // ファイルが存在する場合はそのディレクトリを、存在しない場合はパスのディレクトリ部分を使用
+                    if (System.IO.File.Exists(absolutePath))
+                    {
+                        defaultPath = System.IO.Path.GetDirectoryName(absolutePath);
+                    }
+                    else if (!string.IsNullOrEmpty(System.IO.Path.GetDirectoryName(absolutePath)))
+                    {
+                        defaultPath = System.IO.Path.GetDirectoryName(absolutePath);
+                    }
+                }
+                catch (System.Exception)
+                {
+                    // パス解析でエラーが発生した場合は空文字を使用
+                    defaultPath = "";
+                }
+            }
+
+            string path = EditorUtility.OpenFilePanel("Select Thumbnail", defaultPath, "png,jpg,jpeg");
             if (!string.IsNullOrEmpty(path))
             {
                 _thumbnailManager.SetCustomThumbnail(_asset, path);
             }
         }
-
         private void BrowseForFile()
         {
-            string path = EditorUtility.OpenFilePanel("Select Asset File", Application.dataPath, "");
+            // 既存のファイルパスがある場合はそのディレクトリを、ない場合はApplication.dataPathを使用
+            string defaultPath = Application.dataPath;
+            if (!string.IsNullOrEmpty(_asset.filePath))
+            {
+                try
+                {
+                    // パスの形式に応じて絶対パスに変換
+                    string absolutePath = _asset.filePath;
+
+                    if (_asset.filePath.StartsWith("Assets"))
+                    {
+                        // Assetsパスの場合
+                        absolutePath = Application.dataPath + _asset.filePath.Substring(6).Replace('/', System.IO.Path.DirectorySeparatorChar);
+                    }
+                    else if (_asset.filePath.StartsWith("AssetManager/"))
+                    {
+                        // AssetManager/から始まるパスの場合（自動登録パス）
+                        string coreDir = UnityEditor.EditorPrefs.GetString("Setting.Core_dirPath",
+                            System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
+                        absolutePath = System.IO.Path.Combine(coreDir, _asset.filePath.Replace('/', System.IO.Path.DirectorySeparatorChar));
+                    }
+                    else if (!System.IO.Path.IsPathRooted(_asset.filePath))
+                    {
+                        // 相対パスの場合（念のため）
+                        string coreDir = UnityEditor.EditorPrefs.GetString("Setting.Core_dirPath",
+                            System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
+                        absolutePath = System.IO.Path.Combine(coreDir, _asset.filePath.Replace('/', System.IO.Path.DirectorySeparatorChar));
+                    }
+
+                    // ファイルが存在する場合はそのディレクトリを、存在しない場合はパスのディレクトリ部分を使用
+                    if (System.IO.File.Exists(absolutePath))
+                    {
+                        defaultPath = System.IO.Path.GetDirectoryName(absolutePath);
+                    }
+                    else if (!string.IsNullOrEmpty(System.IO.Path.GetDirectoryName(absolutePath)))
+                    {
+                        defaultPath = System.IO.Path.GetDirectoryName(absolutePath);
+                    }
+                }
+                catch (System.Exception)
+                {
+                    // パス解析でエラーが発生した場合はデフォルトパスを使用
+                    defaultPath = Application.dataPath;
+                }
+            }
+
+            string path = EditorUtility.OpenFilePanel("Select Asset File", defaultPath, "");
             if (!string.IsNullOrEmpty(path))
             {
                 if (path.StartsWith(Application.dataPath))
