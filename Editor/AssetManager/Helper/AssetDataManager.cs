@@ -1084,30 +1084,67 @@ namespace AMU.AssetManager.Helper
         private async Task DownloadAndSetThumbnailAsync(AssetInfo asset, string imageUrl)
         {
             if (string.IsNullOrEmpty(imageUrl) || asset == null)
-                return;
-
-            await _httpSemaphore.WaitAsync();
+                return; 
+                await _httpSemaphore.WaitAsync();
             try
             {
+                // BoothItem専用のサムネイルディレクトリを使用
+                string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
+                string boothThumbnailDir = Path.Combine(coreDir, "AssetManager", "BoothItem", "Thumbnail");
+
+                if (!Directory.Exists(boothThumbnailDir))
+                {
+                    Directory.CreateDirectory(boothThumbnailDir);
+                }
+
+                // imageURLのハッシュを使用してファイル名を生成（同じURLなら同じ名前）
+                string imageHash = GetImageHash(imageUrl);
+
+                // 既存ファイルをチェック（拡張子違いも考慮）
+                string[] possibleExtensions = { ".png", ".jpg", ".jpeg", ".gif", ".bmp" };
+                string existingFilePath = null;
+
+                foreach (string ext in possibleExtensions)
+                {
+                    string checkPath = Path.Combine(boothThumbnailDir, $"{imageHash}{ext}");
+                    if (File.Exists(checkPath))
+                    {
+                        existingFilePath = checkPath;
+                        break;
+                    }
+                }
+
+                // ファイルが既に存在する場合はダウンロードをスキップ
+                if (!string.IsNullOrEmpty(existingFilePath))
+                {
+                    Debug.Log($"[AssetDataManager] Using existing thumbnail for {asset.name}: {existingFilePath}");
+
+                    // AssetThumbnailManagerを使ってサムネイルを設定
+                    EditorApplication.delayCall += () =>
+                    {
+                        try
+                        {
+                            AssetThumbnailManager.Instance.SetCustomThumbnail(asset, existingFilePath);
+                            Debug.Log($"[AssetDataManager] Thumbnail set for {asset.name}: {existingFilePath}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.LogError($"[AssetDataManager] Failed to set thumbnail for {asset.name}: {ex.Message}");
+                        }
+                    };
+                    return;
+                }
+
                 Debug.Log($"[AssetDataManager] Downloading thumbnail for {asset.name}: {imageUrl}");
 
                 byte[] imageBytes = await _httpClient.GetByteArrayAsync(imageUrl);
 
                 if (imageBytes?.Length > 0)
                 {
-                    // BoothItem専用のサムネイルディレクトリを使用
-                    string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
-                        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
-                    string boothThumbnailDir = Path.Combine(coreDir, "AssetManager", "BoothItem", "Thumbnail");
-
-                    if (!Directory.Exists(boothThumbnailDir))
-                    {
-                        Directory.CreateDirectory(boothThumbnailDir);
-                    }
-
                     // ファイル拡張子を推測
                     string extension = GetImageExtension(imageUrl, imageBytes);
-                    string fileName = $"{asset.uid}{extension}";
+                    string fileName = $"{imageHash}{extension}";
                     string filePath = Path.Combine(boothThumbnailDir, fileName);
 
                     // 画像ファイルを保存
@@ -1405,11 +1442,9 @@ namespace AMU.AssetManager.Helper
                 InvalidateCache();
                 SaveData();
             }
-        }
-
-        /// <summary>
-        /// 既存のダウンロードURLのセットを取得
-        /// </summary>
+        }        /// <summary>
+                 /// 既存のダウンロードURLのセットを取得
+                 /// </summary>
         private HashSet<string> GetExistingDownloadUrls()
         {
             var urls = new HashSet<string>();
@@ -1424,6 +1459,18 @@ namespace AMU.AssetManager.Helper
                 }
             }
             return urls;
+        }
+
+        /// <summary>
+        /// 画像URLからハッシュ値を生成
+        /// </summary>
+        private string GetImageHash(string url)
+        {
+            using (MD5 md5 = MD5.Create())
+            {
+                byte[] hashBytes = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(url));
+                return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+            }
         }
 
         #endregion
