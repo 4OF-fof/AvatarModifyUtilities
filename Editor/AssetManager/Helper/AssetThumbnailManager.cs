@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEditor;
@@ -340,38 +341,66 @@ namespace AMU.AssetManager.Helper
             if (asset == null || string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath))
                 return;
 
-            var texture = LoadTextureFromFileSync(imagePath);
-            if (texture != null)
+            // ファイルのハッシュ値を計算
+            string fileHash = GetFileHash(imagePath);
+
+            // 既存のファイルをハッシュベースで検索
+            string existingThumbnailPath = FindExistingThumbnailByHash(fileHash);
+
+            if (!string.IsNullOrEmpty(existingThumbnailPath))
             {
-                // Save to thumbnail directory
-                string thumbnailPath = Path.Combine(_thumbnailDirectory, $"{asset.uid}.png");
-                SaveTextureToFile(texture, thumbnailPath);
+                // 既存のファイルを使用
+                asset.thumbnailPath = existingThumbnailPath.Replace('\\', '/');
 
-                // Convert path to use forward slashes for JSON storage
-                asset.thumbnailPath = thumbnailPath.Replace('\\', '/');
-
-                // 古いキャッシュを完全に無効化してから新しいテクスチャをキャッシュ
-                InvalidateThumbnailCache(asset.uid);
-                AddToCache(asset.uid, texture);
-                UpdateThumbnailModifiedTime(asset);                // サムネイル更新をより確実に通知するため、EditorApplication.delayCallを使用
-                EditorApplication.delayCall += () =>
+                // キャッシュを更新
+                var texture = LoadTextureFromFileSync(existingThumbnailPath);
+                if (texture != null)
                 {
-                    OnThumbnailLoaded?.Invoke();
-                    OnThumbnailSaved?.Invoke(asset);
-                    OnThumbnailUpdated?.Invoke(asset.uid);
+                    InvalidateThumbnailCache(asset.uid);
+                    AddToCache(asset.uid, texture);
+                    UpdateThumbnailModifiedTime(asset);
+                }
+            }
+            else
+            {
+                // 新しいファイルとして保存
+                var texture = LoadTextureFromFileSync(imagePath);
+                if (texture != null)
+                {
+                    string extension = Path.GetExtension(imagePath).ToLower();
+                    if (string.IsNullOrEmpty(extension))
+                        extension = ".png";
+
+                    string fileName = $"{fileHash}{extension}";
+                    string thumbnailPath = Path.Combine(_thumbnailDirectory, fileName);
+
+                    SaveTextureToFile(texture, thumbnailPath);
+                    asset.thumbnailPath = thumbnailPath.Replace('\\', '/');
+
+                    // 古いキャッシュを完全に無効化してから新しいテクスチャをキャッシュ
+                    InvalidateThumbnailCache(asset.uid);
+                    AddToCache(asset.uid, texture);
+                    UpdateThumbnailModifiedTime(asset);
+                }
+            }// サムネイル更新をより確実に通知するため、EditorApplication.delayCallを使用
+            EditorApplication.delayCall += () =>
+            {
+                OnThumbnailLoaded?.Invoke();
+                OnThumbnailSaved?.Invoke(asset);
+                OnThumbnailUpdated?.Invoke(asset.uid);
 
                     // 全てのEditorWindowを再描画
                     foreach (var window in Resources.FindObjectsOfTypeAll<EditorWindow>())
+                {
+                    if (window.GetType().Name == "AssetManagerWindow" ||
+                        window.GetType().Name == "AssetDetailWindow")
                     {
-                        if (window.GetType().Name == "AssetManagerWindow" ||
-                            window.GetType().Name == "AssetDetailWindow")
-                        {
-                            window.Repaint();
-                        }
+                        window.Repaint();
                     }
-                };
-            }
+                }
+            };
         }
+
         public void ClearCache()
         {
             foreach (var texture in _thumbnailCache.Values)
@@ -413,11 +442,19 @@ namespace AMU.AssetManager.Helper
                 return null;
             }
         }
-
         private void SaveThumbnail(AssetInfo asset, Texture2D texture)
         {
-            string thumbnailPath = Path.Combine(_thumbnailDirectory, $"{asset.uid}.png");
-            SaveTextureToFile(texture, thumbnailPath);
+            // テクスチャからハッシュ値を計算
+            string textureHash = GetTextureHash(texture);
+            string fileName = $"{textureHash}.png";
+            string thumbnailPath = Path.Combine(_thumbnailDirectory, fileName);
+
+            // 既存のファイルがなければ保存
+            if (!File.Exists(thumbnailPath))
+            {
+                SaveTextureToFile(texture, thumbnailPath);
+            }
+
             // Convert path to use forward slashes for JSON storage
             asset.thumbnailPath = thumbnailPath.Replace('\\', '/');
         }
@@ -515,6 +552,71 @@ namespace AMU.AssetManager.Helper
                     GUI.Box(rect, "No Image");
                 }
             }
+        }
+
+        /// <summary>
+        /// ファイルのMD5ハッシュ値を計算
+        /// </summary>
+        private string GetFileHash(string filePath)
+        {
+            try
+            {
+                using (var md5 = System.Security.Cryptography.MD5.Create())
+                {
+                    using (var stream = File.OpenRead(filePath))
+                    {
+                        byte[] hashBytes = md5.ComputeHash(stream);
+                        return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[AssetThumbnailManager] Failed to calculate file hash for {filePath}: {ex.Message}");
+                // フォールバックとしてファイル名とサイズを使用
+                var fileInfo = new FileInfo(filePath);
+                return $"{Path.GetFileNameWithoutExtension(filePath)}_{fileInfo.Length}".GetHashCode().ToString("x8");
+            }
+        }
+        /// <summary>
+        /// テクスチャのMD5ハッシュ値を計算
+        /// </summary>
+        private string GetTextureHash(Texture2D texture)
+        {
+            try
+            {
+                byte[] textureBytes = texture.EncodeToPNG();
+                using (var md5 = MD5.Create())
+                {
+                    byte[] hashBytes = md5.ComputeHash(textureBytes);
+                    return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[AssetThumbnailManager] Failed to calculate texture hash: {ex.Message}");
+                // フォールバックとしてテクスチャサイズとフォーマットを使用
+                return $"{texture.width}_{texture.height}_{texture.format}".GetHashCode().ToString("x8");
+            }
+        }
+
+        /// <summary>
+        /// ハッシュ値をベースに既存のサムネイルファイルを検索
+        /// </summary>
+        private string FindExistingThumbnailByHash(string hash)
+        {
+            string[] extensions = { ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp" };
+
+            foreach (string ext in extensions)
+            {
+                string filePath = Path.Combine(_thumbnailDirectory, $"{hash}{ext}");
+                if (File.Exists(filePath))
+                {
+                    return filePath;
+                }
+            }
+
+            return null;
         }
     }
 }
