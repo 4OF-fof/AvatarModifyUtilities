@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using AMU.AssetManager.Data;
+using System.IO.Compression;
 
 namespace AMU.AssetManager.Helper
 {
@@ -383,6 +384,105 @@ namespace AMU.AssetManager.Helper
                 Debug.LogError($"[AssetFileManager] Failed to move asset to CoreDir: {ex.Message}");
                 return originalFilePath;
             }
+        }
+
+        public bool IsZipFile(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath)) return false;
+
+            string extension = Path.GetExtension(filePath).ToLower();
+            return extension == ".zip";
+        }
+
+        public bool IsZipFile(AssetInfo asset)
+        {
+            return IsZipFile(asset?.filePath);
+        }
+
+        public List<string> GetZipFileList(string zipFilePath)
+        {
+            var fileList = new List<string>();
+
+            try
+            {
+                string fullPath = GetFullPath(zipFilePath);
+                if (!File.Exists(fullPath) || !IsZipFile(fullPath))
+                {
+                    return fileList;
+                }
+
+                using (var archive = ZipFile.OpenRead(fullPath))
+                {
+                    foreach (var entry in archive.Entries)
+                    {
+                        if (!string.IsNullOrEmpty(entry.Name)) // ディレクトリエントリを除外
+                        {
+                            fileList.Add(entry.FullName);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[AssetFileManager] Failed to read zip file {zipFilePath}: {ex.Message}");
+            }
+
+            return fileList;
+        }
+
+        public bool ExtractFileFromZip(string zipFilePath, string entryPath, string outputPath)
+        {
+            try
+            {
+                string fullZipPath = GetFullPath(zipFilePath);
+                if (!File.Exists(fullZipPath) || !IsZipFile(fullZipPath))
+                {
+                    return false;
+                }
+
+                using (var archive = ZipFile.OpenRead(fullZipPath))
+                {
+                    var entry = archive.Entries.FirstOrDefault(e => e.FullName == entryPath);
+                    if (entry == null)
+                    {
+                        return false;
+                    }
+
+                    // 出力ディレクトリが存在しない場合は作成
+                    string outputDir = Path.GetDirectoryName(outputPath);
+                    if (!Directory.Exists(outputDir))
+                    {
+                        Directory.CreateDirectory(outputDir);
+                    }
+
+                    entry.ExtractToFile(outputPath, true);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[AssetFileManager] Failed to extract file {entryPath} from {zipFilePath}: {ex.Message}");
+                return false;
+            }
+        }
+
+        public string GetUnzipDirectory()
+        {
+            string coreDir = GetCoreDirectory();
+            string unzipDir = Path.Combine(coreDir, "AssetManager", "unzip");
+
+            if (!Directory.Exists(unzipDir))
+            {
+                Directory.CreateDirectory(unzipDir);
+            }
+
+            return unzipDir;
+        }
+
+        private string GetCoreDirectory()
+        {
+            return EditorPrefs.GetString("Setting.Core_dirPath",
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AMU"));
         }
     }
 }

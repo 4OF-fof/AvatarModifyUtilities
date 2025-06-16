@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
@@ -293,10 +294,11 @@ namespace AMU.AssetManager.UI
             {
                 // 詳細セクションを中央に配置するためのフレキシブルスペース
                 GUILayout.FlexibleSpace();
-
                 DrawGeneralInfo();
                 GUILayout.Space(10);
                 DrawFileInfo();
+                GUILayout.Space(10);
+                DrawImportFiles();
                 GUILayout.Space(10);
                 DrawTagsAndDependencies();
 
@@ -430,6 +432,81 @@ namespace AMU.AssetManager.UI
 
             }
         }
+        private void DrawImportFiles()
+        {
+            // zipファイルでない場合、または編集モードでなくimportFilesが空の場合は表示しない
+            bool isZipFile = _fileManager.IsZipFile(_asset);
+            bool hasImportFiles = _asset.importFiles != null && _asset.importFiles.Count > 0;
+
+            if (!isZipFile && !hasImportFiles)
+                return;
+
+            if (!_isEditMode && !hasImportFiles)
+                return;
+
+            GUILayout.Label(LocalizationManager.GetText("AssetDetail_importFiles"), EditorStyles.boldLabel);
+
+            using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+            {
+                if (_asset.importFiles != null && _asset.importFiles.Count > 0)
+                {
+                    for (int i = _asset.importFiles.Count - 1; i >= 0; i--)
+                    {
+                        using (new GUILayout.HorizontalScope())
+                        {
+                            string fileName = Path.GetFileName(_asset.importFiles[i]);
+                            GUILayout.Label(fileName, GUILayout.Width(400));
+
+                            if (_isEditMode && GUILayout.Button(LocalizationManager.GetText("AssetDetail_removeFile"), GUILayout.Width(60)))
+                            {
+                                _asset.importFiles.RemoveAt(i);
+                            }
+                        }
+                    }
+                }
+
+                if (_isEditMode && isZipFile)
+                {
+                    GUILayout.Space(5);
+                    if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_selectFromZip"), GUILayout.Width(150)))
+                    {
+                        ShowZipFileSelector();
+                    }
+                }
+            }
+        }
+
+        private void ShowZipFileSelector()
+        {
+            if (_asset == null || string.IsNullOrEmpty(_asset.filePath) || !_fileManager.IsZipFile(_asset))
+            {
+                EditorUtility.DisplayDialog("エラー", "zipファイルが設定されていません。", "OK");
+                return;
+            }
+
+            var zipFiles = _fileManager.GetZipFileList(_asset.filePath);
+            if (zipFiles.Count == 0)
+            {
+                EditorUtility.DisplayDialog("エラー", "zipファイル内にファイルが見つかりません。", "OK");
+                return;
+            }
+
+            // ファイル選択ウィンドウを表示
+            ZipFileSelector.ShowWindow(_asset, zipFiles, _fileManager, (selectedFiles) =>
+            {
+                if (_asset.importFiles == null)
+                    _asset.importFiles = new List<string>();
+
+                foreach (var file in selectedFiles)
+                {
+                    if (!_asset.importFiles.Contains(file))
+                    {
+                        _asset.importFiles.Add(file);
+                    }
+                }
+            });
+        }
+
         private void DrawTagsAndDependencies()
         {
             // 編集モードでない場合は、タグまたは依存関係が存在する場合のみ表示

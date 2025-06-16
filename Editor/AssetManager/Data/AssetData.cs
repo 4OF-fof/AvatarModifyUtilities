@@ -141,11 +141,12 @@ namespace AMU.AssetManager.Data
         public bool isFavorite;
         public bool isHidden;
         public BoothItem boothItem;
+        public List<string> importFiles;  // インポートファイルのパスリスト
 
         // グループ機能用の追加プロパティ
         public string parentGroupId;  // 親グループのUID
         public List<string> childAssetIds;  // 子アセットのUIDリスト（このアセットがグループの場合）
-        public bool isGroup;  // このアセットがグループかどうか        
+        public bool isGroup;  // このアセットがグループかどうか
         public AssetInfo()
         {
             uid = Guid.NewGuid().ToString();
@@ -162,6 +163,7 @@ namespace AMU.AssetManager.Data
             isFavorite = false;
             isHidden = false;
             boothItem = null; // デフォルトでは値が割り振られていない
+            importFiles = new List<string>();  // インポートファイルリストの初期化
 
             // グループ機能用プロパティの初期化
             parentGroupId = null;
@@ -186,6 +188,7 @@ namespace AMU.AssetManager.Data
                 isFavorite = this.isFavorite,
                 isHidden = this.isHidden,
                 boothItem = this.boothItem?.Clone(),
+                importFiles = new List<string>(this.importFiles),
 
                 // グループ機能用プロパティのコピー
                 parentGroupId = this.parentGroupId,
