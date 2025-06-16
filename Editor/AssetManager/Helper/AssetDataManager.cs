@@ -260,7 +260,6 @@ namespace AMU.AssetManager.Helper
 
             _ = SaveDataAsync(); // 非同期メソッドを明示的に無視
         }
-
         private async Task SaveDataAsync()
         {
             await _fileLock.WaitAsync();
@@ -269,9 +268,20 @@ namespace AMU.AssetManager.Helper
                 EnsureDirectoryExists();
                 _assetLibrary.lastUpdated = DateTime.Now;
 
+                // シリアライゼーション用にアセットライブラリのスナップショットを作成
+                AssetLibrary librarySnapshot;
+                lock (_assetLibrary.assets)
+                {
+                    librarySnapshot = new AssetLibrary
+                    {
+                        assets = new List<AssetInfo>(_assetLibrary.assets),
+                        lastUpdated = _assetLibrary.lastUpdated
+                    };
+                }
+
                 // JSONシリアライズを別スレッドで実行
                 string json = await Task.Run(() =>
-                    JsonConvert.SerializeObject(_assetLibrary, Formatting.Indented));
+                    JsonConvert.SerializeObject(librarySnapshot, Formatting.Indented));
 
                 // 一時ファイルに書き込んでから原子的に置き換え
                 string tempFilePath = _dataFilePath + ".tmp";
@@ -339,7 +349,10 @@ namespace AMU.AssetManager.Helper
                 _assetLibrary = CreateDefaultAssetLibrary();
             }
 
-            _assetLibrary.assets.Add(asset);
+            lock (_assetLibrary.assets)
+            {
+                _assetLibrary.assets.Add(asset);
+            }
             InvalidateCache();
             SaveData();
         }
@@ -348,27 +361,33 @@ namespace AMU.AssetManager.Helper
         {
             if (_assetLibrary?.assets == null) return;
 
-            var existingAsset = _assetLibrary.assets.FirstOrDefault(a => a.uid == asset.uid);
-            if (existingAsset != null)
+            lock (_assetLibrary.assets)
             {
-                var index = _assetLibrary.assets.IndexOf(existingAsset);
-                _assetLibrary.assets[index] = asset;
-                InvalidateCache();
-                SaveData();
+                var existingAsset = _assetLibrary.assets.FirstOrDefault(a => a.uid == asset.uid);
+                if (existingAsset != null)
+                {
+                    var index = _assetLibrary.assets.IndexOf(existingAsset);
+                    _assetLibrary.assets[index] = asset;
+                }
             }
+            InvalidateCache();
+            SaveData();
         }
 
         public void RemoveAsset(string uid)
         {
             if (_assetLibrary?.assets == null) return;
 
-            var asset = _assetLibrary.assets.FirstOrDefault(a => a.uid == uid);
-            if (asset != null)
+            lock (_assetLibrary.assets)
             {
-                _assetLibrary.assets.Remove(asset);
-                InvalidateCache();
-                SaveData();
+                var asset = _assetLibrary.assets.FirstOrDefault(a => a.uid == uid);
+                if (asset != null)
+                {
+                    _assetLibrary.assets.Remove(asset);
+                }
             }
+            InvalidateCache();
+            SaveData();
         }
         public AssetInfo GetAsset(string uid)
         {
@@ -515,9 +534,11 @@ namespace AMU.AssetManager.Helper
                 CreatedAt = DateTime.Now
             };
             _searchCacheKeys.Enqueue(searchHash);
-        }        /// <summary>
-                 /// 高速化されたインデックス更新
-                 /// </summary>
+        }
+
+        /// <summary>
+        /// 高速化されたインデックス更新
+        /// </summary>
         private void UpdateIndexes()
         {
             if (_assetLibrary?.assets == null) return;
@@ -527,7 +548,14 @@ namespace AMU.AssetManager.Helper
             _favoriteAssetsIndex.Clear();
             _hiddenAssetsIndex.Clear();
 
-            foreach (var asset in _assetLibrary.assets)
+            // コレクションのスナップショットを作成して安全に列挙
+            List<AssetInfo> assetsSnapshot;
+            lock (_assetLibrary.assets)
+            {
+                assetsSnapshot = new List<AssetInfo>(_assetLibrary.assets);
+            }
+
+            foreach (var asset in assetsSnapshot)
             {
                 // ID インデックス
                 _assetByIdIndex[asset.uid] = asset;
@@ -779,7 +807,10 @@ namespace AMU.AssetManager.Helper
                 {
                     _assetLibrary = CreateDefaultAssetLibrary();
                 }
-                _assetLibrary.assets.AddRange(importedAssets);
+                lock (_assetLibrary.assets)
+                {
+                    _assetLibrary.assets.AddRange(importedAssets);
+                }
                 InvalidateCache();
                 SaveData();
 
@@ -923,7 +954,10 @@ namespace AMU.AssetManager.Helper
                 {
                     _assetLibrary = CreateDefaultAssetLibrary();
                 }
-                _assetLibrary.assets.AddRange(importedAssets);
+                lock (_assetLibrary.assets)
+                {
+                    _assetLibrary.assets.AddRange(importedAssets);
+                }
                 InvalidateCache();
                 SaveData();
 
@@ -1084,8 +1118,8 @@ namespace AMU.AssetManager.Helper
         private async Task DownloadAndSetThumbnailAsync(AssetInfo asset, string imageUrl)
         {
             if (string.IsNullOrEmpty(imageUrl) || asset == null)
-                return; 
-                await _httpSemaphore.WaitAsync();
+                return;
+            await _httpSemaphore.WaitAsync();
             try
             {
                 // BoothItem専用のサムネイルディレクトリを使用
