@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using Newtonsoft.Json;
 
 namespace AMU.Data.TagType
 {
@@ -99,7 +100,7 @@ namespace AMU.Data.TagType
                 if (File.Exists(_filePath))
                 {
                     var json = File.ReadAllText(_filePath);
-                    _data = JsonUtility.FromJson<TagTypeData>(json);
+                    _data = JsonConvert.DeserializeObject<TagTypeData>(json);
                     _lastLoadTime = File.GetLastWriteTime(_filePath);
                 }
                 else
@@ -123,9 +124,8 @@ namespace AMU.Data.TagType
                 {
                     _data = CreateDefaultData();
                 }
-
                 _data.lastUpdated = DateTime.Now;
-                var json = JsonUtility.ToJson(_data, true);
+                var json = JsonConvert.SerializeObject(_data, Formatting.Indented);
                 File.WriteAllText(_filePath, json);
 
                 OnDataChanged?.Invoke();

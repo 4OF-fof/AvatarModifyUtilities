@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Newtonsoft.Json;
 using AMU.Data.TagType;
 
 namespace AMU.AssetManager.Data
@@ -57,10 +58,9 @@ namespace AMU.AssetManager.Data
         {
             return DefaultTypes.Contains(typeName);
         }
-
         public static void SaveCustomTypes()
         {
-            var json = JsonUtility.ToJson(new SerializableStringList { items = _customTypes });
+            var json = JsonConvert.SerializeObject(new SerializableStringList { items = _customTypes });
             UnityEditor.EditorPrefs.SetString("AssetManager_CustomTypes", json);
         }
 
@@ -71,7 +71,7 @@ namespace AMU.AssetManager.Data
             {
                 try
                 {
-                    var data = JsonUtility.FromJson<SerializableStringList>(json);
+                    var data = JsonConvert.DeserializeObject<SerializableStringList>(json);
                     _customTypes = data.items ?? new List<string>();
                 }
                 catch
