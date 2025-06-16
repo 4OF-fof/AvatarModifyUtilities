@@ -248,7 +248,7 @@ namespace AMU.AssetManager.UI
                             alignment = TextAnchor.MiddleLeft
                         };
 
-                        
+
                         var rect = GUILayoutUtility.GetRect(GUIContent.none, groupStatusStyle, GUILayout.ExpandWidth(true));
                         GUI.Label(rect, $"グループ: {_currentGroupFilter.name}", groupStatusStyle);
 
@@ -256,6 +256,27 @@ namespace AMU.AssetManager.UI
                         if (GUILayout.Button("×", EditorStyles.toolbarButton, GUILayout.Width(20)))
                         {
                             ClearGroupFilter();
+                        }
+                    }
+                    else if (_isUsingAdvancedSearch)
+                    {
+                        // 詳細検索時は検索バーと詳細検索ボタンを隠し、ステータス表示のみ
+                        var statusText = GetAdvancedSearchStatusText();
+                        var statusStyle = new GUIStyle(EditorStyles.miniLabel)
+                        {
+                            normal = { textColor = new Color(0.3f, 0.6f, 1f) },
+                            fontSize = 11,
+                            fontStyle = FontStyle.Bold,
+                            alignment = TextAnchor.MiddleLeft
+                        };
+
+                        var rect = GUILayoutUtility.GetRect(GUIContent.none, statusStyle, GUILayout.ExpandWidth(true));
+                        GUI.Label(rect, $"{statusText}", statusStyle);
+
+                        // クリアボタン
+                        if (GUILayout.Button("×", EditorStyles.toolbarButton, GUILayout.Width(20)))
+                        {
+                            ClearAdvancedSearch();
                         }
                     }
                     else
@@ -270,32 +291,10 @@ namespace AMU.AssetManager.UI
                         }
 
                         // 詳細検索ボタン（グループフィルター無効時のみ）
-                        var advancedSearchButtonStyle = _isUsingAdvancedSearch
-                            ? new GUIStyle(EditorStyles.toolbarButton) { fontStyle = FontStyle.Bold }
-                            : EditorStyles.toolbarButton;
+                        var advancedSearchButtonStyle = new GUIStyle(EditorStyles.toolbarButton);
                         if (GUILayout.Button(LocalizationManager.GetText("AssetManager_advancedSearch"), advancedSearchButtonStyle, GUILayout.Width(40)))
                         {
                             ShowAdvancedSearchWindow();
-                        }
-                        if (_isUsingAdvancedSearch)
-                        {
-                            var statusText = GetAdvancedSearchStatusText();
-                            var statusStyle = new GUIStyle(EditorStyles.miniLabel)
-                            {
-                                normal = { textColor = new Color(0.3f, 0.6f, 1f) },
-                            };
-                            using (new GUILayout.VerticalScope())
-                            {
-                                GUILayout.FlexibleSpace();
-                                GUILayout.Label(statusText, statusStyle, GUILayout.Width(150));
-                                GUILayout.FlexibleSpace();
-                            }
-
-                            // クリアボタン
-                            if (GUILayout.Button("×", EditorStyles.toolbarButton, GUILayout.Width(20)))
-                            {
-                                ClearAdvancedSearch();
-                            }
                         }
                     }
                 }// Right panel area - starts immediately after left panel
