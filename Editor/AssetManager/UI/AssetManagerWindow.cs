@@ -782,10 +782,9 @@ namespace AMU.AssetManager.UI
             };
 
             GUI.Label(indicatorRect, "G", labelStyle);
-        }
-        /// <summary>
-        /// アセット名を描画（2行固定表示）
-        /// </summary>
+        }        /// <summary>
+                 /// アセット名を描画（2行固定、ツールチップ付き）
+                 /// </summary>
         private void DrawAssetName(AssetInfo asset)
         {
             var nameStyle = new GUIStyle(EditorStyles.label)
@@ -795,68 +794,74 @@ namespace AMU.AssetManager.UI
                 fontSize = 10,
                 richText = true
             };
-
-            // 2行分の固定高さを設定
-            var lineHeight = nameStyle.lineHeight;
-            var fixedHeight = lineHeight * 2 + 4; // 2行分 + 少しの余白
-
-            // テキストを2行分に制限する処理
             var availableWidth = _thumbnailSize + 10;
-            var tempContent = new GUIContent(asset.name);
-            var fullTextHeight = nameStyle.CalcHeight(tempContent, availableWidth);
 
-            string displayText = asset.name;
-
-            // 2行を超える場合はテキストを切り詰める
-            if (fullTextHeight > fixedHeight)
-            {
-                var words = asset.name.Split(' ');
-                var testText = "";
-
-                for (int i = 0; i < words.Length; i++)
-                {
-                    var nextText = string.IsNullOrEmpty(testText) ? words[i] : testText + " " + words[i];
-                    var testContent = new GUIContent(nextText);
-                    var testHeight = nameStyle.CalcHeight(testContent, availableWidth);
-
-                    if (testHeight > fixedHeight)
-                    {
-                        // 2行を超える場合は前の状態で終了し、省略記号を追加
-                        if (!string.IsNullOrEmpty(testText))
-                        {
-                            displayText = testText + "...";
-                        }
-                        else
-                        {
-                            // 単語が長すぎる場合は文字数で制限
-                            displayText = asset.name.Substring(0, Math.Min(asset.name.Length, 20)) + "...";
-                        }
-                        break;
-                    }
-                    testText = nextText;
-                }
-
-                if (testText == asset.name)
-                {
-                    displayText = asset.name;
-                }
-                else if (string.IsNullOrEmpty(displayText) || displayText == asset.name)
-                {
-                    displayText = testText;
-                }
-            }
-            var content = new GUIContent(displayText);
+            // 2行固定の高さを設定
+            var fixedHeight = nameStyle.lineHeight * 2 + 5;
             var rect = GUILayoutUtility.GetRect(availableWidth, fixedHeight);
 
-            // 名前が長い場合は背景色を少し変える
-            if (asset.name.Length > 20)
+            // テキストが2行を超える場合は切り詰める
+            var displayText = TruncateTextToFitHeight(asset.name, nameStyle, availableWidth, fixedHeight);
+            var content = new GUIContent(displayText);
+
+            // テキストが切り詰められた場合の判定
+            if (displayText != asset.name)
             {
-                EditorGUI.DrawRect(rect, new Color(0.2f, 0.2f, 0.2f, 0.1f));
+                EditorGUI.DrawRect(rect, new Color(0.2f, 0.3f, 0.4f, 0.15f));
             }
 
             GUI.Label(rect, content, nameStyle);
         }
 
+        /// <summary>
+        /// 指定された高さに収まるようにテキストを切り詰める
+        /// </summary>
+        private string TruncateTextToFitHeight(string text, GUIStyle style, float width, float maxHeight)
+        {
+            var testContent = new GUIContent(text);
+            var textHeight = style.CalcHeight(testContent, width);
+
+            if (textHeight <= maxHeight)
+                return text;
+
+            // 単語単位で切り詰める
+            var words = text.Split(' ');
+            var result = "";
+
+            for (int i = 0; i < words.Length; i++)
+            {
+                var testText = string.IsNullOrEmpty(result) ? words[i] : result + " " + words[i];
+                var testContent2 = new GUIContent(testText);
+                var testHeight = style.CalcHeight(testContent2, width);
+
+                if (testHeight > maxHeight)
+                {
+                    // 前の状態に戻って終了
+                    break;
+                }
+                result = testText;
+            }
+
+            // 結果が空の場合（最初の単語が長すぎる場合）は文字数で制限
+            if (string.IsNullOrEmpty(result) && text.Length > 0)
+            {
+                for (int i = 1; i <= text.Length; i++)
+                {
+                    var testText = text.Substring(0, i);
+                    var testContent3 = new GUIContent(testText);
+                    var testHeight = style.CalcHeight(testContent3, width);
+
+                    if (testHeight > maxHeight)
+                    {
+                        result = i > 1 ? text.Substring(0, i - 1) : text.Substring(0, 1);
+                        break;
+                    }
+                    result = testText;
+                }
+            }
+
+            return result;
+        }
         /// <summary>
         /// アセットアイテムのイベントを処理
         /// </summary>        
@@ -1002,16 +1007,16 @@ namespace AMU.AssetManager.UI
                         _selectedAsset = null;
                         _needsUIRefresh = true;
                     }); menu.AddItem(new GUIContent(string.Format(LocalizationManager.GetText("AssetManager_archiveVisibleAssets"), _selectedAssets.Count(a => !a.isHidden))), false, () =>
- {
-     foreach (var selectedAsset in _selectedAssets.Where(a => !a.isHidden))
-     {
-         selectedAsset.isHidden = true;
-         _dataManager.UpdateAsset(selectedAsset);
-     }
-     _selectedAssets.Clear();
-     _selectedAsset = null;
-     _needsUIRefresh = true;
- });
+                    {
+                        foreach (var selectedAsset in _selectedAssets.Where(a => !a.isHidden))
+                        {
+                            selectedAsset.isHidden = true;
+                            _dataManager.UpdateAsset(selectedAsset);
+                        }
+                        _selectedAssets.Clear();
+                        _selectedAsset = null;
+                        _needsUIRefresh = true;
+                    });
                 }
                 else
                 {
@@ -1374,7 +1379,6 @@ namespace AMU.AssetManager.UI
             }
             _needsUIRefresh = true;
         }
-
         private string GetAdvancedSearchStatusText()
         {
             if (_advancedSearchCriteria == null) return "";
@@ -1397,8 +1401,8 @@ namespace AMU.AssetManager.UI
 
             if (parts.Count == 0) return LocalizationManager.GetText("AssetManager_advancedSearchActive");
 
-            var result = string.Join(", ", parts);
-            return result.Length > 30 ? result.Substring(0, 27) + "..." : result;
+            // 文字数制限を削除し、完全なテキストを返す（UIレイアウトで自動調整）
+            return string.Join(", ", parts);
         }
 
         private void ClearAdvancedSearch()
