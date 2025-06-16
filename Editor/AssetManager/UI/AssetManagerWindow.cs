@@ -171,7 +171,7 @@ namespace AMU.AssetManager.UI
             _dataManager?.ForceRefresh();
             _dataManager?.ScanDownloadFolder();
             _needsUIRefresh = true;
-            Debug.Log("[AssetManager] データを更新し、ダウンロードフォルダをスキャンしました");
+            Debug.Log(LocalizationManager.GetText("AssetManager_downloadFolderScanCompleted"));
         }
 
         private void InitializeStyles()
@@ -368,7 +368,7 @@ namespace AMU.AssetManager.UI
                     if (_selectedAssets.Count > 1)
                     {
                         GUILayout.Space(10);
-                        GUILayout.Label($"{_selectedAssets.Count}個選択中", EditorStyles.toolbarButton);
+                        GUILayout.Label(string.Format(LocalizationManager.GetText("AssetManager_selectedCount"), _selectedAssets.Count), EditorStyles.toolbarButton);
                     }
                 }
             }
@@ -1016,7 +1016,7 @@ namespace AMU.AssetManager.UI
                 if (allHidden)
                 {
                     // すべてがアーカイブされている場合：復元のみ                    
-                    menu.AddItem(new GUIContent($"{_selectedAssets.Count}個のアセットをアーカイブから復元"), false, () =>
+                    menu.AddItem(new GUIContent(string.Format(LocalizationManager.GetText("AssetManager_multipleAssetsRestoreFromArchive"), _selectedAssets.Count)), false, () =>
                     {
                         foreach (var selectedAsset in _selectedAssets)
                         {
@@ -1056,7 +1056,7 @@ namespace AMU.AssetManager.UI
                 else
                 {
                     // すべてが表示されている場合：アーカイブのみ                    
-                    menu.AddItem(new GUIContent($"{_selectedAssets.Count}個のアセットをアーカイブ"), false, () =>
+                    menu.AddItem(new GUIContent(string.Format(LocalizationManager.GetText("AssetManager_multipleAssetsArchive"), _selectedAssets.Count)), false, () =>
                     {
                         foreach (var selectedAsset in _selectedAssets)
                         {
@@ -1180,11 +1180,9 @@ namespace AMU.AssetManager.UI
                     _selectedAsset = null;
                     _needsUIRefresh = true;
                 });
-                menu.AddSeparator("");
-
-                string hiddenText = asset.isHidden ?
-                    LocalizationManager.GetText("AssetManager_restoreFromArchive") :
-                    "アーカイブ";
+                menu.AddSeparator(""); string hiddenText = asset.isHidden ?
+     LocalizationManager.GetText("AssetManager_restoreFromArchive") :
+     LocalizationManager.GetText("AssetManager_archiveAsset");
                 menu.AddItem(new GUIContent(hiddenText), false, () =>
                 {
                     asset.isHidden = !asset.isHidden;
@@ -1551,7 +1549,7 @@ namespace AMU.AssetManager.UI
 
             if (children.Count == 0)
             {
-                EditorUtility.DisplayDialog("グループの詳細",
+                EditorUtility.DisplayDialog(LocalizationManager.GetText("AssetManager_groupDetailTitle"),
                     $"グループ '{groupAsset.name}' には子アセットがありません。", "OK");
                 return;
             }

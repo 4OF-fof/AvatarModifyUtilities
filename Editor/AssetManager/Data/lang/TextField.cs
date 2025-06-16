@@ -76,11 +76,43 @@ namespace AMU.Data.Lang
             public string Common_error;
             public string Common_warning;
             public string Common_info;
-            public string Common_success;
-            public string Common_browse;
+            public string Common_success; public string Common_browse;
             public string Common_clear;
             public string Common_refresh;
             public string Common_close;
+
+            // ZipFileSelector
+            public string ZipFileSelector_noFilesFoundFiltered;
+
+            // GroupNameInput
+            public string GroupNameInput_windowTitle;
+            public string GroupNameInput_defaultName;
+            public string GroupNameInput_enterGroupName;
+            public string GroupNameInput_create;
+            public string GroupNameInput_cancel;
+
+            // TagTypeManager (additional)
+            public string TagTypeManager_addNewType;
+            public string TagTypeManager_typeName;
+            public string TagTypeManager_typeDescription;
+            public string TagTypeManager_deleteTypeConfirm;
+            public string TagTypeManager_confirm;
+            public string TagTypeManager_yes;
+            public string TagTypeManager_no;
+            public string TagTypeManager_default;
+            public string TagTypeManager_visible;
+            public string TagTypeManager_sortOrder;
+
+            // AdvancedSearch (additional)
+            public string AdvancedSearch_andSearch;
+
+            // AssetManager (additional)
+            public string AssetManager_archiveAsset;
+            public string AssetManager_selectedCount;
+            public string AssetManager_downloadFolderScanCompleted;
+            public string AssetManager_multipleAssetsRestoreFromArchive;
+            public string AssetManager_multipleAssetsArchive;
+            public string AssetManager_groupDetailTitle;
         }
     }
 }

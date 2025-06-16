@@ -1,28 +1,36 @@
 using System;
 using UnityEngine;
 using UnityEditor;
+using AMU.Data.Lang;
 
 namespace AMU.AssetManager.UI
 {
     public class GroupNameInputWindow : EditorWindow
     {
-        private string _groupName = "新しいグループ";
+        private string _groupName = "";
         private Action<string> _onConfirm;
 
         public static void ShowWindow(Action<string> onConfirm)
         {
-            var window = GetWindow<GroupNameInputWindow>(true, "グループ名入力", true);
+            var window = GetWindow<GroupNameInputWindow>(true, LocalizationManager.GetText("GroupNameInput_windowTitle"), true);
             window.minSize = new Vector2(300, 120);
             window.maxSize = new Vector2(300, 120);
             window._onConfirm = onConfirm;
+            window._groupName = LocalizationManager.GetText("GroupNameInput_defaultName");
             window.ShowModal();
+        }
+
+        private void OnEnable()
+        {
+            var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
+            LocalizationManager.LoadLanguage(language);
         }
 
         private void OnGUI()
         {
             GUILayout.Space(10);
 
-            GUILayout.Label("グループ名を入力してください:", EditorStyles.boldLabel);
+            GUILayout.Label(LocalizationManager.GetText("GroupNameInput_enterGroupName"), EditorStyles.boldLabel);
             GUILayout.Space(5);
 
             GUI.SetNextControlName("GroupNameField");
@@ -32,7 +40,7 @@ namespace AMU.AssetManager.UI
 
             using (new GUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("作成", GUILayout.Height(30)))
+                if (GUILayout.Button(LocalizationManager.GetText("GroupNameInput_create"), GUILayout.Height(30)))
                 {
                     if (!string.IsNullOrWhiteSpace(_groupName))
                     {
@@ -41,7 +49,7 @@ namespace AMU.AssetManager.UI
                     }
                 }
 
-                if (GUILayout.Button("キャンセル", GUILayout.Height(30)))
+                if (GUILayout.Button(LocalizationManager.GetText("GroupNameInput_cancel"), GUILayout.Height(30)))
                 {
                     Close();
                 }

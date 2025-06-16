@@ -267,28 +267,27 @@ namespace AMU.Editor.TagType
             }
         }
         private void DrawTypesTab()
-        {
-            // 新しいタイプ追加
+        {            // 新しいタイプ追加
             using (new EditorGUILayout.VerticalScope(_cardStyle))
             {
-                EditorGUILayout.LabelField("新しいタイプを追加", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(LocalizationManager.GetText("TagTypeManager_addNewType"), EditorStyles.boldLabel);
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.LabelField("名前:", GUILayout.Width(50));
+                    EditorGUILayout.LabelField(LocalizationManager.GetText("TagTypeManager_typeName"), GUILayout.Width(50));
                     _newTypeName = EditorGUILayout.TextField(_newTypeName);
                 }
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.LabelField("説明:", GUILayout.Width(50));
+                    EditorGUILayout.LabelField(LocalizationManager.GetText("TagTypeManager_typeDescription"), GUILayout.Width(50));
                     _newTypeDescription = EditorGUILayout.TextField(_newTypeDescription);
                 }
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     GUILayout.FlexibleSpace();
-                    if (GUILayout.Button("追加", GUILayout.Width(100)))
+                    if (GUILayout.Button(LocalizationManager.GetText("TagTypeManager_add"), GUILayout.Width(100)))
                     {
                         if (!string.IsNullOrWhiteSpace(_newTypeName))
                         {
@@ -342,7 +341,7 @@ namespace AMU.Editor.TagType
                                     normal = { textColor = new Color(0.7f, 0.7f, 1f, 1f) },
                                     fontStyle = FontStyle.Italic
                                 };
-                                EditorGUILayout.LabelField("[デフォルト]", defaultStyle, GUILayout.Width(80));
+                                EditorGUILayout.LabelField(LocalizationManager.GetText("TagTypeManager_default"), defaultStyle, GUILayout.Width(80));
                             }
                         }
 
@@ -364,13 +363,16 @@ namespace AMU.Editor.TagType
                     {
                         using (new EditorGUILayout.HorizontalScope())
                         {
-                            if (GUILayout.Button("編集", GUILayout.Width(55)))
+                            if (GUILayout.Button(LocalizationManager.GetText("TagTypeManager_edit"), GUILayout.Width(55)))
                             {
                                 _editingTypeId = type.id;
                             }
-                            if (!type.isDefault && GUILayout.Button("削除", GUILayout.Width(55)))
+                            if (!type.isDefault && GUILayout.Button(LocalizationManager.GetText("TagTypeManager_delete"), GUILayout.Width(55)))
                             {
-                                if (EditorUtility.DisplayDialog("確認", $"タイプ '{type.name}' を削除しますか？", "はい", "いいえ"))
+                                if (EditorUtility.DisplayDialog(LocalizationManager.GetText("TagTypeManager_confirm"),
+                                    string.Format(LocalizationManager.GetText("TagTypeManager_deleteTypeConfirm"), type.name),
+                                    LocalizationManager.GetText("TagTypeManager_yes"),
+                                    LocalizationManager.GetText("TagTypeManager_no")))
                                 {
                                     TagTypeManager.RemoveType(type.id);
                                 }
@@ -385,34 +387,33 @@ namespace AMU.Editor.TagType
                 }
             }
         }
-
         private void DrawTypeEditForm(TypeItem type)
         {
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
-                EditorGUILayout.LabelField("編集", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(LocalizationManager.GetText("TagTypeManager_edit"), EditorStyles.boldLabel);
 
                 if (!type.isDefault)
                 {
-                    type.name = EditorGUILayout.TextField("名前:", type.name);
+                    type.name = EditorGUILayout.TextField(LocalizationManager.GetText("TagTypeManager_typeName"), type.name);
                 }
                 else
                 {
-                    EditorGUILayout.LabelField("名前:", type.name);
+                    EditorGUILayout.LabelField(LocalizationManager.GetText("TagTypeManager_typeName"), type.name);
                 }
 
-                type.description = EditorGUILayout.TextField("説明:", type.description);
-                type.isVisible = EditorGUILayout.Toggle("表示:", type.isVisible);
-                type.sortOrder = EditorGUILayout.IntField("ソート順:", type.sortOrder);
+                type.description = EditorGUILayout.TextField(LocalizationManager.GetText("TagTypeManager_typeDescription"), type.description);
+                type.isVisible = EditorGUILayout.Toggle(LocalizationManager.GetText("TagTypeManager_visible"), type.isVisible);
+                type.sortOrder = EditorGUILayout.IntField(LocalizationManager.GetText("TagTypeManager_sortOrder"), type.sortOrder);
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    if (GUILayout.Button("保存"))
+                    if (GUILayout.Button(LocalizationManager.GetText("TagTypeManager_save")))
                     {
                         TagTypeManager.UpdateType(type);
                         _editingTypeId = "";
                     }
-                    if (GUILayout.Button("キャンセル"))
+                    if (GUILayout.Button(LocalizationManager.GetText("TagTypeManager_cancel")))
                     {
                         _editingTypeId = "";
                     }

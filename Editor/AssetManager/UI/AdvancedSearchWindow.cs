@@ -379,8 +379,8 @@ namespace AMU.AssetManager.UI
                 if (_searchCriteria.selectedTags.Count > 1)
                 {
                     _searchCriteria.useAndLogicForTags = EditorGUILayout.Toggle(
-                        "AND検索",
-                        _searchCriteria.useAndLogicForTags);
+       LocalizationManager.GetText("AdvancedSearch_andSearch"),
+       _searchCriteria.useAndLogicForTags);
                     var logicText = _searchCriteria.useAndLogicForTags
                                     ? LocalizationManager.GetText("AdvancedSearch_andLogicDescription")
                                     : LocalizationManager.GetText("AdvancedSearch_orLogicDescription");

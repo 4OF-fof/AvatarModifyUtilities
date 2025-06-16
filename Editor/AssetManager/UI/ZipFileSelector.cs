@@ -170,7 +170,7 @@ namespace AMU.AssetManager.UI
                     using (new GUILayout.HorizontalScope())
                     {
                         GUILayout.FlexibleSpace();
-                        GUILayout.Label("No files found matching filter criteria", EditorStyles.centeredGreyMiniLabel);
+                        GUILayout.Label(LocalizationManager.GetText("ZipFileSelector_noFilesFoundFiltered"), EditorStyles.centeredGreyMiniLabel);
                         GUILayout.FlexibleSpace();
                     }
                     GUILayout.FlexibleSpace();
