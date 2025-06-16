@@ -200,7 +200,7 @@ namespace AMU.AssetManager.Helper
                 string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
                 
-                string packageDir = Path.Combine(coreDir, "AssetManager", "BoothItem", "package", asset.uid);
+                string packageDir = Path.Combine(coreDir, "AssetManager", "BoothItem", "package");
                 
                 // ディレクトリが存在しない場合は作成
                 if (!Directory.Exists(packageDir))
