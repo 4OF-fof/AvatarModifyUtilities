@@ -15,7 +15,7 @@ namespace AMU.AssetManager.UI
         [Serializable]
         public class AssetImportSettings
         {
-            public string assetType = "Avatar";
+            public string assetType = "Other";
         }
         private AssetDataManager _assetDataManager;
         private BPMDataManager _bpmDataManager;
