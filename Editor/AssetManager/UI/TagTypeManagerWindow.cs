@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using AMU.Data.TagType;
+using AMU.Data.Lang;
 
 namespace AMU.Editor.TagType
 {
@@ -10,7 +11,7 @@ namespace AMU.Editor.TagType
     {
         private Vector2 _scrollPosition;
         private int _selectedTab = 0;
-        private string[] _tabNames = { "タグ", "タイプ" };
+        private string[] _tabNames;
 
         // タグ編集用
         private string _newTagName = "";
@@ -37,9 +38,14 @@ namespace AMU.Editor.TagType
             window.maxSize = new Vector2(400, 800);
             window.Show();
         }
-
         private void OnEnable()
         {
+            var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
+            LocalizationManager.LoadLanguage(language);
+
+            // タブ名を再初期化
+            _tabNames = new string[] { LocalizationManager.GetText("TagTypeManager_tabs_tags"), LocalizationManager.GetText("TagTypeManager_tabs_types") };
+
             TagTypeManager.OnDataChanged += Repaint;
         }
 
@@ -84,7 +90,7 @@ namespace AMU.Editor.TagType
                 // 検索フィルター
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.LabelField("検索:", GUILayout.Width(40));
+                    EditorGUILayout.LabelField(LocalizationManager.GetText("TagTypeManager_search"), GUILayout.Width(40));
                     _searchFilter = EditorGUILayout.TextField(_searchFilter);
                 }
                 EditorGUILayout.Space();
@@ -106,18 +112,18 @@ namespace AMU.Editor.TagType
                 // フッター
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    if (GUILayout.Button("データリロード"))
+                    if (GUILayout.Button(LocalizationManager.GetText("TagTypeManager_reloadData")))
                     {
                         TagTypeManager.LoadData();
                     }
-                    if (GUILayout.Button("デフォルトにリセット"))
+                    if (GUILayout.Button(LocalizationManager.GetText("TagTypeManager_resetToDefault")))
                     {
-                        if (EditorUtility.DisplayDialog("確認", "データをデフォルト状態にリセットしますか？", "はい", "いいえ"))
+                        if (EditorUtility.DisplayDialog(LocalizationManager.GetText("Common_warning"), LocalizationManager.GetText("TagTypeManager_resetConfirm"), LocalizationManager.GetText("Common_yes"), LocalizationManager.GetText("Common_no")))
                         {
                             TagTypeManager.ResetToDefaults();
                         }
                     }
-                    if (GUILayout.Button("ファイルの場所を開く"))
+                    if (GUILayout.Button(LocalizationManager.GetText("TagTypeManager_openFileLocation")))
                     {
                         EditorUtility.RevealInFinder(TagTypeManager.GetDataFilePath());
                     }
@@ -129,24 +135,23 @@ namespace AMU.Editor.TagType
             // 新しいタグ追加
             using (new EditorGUILayout.VerticalScope(_cardStyle))
             {
-                EditorGUILayout.LabelField("新しいタグを追加", EditorStyles.boldLabel);
-
+                EditorGUILayout.LabelField(LocalizationManager.GetText("TagTypeManager_addNewTag"), EditorStyles.boldLabel);
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.LabelField("名前:", GUILayout.Width(50));
+                    EditorGUILayout.LabelField(LocalizationManager.GetText("TagTypeManager_name"), GUILayout.Width(50));
                     _newTagName = EditorGUILayout.TextField(_newTagName);
                 }
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.LabelField("色:", GUILayout.Width(50));
+                    EditorGUILayout.LabelField(LocalizationManager.GetText("TagTypeManager_color"), GUILayout.Width(50));
                     _newTagColor = EditorGUILayout.ColorField(_newTagColor);
                 }
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     GUILayout.FlexibleSpace();
-                    if (GUILayout.Button("追加", GUILayout.Width(100)))
+                    if (GUILayout.Button(LocalizationManager.GetText("TagTypeManager_add"), GUILayout.Width(100)))
                     {
                         if (!string.IsNullOrWhiteSpace(_newTagName))
                         {
@@ -201,13 +206,13 @@ namespace AMU.Editor.TagType
                     // ボタン
                     using (new EditorGUILayout.VerticalScope())
                     {
-                        if (GUILayout.Button("編集", GUILayout.Width(60)))
+                        if (GUILayout.Button(LocalizationManager.GetText("TagTypeManager_edit"), GUILayout.Width(60)))
                         {
                             _editingTagId = tag.id;
                         }
-                        if (GUILayout.Button("削除", GUILayout.Width(60)))
+                        if (GUILayout.Button(LocalizationManager.GetText("TagTypeManager_delete"), GUILayout.Width(60)))
                         {
-                            if (EditorUtility.DisplayDialog("確認", $"タグ '{tag.name}' を削除しますか？", "はい", "いいえ"))
+                            if (EditorUtility.DisplayDialog(LocalizationManager.GetText("Common_warning"), string.Format(LocalizationManager.GetText("TagTypeManager_deleteTagConfirm"), tag.name), LocalizationManager.GetText("Common_yes"), LocalizationManager.GetText("Common_no")))
                             {
                                 TagTypeManager.RemoveTag(tag.id);
                             }
@@ -227,31 +232,30 @@ namespace AMU.Editor.TagType
         {
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
-                EditorGUILayout.LabelField("編集", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(LocalizationManager.GetText("TagTypeManager_editTag"), EditorStyles.boldLabel);
 
-                tag.name = EditorGUILayout.TextField("名前:", tag.name);
+                tag.name = EditorGUILayout.TextField(LocalizationManager.GetText("TagTypeManager_name"), tag.name);
 
-                Color color = Color.white;
-                if (ColorUtility.TryParseHtmlString(tag.color, out color))
+                Color color = Color.white; if (ColorUtility.TryParseHtmlString(tag.color, out color))
                 {
-                    color = EditorGUILayout.ColorField("色:", color);
+                    color = EditorGUILayout.ColorField(LocalizationManager.GetText("TagTypeManager_color"), color);
                     tag.color = "#" + ColorUtility.ToHtmlStringRGB(color);
                 }
                 else
                 {
                     // パースに失敗した場合は白からスタート
-                    color = EditorGUILayout.ColorField("色:", Color.white);
+                    color = EditorGUILayout.ColorField(LocalizationManager.GetText("TagTypeManager_color"), Color.white);
                     tag.color = "#" + ColorUtility.ToHtmlStringRGB(color);
                 }
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    if (GUILayout.Button("保存"))
+                    if (GUILayout.Button(LocalizationManager.GetText("TagTypeManager_save")))
                     {
                         TagTypeManager.UpdateTag(tag);
                         _editingTagId = "";
                     }
-                    if (GUILayout.Button("キャンセル"))
+                    if (GUILayout.Button(LocalizationManager.GetText("Common_cancel")))
                     {
                         _editingTagId = "";
                     }

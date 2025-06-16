@@ -839,7 +839,7 @@ namespace AMU.AssetManager.UI
                 _originalAsset = _asset.Clone();
                 _isEditMode = false;
 
-                Debug.Log($"アセット情報を保存しました: {_asset.name}");
+                Debug.Log(string.Format(LocalizationManager.GetText("AssetDetail_saveSuccess"), _asset.name));
 
                 // Refresh the main window without stealing focus
                 EditorApplication.delayCall += () =>
@@ -877,7 +877,7 @@ namespace AMU.AssetManager.UI
                 {
                     _asset.thumbnailPath = asset.thumbnailPath;
                     _originalAsset = _asset.Clone();
-                    Debug.Log($"サムネイルが保存されアセット情報を更新しました: {asset.name}");
+                    Debug.Log(string.Format(LocalizationManager.GetText("AssetDetail_thumbnailSaveSuccess"), asset.name));
                     Repaint();
                 }
             }

@@ -6,6 +6,7 @@ using UnityEditor;
 using AMU.AssetManager.Data;
 using AMU.AssetManager.Helper;
 using AMU.Editor.Core.Helper;
+using AMU.Data.Lang;
 
 namespace AMU.AssetManager.UI
 {
@@ -25,7 +26,10 @@ namespace AMU.AssetManager.UI
 
         public static void ShowWindow(AdvancedSearchCriteria currentCriteria, Action<AdvancedSearchCriteria> onSearchCallback)
         {
-            var window = GetWindow<AdvancedSearchWindow>("詳細検索");
+            var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
+            LocalizationManager.LoadLanguage(language);
+
+            var window = GetWindow<AdvancedSearchWindow>(LocalizationManager.GetText("AdvancedSearch_windowTitle"));
             window.minSize = new Vector2(400, 500);
             window.maxSize = new Vector2(400, 800);
             window._searchCriteria = currentCriteria?.Clone() ?? new AdvancedSearchCriteria();
@@ -92,7 +96,7 @@ namespace AMU.AssetManager.UI
                     fontSize = 16,
                     alignment = TextAnchor.MiddleCenter
                 };
-                GUILayout.Label("詳細検索", headerStyle);
+                GUILayout.Label(LocalizationManager.GetText("AdvancedSearch_title"), headerStyle);
 
                 GUILayout.Space(15);
 
@@ -122,7 +126,7 @@ namespace AMU.AssetManager.UI
             {
                 fontSize = 14
             };
-            GUILayout.Label("検索フィールド", sectionStyle);
+            GUILayout.Label(LocalizationManager.GetText("AdvancedSearch_searchFields"), sectionStyle);
 
             using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
@@ -130,7 +134,7 @@ namespace AMU.AssetManager.UI
                 // 名前検索
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    GUILayout.Label("名前", GUILayout.Width(80));
+                    GUILayout.Label(LocalizationManager.GetText("AssetManager_searchName"), GUILayout.Width(80));
                     _searchCriteria.nameQuery = EditorGUILayout.TextField(_searchCriteria.nameQuery);
                 }
 
@@ -139,7 +143,7 @@ namespace AMU.AssetManager.UI
                 // 説明検索
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    GUILayout.Label("説明", GUILayout.Width(80));
+                    GUILayout.Label(LocalizationManager.GetText("AssetManager_searchDescription"), GUILayout.Width(80));
                     _searchCriteria.descriptionQuery = EditorGUILayout.TextField(_searchCriteria.descriptionQuery);
                 }
 
@@ -148,7 +152,7 @@ namespace AMU.AssetManager.UI
                 // 作者検索
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    GUILayout.Label("作者", GUILayout.Width(80));
+                    GUILayout.Label(LocalizationManager.GetText("AssetManager_searchAuthor"), GUILayout.Width(80));
                     _searchCriteria.authorQuery = EditorGUILayout.TextField(_searchCriteria.authorQuery);
                 }
                 GUILayout.Space(5);
@@ -160,7 +164,7 @@ namespace AMU.AssetManager.UI
             {
                 fontSize = 14
             };
-            GUILayout.Label("タグ検索", sectionStyle);
+            GUILayout.Label(LocalizationManager.GetText("AdvancedSearch_tagSearch"), sectionStyle);
 
             using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
@@ -179,7 +183,7 @@ namespace AMU.AssetManager.UI
         }
         private void DrawTagInput()
         {
-            GUILayout.Label("タグを追加:", EditorStyles.miniLabel);
+            GUILayout.Label(LocalizationManager.GetText("AdvancedSearch_addTag"), EditorStyles.miniLabel);
 
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -198,7 +202,7 @@ namespace AMU.AssetManager.UI
                                !_searchCriteria.selectedTags.Contains(_newTagInput.Trim());
 
                 GUI.enabled = isValidTag;
-                if (GUILayout.Button("追加", GUILayout.Width(60)))
+                if (GUILayout.Button(LocalizationManager.GetText("TagTypeManager_add"), GUILayout.Width(60)))
                 {
                     AddSelectedTag();
                 }
@@ -311,11 +315,11 @@ namespace AMU.AssetManager.UI
         {
             if (_searchCriteria.selectedTags.Count == 0)
             {
-                EditorGUILayout.HelpBox("タグが選択されていません", MessageType.Info);
+                EditorGUILayout.HelpBox(LocalizationManager.GetText("AdvancedSearch_noTagsSelected"), MessageType.Info);
                 return;
             }
 
-            GUILayout.Label("選択されたタグ:", EditorStyles.miniLabel);
+            GUILayout.Label(LocalizationManager.GetText("AdvancedSearch_selectedTags"), EditorStyles.miniLabel);
 
             // タグを詳細ウィンドウと同じスタイルで表示
             using (new EditorGUILayout.VerticalScope())
@@ -351,7 +355,7 @@ namespace AMU.AssetManager.UI
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.FlexibleSpace();
-                if (GUILayout.Button("すべてクリア", GUILayout.Width(100)))
+                if (GUILayout.Button(LocalizationManager.GetText("AdvancedSearch_clearAll"), GUILayout.Width(100)))
                 {
                     _searchCriteria.selectedTags.Clear();
                 }
@@ -368,7 +372,7 @@ namespace AMU.AssetManager.UI
             {
                 fontSize = 14
             };
-            GUILayout.Label("検索ロジック", sectionStyle);
+            GUILayout.Label(LocalizationManager.GetText("AdvancedSearch_searchLogic"), sectionStyle);
 
             using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
@@ -377,15 +381,14 @@ namespace AMU.AssetManager.UI
                     _searchCriteria.useAndLogicForTags = EditorGUILayout.Toggle(
                         "AND検索",
                         _searchCriteria.useAndLogicForTags);
-
                     var logicText = _searchCriteria.useAndLogicForTags
-                        ? "選択したすべてのタグが含まれているアセットを検索します"
-                        : "選択したタグのいずれかが含まれているアセットを検索します";
+                                    ? LocalizationManager.GetText("AdvancedSearch_andLogicDescription")
+                                    : LocalizationManager.GetText("AdvancedSearch_orLogicDescription");
                     EditorGUILayout.HelpBox(logicText, MessageType.Info);
                 }
                 else if (_searchCriteria.selectedTags.Count == 1)
                 {
-                    EditorGUILayout.HelpBox($"タグ「{_searchCriteria.selectedTags[0]}」を含むアセットを検索します", MessageType.Info);
+                    EditorGUILayout.HelpBox(string.Format(LocalizationManager.GetText("AdvancedSearch_singleTagDescription"), _searchCriteria.selectedTags[0]), MessageType.Info);
                 }
             }
         }
@@ -398,7 +401,7 @@ namespace AMU.AssetManager.UI
 
                 // 検索ボタン
                 GUI.enabled = _searchCriteria.HasCriteria();
-                if (GUILayout.Button("検索", GUILayout.Width(100), GUILayout.Height(30)))
+                if (GUILayout.Button(LocalizationManager.GetText("AdvancedSearch_search"), GUILayout.Width(100), GUILayout.Height(30)))
                 {
                     _onSearchCallback?.Invoke(_searchCriteria);
                     Close();
@@ -406,7 +409,7 @@ namespace AMU.AssetManager.UI
                 GUI.enabled = true;
 
                 GUILayout.Space(10);
-                if (GUILayout.Button("クリア", GUILayout.Width(100), GUILayout.Height(30)))
+                if (GUILayout.Button(LocalizationManager.GetText("AdvancedSearch_clear"), GUILayout.Width(100), GUILayout.Height(30)))
                 {
                     _searchCriteria = new AdvancedSearchCriteria();
                     InitializeTags();
@@ -417,7 +420,7 @@ namespace AMU.AssetManager.UI
                 GUILayout.Space(10);
 
                 // キャンセルボタン
-                if (GUILayout.Button("キャンセル", GUILayout.Width(100), GUILayout.Height(30)))
+                if (GUILayout.Button(LocalizationManager.GetText("Common_cancel"), GUILayout.Width(100), GUILayout.Height(30)))
                 {
                     Close();
                 }

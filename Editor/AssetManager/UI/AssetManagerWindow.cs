@@ -250,7 +250,7 @@ namespace AMU.AssetManager.UI
                     var advancedSearchButtonStyle = _isUsingAdvancedSearch
                         ? new GUIStyle(EditorStyles.toolbarButton) { fontStyle = FontStyle.Bold }
                         : EditorStyles.toolbarButton;
-                    if (GUILayout.Button("詳細", advancedSearchButtonStyle, GUILayout.Width(40)))
+                    if (GUILayout.Button(LocalizationManager.GetText("AssetManager_advancedSearch"), advancedSearchButtonStyle, GUILayout.Width(40)))
                     {
                         ShowAdvancedSearchWindow();
                     }
@@ -887,7 +887,7 @@ namespace AMU.AssetManager.UI
                 // グループ化オプション
                 if (_selectedAssets.All(a => !a.isGroup && !a.HasParent()))
                 {
-                    menu.AddItem(new GUIContent($"選択した{_selectedAssets.Count}個のアセットをグループ化"), false, () =>
+                    menu.AddItem(new GUIContent(string.Format(LocalizationManager.GetText("AssetManager_groupAssets"), _selectedAssets.Count)), false, () =>
                     {
                         ShowCreateGroupDialog();
                     });
@@ -897,7 +897,7 @@ namespace AMU.AssetManager.UI
 
                 // 一括お気に入り設定
                 bool allFavorites = _selectedAssets.All(a => a.isFavorite);
-                string favoriteText = allFavorites ? "お気に入りから削除" : "お気に入りに追加";
+                string favoriteText = allFavorites ? LocalizationManager.GetText("AssetManager_removeFromFavorites") : LocalizationManager.GetText("AssetManager_addToFavorites");
                 menu.AddItem(new GUIContent(favoriteText), false, () =>
                 {
                     foreach (var selectedAsset in _selectedAssets)
@@ -931,7 +931,7 @@ namespace AMU.AssetManager.UI
                 else if (hasHidden && hasVisible)
                 {
                     // 混在している場合：両方のオプションを提供
-                    menu.AddItem(new GUIContent($"アーカイブされた{_selectedAssets.Count(a => a.isHidden)}個のアセットを復元"), false, () =>
+                    menu.AddItem(new GUIContent(string.Format(LocalizationManager.GetText("AssetManager_restoreArchivedAssets"), _selectedAssets.Count(a => a.isHidden))), false, () =>
                     {
                         foreach (var selectedAsset in _selectedAssets.Where(a => a.isHidden))
                         {
@@ -941,7 +941,7 @@ namespace AMU.AssetManager.UI
                         _selectedAssets.Clear();
                         _selectedAsset = null;
                         _needsUIRefresh = true;
-                    }); menu.AddItem(new GUIContent($"表示中の{_selectedAssets.Count(a => !a.isHidden)}個のアセットをアーカイブ"), false, () =>
+                    }); menu.AddItem(new GUIContent(string.Format(LocalizationManager.GetText("AssetManager_archiveVisibleAssets"), _selectedAssets.Count(a => !a.isHidden))), false, () =>
  {
      foreach (var selectedAsset in _selectedAssets.Where(a => !a.isHidden))
      {
@@ -971,12 +971,12 @@ namespace AMU.AssetManager.UI
 
                 menu.AddSeparator("");
 
-                // 一括削除
-                menu.AddItem(new GUIContent($"{_selectedAssets.Count}個のアセットを削除"), false, () =>
+                // 一括削除                
+                menu.AddItem(new GUIContent(string.Format(LocalizationManager.GetText("AssetManager_deleteAssets"), _selectedAssets.Count)), false, () =>
                 {
-                    if (EditorUtility.DisplayDialog("確認",
-                    $"{_selectedAssets.Count}個のアセットを削除しますか？",
-                    "削除", "キャンセル"))
+                    if (EditorUtility.DisplayDialog(LocalizationManager.GetText("Common_warning"),
+                    LocalizationManager.GetText("AssetManager_confirmDeleteMultiple"),
+                    LocalizationManager.GetText("AssetManager_delete"), LocalizationManager.GetText("AssetManager_cancel")))
                     {
                         // コレクション変更を避けるため、事前にコピーを作成
                         var assetsToDelete = _selectedAssets.ToList();
@@ -1025,11 +1025,11 @@ namespace AMU.AssetManager.UI
                 // グループ関連のメニュー
                 if (asset.isGroup)
                 {
-                    menu.AddItem(new GUIContent("グループ解散"), false, () =>
+                    menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_ungroupTitle")), false, () =>
                     {
-                        if (EditorUtility.DisplayDialog("グループ解散の確認",
-                            $"グループ '{asset.name}' を解散しますか？子アセットは独立したアセットになります。",
-                            "解散", "キャンセル"))
+                        if (EditorUtility.DisplayDialog(LocalizationManager.GetText("AssetManager_ungroupTitle"),
+                            string.Format(LocalizationManager.GetText("AssetManager_ungroupConfirm"), asset.name),
+                            LocalizationManager.GetText("AssetManager_ungroup"), LocalizationManager.GetText("AssetManager_cancel")))
                         {
                             // グループ解散処理
                             _dataManager.DisbandGroup(asset.uid);
@@ -1046,7 +1046,7 @@ namespace AMU.AssetManager.UI
                     });
 
                     var children = _dataManager.GetGroupChildren(asset.uid);
-                    menu.AddItem(new GUIContent($"子アセット表示 ({children.Count}個)"), false, () =>
+                    menu.AddItem(new GUIContent(string.Format(LocalizationManager.GetText("AssetManager_showChildAssets"), children.Count)), false, () =>
                     {
                         ShowGroupDetails(asset);
                     });
@@ -1055,11 +1055,11 @@ namespace AMU.AssetManager.UI
                 }
                 else if (asset.HasParent())
                 {
-                    menu.AddItem(new GUIContent("グループから削除"), false, () =>
+                    menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_removeFromGroup")), false, () =>
                     {
-                        if (EditorUtility.DisplayDialog("グループから削除",
-                            $"アセット '{asset.name}' をグループから削除しますか？",
-                            "削除", "キャンセル"))
+                        if (EditorUtility.DisplayDialog(LocalizationManager.GetText("AssetManager_removeFromGroupTitle"),
+                            string.Format(LocalizationManager.GetText("AssetManager_removeFromGroupConfirm"), asset.name),
+                            LocalizationManager.GetText("AssetManager_delete"), LocalizationManager.GetText("AssetManager_cancel")))
                         {
                             _dataManager.RemoveAssetFromGroup(asset.uid);
                             _needsUIRefresh = true;
@@ -1083,7 +1083,7 @@ namespace AMU.AssetManager.UI
                 menu.AddSeparator("");
 
                 string hiddenText = asset.isHidden ?
-                    "アーカイブから復元" :
+                    LocalizationManager.GetText("AssetManager_restoreFromArchive") :
                     "アーカイブ";
                 menu.AddItem(new GUIContent(hiddenText), false, () =>
                 {
@@ -1320,23 +1320,22 @@ namespace AMU.AssetManager.UI
             if (_advancedSearchCriteria == null) return "";
 
             var parts = new List<string>();
-
             if (!string.IsNullOrEmpty(_advancedSearchCriteria.nameQuery))
-                parts.Add($"名前:{_advancedSearchCriteria.nameQuery}");
+                parts.Add($"{LocalizationManager.GetText("AssetManager_searchName")}:{_advancedSearchCriteria.nameQuery}");
 
             if (!string.IsNullOrEmpty(_advancedSearchCriteria.descriptionQuery))
-                parts.Add($"説明:{_advancedSearchCriteria.descriptionQuery}");
+                parts.Add($"{LocalizationManager.GetText("AssetManager_searchDescription")}:{_advancedSearchCriteria.descriptionQuery}");
 
             if (!string.IsNullOrEmpty(_advancedSearchCriteria.authorQuery))
-                parts.Add($"作者:{_advancedSearchCriteria.authorQuery}");
+                parts.Add($"{LocalizationManager.GetText("AssetManager_searchAuthor")}:{_advancedSearchCriteria.authorQuery}");
 
             if (_advancedSearchCriteria.selectedTags.Count > 0)
             {
                 var tagText = string.Join(", ", _advancedSearchCriteria.selectedTags);
-                parts.Add($"タグ:{tagText}");
+                parts.Add($"{LocalizationManager.GetText("AssetManager_searchTags")}:{tagText}");
             }
 
-            if (parts.Count == 0) return "詳細検索中";
+            if (parts.Count == 0) return LocalizationManager.GetText("AssetManager_advancedSearchActive");
 
             var result = string.Join(", ", parts);
             return result.Length > 30 ? result.Substring(0, 27) + "..." : result;
