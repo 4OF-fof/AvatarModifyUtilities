@@ -332,7 +332,8 @@ namespace AMU.AssetManager.UI
                     if (GUILayout.Button(LocalizationManager.GetText("AssetManager_addAsset"), EditorStyles.toolbarButton))
                     {
                         ShowAddAssetDialog();
-                    }                    if (GUILayout.Button(LocalizationManager.GetText("Common_refresh"), EditorStyles.toolbarButton))
+                    }
+                    if (GUILayout.Button(LocalizationManager.GetText("Common_refresh"), EditorStyles.toolbarButton))
                     {
                         RefreshData();
                     }

@@ -38,7 +38,7 @@ namespace AMU.AssetManager.Helper
         public void UpdateWatcherState()
         {
             bool shouldEnable = EditorPrefs.GetBool("Setting.AssetManager_watchDownloadFolder", false);
-            
+
             if (shouldEnable && !_isEnabled)
             {
                 StartWatching();
@@ -199,9 +199,9 @@ namespace AMU.AssetManager.Helper
             {
                 string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
-                
+
                 string packageDir = Path.Combine(coreDir, "AssetManager", "BoothItem", "package");
-                
+
                 // ディレクトリが存在しない場合は作成
                 if (!Directory.Exists(packageDir))
                 {
@@ -231,7 +231,7 @@ namespace AMU.AssetManager.Helper
                 // アセットにファイルパスを設定
                 string relativePath = GetRelativePath(targetPath);
                 asset.filePath = relativePath;
-                
+
                 // ファイルサイズを更新
                 if (_fileManager != null)
                 {
@@ -240,7 +240,7 @@ namespace AMU.AssetManager.Helper
 
                 // データを保存
                 _assetDataManager.SaveData();
-                
+
                 Debug.Log($"[DownloadFolderWatcher] Set file path for asset '{asset.name}': {relativePath}");
 
                 OnFileProcessed?.Invoke(Path.GetFileName(sourcePath), targetPath);
@@ -258,12 +258,12 @@ namespace AMU.AssetManager.Helper
         {
             string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
-            
+
             if (fullPath.StartsWith(coreDir))
             {
                 return fullPath.Substring(coreDir.Length + 1).Replace('\\', '/');
             }
-            
+
             return fullPath.Replace('\\', '/');
         }
 
@@ -323,12 +323,12 @@ namespace AMU.AssetManager.Helper
             try
             {
                 var files = Directory.GetFiles(_downloadFolderPath, "*", SearchOption.TopDirectoryOnly);
-                
+
                 foreach (string filePath in files)
                 {
                     ProcessFile(filePath);
                 }
-                
+
                 Debug.Log($"[DownloadFolderWatcher] Scanned {files.Length} files in download folder");
             }
             catch (Exception ex)

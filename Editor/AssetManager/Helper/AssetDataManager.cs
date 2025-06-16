@@ -92,8 +92,8 @@ namespace AMU.AssetManager.Helper
             // HttpClientの設定
             _httpClient.Timeout = TimeSpan.FromSeconds(HTTP_TIMEOUT_SECONDS);
         }        /// <summary>
-        /// インスタンスを初期化（初回のみデータロード）
-        /// </summary>
+                 /// インスタンスを初期化（初回のみデータロード）
+                 /// </summary>
         public void Initialize()
         {
             // まず同期的にファイルの存在確認と作成を行う
@@ -414,8 +414,8 @@ namespace AMU.AssetManager.Helper
             if (string.IsNullOrEmpty(boothFileName))
                 return null;
 
-            return GetAllAssets().FirstOrDefault(a => 
-                a.boothItem != null && 
+            return GetAllAssets().FirstOrDefault(a =>
+                a.boothItem != null &&
                 !string.IsNullOrEmpty(a.boothItem.boothfileName) &&
                 string.Equals(a.boothItem.boothfileName, boothFileName, StringComparison.OrdinalIgnoreCase));
         }
@@ -645,15 +645,15 @@ namespace AMU.AssetManager.Helper
                 assets = new List<AssetInfo>()
             };
         }        /// <summary>
-        /// DownloadFolderWatcherを初期化
-        /// </summary>
+                 /// DownloadFolderWatcherを初期化
+                 /// </summary>
         private void InitializeDownloadWatcher()
         {
             if (_downloadWatcher == null)
             {
                 var fileManager = new AssetFileManager();
                 _downloadWatcher = new DownloadFolderWatcher(this, fileManager);
-                
+
                 // ファイル処理イベントを購読
                 _downloadWatcher.OnFileProcessed += (fileName, targetPath) =>
                 {
@@ -661,7 +661,7 @@ namespace AMU.AssetManager.Helper
                     EditorApplication.delayCall += () => OnDataChanged?.Invoke();
                 };
             }
-            
+
             // 監視状態を更新
             _downloadWatcher.UpdateWatcherState();
         }
