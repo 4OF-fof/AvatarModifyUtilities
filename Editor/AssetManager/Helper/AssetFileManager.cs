@@ -210,7 +210,6 @@ namespace AMU.AssetManager.Helper
 
             return Path.GetExtension(asset.filePath).ToLower() == ".unitypackage";
         }
-
         /// <summary>
         /// ファイルがインポート可能かどうかを判定する（圧縮ファイル以外）
         /// </summary>
@@ -222,8 +221,11 @@ namespace AMU.AssetManager.Helper
             string extension = Path.GetExtension(asset.filePath).ToLower();
 
             // 設定から除外する拡張子を取得
-            string excludedExtensions = EditorPrefs.GetString("Setting.AssetManager_excludedImportExtensions", ".zip,.psd");
-            var excludedList = excludedExtensions.Split(',')
+            string excludedExtensions = EditorPrefs.GetString("Setting.AssetManager_excludedImportExtensions", ".zip\n.psd");
+
+            // カンマ、スペース、改行で分割
+            var separators = new char[] { ',', ' ', '\n', '\r', '\t' };
+            var excludedList = excludedExtensions.Split(separators, StringSplitOptions.RemoveEmptyEntries)
                 .Select(ext => ext.Trim().ToLower())
                 .Where(ext => !string.IsNullOrEmpty(ext))
                 .ToArray();

@@ -283,8 +283,27 @@ public class SettingWindow : EditorWindow
                                 }
                             }
                             if (EditorGUI.EndChangeCheck())
-                                EditorPrefs.SetString(key, newValue);
-                            GUILayout.EndHorizontal();
+                                EditorPrefs.SetString(key, newValue); GUILayout.EndHorizontal();
+                            break;
+                        }
+                    case AMU.Data.Setting.SettingType.TextArea:
+                        {
+                            var textAreaItem = (TextAreaSettingItem)item;
+                            string value = EditorPrefs.GetString(key, textAreaItem.DefaultValue);
+                            EditorGUI.BeginChangeCheck();
+                            GUILayout.BeginVertical();
+                            GUILayout.Label(LocalizationManager.GetText(item.Name), labelStyle);
+                            if (textAreaItem.IsReadOnly)
+                            {
+                                EditorGUILayout.TextArea(value, GUI.skin.textArea, GUILayout.Width(700), GUILayout.MinHeight(textAreaItem.MinLines * 16), GUILayout.MaxHeight(textAreaItem.MaxLines * 16));
+                            }
+                            else
+                            {
+                                string newValue = EditorGUILayout.TextArea(value, GUILayout.Width(700), GUILayout.MinHeight(textAreaItem.MinLines * 16), GUILayout.MaxHeight(textAreaItem.MaxLines * 16));
+                                if (EditorGUI.EndChangeCheck())
+                                    EditorPrefs.SetString(key, newValue);
+                            }
+                            GUILayout.EndVertical();
                             break;
                         }
                 }

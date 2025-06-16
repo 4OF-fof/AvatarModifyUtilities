@@ -9,7 +9,7 @@ namespace AMU.Data.Setting
         {
             { "Asset Manager", new SettingItem[] {
                 new BoolSettingItem("AssetManager_watchDownloadFolder", false),
-                new StringSettingItem("AssetManager_excludedImportExtensions", ".zip,.psd")
+                new TextAreaSettingItem("AssetManager_excludedImportExtensions", ".zip\n.psd", false, 3, 8)
             } },
         };
     }
