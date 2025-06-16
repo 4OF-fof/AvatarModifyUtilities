@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor;
 using AMU.AssetManager.Data;
 using AMU.AssetManager.Helper;
+using AMU.Data.Lang;
 
 namespace AMU.AssetManager.UI
 {
@@ -20,11 +21,20 @@ namespace AMU.AssetManager.UI
         private string _searchFilter = "";
         private bool _showAllFiles = false;
 
+        // UI state
+        private bool _isProcessing = false;
+        private string _statusMessage = "";
+        private GUIStyle _headerStyle;
+        private GUIStyle _boxStyle;
+        private GUIStyle _buttonStyle;
+        private GUIStyle _statusStyle;
+        private bool _stylesInitialized = false;
+
         public static void ShowWindow(AssetInfo asset, List<string> zipFiles, AssetFileManager fileManager, Action<List<string>> onSelectionComplete)
         {
-            var window = GetWindow<ZipFileSelector>("Zip File Selector");
-            window.minSize = new Vector2(500, 400);
-            window.maxSize = new Vector2(500, 600);
+            var window = GetWindow<ZipFileSelector>(LocalizationManager.GetText("ZipFileSelector_windowTitle"));
+            window.minSize = new Vector2(600, 500);
+            window.maxSize = new Vector2(800, 700);
 
             window._asset = asset;
             window._zipFiles = zipFiles;
@@ -33,6 +43,42 @@ namespace AMU.AssetManager.UI
             window._selectedFiles.Clear();
 
             window.Show();
+        }
+
+        private void OnEnable()
+        {
+            var language = EditorPrefs.GetString("Setting.Core_language", "ja_jp");
+            LocalizationManager.LoadLanguage(language);
+        }
+
+        private void InitializeStyles()
+        {
+            if (_stylesInitialized) return;
+
+            _headerStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = 14,
+                padding = new RectOffset(10, 10, 10, 10)
+            };
+
+            _boxStyle = new GUIStyle(EditorStyles.helpBox)
+            {
+                padding = new RectOffset(10, 10, 10, 10),
+                margin = new RectOffset(5, 5, 5, 5)
+            };
+
+            _buttonStyle = new GUIStyle(GUI.skin.button)
+            {
+                padding = new RectOffset(15, 15, 8, 8)
+            };
+
+            _statusStyle = new GUIStyle(EditorStyles.miniLabel)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontStyle = FontStyle.Italic
+            };
+
+            _stylesInitialized = true;
         }
 
         private void OnDestroy()
@@ -47,83 +93,128 @@ namespace AMU.AssetManager.UI
 
         private void OnGUI()
         {
+            InitializeStyles();
+
             if (_asset == null || _zipFiles == null)
             {
                 Close();
                 return;
             }
 
-            GUILayout.Label($"Zip File: {Path.GetFileName(_asset.filePath)}", EditorStyles.boldLabel);
-            GUILayout.Space(10);
-
-            // 検索フィルター
-            using (new GUILayout.HorizontalScope())
+            // Header
+            using (new GUILayout.VerticalScope(_boxStyle))
             {
-                GUILayout.Label("Filter:", GUILayout.Width(50));
-                _searchFilter = EditorGUILayout.TextField(_searchFilter);
-                if (GUILayout.Button("Clear", GUILayout.Width(50)))
+                GUILayout.Label($"{LocalizationManager.GetText("ZipFileSelector_zipFile")}: {Path.GetFileName(_asset.filePath)}", _headerStyle);
+
+                // File count info
+                var filteredFiles = GetFilteredFiles();
+                var selectedCount = _selectedFiles.Count(kvp => kvp.Value);
+                GUILayout.Label($"{LocalizationManager.GetText("ZipFileSelector_fileCount").Replace("{0}", filteredFiles.Count.ToString())} | {LocalizationManager.GetText("ZipFileSelector_selectedCount").Replace("{0}", selectedCount.ToString())}", EditorStyles.miniLabel);
+            }
+
+            GUILayout.Space(5);
+
+            // Filter section
+            using (new GUILayout.VerticalScope(_boxStyle))
+            {
+                using (new GUILayout.HorizontalScope())
                 {
-                    _searchFilter = "";
+                    GUILayout.Label(LocalizationManager.GetText("ZipFileSelector_filter"), GUILayout.Width(50));
+                    _searchFilter = EditorGUILayout.TextField(_searchFilter);
+                    if (GUILayout.Button(LocalizationManager.GetText("Common_clear"), GUILayout.Width(60)))
+                    {
+                        _searchFilter = "";
+                    }
+                }
+
+                GUILayout.Space(5);
+
+                // File type toggles
+                using (new GUILayout.HorizontalScope())
+                {
+                    var newShowAllFiles = EditorGUILayout.Toggle(LocalizationManager.GetText("ZipFileSelector_showAllFiles"), _showAllFiles);
+                    if (newShowAllFiles != _showAllFiles)
+                    {
+                        _showAllFiles = newShowAllFiles;
+                        RefreshSelectedFiles();
+                    }
+
+                    GUILayout.FlexibleSpace();
+
+                    // Bulk selection buttons
+                    if (GUILayout.Button(LocalizationManager.GetText("ZipFileSelector_selectAll"), EditorStyles.miniButton, GUILayout.Width(80)))
+                    {
+                        SelectAllFiles(true);
+                    }
+                    if (GUILayout.Button(LocalizationManager.GetText("ZipFileSelector_selectNone"), EditorStyles.miniButton, GUILayout.Width(80)))
+                    {
+                        SelectAllFiles(false);
+                    }
                 }
             }
 
-            // すべてのファイルを表示するトグル
-            using (new GUILayout.HorizontalScope())
-            {
-                _showAllFiles = EditorGUILayout.Toggle("Show All Files", _showAllFiles);
-                GUILayout.FlexibleSpace();
-            }
+            GUILayout.Space(5);
 
-            GUILayout.Space(10);
+            // File list
+            GUILayout.Label(LocalizationManager.GetText("ZipFileSelector_selectFiles"), EditorStyles.boldLabel);
 
-            // ファイルリスト
-            GUILayout.Label("Select files to import:", EditorStyles.boldLabel);
-
-            using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition, EditorStyles.helpBox))
+            using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition, _boxStyle))
             {
                 _scrollPosition = scrollView.scrollPosition;
 
                 var filteredFiles = GetFilteredFiles();
 
-                GUILayout.Space(5);
-
-                foreach (var file in filteredFiles)
+                if (filteredFiles.Count == 0)
                 {
-                    if (!_selectedFiles.ContainsKey(file))
-                    {
-                        _selectedFiles[file] = false;
-                    }
-
+                    GUILayout.FlexibleSpace();
                     using (new GUILayout.HorizontalScope())
                     {
-                        _selectedFiles[file] = EditorGUILayout.Toggle(_selectedFiles[file], GUILayout.Width(20));
-                        GUILayout.Label(file);
+                        GUILayout.FlexibleSpace();
+                        GUILayout.Label("No files found matching filter criteria", EditorStyles.centeredGreyMiniLabel);
+                        GUILayout.FlexibleSpace();
                     }
+                    GUILayout.FlexibleSpace();
+                }
+                else
+                {
+                    foreach (var file in filteredFiles)
+                    {
+                        DrawFileItem(file);
+                    }
+                }
+            }
+
+            // Status message
+            if (!string.IsNullOrEmpty(_statusMessage))
+            {
+                using (new GUILayout.HorizontalScope(_boxStyle))
+                {
+                    GUILayout.Label(_statusMessage, _statusStyle);
                 }
             }
 
             GUILayout.Space(10);
 
-            // 実行ボタン
+            // Action buttons
             using (new GUILayout.HorizontalScope())
             {
                 GUILayout.FlexibleSpace();
 
-                if (GUILayout.Button("Cancel", GUILayout.Width(80)))
+                GUI.enabled = !_isProcessing;
+                if (GUILayout.Button(LocalizationManager.GetText("Common_cancel"), _buttonStyle, GUILayout.Width(100)))
                 {
-                    // 一時ファイルをクリーンアップしてからウィンドウを閉じる
-                    if (_asset != null && _fileManager != null)
-                    {
-                        string fullPath = _fileManager.GetFullPath(_asset.filePath);
-                        _fileManager.CleanupTempExtraction(fullPath);
-                    }
-                    Close();
+                    CancelAndClose();
                 }
 
-                if (GUILayout.Button("Extract & Import", GUILayout.Width(120)))
+                var selectedFiles = _selectedFiles.Count(kvp => kvp.Value);
+                GUI.enabled = !_isProcessing && selectedFiles > 0;
+
+                var extractButtonText = _isProcessing ? LocalizationManager.GetText("ZipFileSelector_extractingFiles") : LocalizationManager.GetText("ZipFileSelector_extractImport");
+                if (GUILayout.Button(extractButtonText, _buttonStyle, GUILayout.Width(150)))
                 {
                     ExtractAndImportSelectedFiles();
                 }
+                GUI.enabled = true;
             }
         }
 
@@ -151,9 +242,12 @@ namespace AMU.AssetManager.UI
 
             if (selectedFiles.Count == 0)
             {
-                EditorUtility.DisplayDialog("エラー", "ファイルが選択されていません。", "OK");
+                EditorUtility.DisplayDialog(LocalizationManager.GetText("Common_error"), LocalizationManager.GetText("ZipFileSelector_noFilesSelected"), LocalizationManager.GetText("Common_ok"));
                 return;
             }
+
+            _isProcessing = true;
+            SetStatus(LocalizationManager.GetText("ZipFileSelector_extractingFiles"));
 
             var extractedPaths = new List<string>();
             string unzipDir = _fileManager.GetUnzipDirectory();
@@ -164,10 +258,15 @@ namespace AMU.AssetManager.UI
                 Directory.CreateDirectory(assetUnzipDir);
             }
 
+            int processedCount = 0;
             foreach (var file in selectedFiles)
             {
                 try
                 {
+                    processedCount++;
+                    SetStatus(string.Format(LocalizationManager.GetText("ZipFileSelector_extractingFile"), Path.GetFileName(file)) +
+                             $" ({processedCount}/{selectedFiles.Count})");
+
                     string fileName = Path.GetFileName(file);
                     string outputPath = Path.Combine(assetUnzipDir, fileName);
 
@@ -200,14 +299,22 @@ namespace AMU.AssetManager.UI
                 }
             }
 
+            _isProcessing = false;
+
             if (extractedPaths.Count > 0)
             {
                 _onSelectionComplete?.Invoke(extractedPaths);
-                EditorUtility.DisplayDialog("完了", $"{extractedPaths.Count}個のファイルを展開しました。", "OK");
+                EditorUtility.DisplayDialog(
+                    LocalizationManager.GetText("ZipFileSelector_complete"),
+                    string.Format(LocalizationManager.GetText("ZipFileSelector_extractedFiles"), extractedPaths.Count),
+                    LocalizationManager.GetText("Common_ok"));
             }
             else
             {
-                EditorUtility.DisplayDialog("エラー", "ファイルの展開に失敗しました。", "OK");
+                EditorUtility.DisplayDialog(
+                    LocalizationManager.GetText("Common_error"),
+                    LocalizationManager.GetText("ZipFileSelector_extractFailed"),
+                    LocalizationManager.GetText("Common_ok"));
             }
 
             // 一時ファイルをクリーンアップ
@@ -218,6 +325,141 @@ namespace AMU.AssetManager.UI
             }
 
             Close();
+        }
+
+        private void DrawFileItem(string file)
+        {
+            if (!_selectedFiles.ContainsKey(file))
+            {
+                _selectedFiles[file] = false;
+            }
+
+            using (new GUILayout.HorizontalScope(GUILayout.Height(22)))
+            {
+                // Checkbox
+                _selectedFiles[file] = EditorGUILayout.Toggle(_selectedFiles[file], GUILayout.Width(20));
+
+                // File icon based on extension
+                var extension = Path.GetExtension(file).ToLower();
+                var icon = GetFileIcon(extension);
+                if (icon != null)
+                {
+                    GUILayout.Label(new GUIContent(icon), GUILayout.Width(20), GUILayout.Height(20));
+                }
+
+                // File name with proper formatting
+                var fileName = Path.GetFileName(file);
+                var directoryPath = Path.GetDirectoryName(file);
+
+                using (new GUILayout.VerticalScope())
+                {
+                    // File name (bold)
+                    GUILayout.Label(fileName, EditorStyles.boldLabel);
+
+                    // Directory path (smaller, gray)
+                    if (!string.IsNullOrEmpty(directoryPath))
+                    {
+                        GUILayout.Label(directoryPath, EditorStyles.miniLabel);
+                    }
+                }
+
+                GUILayout.FlexibleSpace();
+
+                // File size info (if available)
+                // Note: Getting file size from zip would require additional zip reading functionality
+                // For now, we'll just show the file type
+                var typeLabel = GetFileTypeLabel(extension);
+                GUILayout.Label(typeLabel, EditorStyles.miniLabel, GUILayout.Width(100));
+            }
+        }
+
+        private Texture2D GetFileIcon(string extension)
+        {
+            switch (extension)
+            {
+                case ".unitypackage":
+                    return EditorGUIUtility.IconContent("Prefab Icon").image as Texture2D;
+                case ".cs":
+                    return EditorGUIUtility.IconContent("cs Script Icon").image as Texture2D;
+                case ".png":
+                case ".jpg":
+                case ".jpeg":
+                    return EditorGUIUtility.IconContent("Texture Icon").image as Texture2D;
+                case ".fbx":
+                case ".obj":
+                    return EditorGUIUtility.IconContent("Mesh Icon").image as Texture2D;
+                case ".mat":
+                    return EditorGUIUtility.IconContent("Material Icon").image as Texture2D;
+                case ".txt":
+                case ".md":
+                    return EditorGUIUtility.IconContent("TextAsset Icon").image as Texture2D;
+                default:
+                    return EditorGUIUtility.IconContent("DefaultAsset Icon").image as Texture2D;
+            }
+        }
+
+        private string GetFileTypeLabel(string extension)
+        {
+            switch (extension.ToLower())
+            {
+                case ".unitypackage":
+                    return "Unity Package";
+                case ".cs":
+                    return "C# Script";
+                case ".png":
+                case ".jpg":
+                case ".jpeg":
+                    return "Image";
+                case ".fbx":
+                case ".obj":
+                    return "3D Model";
+                case ".mat":
+                    return "Material";
+                case ".txt":
+                    return "Text";
+                case ".md":
+                    return "Markdown";
+                case ".zip":
+                    return "Archive";
+                default:
+                    return extension.TrimStart('.').ToUpper();
+            }
+        }
+
+        private void RefreshSelectedFiles()
+        {
+            // Clear selections for files that are no longer visible
+            var filteredFiles = GetFilteredFiles();
+            var toRemove = _selectedFiles.Keys.Where(key => !filteredFiles.Contains(key)).ToList();
+            foreach (var key in toRemove)
+            {
+                _selectedFiles.Remove(key);
+            }
+        }
+
+        private void SelectAllFiles(bool selected)
+        {
+            var filteredFiles = GetFilteredFiles();
+            foreach (var file in filteredFiles)
+            {
+                _selectedFiles[file] = selected;
+            }
+        }
+
+        private void CancelAndClose()
+        {
+            if (_asset != null && _fileManager != null)
+            {
+                string fullPath = _fileManager.GetFullPath(_asset.filePath);
+                _fileManager.CleanupTempExtraction(fullPath);
+            }
+            Close();
+        }
+
+        private void SetStatus(string message)
+        {
+            _statusMessage = message;
+            Repaint();
         }
     }
 }
