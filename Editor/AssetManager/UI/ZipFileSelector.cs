@@ -34,6 +34,16 @@ namespace AMU.AssetManager.UI
             window.Show();
         }
 
+        private void OnDestroy()
+        {
+            // ウィンドウが閉じられる際に一時ファイルをクリーンアップ
+            if (_asset != null && _fileManager != null)
+            {
+                string fullPath = _fileManager.GetFullPath(_asset.filePath);
+                _fileManager.CleanupTempExtraction(fullPath);
+            }
+        }
+
         private void OnGUI()
         {
             if (_asset == null || _zipFiles == null)
@@ -111,6 +121,12 @@ namespace AMU.AssetManager.UI
 
                 if (GUILayout.Button("Cancel", GUILayout.Width(80)))
                 {
+                    // 一時ファイルをクリーンアップしてからウィンドウを閉じる
+                    if (_asset != null && _fileManager != null)
+                    {
+                        string fullPath = _fileManager.GetFullPath(_asset.filePath);
+                        _fileManager.CleanupTempExtraction(fullPath);
+                    }
                     Close();
                 }
 
@@ -194,6 +210,13 @@ namespace AMU.AssetManager.UI
             else
             {
                 EditorUtility.DisplayDialog("エラー", "ファイルの展開に失敗しました。", "OK");
+            }
+
+            // 一時ファイルをクリーンアップ
+            if (_asset != null && _fileManager != null)
+            {
+                string fullPath = _fileManager.GetFullPath(_asset.filePath);
+                _fileManager.CleanupTempExtraction(fullPath);
             }
 
             Close();

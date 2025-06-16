@@ -6,11 +6,13 @@ using UnityEngine;
 using UnityEditor;
 using AMU.AssetManager.Data;
 using System.IO.Compression;
+using System.Text;
 
 namespace AMU.AssetManager.Helper
 {
     public class AssetFileManager
     {
+        private Dictionary<string, string> _tempExtractionDirs = new Dictionary<string, string>();
         public void OpenFileLocation(AssetInfo asset)
         {
             if (asset == null || string.IsNullOrEmpty(asset.filePath))
@@ -120,7 +122,7 @@ namespace AMU.AssetManager.Helper
             return $"{len:0.##} {sizes[order]}";
         }
 
-        private string GetFullPath(string relativePath)
+        public string GetFullPath(string relativePath)
         {
             if (Path.IsPathRooted(relativePath))
             {
@@ -398,7 +400,6 @@ namespace AMU.AssetManager.Helper
         {
             return IsZipFile(asset?.filePath);
         }
-
         public List<string> GetZipFileList(string zipFilePath)
         {
             var fileList = new List<string>();
@@ -411,15 +412,20 @@ namespace AMU.AssetManager.Helper
                     return fileList;
                 }
 
-                using (var archive = ZipFile.OpenRead(fullPath))
+                // システムのTempディレクトリに一時展開
+                string tempDir = ExtractZipToTemp(fullPath);
+                if (string.IsNullOrEmpty(tempDir))
                 {
-                    foreach (var entry in archive.Entries)
-                    {
-                        if (!string.IsNullOrEmpty(entry.Name)) // ディレクトリエントリを除外
-                        {
-                            fileList.Add(entry.FullName);
-                        }
-                    }
+                    return fileList;
+                }
+
+                // 展開されたファイル一覧を取得（日本語ファイル名も正しく取得される）
+                string[] files = Directory.GetFiles(tempDir, "*", SearchOption.AllDirectories);
+                foreach (string file in files)
+                {
+                    // tempDirからの相対パスを計算
+                    string relativePath = Path.GetRelativePath(tempDir, file);
+                    fileList.Add(relativePath.Replace('\\', '/'));
                 }
             }
             catch (Exception ex)
@@ -429,7 +435,6 @@ namespace AMU.AssetManager.Helper
 
             return fileList;
         }
-
         public bool ExtractFileFromZip(string zipFilePath, string entryPath, string outputPath)
         {
             try
@@ -440,24 +445,29 @@ namespace AMU.AssetManager.Helper
                     return false;
                 }
 
-                using (var archive = ZipFile.OpenRead(fullZipPath))
+                // 一時展開ディレクトリから該当ファイルを検索
+                string tempDir = GetTempExtractionDir(fullZipPath);
+                if (string.IsNullOrEmpty(tempDir))
                 {
-                    var entry = archive.Entries.FirstOrDefault(e => e.FullName == entryPath);
-                    if (entry == null)
-                    {
-                        return false;
-                    }
-
-                    // 出力ディレクトリが存在しない場合は作成
-                    string outputDir = Path.GetDirectoryName(outputPath);
-                    if (!Directory.Exists(outputDir))
-                    {
-                        Directory.CreateDirectory(outputDir);
-                    }
-
-                    entry.ExtractToFile(outputPath, true);
-                    return true;
+                    return false;
                 }
+
+                string sourceFile = Path.Combine(tempDir, entryPath.Replace('/', '\\'));
+                if (!File.Exists(sourceFile))
+                {
+                    return false;
+                }
+
+                // 出力ディレクトリが存在しない場合は作成
+                string outputDir = Path.GetDirectoryName(outputPath);
+                if (!Directory.Exists(outputDir))
+                {
+                    Directory.CreateDirectory(outputDir);
+                }
+
+                // ファイルをコピー
+                File.Copy(sourceFile, outputPath, true);
+                return true;
             }
             catch (Exception ex)
             {
@@ -482,7 +492,115 @@ namespace AMU.AssetManager.Helper
         private string GetCoreDirectory()
         {
             return EditorPrefs.GetString("Setting.Core_dirPath",
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AMU"));
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AvatarModifyUtilities"));
+        }
+        private string ExtractZipToTemp(string zipFilePath)
+        {
+            try
+            {
+                // 既に展開済みの場合はそのパスを返す
+                if (_tempExtractionDirs.TryGetValue(zipFilePath, out string existingTempDir))
+                {
+                    if (Directory.Exists(existingTempDir))
+                    {
+                        return existingTempDir;
+                    }
+                    else
+                    {
+                        _tempExtractionDirs.Remove(zipFilePath);
+                    }
+                }
+
+                // 新しい一時ディレクトリを作成
+                string tempDir = Path.Combine(Path.GetTempPath(), "AMU_ZipExtract", Path.GetRandomFileName());
+                Directory.CreateDirectory(tempDir);
+
+                // Shift_JISエンコーディングでZIPファイルを展開
+                using (var fileStream = new FileStream(zipFilePath, FileMode.Open, FileAccess.Read))
+                {
+                    using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Read, false, Encoding.GetEncoding("Shift_JIS")))
+                    {
+                        foreach (var entry in archive.Entries)
+                        {
+                            if (string.IsNullOrEmpty(entry.Name)) continue; // ディレクトリエントリをスキップ
+
+                            string entryPath = Path.Combine(tempDir, entry.FullName);
+                            string entryDir = Path.GetDirectoryName(entryPath);
+
+                            if (!Directory.Exists(entryDir))
+                            {
+                                Directory.CreateDirectory(entryDir);
+                            }
+
+                            entry.ExtractToFile(entryPath, true);
+                        }
+                    }
+                }
+
+                _tempExtractionDirs[zipFilePath] = tempDir;
+                return tempDir;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[AssetFileManager] Failed to extract zip to temp: {ex.Message}");
+                return null;
+            }
+        }
+
+        private string GetTempExtractionDir(string zipFilePath)
+        {
+            if (_tempExtractionDirs.TryGetValue(zipFilePath, out string tempDir))
+            {
+                if (Directory.Exists(tempDir))
+                {
+                    return tempDir;
+                }
+                else
+                {
+                    _tempExtractionDirs.Remove(zipFilePath);
+                }
+            }
+
+            // まだ展開されていない場合は展開を実行
+            return ExtractZipToTemp(zipFilePath);
+        }
+
+        public void CleanupTempExtractions()
+        {
+            foreach (var kvp in _tempExtractionDirs.ToList())
+            {
+                try
+                {
+                    if (Directory.Exists(kvp.Value))
+                    {
+                        Directory.Delete(kvp.Value, true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"[AssetFileManager] Failed to cleanup temp directory {kvp.Value}: {ex.Message}");
+                }
+            }
+            _tempExtractionDirs.Clear();
+        }
+
+        public void CleanupTempExtraction(string zipFilePath)
+        {
+            if (_tempExtractionDirs.TryGetValue(zipFilePath, out string tempDir))
+            {
+                try
+                {
+                    if (Directory.Exists(tempDir))
+                    {
+                        Directory.Delete(tempDir, true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"[AssetFileManager] Failed to cleanup temp directory {tempDir}: {ex.Message}");
+                }
+                _tempExtractionDirs.Remove(zipFilePath);
+            }
         }
     }
 }
