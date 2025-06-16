@@ -829,7 +829,7 @@ namespace AMU.AssetManager.Helper
         public List<AssetInfo> ImportFromBPMLibraryWithIndividualSettings(
             BPMDataManager bmpManager,
             Dictionary<string, AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings> packageSettings,
-            Dictionary<string, AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings> fileSettings)
+            Dictionary<string, AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings> fileSettings, Dictionary<string, List<BPMFileInfo>> unregisteredAssets = null)
         {
             if (bmpManager?.Library?.authors == null)
             {
@@ -838,7 +838,6 @@ namespace AMU.AssetManager.Helper
             }
 
             var importedAssets = new List<AssetInfo>();
-            var existingDownloadUrls = GetExistingDownloadUrls();
             var packageGroups = new Dictionary<string, AssetInfo>(); // itemUrl -> グループアセット
 
             // BPMLibraryのlastUpdatedを取得してパース
@@ -851,17 +850,31 @@ namespace AMU.AssetManager.Helper
                     Debug.LogWarning($"[AssetDataManager] Failed to parse BPM lastUpdated: {bmpManager.Library.lastUpdated}");
                 }
             }
-
             foreach (var author in bmpManager.Library.authors)
             {
                 string authorName = author.Key;
                 foreach (var package in author.Value)
                 {
-                    if (package.files?.Count > 0)
+                    string packageKey = $"{authorName}|{package.itemUrl}";
+
+                    // 未登録アセットのフィルタリングが指定されている場合、そのリストのみを処理
+                    List<BPMFileInfo> filesToProcess;
+                    if (unregisteredAssets != null)
                     {
-                        bool needsGrouping = package.files.Count > 1;
+                        if (!unregisteredAssets.TryGetValue(packageKey, out filesToProcess))
+                        {
+                            continue; // このパッケージには未登録ファイルがない
+                        }
+                    }
+                    else
+                    {
+                        filesToProcess = package.files ?? new List<BPMFileInfo>();
+                    }
+
+                    if (filesToProcess?.Count > 0)
+                    {
+                        bool needsGrouping = filesToProcess.Count > 1;
                         AssetInfo groupAsset = null;
-                        string packageKey = $"{authorName}|{package.itemUrl}";
 
                         if (needsGrouping)
                         {
@@ -904,16 +917,8 @@ namespace AMU.AssetManager.Helper
                                 importedAssets.Add(groupAsset);
                             }
                         }
-
-                        foreach (var file in package.files)
+                        foreach (var file in filesToProcess)
                         {
-                            // 既に同じダウンロードリンクが存在する場合はスキップ
-                            if (existingDownloadUrls.Contains(file.downloadLink))
-                            {
-                                Debug.Log($"[AssetDataManager] Skipping duplicate download link: {file.downloadLink}");
-                                continue;
-                            }
-
                             // ファイル設定を取得
                             AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings fileSetting;
                             if (needsGrouping)
@@ -964,7 +969,7 @@ namespace AMU.AssetManager.Helper
                 // 画像を非同期で取得してサムネイルとして設定
                 _ = ProcessThumbnailsFromBPMAsync(importedAssets, bmpManager);
 
-                Debug.Log($"[AssetDataManager] Imported {importedAssets.Count} assets from BPMLibrary with individual settings");
+                Debug.Log($"[AssetDataManager] Imported {importedAssets.Count} unregistered assets from BPMLibrary with individual settings");
             }
 
             return importedAssets;

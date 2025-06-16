@@ -473,11 +473,15 @@ namespace AMU.AssetManager.UI
 
                 List<AssetInfo> importedAssets;
 
-                // 個別設定を使用
+                // 未登録のアセット情報を収集
+                var unregisteredAssets = CollectUnregisteredAssets();
+
+                // 個別設定を使用（未登録のアセットのみをインポート）
                 importedAssets = _assetDataManager.ImportFromBPMLibraryWithIndividualSettings(
                     _bpmDataManager,
                     _packageSettings,
-                    _fileSettings
+                    _fileSettings,
+                    unregisteredAssets
                 );
 
                 _isLoading = false;
@@ -510,6 +514,34 @@ namespace AMU.AssetManager.UI
             }
 
             Repaint();
+        }
+
+        /// <summary>
+        /// 未登録のアセット情報を収集
+        /// </summary>
+        private Dictionary<string, List<BPMFileInfo>> CollectUnregisteredAssets()
+        {
+            var unregisteredAssets = new Dictionary<string, List<BPMFileInfo>>();
+
+            if (_bpmDataManager?.Library?.authors == null)
+                return unregisteredAssets;
+
+            foreach (var author in _bpmDataManager.Library.authors)
+            {
+                foreach (var package in author.Value)
+                {
+                    if (package.files == null) continue;
+
+                    var unregisteredFiles = package.files.Where(f => IsFileUnregistered(f)).ToList();
+                    if (unregisteredFiles.Count > 0)
+                    {
+                        string packageKey = $"{author.Key}|{package.itemUrl}";
+                        unregisteredAssets[packageKey] = unregisteredFiles;
+                    }
+                }
+            }
+
+            return unregisteredAssets;
         }
     }
 }
