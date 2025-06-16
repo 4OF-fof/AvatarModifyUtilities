@@ -235,33 +235,27 @@ namespace AMU.AssetManager.UI
         private void DrawToolbar()
         {
             using (new GUILayout.HorizontalScope(EditorStyles.toolbar))
-            {
-                // Search field area - same width as left panel
+            {                // Search field area - same width as left panel
                 using (new GUILayout.HorizontalScope(GUILayout.Width(_leftPanelWidth)))
-                {
-                    // グループフィルター表示
+                {                    // グループフィルター表示
                     if (_isGroupFilterActive && _currentGroupFilter != null)
                     {
                         var groupStatusStyle = new GUIStyle(EditorStyles.miniLabel)
                         {
                             normal = { textColor = new Color(0.2f, 0.7f, 0.2f) },
                             fontSize = 11,
-                            fontStyle = FontStyle.Bold
+                            fontStyle = FontStyle.Bold,
+                            alignment = TextAnchor.MiddleLeft
                         };
-                        GUILayout.Label($"グループ: {_currentGroupFilter.name}", groupStatusStyle, GUILayout.Width(160));
 
-                        // グループフィルタークリアボタン
+                        
+                        var rect = GUILayoutUtility.GetRect(GUIContent.none, groupStatusStyle, GUILayout.ExpandWidth(true));
+                        GUI.Label(rect, $"グループ: {_currentGroupFilter.name}", groupStatusStyle);
+
+                        // 詳細検索ボタンと同じ位置にクリアボタンを配置
                         if (GUILayout.Button("×", EditorStyles.toolbarButton, GUILayout.Width(20)))
                         {
                             ClearGroupFilter();
-                        }
-
-                        // 残りのスペースに検索フィールド
-                        var newSearchText = GUILayout.TextField(_searchText, EditorStyles.toolbarSearchField, GUILayout.ExpandWidth(true));
-                        if (newSearchText != _searchText)
-                        {
-                            _searchText = newSearchText;
-                            _needsUIRefresh = true;
                         }
                     }
                     else
@@ -304,7 +298,7 @@ namespace AMU.AssetManager.UI
                             }
                         }
                     }
-                }                // Right panel area - starts immediately after left panel
+                }// Right panel area - starts immediately after left panel
                 using (new GUILayout.HorizontalScope())
                 {
                     // グループフィルターがアクティブな時はフィルターボタンを無効化
@@ -1267,22 +1261,10 @@ namespace AMU.AssetManager.UI
             {
                 _filteredAssets = new List<AssetInfo>();
                 return;
-            }
-
-            // グループフィルターが有効な場合は子アセットのみを表示
+            }            // グループフィルターが有効な場合は子アセットのみを表示
             if (_isGroupFilterActive && _currentGroupFilter != null)
             {
                 _filteredAssets = _dataManager.GetGroupChildren(_currentGroupFilter.uid);
-
-                // 検索テキストフィルターを適用
-                if (!string.IsNullOrEmpty(_searchText))
-                {
-                    var searchLower = _searchText.ToLower();
-                    _filteredAssets = _filteredAssets.Where(asset =>
-                        asset.name.ToLower().Contains(searchLower) ||
-                        (!string.IsNullOrEmpty(asset.description) && asset.description.ToLower().Contains(searchLower)) ||
-                        asset.tags.Any(tag => tag.ToLower().Contains(searchLower))).ToList();
-                }
 
                 // ソート処理
                 ApplySorting();
@@ -1470,29 +1452,23 @@ namespace AMU.AssetManager.UI
             _isUsingAdvancedSearch = false;
             _advancedSearchCriteria = null;
             _needsUIRefresh = true;
-        }
-
-        /// <summary>
-        /// グループフィルターを設定
-        /// </summary>
+        }        /// <summary>
+                 /// グループフィルターを設定
+                 /// </summary>
         private void SetGroupFilter(AssetInfo groupAsset)
         {
             _currentGroupFilter = groupAsset;
             _isGroupFilterActive = true;
-            _searchText = "";  // 検索テキストをクリア
             _isUsingAdvancedSearch = false;  // 詳細検索を無効化
             _advancedSearchCriteria = null;
             _needsUIRefresh = true;
-        }
-
-        /// <summary>
-        /// グループフィルターをクリア
-        /// </summary>
+        }/// <summary>
+         /// グループフィルターをクリア
+         /// </summary>
         private void ClearGroupFilter()
         {
             _currentGroupFilter = null;
             _isGroupFilterActive = false;
-            _searchText = "";  // 検索テキストもクリア
             _needsUIRefresh = true;
         }
 
