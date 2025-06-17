@@ -641,5 +641,65 @@ namespace AMU.AssetManager.Helper
                 _tempExtractionDirs.Remove(zipFilePath);
             }
         }
+
+        /// <summary>
+        /// 複数のUnityPackageファイルを順次インポートする
+        /// </summary>
+        public void ImportUnityPackagesSequentially(List<AssetInfo> unityPackageAssets)
+        {
+            if (unityPackageAssets == null || unityPackageAssets.Count == 0)
+            {
+                Debug.LogWarning("[AssetFileManager] No Unity Package assets to import");
+                return;
+            }
+
+            ImportUnityPackagesSequentiallyInternal(unityPackageAssets, 0);
+        }
+
+        /// <summary>
+        /// UnityPackageファイルを順次インポートする内部メソッド
+        /// </summary>
+        private void ImportUnityPackagesSequentiallyInternal(List<AssetInfo> unityPackageAssets, int currentIndex)
+        {
+            if (currentIndex >= unityPackageAssets.Count)
+            {
+                Debug.Log($"[AssetFileManager] All Unity packages imported successfully. Total: {unityPackageAssets.Count}");
+                return;
+            }
+            var currentAsset = unityPackageAssets[currentIndex]; Debug.Log($"[AssetFileManager] Importing Unity Package {currentIndex + 1}/{unityPackageAssets.Count}: {currentAsset.name}");
+
+            // インポート完了を監視するコールバックを登録
+            AssetDatabase.ImportPackageCallback importCompleteCallback = null;
+            AssetDatabase.ImportPackageCallback importCancelledCallback = null;
+            AssetDatabase.ImportPackageFailedCallback importFailedCallback = null;
+
+            System.Action nextImport = () =>
+            {
+                // コールバックを解除
+                if (importCompleteCallback != null)
+                    AssetDatabase.importPackageCompleted -= importCompleteCallback;
+                if (importCancelledCallback != null)
+                    AssetDatabase.importPackageCancelled -= importCancelledCallback;
+                if (importFailedCallback != null)
+                    AssetDatabase.importPackageFailed -= importFailedCallback;
+
+                // 次のファイルをインポート
+                EditorApplication.delayCall += () =>
+                {
+                    ImportUnityPackagesSequentiallyInternal(unityPackageAssets, currentIndex + 1);
+                };
+            };
+
+            importCompleteCallback = (packageName) => nextImport();
+            importCancelledCallback = (packageName) => nextImport();
+            importFailedCallback = (packageName, errorMessage) => nextImport();
+
+            AssetDatabase.importPackageCompleted += importCompleteCallback;
+            AssetDatabase.importPackageCancelled += importCancelledCallback;
+            AssetDatabase.importPackageFailed += importFailedCallback;
+
+            // UnityPackageをインポート
+            ImportUnityPackage(currentAsset);
+        }
     }
 }

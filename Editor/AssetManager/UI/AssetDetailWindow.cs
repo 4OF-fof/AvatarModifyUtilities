@@ -819,11 +819,9 @@ namespace AMU.AssetManager.UI
         private bool HasImportFiles()
         {
             return _asset.importFiles != null && _asset.importFiles.Count > 0;
-        }
-
-        /// <summary>
-        /// 選択されたファイルをインポートする
-        /// </summary>
+        }        /// <summary>
+                 /// 選択されたファイルをインポートする
+                 /// </summary>
         private void ImportSelectedFiles()
         {
             try
@@ -834,27 +832,41 @@ namespace AMU.AssetManager.UI
                     return;
                 }
 
+                // UnityPackageファイルとその他のファイルを分ける
+                var unityPackageFiles = new List<string>();
+                var otherFiles = new List<string>();
+
                 foreach (var importFile in _asset.importFiles)
                 {
                     if (string.IsNullOrEmpty(importFile))
                         continue;
 
-                    // ファイル拡張子を取得して適切な方法でインポート
                     string extension = Path.GetExtension(importFile).ToLower();
-
                     if (extension == ".unitypackage")
                     {
-                        // UnityPackageの場合
-                        ImportUnityPackageFile(importFile);
+                        unityPackageFiles.Add(importFile);
                     }
                     else
                     {
-                        // その他のファイルの場合
-                        ImportFileToAssets(importFile);
+                        otherFiles.Add(importFile);
                     }
                 }
 
-                Debug.Log($"Imported {_asset.importFiles.Count} files successfully");
+                // まず一般ファイルをインポート（これらは同期的）
+                foreach (var otherFile in otherFiles)
+                {
+                    ImportFileToAssets(otherFile);
+                }
+
+                // UnityPackageファイルを順次インポート（非同期処理）
+                if (unityPackageFiles.Count > 0)
+                {
+                    ImportUnityPackagesSequentially(unityPackageFiles, 0);
+                }
+                else
+                {
+                    Debug.Log($"Imported {_asset.importFiles.Count} files successfully");
+                }
             }
             catch (System.Exception ex)
             {
@@ -862,7 +874,54 @@ namespace AMU.AssetManager.UI
                 EditorUtility.DisplayDialog("Error", $"Failed to import selected files: {ex.Message}", "OK");
             }
         }
-        
+
+        /// <summary>
+        /// UnityPackageファイルを順次インポートする
+        /// </summary>
+        private void ImportUnityPackagesSequentially(List<string> unityPackageFiles, int currentIndex)
+        {
+            if (currentIndex >= unityPackageFiles.Count)
+            {
+                Debug.Log($"All Unity packages imported successfully. Total files: {_asset.importFiles.Count}");
+                return;
+            }
+
+            string currentFile = unityPackageFiles[currentIndex]; Debug.Log($"Importing Unity Package {currentIndex + 1}/{unityPackageFiles.Count}: {currentFile}");
+
+            // インポート完了を監視するコールバックを登録
+            AssetDatabase.ImportPackageCallback importCompleteCallback = null;
+            AssetDatabase.ImportPackageCallback importCancelledCallback = null;
+            AssetDatabase.ImportPackageFailedCallback importFailedCallback = null;
+
+            System.Action nextImport = () =>
+            {
+                // コールバックを解除
+                if (importCompleteCallback != null)
+                    AssetDatabase.importPackageCompleted -= importCompleteCallback;
+                if (importCancelledCallback != null)
+                    AssetDatabase.importPackageCancelled -= importCancelledCallback;
+                if (importFailedCallback != null)
+                    AssetDatabase.importPackageFailed -= importFailedCallback;
+
+                // 次のファイルをインポート
+                EditorApplication.delayCall += () =>
+                {
+                    ImportUnityPackagesSequentially(unityPackageFiles, currentIndex + 1);
+                };
+            };
+
+            importCompleteCallback = (packageName) => nextImport();
+            importCancelledCallback = (packageName) => nextImport();
+            importFailedCallback = (packageName, errorMessage) => nextImport();
+
+            AssetDatabase.importPackageCompleted += importCompleteCallback;
+            AssetDatabase.importPackageCancelled += importCancelledCallback;
+            AssetDatabase.importPackageFailed += importFailedCallback;
+
+            // UnityPackageをインポート
+            ImportUnityPackageFile(currentFile);
+        }
+
         /// <summary>
         /// UnityPackageファイルをインポート
         /// </summary>        
@@ -880,7 +939,7 @@ namespace AMU.AssetManager.UI
             Debug.Log($"Importing Unity Package: {fullPath}");
             AssetDatabase.ImportPackage(fullPath, true);
         }
-        
+
         /// <summary>
         /// 一般ファイルをAssetsフォルダにインポート
         /// </summary>        
