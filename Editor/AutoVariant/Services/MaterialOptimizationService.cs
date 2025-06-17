@@ -1,7 +1,8 @@
+using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
-using AMU.Editor.Core.Helper;
+
 using AMU.Editor.Core.Controllers;
 
 namespace AMU.Editor.AutoVariant.Services

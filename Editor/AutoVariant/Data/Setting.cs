@@ -1,5 +1,6 @@
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+
 using AMU.Editor.Core.Schema;
 
 namespace AMU.Editor.Setting

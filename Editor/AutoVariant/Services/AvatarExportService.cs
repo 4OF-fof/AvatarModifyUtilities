@@ -1,9 +1,11 @@
+using System;
+using System.IO;
+using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
-using System.IO;
-using System;
-using AMU.Editor.Core.Helper;
+
+using AMU.Editor.Core.API;
 using AMU.Editor.Core.Controllers;
 
 namespace AMU.Editor.AutoVariant.Services
@@ -75,9 +77,7 @@ namespace AMU.Editor.AutoVariant.Services
             {
                 // UnityPackageと同じ場所に同じ名前でpngファイルを保存
                 var imagePath = Path.ChangeExtension(unityPackagePath, ".png");
-
-                // ObjectCaptureHelperを使用してアバターの画像をキャプチャ
-                var capturedTexture = ObjectCaptureHelper.CaptureObject(avatar, imagePath, 512, 512);
+                var capturedTexture = ObjectCaptureAPI.CaptureObject(avatar, imagePath, 512, 512);
 
                 if (capturedTexture != null)
                 {
@@ -97,7 +97,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static string GenerateExportPath(GameObject avatar)
         {
-            var blueprintId = PipelineManagerHelper.GetBlueprintId(avatar);
+            var blueprintId = VRChatAPI.GetBlueprintId(avatar);
             var exportDirectory = CreateExportDirectory(blueprintId);
             var fileName = GenerateUniqueFileName(exportDirectory, avatar.name, string.IsNullOrEmpty(blueprintId));
 

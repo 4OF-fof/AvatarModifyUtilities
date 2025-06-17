@@ -1,9 +1,11 @@
+using System.Text;
+using System.Linq;
+using System.Collections.Generic;
+using System.Security.Cryptography;
+
 using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
+
 using AMU.Editor.Core.Controllers;
 
 namespace AMU.Editor.AutoVariant.Services
