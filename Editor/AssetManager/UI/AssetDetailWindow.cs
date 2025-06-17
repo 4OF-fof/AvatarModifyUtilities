@@ -295,6 +295,14 @@ namespace AMU.AssetManager.UI
                             SelectThumbnail();
                         }
                     }
+                    // インポートファイルがある場合の処理
+                    else if (HasImportFiles())
+                    {
+                        if (GUILayout.Button(LocalizationManager.GetText("AssetDetail_importSelectedFiles"), GUILayout.Width(180)))
+                        {
+                            ImportSelectedFiles();
+                        }
+                    }
                     else if (_fileManager.ShouldShowImportButton(_asset))
                     {
                         string buttonText;
@@ -805,6 +813,107 @@ namespace AMU.AssetManager.UI
             }
         }
 
+        /// <summary>
+        /// インポートファイルが存在するかチェック
+        /// </summary>
+        private bool HasImportFiles()
+        {
+            return _asset.importFiles != null && _asset.importFiles.Count > 0;
+        }
+
+        /// <summary>
+        /// 選択されたファイルをインポートする
+        /// </summary>
+        private void ImportSelectedFiles()
+        {
+            try
+            {
+                if (_asset.importFiles == null || _asset.importFiles.Count == 0)
+                {
+                    Debug.LogWarning("No import files specified");
+                    return;
+                }
+
+                foreach (var importFile in _asset.importFiles)
+                {
+                    if (string.IsNullOrEmpty(importFile))
+                        continue;
+
+                    // ファイル拡張子を取得して適切な方法でインポート
+                    string extension = Path.GetExtension(importFile).ToLower();
+
+                    if (extension == ".unitypackage")
+                    {
+                        // UnityPackageの場合
+                        ImportUnityPackageFile(importFile);
+                    }
+                    else
+                    {
+                        // その他のファイルの場合
+                        ImportFileToAssets(importFile);
+                    }
+                }
+
+                Debug.Log($"Imported {_asset.importFiles.Count} files successfully");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to import selected files: {ex.Message}");
+                EditorUtility.DisplayDialog("Error", $"Failed to import selected files: {ex.Message}", "OK");
+            }
+        }
+        
+        /// <summary>
+        /// UnityPackageファイルをインポート
+        /// </summary>        
+        private void ImportUnityPackageFile(string importFile)
+        {
+            // 相対パスを絶対パスに変換
+            string fullPath = _fileManager.GetFullPath(importFile);
+
+            if (!File.Exists(fullPath))
+            {
+                Debug.LogWarning($"Unity Package file not found: {fullPath}");
+                return;
+            }
+
+            Debug.Log($"Importing Unity Package: {fullPath}");
+            AssetDatabase.ImportPackage(fullPath, true);
+        }
+        
+        /// <summary>
+        /// 一般ファイルをAssetsフォルダにインポート
+        /// </summary>        
+        private void ImportFileToAssets(string importFile)
+        {
+            // 相対パスを絶対パスに変換
+            string fullPath = _fileManager.GetFullPath(importFile);
+
+            if (!File.Exists(fullPath))
+            {
+                Debug.LogWarning($"Import file not found: {fullPath}");
+                return;
+            }
+
+            string targetPath = Path.Combine("Assets", Path.GetFileName(importFile));
+            string fullTargetPath = Path.Combine(Application.dataPath, Path.GetFileName(importFile));
+
+            File.Copy(fullPath, fullTargetPath, true);
+            AssetDatabase.Refresh();
+
+            Debug.Log($"Imported file to Assets: {importFile}");
+
+            // インポート後にファイルを選択状態にする
+            EditorApplication.delayCall += () =>
+            {
+                var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(targetPath);
+                if (obj != null)
+                {
+                    Selection.activeObject = obj;
+                    EditorGUIUtility.PingObject(obj);
+                }
+            };
+        }
         private void DrawTagInput()
         {
             using (new GUILayout.VerticalScope())
