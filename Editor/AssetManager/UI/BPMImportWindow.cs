@@ -319,45 +319,13 @@ namespace AMU.AssetManager.UI
 
         private void DrawImportButtons()
         {
-            using (new EditorGUILayout.HorizontalScope())
+            if (GUILayout.Button(LocalizationManager.GetText("BPMImport_importUnregistered"), GUILayout.Height(30)))
             {
-                if (GUILayout.Button(LocalizationManager.GetText("BPMImport_importAll"), GUILayout.Height(30)))
-                {
-                    ImportAllAssets();
-                }
-
-                if (GUILayout.Button(LocalizationManager.GetText("BPMImport_importUnregistered"), GUILayout.Height(30)))
-                {
-                    ImportUnregisteredAssets();
-                }
+                ImportUnregisteredAssets();
             }
         }
 
-        private async void ImportAllAssets()
-        {
-            try
-            {
-                _isLoading = true;
-                _statusMessage = LocalizationManager.GetText("BPMImport_importing");
-                Repaint();
 
-                var importedAssets = await _assetDataManager.ImportFromBPMLibraryWithIndividualSettingsAsync(
-                    _packageSettings, _fileSettings);
-
-                _statusMessage = string.Format(LocalizationManager.GetText("BPMImport_importComplete"), importedAssets.Count);
-                _onImportComplete?.Invoke();
-            }
-            catch (System.Exception ex)
-            {
-                _statusMessage = $"Import failed: {ex.Message}";
-                Debug.LogError($"[BPMImportWindow] Import failed: {ex}");
-            }
-            finally
-            {
-                _isLoading = false;
-                Repaint();
-            }
-        }
 
         private async void ImportUnregisteredAssets()
         {
