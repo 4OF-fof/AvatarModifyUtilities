@@ -1,10 +1,15 @@
+using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
-using AMU.Editor.Core.Helper;
 
-namespace AMU.Editor.AutoVariant.Watcher
+using AMU.Editor.Core.Controllers;
+
+namespace AMU.Editor.AutoVariant.Services
 {
+    /// <summary>
+    /// Rendererのマテリアル状態を保存するクラス
+    /// </summary>
     [System.Serializable]
     public class RendererMaterialState
     {
@@ -26,13 +31,20 @@ namespace AMU.Editor.AutoVariant.Watcher
         }
     }
 
-    public static class MaterialOptimizationManager
+    /// <summary>
+    /// マテリアル最適化管理サービス
+    /// アクティブなアバターのマテリアル最適化処理を管理
+    /// </summary>
+    public static class MaterialOptimizationService
     {
         private static readonly List<RendererMaterialState> _materialStates = new List<RendererMaterialState>();
 
+        /// <summary>
+        /// アクティブなアバターのマテリアルを最適化する
+        /// </summary>
         public static void OptimizeActiveAvatars()
         {
-            var avatars = AvatarValidator.FindActiveAvatars();
+            var avatars = AvatarValidationService.FindActiveAvatars();
 
             ClearMaterialStates();
 
@@ -44,15 +56,32 @@ namespace AMU.Editor.AutoVariant.Watcher
             RestoreMaterialStates();
         }
 
+        /// <summary>
+        /// 指定されたアバターのマテリアルを最適化する
+        /// </summary>
+        /// <param name="avatar">最適化対象のアバター</param>
+        public static void OptimizeAvatar(GameObject avatar)
+        {
+            if (avatar == null)
+            {
+                Debug.LogError($"[MaterialOptimizationService] {LocalizationController.GetText("message_error_avatar_null")}");
+                return;
+            }
+
+            SaveMaterialStates(avatar);
+            OptimizeAvatarMaterials(avatar);
+            RestoreMaterialStates();
+        }
+
         private static void OptimizeAvatarMaterials(GameObject avatar)
         {
             SaveMaterialStates(avatar);
-            MaterialVariantOptimizer.OptimizeMaterials(avatar);
+            MaterialVariantService.OptimizeMaterials(avatar);
 
-            Debug.Log($"[MaterialOptimizationManager] Optimized materials for VRC Avatar: {avatar.name}");
+            Debug.Log($"[MaterialOptimizationService] {string.Format(LocalizationController.GetText("message_info_optimization_completed"), avatar.name)}");
 
             OptimizeNestedPrefabs(avatar);
-            AvatarExporter.ExportOptimizedAvatar(avatar);
+            AvatarExportService.ExportOptimizedAvatar(avatar);
         }
 
         private static void OptimizeNestedPrefabs(GameObject avatar)
@@ -107,7 +136,7 @@ namespace AMU.Editor.AutoVariant.Watcher
 
         private static void OptimizeMaterialsForAllChildren(GameObject root)
         {
-            MaterialVariantOptimizer.OptimizeMaterials(root);
+            MaterialVariantService.OptimizeMaterials(root);
 
             foreach (Transform child in root.transform)
             {
@@ -127,7 +156,7 @@ namespace AMU.Editor.AutoVariant.Watcher
                 }
             }
 
-            Debug.Log($"[MaterialOptimizationManager] Saved material states for {renderers.Length} renderers in {avatar.name}");
+            Debug.Log($"[MaterialOptimizationService] {string.Format(LocalizationController.GetText("message_info_material_states_saved"), avatar.name, renderers.Length)}");
         }
 
         private static void RestoreMaterialStates()
@@ -143,7 +172,7 @@ namespace AMU.Editor.AutoVariant.Watcher
                 }
             }
 
-            Debug.Log($"[MaterialOptimizationManager] Restored materials for {restoredCount} renderers");
+            Debug.Log($"[MaterialOptimizationService] {string.Format(LocalizationController.GetText("message_info_materials_restored"), restoredCount)}");
         }
 
         private static void ClearMaterialStates()

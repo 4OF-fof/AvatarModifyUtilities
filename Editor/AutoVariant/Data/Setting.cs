@@ -1,6 +1,6 @@
-using System.Collections.Generic;
 using System;
-using AMU.Data.Lang;
+using System.Collections.Generic;
+
 using AMU.Editor.Core.Schema;
 
 namespace AMU.Editor.Setting
@@ -10,7 +10,7 @@ namespace AMU.Editor.Setting
         public static readonly Dictionary<string, SettingItem[]> SettingItems = new Dictionary<string, SettingItem[]>
         {
             { "AutoVariant", new SettingItem[] {
-                new BoolSettingItem("AutoVariant_enableAutoVariant", true),
+                new BoolSettingItem("AutoVariant_enableAutoVariant", false),
                 new BoolSettingItem("AutoVariant_enablePrebuild", true),
                 new BoolSettingItem("AutoVariant_includeAllAssets", true)
             } },

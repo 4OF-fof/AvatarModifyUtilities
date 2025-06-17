@@ -1,20 +1,32 @@
+using System;
+using System.IO;
+using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
-using System.IO;
-using System;
-using AMU.Editor.Core.Helper;
 
-namespace AMU.Editor.AutoVariant.Watcher
+using AMU.Editor.Core.API;
+using AMU.Editor.Core.Controllers;
+
+namespace AMU.Editor.AutoVariant.Services
 {
-    public static class AvatarExporter
+    /// <summary>
+    /// アバターエクスポートサービス
+    /// 最適化されたアバターのエクスポート処理を提供
+    /// </summary>
+    public static class AvatarExportService
     {
-        public static void ExportOptimizedAvatar(GameObject avatar)
+        /// <summary>
+        /// 最適化されたアバターをエクスポートする
+        /// </summary>
+        /// <param name="avatar">エクスポート対象のアバター</param>
+        /// <returns>エクスポートが成功したかどうか</returns>
+        public static bool ExportOptimizedAvatar(GameObject avatar)
         {
             if (avatar == null)
             {
-                Debug.LogError("[AvatarExporter] Avatar is null");
-                return;
+                Debug.LogError($"[AvatarExportService] {LocalizationController.GetText("message_error_avatar_null")}");
+                return false;
             }
 
             var exportPath = GenerateExportPath(avatar);
@@ -22,23 +34,41 @@ namespace AMU.Editor.AutoVariant.Watcher
 
             if (assetPaths.Count == 0)
             {
-                Debug.LogWarning($"[AvatarExporter] No assets found to export for {avatar.name}");
-                return;
+                Debug.LogWarning($"[AvatarExportService] No assets found to export for {avatar.name}");
+                return false;
             }
 
             try
             {
                 // UnityPackageとしてエクスポート
                 AssetDatabase.ExportPackage(assetPaths.ToArray(), exportPath, ExportPackageOptions.Recurse);
-                Debug.Log($"[AvatarExporter] Exported optimized avatar to: {exportPath}");
+                Debug.Log($"[AvatarExportService] Exported optimized avatar to: {exportPath}");
 
                 // 画像キャプチャと保存
                 CaptureAvatarImage(avatar, exportPath);
+                return true;
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AvatarExporter] Failed to export {avatar.name}: {e.Message}");
+                Debug.LogError($"[AvatarExportService] Failed to export {avatar.name}: {e.Message}");
+                return false;
             }
+        }
+
+        /// <summary>
+        /// アバターのアセット情報を収集する
+        /// </summary>
+        /// <param name="avatar">対象のアバター</param>
+        /// <returns>アセットパスのリスト</returns>
+        public static List<string> GetAvatarAssets(GameObject avatar)
+        {
+            if (avatar == null)
+            {
+                Debug.LogError("[AvatarExportService] Avatar is null");
+                return new List<string>();
+            }
+
+            return CollectAvatarAssets(avatar);
         }
 
         private static void CaptureAvatarImage(GameObject avatar, string unityPackagePath)
@@ -47,29 +77,27 @@ namespace AMU.Editor.AutoVariant.Watcher
             {
                 // UnityPackageと同じ場所に同じ名前でpngファイルを保存
                 var imagePath = Path.ChangeExtension(unityPackagePath, ".png");
-
-                // ObjectCaptureHelperを使用してアバターの画像をキャプチャ
-                var capturedTexture = ObjectCaptureHelper.CaptureObject(avatar, imagePath, 512, 512);
+                var capturedTexture = ObjectCaptureAPI.CaptureObject(avatar, imagePath, 512, 512);
 
                 if (capturedTexture != null)
                 {
-                    Debug.Log($"[AvatarExporter] Captured avatar image: {imagePath}");
+                    Debug.Log($"[AvatarExportService] Captured avatar image: {imagePath}");
                     UnityEngine.Object.DestroyImmediate(capturedTexture);
                 }
                 else
                 {
-                    Debug.LogWarning($"[AvatarExporter] Failed to capture avatar image for {avatar.name}");
+                    Debug.LogWarning($"[AvatarExportService] Failed to capture avatar image for {avatar.name}");
                 }
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AvatarExporter] Failed to capture avatar image: {e.Message}");
+                Debug.LogError($"[AvatarExportService] Failed to capture avatar image: {e.Message}");
             }
         }
 
         private static string GenerateExportPath(GameObject avatar)
         {
-            var blueprintId = PipelineManagerHelper.GetBlueprintId(avatar);
+            var blueprintId = VRChatAPI.GetBlueprintId(avatar);
             var exportDirectory = CreateExportDirectory(blueprintId);
             var fileName = GenerateUniqueFileName(exportDirectory, avatar.name, string.IsNullOrEmpty(blueprintId));
 
@@ -78,7 +106,7 @@ namespace AMU.Editor.AutoVariant.Watcher
 
         private static string CreateExportDirectory(string blueprintId)
         {
-            var basePath = EditorPrefs.GetString("Setting.Core_dirPath",
+            var basePath = SettingsController.GetSetting<string>("Core_dirPath",
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
 
             EnsureDirectoryExists(basePath);
@@ -92,7 +120,7 @@ namespace AMU.Editor.AutoVariant.Watcher
 
             if (string.IsNullOrEmpty(blueprintId))
             {
-                Debug.Log("[AvatarExporter] No blueprint ID found, exporting to local directory");
+                Debug.Log($"[AvatarExportService] {LocalizationController.GetText("message_info_export_no_blueprint")}");
             }
 
             return avatarDir;
@@ -103,7 +131,7 @@ namespace AMU.Editor.AutoVariant.Watcher
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
-                Debug.Log($"[AvatarExporter] Created directory: {path}");
+                Debug.Log($"[AvatarExportService] Created directory: {path}");
             }
         }
 
@@ -128,19 +156,19 @@ namespace AMU.Editor.AutoVariant.Watcher
         private static List<string> CollectAvatarAssets(GameObject avatar)
         {
             var assetPaths = new List<string>();
-            var includeAllAssets = EditorPrefs.GetBool("Setting.AutoVariant_includeAllAssets", true);
+            var includeAllAssets = SettingsController.GetSetting<bool>("AutoVariant_includeAllAssets", true);
 
             var avatarPrefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(avatar);
             if (string.IsNullOrEmpty(avatarPrefabPath))
             {
-                Debug.LogWarning($"[AvatarExporter] Could not find prefab path for {avatar.name}");
+                Debug.LogWarning($"[AvatarExportService] Could not find prefab path for {avatar.name}");
                 return assetPaths;
             }
 
             assetPaths.Add(avatarPrefabPath);
             CollectDependencies(avatarPrefabPath, assetPaths, includeAllAssets);
 
-            Debug.Log($"[AvatarExporter] Collected {assetPaths.Count} assets for {avatar.name} (includeAllAssets: {includeAllAssets})");
+            Debug.Log($"[AvatarExportService] Collected {assetPaths.Count} assets for {avatar.name} (includeAllAssets: {includeAllAssets})");
             return assetPaths;
         }
 
