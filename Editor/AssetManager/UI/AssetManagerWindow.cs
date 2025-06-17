@@ -58,7 +58,7 @@ namespace AMU.AssetManager.UI
 
         // Type Management
         private string _newTypeName = "";        // Layout
-        private float _leftPanelWidth = 230f;  // 左パネルの幅
+        private float _leftPanelWidth = 240f;  // 左パネルの幅
         private float _thumbnailSize = 110f;  // サムネイルサイズ
         private List<AssetInfo> _filteredAssets = new List<AssetInfo>();
         private AssetInfo _selectedAsset;
