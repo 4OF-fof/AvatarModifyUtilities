@@ -36,12 +36,11 @@ namespace AMU.Editor.Core.Controllers
                         }
                     }
                 }
-
-                Debug.Log("[SettingsController] EditorPrefs initialized successfully.");
+                Debug.Log(LocalizationController.GetText("message_success_settings_initialized"));
             }
             catch (System.Exception ex)
             {
-                Debug.LogError($"[SettingsController] EditorPrefs initialization failed: {ex.Message}");
+                Debug.LogError(string.Format(LocalizationController.GetText("message_error_settings_failed"), ex.Message));
             }
         }
 

@@ -23,7 +23,7 @@ namespace AMU.Editor.Core.Services
         {
             try
             {
-                Debug.Log("[InitializationService] Starting AMU initialization...");
+                Debug.Log(LocalizationController.GetText("message_info_initialization_starting"));
 
                 // EditorPrefsの初期化
                 InitializeEditorPrefs();
@@ -31,11 +31,11 @@ namespace AMU.Editor.Core.Services
                 // ローカライゼーションの初期化
                 InitializeLocalization();
 
-                Debug.Log("[InitializationService] AMU initialization completed successfully.");
+                Debug.Log(LocalizationController.GetText("message_success_initialization_completed"));
             }
             catch (System.Exception ex)
             {
-                Debug.LogError($"[InitializationService] AMU initialization failed: {ex.Message}");
+                Debug.LogError(string.Format(LocalizationController.GetText("message_error_initialization_failed"), ex.Message));
             }
         }
 
@@ -56,11 +56,11 @@ namespace AMU.Editor.Core.Services
             {
                 // デフォルト言語の読み込み
                 LocalizationController.LoadLanguage("ja_jp");
-                Debug.Log("[InitializationService] Localization initialized successfully.");
+                Debug.Log(LocalizationController.GetText("message_success_localization_initialized"));
             }
             catch (System.Exception ex)
             {
-                Debug.LogError($"[InitializationService] Localization initialization failed: {ex.Message}");
+                Debug.LogError(string.Format(LocalizationController.GetText("message_error_localization_failed"), ex.Message));
             }
         }
     }

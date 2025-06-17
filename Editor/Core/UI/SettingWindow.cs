@@ -161,7 +161,7 @@ namespace AMU.Editor.Core.UI
                 }
                 else
                 {
-                    GUILayout.Label(LocalizationController.GetText("empty_result"), titleStyle);
+                    GUILayout.Label(LocalizationController.GetText("ui_empty_result"), titleStyle);
                 }
             }
         }
@@ -310,9 +310,8 @@ namespace AMU.Editor.Core.UI
                     hasResult = true;
                 }
             }
-            EditorGUIUtility.labelWidth = prevLabelWidth;
-            if (!hasResult)
-                GUILayout.Label(LocalizationController.GetText("empty_result"));
+            EditorGUIUtility.labelWidth = prevLabelWidth; if (!hasResult)
+                GUILayout.Label(LocalizationController.GetText("ui_empty_result"));
         }
     }
 }
