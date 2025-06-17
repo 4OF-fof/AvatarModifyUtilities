@@ -1,5 +1,30 @@
 # 移行ガイド
 
+## 最新の変更履歴
+
+### 2025年6月17日: ローカライゼーション機能の改善
+
+**変更内容:**
+- `LocalizationController`にフォールバック機能を追加
+- 翻訳がないキーについて、キーの代わりに英語テキストを返すように改善
+- `GetFallbackTextCount()`メソッドを追加
+
+**影響:**
+- 既存のコードには互換性があり、変更不要
+- 翻訳がない部分のユーザビリティが向上
+- より一貫性のあるローカライゼーション体験を提供
+
+**新機能:**
+```csharp
+// フォールバックテキスト数の取得
+var fallbackCount = LocalizationController.GetFallbackTextCount();
+
+// 翻訳がない場合の動作例
+LocalizationController.LoadLanguage("ja_jp");
+var text = LocalizationController.GetText("untranslated_key");
+// → 日本語がなければ英語テキストを返す（キーではなく）
+```
+
 ## 概要
 
 このドキュメントは、旧Helperベースの構造から新しい3層アーキテクチャへの移行手順を説明します。段階的な移行により、既存コードの動作を保ちながら新しいアーキテクチャのメリットを享受できます。

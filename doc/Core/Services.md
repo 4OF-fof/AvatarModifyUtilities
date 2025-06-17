@@ -109,6 +109,11 @@ private static void InitializeLocalization()
 }
 ```
 
+**動作:**
+1. 指定された言語（日本語）のテキストファイルを読み込み
+2. 英語のフォールバックテキストも自動的に読み込み
+3. 翻訳がない項目については英語テキストが自動的に使用される
+
 ### BackwardCompatibilityAliases
 
 #### 概要

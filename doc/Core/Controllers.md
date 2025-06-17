@@ -124,6 +124,7 @@ public static void LoadLanguage(string languageCode)
 1. 指定された言語コードのJSONファイルを検索
 2. 複数のファイルをマージ
 3. メモリに読み込み
+4. 指定された言語が英語以外の場合、英語のフォールバックテキストも自動的に読み込み
 
 **使用例:**
 ```csharp
@@ -145,7 +146,12 @@ public static string GetText(string key)
 - `key`: テキストキー
 
 **戻り値:**
-- `string`: ローカライズされたテキスト（見つからない場合はキーをそのまま返す）
+- `string`: ローカライズされたテキスト
+
+**フォールバック動作:**
+1. 現在の言語のテキストを検索
+2. 見つからない場合は英語のフォールバックテキストを検索
+3. それでも見つからない場合はキーをそのまま返す
 
 **使用例:**
 ```csharp
@@ -170,6 +176,7 @@ Debug.Log($"Current language: {currentLang}");
 ##### その他のユーティリティ
 ```csharp
 public static int GetLoadedTextCount()      // 読み込み済みテキスト数
+public static int GetFallbackTextCount()   // フォールバックテキスト数
 public static bool HasKey(string key)       // キーの存在確認
 ```
 
@@ -190,6 +197,20 @@ public static bool HasKey(string key)       // キーの存在確認
 ```
 AvatarModifyUtilities/Editor/**/ja_jp.json
 AvatarModifyUtilities/Editor/**/en_us.json
+```
+
+#### フォールバック機能
+
+指定された言語のテキストが見つからない場合、英語（en_us）のテキストが自動的に使用されます。これにより、一部の翻訳が不完全でも英語のテキストが表示され、ユーザビリティが向上します。
+
+**例:**
+```csharp
+// 日本語を読み込み（英語もフォールバックとして読み込まれる）
+LocalizationController.LoadLanguage("ja_jp");
+
+// 日本語に翻訳がないキーは英語のテキストが返される
+var text = LocalizationController.GetText("some_untranslated_key");
+// → 英語のテキストが返される（キーではなく）
 ```
 
 ## エラーハンドリング
@@ -214,8 +235,9 @@ catch (System.Exception ex)
 LocalizationController.LoadLanguage("invalid_lang");
 // → 警告ログが出力され、既存のテキストはクリアされる
 
-// 存在しないキー
+// 存在しないキー（フォールバック機能により英語テキストを検索）
 var text = LocalizationController.GetText("nonexistent_key");
-// → キー名をそのまま返す（"nonexistent_key"）
+// → 英語のフォールバックテキストがあれば英語テキストを返す
+// → フォールバックテキストもなければキー名をそのまま返す（"nonexistent_key"）
 ```
 

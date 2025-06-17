@@ -12,6 +12,7 @@ namespace AMU.Editor.Core.Controllers
     public static class LocalizationController
     {
         private static Dictionary<string, string> _localizedTexts = new Dictionary<string, string>();
+        private static Dictionary<string, string> _fallbackTexts = new Dictionary<string, string>();
 
         /// <summary>
         /// 現在の言語コード
@@ -25,6 +26,8 @@ namespace AMU.Editor.Core.Controllers
         public static void LoadLanguage(string languageCode)
         {
             var rootDir = Path.Combine(Application.dataPath, "AvatarModifyUtilities/Editor");
+
+            // 指定された言語のテキストを読み込み
             var searchPattern = $"{languageCode}.json";
             var langFiles = Directory.GetFiles(rootDir, searchPattern, SearchOption.AllDirectories);
             var mergedDict = new Dictionary<string, string>();
@@ -52,18 +55,70 @@ namespace AMU.Editor.Core.Controllers
             _localizedTexts = mergedDict;
             CurrentLanguage = languageCode;
 
+            // 英語のフォールバックテキストを読み込み（指定された言語が英語でない場合）
+            if (languageCode != "en_us")
+            {
+                LoadFallbackTexts();
+            }
+            else
+            {
+                _fallbackTexts = new Dictionary<string, string>(_localizedTexts);
+            }
+
             Debug.Log($"[LocalizationController] Loaded {_localizedTexts.Count} localized texts for language: {languageCode}");
+            if (_fallbackTexts.Count > 0)
+            {
+                Debug.Log($"[LocalizationController] Loaded {_fallbackTexts.Count} fallback texts (en_us)");
+            }
+        }
+
+        /// <summary>
+        /// 英語のフォールバックテキストを読み込みます
+        /// </summary>
+        private static void LoadFallbackTexts()
+        {
+            var rootDir = Path.Combine(Application.dataPath, "AvatarModifyUtilities/Editor");
+            var searchPattern = "en_us.json";
+            var langFiles = Directory.GetFiles(rootDir, searchPattern, SearchOption.AllDirectories);
+            var mergedDict = new Dictionary<string, string>();
+
+            foreach (var path in langFiles)
+            {
+                try
+                {
+                    var json = File.ReadAllText(path);
+                    var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+                    if (dict != null)
+                    {
+                        foreach (var kv in dict)
+                        {
+                            mergedDict[kv.Key] = kv.Value;
+                        }
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning($"Failed to load fallback language file: {path}. Error: {ex.Message}");
+                }
+            }
+
+            _fallbackTexts = mergedDict;
         }
 
         /// <summary>
         /// 指定されたキーのローカライズされたテキストを取得します
         /// </summary>
         /// <param name="key">テキストキー</param>
-        /// <returns>ローカライズされたテキスト（見つからない場合はキーをそのまま返す）</returns>
+        /// <returns>ローカライズされたテキスト（見つからない場合は英語のフォールバックテキスト、それも見つからない場合はキーをそのまま返す）</returns>
         public static string GetText(string key)
         {
             if (_localizedTexts.TryGetValue(key, out var value))
                 return value;
+
+            // フォールバックテキスト（英語）を試す
+            if (_fallbackTexts.TryGetValue(key, out var fallbackValue))
+                return fallbackValue;
+
             return key;
         }
 
@@ -74,6 +129,15 @@ namespace AMU.Editor.Core.Controllers
         public static int GetLoadedTextCount()
         {
             return _localizedTexts.Count;
+        }
+
+        /// <summary>
+        /// 現在読み込まれているフォールバックテキストの数を取得します
+        /// </summary>
+        /// <returns>フォールバックテキストの数</returns>
+        public static int GetFallbackTextCount()
+        {
+            return _fallbackTexts.Count;
         }
 
         /// <summary>
