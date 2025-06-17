@@ -211,19 +211,28 @@ namespace AMU.AssetManager.UI
             {
                 _packageListScrollPosition = scrollScope.scrollPosition;
 
+                // 未登録のアセットのみを取得
+                var unregisteredAssets = FindUnregisteredAssets();
+
                 foreach (var author in _bmpLibrary.authors)
                 {
                     string authorName = author.Key;
 
                     foreach (var package in author.Value)
                     {
-                        DrawPackageItem(authorName, package);
+                        string packageKey = $"{authorName}|{package.itemUrl}";
+
+                        // 未登録のファイルが存在するパッケージのみ表示
+                        if (unregisteredAssets.ContainsKey(packageKey))
+                        {
+                            DrawPackageItem(authorName, package, unregisteredAssets[packageKey]);
+                        }
                     }
                 }
             }
         }
 
-        private void DrawPackageItem(string authorName, Data.BPMPackage package)
+        private void DrawPackageItem(string authorName, Data.BPMPackage package, List<Data.BPMFileInfo> unregisteredFiles)
         {
             string packageKey = $"{authorName}|{package.itemUrl}";
 
@@ -232,7 +241,7 @@ namespace AMU.AssetManager.UI
                 // パッケージヘッダー
                 EditorGUILayout.LabelField($"[{authorName}] {package.packageName}", _packageHeaderStyle);
 
-                if (package.files != null && package.files.Count > 1)
+                if (unregisteredFiles.Count > 1)
                 {
                     // パッケージ全体の設定（複数ファイルの場合）
                     if (!_packageSettings.ContainsKey(packageKey))
@@ -255,13 +264,10 @@ namespace AMU.AssetManager.UI
                     }
                 }
 
-                // ファイルリスト
-                if (package.files != null)
+                // 未登録ファイルリストのみ表示
+                foreach (var file in unregisteredFiles)
                 {
-                    foreach (var file in package.files)
-                    {
-                        DrawFileItem(authorName, package, file, package.files.Count == 1);
-                    }
+                    DrawFileItem(authorName, package, file, unregisteredFiles.Count == 1);
                 }
             }
 
