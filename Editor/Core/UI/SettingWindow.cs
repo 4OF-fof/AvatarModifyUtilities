@@ -51,7 +51,7 @@ namespace AMU.Editor.Core.UI
         }
         void OnEnable()
         {
-            string lang = SettingsController.GetSetting("Core_language", "ja_jp");
+            string lang = SettingsController.GetSetting("Core_language", "en_us");
             LocalizationController.LoadLanguage(lang);
             InitializeSettings();
         }
