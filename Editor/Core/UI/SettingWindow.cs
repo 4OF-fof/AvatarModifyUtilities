@@ -59,7 +59,9 @@ namespace AMU.Editor.Core.UI
             string lang = SettingsController.GetSetting("Core_language", "en_us");
             LocalizationController.LoadLanguage(lang);
             InitializeSettings();
-        }        void OnGUI()
+        }
+
+        void OnGUI()
         {
             using (new GUILayout.HorizontalScope())
             {
