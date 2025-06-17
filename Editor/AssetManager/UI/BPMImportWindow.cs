@@ -44,6 +44,9 @@ namespace AMU.AssetManager.UI
         private string[] _assetTypeOptions;
         private int _defaultAssetTypeIndex = 0;
 
+        // グループ子アセットの設定表示制御
+        private bool _showChildAssetSettings = false;
+
         public static void ShowWindowWithFile(AssetDataManager assetDataManager, string bmpLibraryPath, Action onImportComplete = null)
         {
             var window = GetWindow<BPMImportWindow>(LocalizationManager.GetText("BPMImport_windowTitle"));
@@ -171,8 +174,8 @@ namespace AMU.AssetManager.UI
 
             GUILayout.Space(10);
 
-            // 全体設定
-            DrawGlobalSettings();
+            // 設定オプション
+            DrawSettingsOptions();
 
             GUILayout.Space(10);
 
@@ -185,40 +188,18 @@ namespace AMU.AssetManager.UI
             DrawImportButtons();
         }
 
-        private void DrawGlobalSettings()
+        private void DrawSettingsOptions()
         {
-            EditorGUILayout.LabelField(LocalizationManager.GetText("BPMImport_globalSettings"), _headerStyle);
+            EditorGUILayout.LabelField("Import Settings", _headerStyle);
 
             using (new EditorGUILayout.VerticalScope(_boxStyle))
             {
-                EditorGUILayout.HelpBox(LocalizationManager.GetText("BPMImport_globalSettingsHelp"), MessageType.Info);
-
-                GUILayout.Space(5);
-
-                // デフォルトアセットタイプの選択
-                EditorGUILayout.LabelField("Default Asset Type:", EditorStyles.boldLabel);
-                int newDefaultIndex = EditorGUILayout.Popup("Asset Type", _defaultAssetTypeIndex, _assetTypeOptions);
-                if (newDefaultIndex != _defaultAssetTypeIndex && newDefaultIndex >= 0 && newDefaultIndex < _assetTypeOptions.Length)
-                {
-                    _defaultAssetTypeIndex = newDefaultIndex;
-
-                    // 新しいデフォルトタイプを既存の設定に適用
-                    string defaultType = _assetTypeOptions[_defaultAssetTypeIndex];
-                    foreach (var setting in _packageSettings.Values)
-                    {
-                        if (string.IsNullOrEmpty(setting.assetType) || setting.assetType == "Assets")
-                        {
-                            setting.assetType = defaultType;
-                        }
-                    }
-                    foreach (var setting in _fileSettings.Values)
-                    {
-                        if (string.IsNullOrEmpty(setting.assetType) || setting.assetType == "Assets")
-                        {
-                            setting.assetType = defaultType;
-                        }
-                    }
-                }
+                _showChildAssetSettings = EditorGUILayout.Toggle("Show child asset type settings", _showChildAssetSettings);
+                EditorGUILayout.HelpBox(
+                    _showChildAssetSettings
+                        ? "Individual asset type settings will be shown for each file in multi-file packages."
+                        : "Only package-level asset type settings will be shown for multi-file packages.",
+                    MessageType.Info);
             }
         }
 
@@ -279,7 +260,7 @@ namespace AMU.AssetManager.UI
                 {
                     foreach (var file in package.files)
                     {
-                        DrawFileItem(authorName, package, file);
+                        DrawFileItem(authorName, package, file, package.files.Count == 1);
                     }
                 }
             }
@@ -287,7 +268,7 @@ namespace AMU.AssetManager.UI
             GUILayout.Space(5);
         }
 
-        private void DrawFileItem(string authorName, Data.BPMPackage package, Data.BPMFileInfo file)
+        private void DrawFileItem(string authorName, Data.BPMPackage package, Data.BPMFileInfo file, bool isSingleFile)
         {
             string fileKey = $"{authorName}|{package.itemUrl}|{file.fileName}";
 
@@ -295,24 +276,43 @@ namespace AMU.AssetManager.UI
             {
                 EditorGUILayout.LabelField($"  • {file.fileName}", _fileItemStyle, GUILayout.Width(300));
 
-                // 個別ファイル設定（単一ファイルまたは個別設定が必要な場合）
-                if (!_fileSettings.ContainsKey(fileKey))
+                // アセットタイプ設定を表示する条件：
+                // 1. 単一ファイルの場合は常に表示
+                // 2. 複数ファイルの場合は _showChildAssetSettings が true の時のみ表示
+                bool showAssetTypeSettings = isSingleFile || _showChildAssetSettings;
+
+                if (showAssetTypeSettings)
                 {
-                    _fileSettings[fileKey] = new AssetImportSettings
+                    // 個別ファイル設定
+                    if (!_fileSettings.ContainsKey(fileKey))
                     {
-                        assetType = _assetTypeOptions[_defaultAssetTypeIndex]
-                    };
+                        _fileSettings[fileKey] = new AssetImportSettings
+                        {
+                            assetType = _assetTypeOptions[_defaultAssetTypeIndex]
+                        };
+                    }
+
+                    var fileSetting = _fileSettings[fileKey];
+
+                    // アセットタイプをセレクタで選択
+                    int currentIndex = GetAssetTypeIndex(fileSetting.assetType);
+                    int newIndex = EditorGUILayout.Popup(currentIndex, _assetTypeOptions, GUILayout.Width(120));
+
+                    if (newIndex != currentIndex && newIndex >= 0 && newIndex < _assetTypeOptions.Length)
+                    {
+                        fileSetting.assetType = _assetTypeOptions[newIndex];
+                    }
                 }
-
-                var fileSetting = _fileSettings[fileKey];
-
-                // アセットタイプをセレクタで選択
-                int currentIndex = GetAssetTypeIndex(fileSetting.assetType);
-                int newIndex = EditorGUILayout.Popup(currentIndex, _assetTypeOptions, GUILayout.Width(120));
-
-                if (newIndex != currentIndex && newIndex >= 0 && newIndex < _assetTypeOptions.Length)
+                else
                 {
-                    fileSetting.assetType = _assetTypeOptions[newIndex];
+                    // 設定を表示しない場合でも、設定オブジェクトは作成しておく（グループのみ設定で使用）
+                    if (!_fileSettings.ContainsKey(fileKey))
+                    {
+                        _fileSettings[fileKey] = new AssetImportSettings
+                        {
+                            assetType = _assetTypeOptions[_defaultAssetTypeIndex]
+                        };
+                    }
                 }
             }
         }
