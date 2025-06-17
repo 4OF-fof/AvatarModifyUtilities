@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System;
-using AMU.Data.Lang;
 using AMU.Editor.Core.Schema;
 
 namespace AMU.Editor.Setting
