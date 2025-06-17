@@ -532,10 +532,10 @@ namespace AMU.AssetManager.Helper
                 Debug.LogError($"[AssetThumbnailManager] Failed to save texture to {filePath}: {ex.Message}");
             }
         }
-        private Texture2D GetDefaultThumbnail(AssetInfo asset)
+        public Texture2D GetDefaultThumbnail(AssetInfo asset)
         {
             // グループの場合はフォルダアイコンを表示
-            if (asset.isGroup)
+            if (asset?.isGroup == true)
             {
                 return EditorGUIUtility.IconContent("Folder Icon").image as Texture2D;
             }

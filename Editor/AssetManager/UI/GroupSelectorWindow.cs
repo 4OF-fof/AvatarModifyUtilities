@@ -18,6 +18,22 @@ namespace AMU.AssetManager.UI
         private AssetDataManager _dataManager;
         private AssetThumbnailManager _thumbnailManager;
 
+        // パフォーマンス最適化用のフィールド
+        private Dictionary<string, Texture2D> _cachedThumbnails = new Dictionary<string, Texture2D>();
+        private Dictionary<string, int> _cachedChildCounts = new Dictionary<string, int>();
+        private HashSet<string> _requestedThumbnails = new HashSet<string>();
+
+        // レイアウト定数
+        private const int ITEMS_PER_ROW = 4;
+        private const float ITEM_WIDTH = 140f;
+        private const float THUMBNAIL_SIZE = 110f;
+        private const float ITEM_HEIGHT = 150f; // サムネイル + 名前領域
+
+        // バーチャルスクロール用
+        private int _firstVisibleRow = 0;
+        private int _lastVisibleRow = 0;
+        private int _totalRows = 0;
+
         public static void ShowWindow(AssetDataManager dataManager, Action<AssetInfo> onGroupSelected)
         {
             var window = GetWindow<GroupSelectorWindow>(true, LocalizationManager.GetText("GroupSelector_windowTitle"), true);
@@ -38,7 +54,17 @@ namespace AMU.AssetManager.UI
 
         private void OnDisable()
         {
-            // サムネイルキャッシュのクリーンアップは不要（シングルトンなので）
+            // キャッシュをクリア
+            foreach (var texture in _cachedThumbnails.Values)
+            {
+                if (texture != null && texture != _thumbnailManager?.GetDefaultThumbnail(null))
+                {
+                    DestroyImmediate(texture);
+                }
+            }
+            _cachedThumbnails.Clear();
+            _cachedChildCounts.Clear();
+            _requestedThumbnails.Clear();
         }
 
         private void LoadAvailableGroups()
@@ -52,6 +78,17 @@ namespace AMU.AssetManager.UI
             // 利用可能なグループを取得
             _availableGroups = _dataManager.GetGroupAssets();
             _selectedGroup = _availableGroups.FirstOrDefault();
+
+            // レイアウト計算
+            _totalRows = Mathf.CeilToInt((float)_availableGroups.Count / ITEMS_PER_ROW);
+
+            // 子アセット数をキャッシュ
+            _cachedChildCounts.Clear();
+            foreach (var group in _availableGroups)
+            {
+                var childCount = _dataManager.GetGroupChildren(group.uid)?.Count ?? 0;
+                _cachedChildCounts[group.uid] = childCount;
+            }
         }
 
         private void OnGUI()
@@ -112,39 +149,93 @@ namespace AMU.AssetManager.UI
         }
 
         /// <summary>
-        /// グループのグリッド表示を描画
+        /// グループのグリッド表示を描画（修正版）
         /// </summary>
         private void DrawGroupGrid()
         {
-            // 固定ウィンドウサイズ（600x500）に最適化された固定値
-            const int itemsPerRow = 4; // 600px幅で4列
-            const float itemWidth = 140f; // 各アイテムの幅
-            const float thumbnailSize = 110f; // サムネイルサイズ
+            if (_availableGroups == null || _availableGroups.Count == 0)
+                return;
 
-            using (new GUILayout.VerticalScope())
+            // 表示可能な行数を計算
+            var visibleHeight = position.height - 100; // ヘッダーとボタン領域を除く
+            var visibleRows = Mathf.CeilToInt(visibleHeight / ITEM_HEIGHT) + 1; // 余裕を持って+1
+
+            // スクロール位置から可視範囲を計算
+            _firstVisibleRow = Mathf.Max(0, Mathf.FloorToInt(_scrollPosition.y / ITEM_HEIGHT));
+            _lastVisibleRow = Mathf.Min(_totalRows - 1, _firstVisibleRow + visibleRows);
+
+            // 上部の非表示領域のスペース
+            if (_firstVisibleRow > 0)
             {
-                for (int i = 0; i < _availableGroups.Count; i += itemsPerRow)
-                {
-                    using (new GUILayout.HorizontalScope())
-                    {
-                        for (int j = 0; j < itemsPerRow && i + j < _availableGroups.Count; j++)
-                        {
-                            var group = _availableGroups[i + j];
-                            DrawGroupItem(group, itemWidth, thumbnailSize);
-                        }
+                GUILayout.Space(_firstVisibleRow * ITEM_HEIGHT);
+            }
 
-                        // 最後の行で残りスペースを埋める
-                        if (i + itemsPerRow >= _availableGroups.Count)
+            // 可視範囲の行のみ描画
+            for (int row = _firstVisibleRow; row <= _lastVisibleRow; row++)
+            {
+                using (new GUILayout.HorizontalScope())
+                {
+                    for (int col = 0; col < ITEMS_PER_ROW; col++)
+                    {
+                        int index = row * ITEMS_PER_ROW + col;
+                        if (index < _availableGroups.Count)
                         {
-                            var remainingItems = _availableGroups.Count - i;
-                            for (int k = remainingItems; k < itemsPerRow; k++)
-                            {
-                                GUILayout.Space(itemWidth);
-                            }
+                            var group = _availableGroups[index];
+                            DrawGroupItem(group, ITEM_WIDTH, THUMBNAIL_SIZE);
+                        }
+                        else
+                        {
+                            // 空のスペースを描画
+                            GUILayoutUtility.GetRect(ITEM_WIDTH, ITEM_HEIGHT);
                         }
                     }
-                    GUILayout.Space(2);
                 }
+            }
+
+            // 下部の非表示領域のスペース
+            var remainingRows = _totalRows - (_lastVisibleRow + 1);
+            if (remainingRows > 0)
+            {
+                GUILayout.Space(remainingRows * ITEM_HEIGHT);
+            }
+
+            // 可視範囲のサムネイルを非同期で要求
+            RequestVisibleThumbnails();
+        }
+
+        /// <summary>
+        /// 可視範囲のサムネイルを非同期で要求
+        /// </summary>
+        private void RequestVisibleThumbnails()
+        {
+            for (int row = _firstVisibleRow; row <= _lastVisibleRow; row++)
+            {
+                for (int col = 0; col < ITEMS_PER_ROW; col++)
+                {
+                    int index = row * ITEMS_PER_ROW + col;
+                    if (index < _availableGroups.Count)
+                    {
+                        var group = _availableGroups[index];
+                        if (!_cachedThumbnails.ContainsKey(group.uid) && !_requestedThumbnails.Contains(group.uid))
+                        {
+                            _requestedThumbnails.Add(group.uid);
+                            RequestThumbnailAsync(group);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// サムネイルを非同期で要求
+        /// </summary>
+        private void RequestThumbnailAsync(AssetInfo group)
+        {
+            var thumbnail = _thumbnailManager?.GetThumbnail(group);
+            if (thumbnail != null)
+            {
+                _cachedThumbnails[group.uid] = thumbnail;
+                Repaint();
             }
         }
 
@@ -173,73 +264,93 @@ namespace AMU.AssetManager.UI
         }
 
         /// <summary>
-        /// グループアイテムを描画（メインウィンドウと同様のスタイル）
+        /// グループアイテムを描画（最適化版）
         /// </summary>
         private void DrawGroupItem(AssetInfo group, float itemWidth, float thumbnailSize)
         {
-            using (new GUILayout.VerticalScope(GUILayout.Width(itemWidth)))
+            var isSelected = _selectedGroup == group;
+
+            // アイテム全体の背景領域を描画（クリック判定用）
+            var itemRect = GUILayoutUtility.GetRect(itemWidth, ITEM_HEIGHT);
+
+            // 選択状態の描画（アイテム全体）
+            if (isSelected)
             {
-                // サムネイル描画
-                var thumbnailRect = GUILayoutUtility.GetRect(thumbnailSize, thumbnailSize);
+                EditorGUI.DrawRect(itemRect, new Color(0.3f, 0.5f, 1f, 0.2f));
+            }
 
-                // アイテムを中央揃えにするための調整
-                var centerOffset = (itemWidth - thumbnailSize) / 2;
-                thumbnailRect.x += centerOffset;
+            // ホバー状態の描画
+            if (itemRect.Contains(Event.current.mousePosition))
+            {
+                EditorGUI.DrawRect(itemRect, new Color(0.7f, 0.7f, 0.7f, 0.1f));
+            }
 
-                var isSelected = _selectedGroup == group;
+            // サムネイル領域の計算
+            var thumbnailRect = new Rect(
+                itemRect.x + (itemWidth - thumbnailSize) / 2,
+                itemRect.y + 5,
+                thumbnailSize,
+                thumbnailSize
+            );
 
-                // 選択状態の描画
-                if (isSelected)
+            // 選択状態のサムネイル境界線
+            if (isSelected)
+            {
+                var borderRect = new Rect(thumbnailRect.x - 2, thumbnailRect.y - 2, thumbnailRect.width + 4, thumbnailRect.height + 4);
+                EditorGUI.DrawRect(borderRect, new Color(0.3f, 0.5f, 1f, 0.8f));
+            }
+
+            // キャッシュされたサムネイルを使用
+            if (_cachedThumbnails.TryGetValue(group.uid, out var thumbnail) && thumbnail != null)
+            {
+                GUI.DrawTexture(thumbnailRect, thumbnail, ScaleMode.ScaleToFit);
+            }
+            else
+            {
+                // グループのデフォルトアイコン（フォルダアイコン）
+                var defaultIcon = EditorGUIUtility.IconContent("Folder Icon").image as Texture2D;
+                if (defaultIcon != null)
                 {
-                    EditorGUI.DrawRect(thumbnailRect, new Color(0.3f, 0.5f, 1f, 0.3f));
-                }
-
-                // サムネイル取得と描画
-                Texture2D thumbnail = _thumbnailManager?.GetThumbnail(group);
-                if (thumbnail != null)
-                {
-                    GUI.DrawTexture(thumbnailRect, thumbnail, ScaleMode.ScaleToFit);
+                    GUI.DrawTexture(thumbnailRect, defaultIcon, ScaleMode.ScaleToFit);
                 }
                 else
                 {
-                    // グループのデフォルトアイコン（フォルダアイコン）
-                    var defaultIcon = EditorGUIUtility.IconContent("Folder Icon").image as Texture2D;
-                    if (defaultIcon != null)
-                    {
-                        GUI.DrawTexture(thumbnailRect, defaultIcon, ScaleMode.ScaleToFit);
-                    }
-                    else
-                    {
-                        GUI.Box(thumbnailRect, "フォルダ");
-                    }
+                    GUI.Box(thumbnailRect, "フォルダ");
                 }
+            }
 
-                // グループ名の描画
-                DrawGroupName(group, itemWidth);
+            // グループ名の描画領域
+            var nameRect = new Rect(
+                itemRect.x,
+                itemRect.y + thumbnailSize + 10,
+                itemWidth,
+                itemRect.height - thumbnailSize - 10
+            );
 
-                // クリックイベントの処理（全体のアイテム領域で反応）
-                var itemRect = GUILayoutUtility.GetLastRect();
-                if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && itemRect.Contains(Event.current.mousePosition))
-                {
-                    _selectedGroup = group;
-                    Repaint();
-                    Event.current.Use();
-                }
+            // グループ名の描画
+            DrawGroupNameInRect(group, nameRect);
 
-                // ダブルクリックで確定
-                if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && Event.current.clickCount == 2 && itemRect.Contains(Event.current.mousePosition))
-                {
-                    _onGroupSelected?.Invoke(_selectedGroup);
-                    Close();
-                    Event.current.Use();
-                }
+            // クリックイベントの処理（アイテム全体で判定）
+            if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && itemRect.Contains(Event.current.mousePosition))
+            {
+                _selectedGroup = group;
+                Event.current.Use();
+                Repaint();
+            }
+
+            // ダブルクリックで確定
+            if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && Event.current.clickCount == 2 && itemRect.Contains(Event.current.mousePosition))
+            {
+                _onGroupSelected?.Invoke(_selectedGroup);
+                Close();
+                Event.current.Use();
             }
         }
 
         /// <summary>
-        /// グループ名を描画（2行固定、アセット数表示付き）
+        /// 指定されたRect内にグループ名を描画
         /// </summary>
-        private void DrawGroupName(AssetInfo group, float availableWidth)
+        private void DrawGroupNameInRect(AssetInfo group, Rect rect)
         {
             var nameStyle = new GUIStyle(EditorStyles.label)
             {
@@ -249,16 +360,12 @@ namespace AMU.AssetManager.UI
                 richText = true
             };
 
-            // グループの子アセット数を取得
-            var childCount = _dataManager?.GetGroupChildren(group.uid)?.Count ?? 0;
+            // キャッシュされた子アセット数を使用
+            var childCount = _cachedChildCounts.TryGetValue(group.uid, out var count) ? count : 0;
             var displayText = $"{group.name}\n({childCount}個)";
 
-            // 2行固定の高さを設定
-            var fixedHeight = nameStyle.lineHeight * 2 + 5;
-            var rect = GUILayoutUtility.GetRect(availableWidth, fixedHeight);
-
             // テキストが長い場合は切り詰める
-            var truncatedText = TruncateTextToFitHeight(displayText, nameStyle, availableWidth, fixedHeight);
+            var truncatedText = TruncateTextToFitHeight(displayText, nameStyle, rect.width, rect.height);
             var content = new GUIContent(truncatedText, group.name); // ツールチップに完全な名前を表示
 
             GUI.Label(rect, content, nameStyle);
