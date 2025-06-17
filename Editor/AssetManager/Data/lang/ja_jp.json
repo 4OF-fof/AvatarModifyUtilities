@@ -192,5 +192,13 @@
   "AssetManager_downloadFolderScanCompleted": "データを更新し、ダウンロードフォルダをスキャンしました",
   "AssetManager_multipleAssetsRestoreFromArchive": "{0}個のアセットをアーカイブから復元",
   "AssetManager_multipleAssetsArchive": "{0}個のアセットをアーカイブ",
-  "AssetManager_groupDetailTitle": "グループの詳細"
+  "AssetManager_groupDetailTitle": "グループの詳細",
+  "AssetManager_addToGroup": "グループに追加",
+  "AssetManager_addToGroupMultiple": "{0}個のアセットをグループに追加",
+  "GroupSelector_windowTitle": "グループ選択",
+  "GroupSelector_selectGroup": "アセットを追加するグループを選択してください:",
+  "GroupSelector_noGroups": "利用可能なグループがありません",
+  "GroupSelector_add": "追加",
+  "GroupSelector_cancel": "キャンセル",
+  "AssetManager_addedToGroup": "{0}個のアセットがグループ '{1}' に追加されました"
 }

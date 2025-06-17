@@ -995,6 +995,17 @@ namespace AMU.AssetManager.UI
                     menu.AddSeparator("");
                 }
 
+                // グループに追加オプション（グループ以外のアセットのみ）
+                if (_selectedAssets.All(a => !a.isGroup))
+                {
+                    menu.AddItem(new GUIContent(string.Format(LocalizationManager.GetText("AssetManager_addToGroupMultiple"), _selectedAssets.Count)), false, () =>
+                    {
+                        ShowAddToGroupDialog();
+                    });
+
+                    menu.AddSeparator("");
+                }
+
                 // 一括お気に入り設定
                 bool allFavorites = _selectedAssets.All(a => a.isFavorite);
                 string favoriteText = allFavorites ? LocalizationManager.GetText("AssetManager_removeFromFavorites") : LocalizationManager.GetText("AssetManager_addToFavorites");
@@ -1164,6 +1175,16 @@ namespace AMU.AssetManager.UI
                             _dataManager.RemoveAssetFromGroup(asset.uid);
                             _needsUIRefresh = true;
                         }
+                    });
+
+                    menu.AddSeparator("");
+                }
+                else
+                {
+                    // グループに追加オプション（通常のアセットでグループに属していない場合）
+                    menu.AddItem(new GUIContent(LocalizationManager.GetText("AssetManager_addToGroup")), false, () =>
+                    {
+                        ShowAddToGroupDialog();
                     });
 
                     menu.AddSeparator("");
@@ -1510,11 +1531,9 @@ namespace AMU.AssetManager.UI
                     CreateGroupFromSelectedAssets(groupName);
                 }
             });
-        }
-
-        /// <summary>
-        /// 選択されたアセットからグループを作成
-        /// </summary>
+        }        /// <summary>
+                 /// 選択されたアセットからグループを作成
+                 /// </summary>
         private void CreateGroupFromSelectedAssets(string groupName)
         {
             if (string.IsNullOrEmpty(groupName) || _selectedAssets.Count == 0)
@@ -1541,9 +1560,67 @@ namespace AMU.AssetManager.UI
             _needsUIRefresh = true;
 
             Debug.Log($"グループ '{newGroup.name}' を作成しました。{addedCount}個のアセットを追加しました。");
-        }        /// <summary>
-                 /// グループの詳細表示（子アセット一覧）
-                 /// </summary>
+        }
+
+        /// <summary>
+        /// グループに追加するダイアログを表示
+        /// </summary>
+        private void ShowAddToGroupDialog()
+        {
+            GroupSelectorWindow.ShowWindow(_dataManager, (selectedGroup) =>
+            {
+                if (selectedGroup != null)
+                {
+                    AddAssetsToGroup(selectedGroup);
+                }
+            });
+        }
+
+        /// <summary>
+        /// 選択されたアセットを指定されたグループに追加
+        /// </summary>
+        private void AddAssetsToGroup(AssetInfo targetGroup)
+        {
+            if (targetGroup == null || !targetGroup.isGroup || _selectedAssets.Count == 0)
+                return;
+
+            int addedCount = 0;
+            var assetsToAdd = _selectedAssets.Where(a => !a.isGroup).ToList();
+
+            foreach (var asset in assetsToAdd)
+            {
+                // 既に別のグループに属している場合は先に削除してから追加
+                if (asset.HasParent())
+                {
+                    _dataManager.RemoveAssetFromGroup(asset.uid);
+                }
+
+                if (_dataManager.AddAssetToGroup(asset.uid, targetGroup.uid))
+                {
+                    addedCount++;
+                }
+            }
+
+            // 状態をリセット
+            _selectedAssets.Clear();
+            _selectedAsset = null;
+            _needsUIRefresh = true;
+
+            // 成功メッセージを表示
+            var message = string.Format(LocalizationManager.GetText("AssetManager_addedToGroup"), addedCount, targetGroup.name);
+            Debug.Log(message);
+
+            // 必要に応じてダイアログで通知
+            EditorUtility.DisplayDialog(
+                LocalizationManager.GetText("Common_success"),
+                message,
+                LocalizationManager.GetText("Common_ok")
+            );
+        }
+
+        /// <summary>
+        /// グループの詳細表示（子アセット一覧）
+        /// </summary>
         private void ShowGroupDetails(AssetInfo groupAsset)
         {
             var children = _dataManager.GetGroupChildren(groupAsset.uid);

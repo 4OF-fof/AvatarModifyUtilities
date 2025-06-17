@@ -192,5 +192,13 @@
   "AssetManager_downloadFolderScanCompleted": "Data updated and download folder scanned",
   "AssetManager_multipleAssetsRestoreFromArchive": "Restore {0} assets from archive",
   "AssetManager_multipleAssetsArchive": "Archive {0} assets",
-  "AssetManager_groupDetailTitle": "Group Details"
+  "AssetManager_groupDetailTitle": "Group Details",
+  "AssetManager_addToGroup": "Add to Group",
+  "AssetManager_addToGroupMultiple": "Add {0} assets to group",
+  "GroupSelector_windowTitle": "Group Selection",
+  "GroupSelector_selectGroup": "Select a group to add assets to:",
+  "GroupSelector_noGroups": "No groups available",
+  "GroupSelector_add": "Add",
+  "GroupSelector_cancel": "Cancel",
+  "AssetManager_addedToGroup": "{0} assets added to group '{1}'"
 }
