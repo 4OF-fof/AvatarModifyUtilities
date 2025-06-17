@@ -17,13 +17,12 @@ namespace AMU.AssetManager.UI
         private Action<AssetInfo> _onGroupSelected;
         private AssetDataManager _dataManager;
         private AssetThumbnailManager _thumbnailManager;
-        private float _thumbnailSize = 80f;  // グループ選択用のサムネイルサイズ
 
         public static void ShowWindow(AssetDataManager dataManager, Action<AssetInfo> onGroupSelected)
         {
             var window = GetWindow<GroupSelectorWindow>(true, LocalizationManager.GetText("GroupSelector_windowTitle"), true);
-            window.minSize = new Vector2(500, 400);
-            window.maxSize = new Vector2(500, 400);
+            window.minSize = new Vector2(600, 500);
+            window.maxSize = new Vector2(600, 500);
             window._onGroupSelected = onGroupSelected;
             window._dataManager = dataManager;
             window._thumbnailManager = AssetThumbnailManager.Instance;
@@ -57,38 +56,73 @@ namespace AMU.AssetManager.UI
 
         private void OnGUI()
         {
-            GUILayout.Space(10);
-
-            GUILayout.Label(LocalizationManager.GetText("GroupSelector_selectGroup"), EditorStyles.boldLabel);
-            GUILayout.Space(10);
-
-            if (_availableGroups == null || _availableGroups.Count == 0)
+            using (new GUILayout.VerticalScope())
             {
-                // グループがない場合
-                GUILayout.Label(LocalizationManager.GetText("GroupSelector_noGroups"), EditorStyles.helpBox);
-                GUILayout.FlexibleSpace();
+                // ヘッダー部分（最小限のスペース）
+                GUILayout.Space(5);
+                GUILayout.Label(LocalizationManager.GetText("GroupSelector_selectGroup"), EditorStyles.boldLabel);
+                GUILayout.Space(5);
 
-                using (new GUILayout.HorizontalScope())
+                if (_availableGroups == null || _availableGroups.Count == 0)
                 {
+                    // グループがない場合
+                    GUILayout.Label(LocalizationManager.GetText("GroupSelector_noGroups"), EditorStyles.helpBox);
                     GUILayout.FlexibleSpace();
-                    if (GUILayout.Button(LocalizationManager.GetText("GroupSelector_cancel"), GUILayout.Height(30), GUILayout.Width(100)))
+
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.Button(LocalizationManager.GetText("GroupSelector_cancel"), GUILayout.Height(30), GUILayout.Width(100)))
+                        {
+                            Close();
+                        }
+                    }
+                    return;
+                }
+
+                // スクロール可能なメインエリア（ウィンドウの大部分を使用）
+                using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition, false, false, GUILayout.ExpandHeight(true)))
+                {
+                    _scrollPosition = scrollView.scrollPosition;
+                    DrawGroupGrid();
+                }
+
+                // ボタン領域（固定高さ）
+                GUILayout.Space(5);
+                using (new GUILayout.HorizontalScope(GUILayout.Height(35)))
+                {
+                    if (GUILayout.Button(LocalizationManager.GetText("GroupSelector_add"), GUILayout.Height(30)))
+                    {
+                        if (_selectedGroup != null)
+                        {
+                            _onGroupSelected?.Invoke(_selectedGroup);
+                            Close();
+                        }
+                    }
+
+                    if (GUILayout.Button(LocalizationManager.GetText("GroupSelector_cancel"), GUILayout.Height(30)))
                     {
                         Close();
                     }
                 }
-                return;
+
+                // キーボードイベント処理
+                HandleKeyboardEvents();
             }
+        }
 
-            // グループリスト表示
-            using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition, false, false))
+        /// <summary>
+        /// グループのグリッド表示を描画
+        /// </summary>
+        private void DrawGroupGrid()
+        {
+            // 固定ウィンドウサイズ（600x500）に最適化された固定値
+            const int itemsPerRow = 4; // 600px幅で4列
+            const float itemWidth = 140f; // 各アイテムの幅
+            const float thumbnailSize = 110f; // サムネイルサイズ
+
+            using (new GUILayout.VerticalScope())
             {
-                _scrollPosition = scrollView.scrollPosition;
-
-                // グリッド表示の準備
-                var windowWidth = position.width - 20; // マージンを考慮
-                var itemWidth = _thumbnailSize + 20; // サムネイル + 余白
-                var itemsPerRow = Mathf.Max(1, Mathf.FloorToInt(windowWidth / itemWidth));
-
                 for (int i = 0; i < _availableGroups.Count; i += itemsPerRow)
                 {
                     using (new GUILayout.HorizontalScope())
@@ -96,34 +130,29 @@ namespace AMU.AssetManager.UI
                         for (int j = 0; j < itemsPerRow && i + j < _availableGroups.Count; j++)
                         {
                             var group = _availableGroups[i + j];
-                            DrawGroupItem(group);
+                            DrawGroupItem(group, itemWidth, thumbnailSize);
                         }
-                        GUILayout.FlexibleSpace();
+
+                        // 最後の行で残りスペースを埋める
+                        if (i + itemsPerRow >= _availableGroups.Count)
+                        {
+                            var remainingItems = _availableGroups.Count - i;
+                            for (int k = remainingItems; k < itemsPerRow; k++)
+                            {
+                                GUILayout.Space(itemWidth);
+                            }
+                        }
                     }
-                    GUILayout.Space(5);
+                    GUILayout.Space(2);
                 }
             }
+        }
 
-            GUILayout.Space(10);
-
-            // ボタン領域
-            using (new GUILayout.HorizontalScope())
-            {
-                if (GUILayout.Button(LocalizationManager.GetText("GroupSelector_add"), GUILayout.Height(30)))
-                {
-                    if (_selectedGroup != null)
-                    {
-                        _onGroupSelected?.Invoke(_selectedGroup);
-                        Close();
-                    }
-                }
-
-                if (GUILayout.Button(LocalizationManager.GetText("GroupSelector_cancel"), GUILayout.Height(30)))
-                {
-                    Close();
-                }
-            }
-
+        /// <summary>
+        /// キーボードイベントを処理
+        /// </summary>
+        private void HandleKeyboardEvents()
+        {
             // Enterキーで確定
             if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Return)
             {
@@ -146,12 +175,17 @@ namespace AMU.AssetManager.UI
         /// <summary>
         /// グループアイテムを描画（メインウィンドウと同様のスタイル）
         /// </summary>
-        private void DrawGroupItem(AssetInfo group)
+        private void DrawGroupItem(AssetInfo group, float itemWidth, float thumbnailSize)
         {
-            using (new GUILayout.VerticalScope(GUILayout.Width(_thumbnailSize + 10)))
+            using (new GUILayout.VerticalScope(GUILayout.Width(itemWidth)))
             {
                 // サムネイル描画
-                var thumbnailRect = GUILayoutUtility.GetRect(_thumbnailSize, _thumbnailSize);
+                var thumbnailRect = GUILayoutUtility.GetRect(thumbnailSize, thumbnailSize);
+
+                // アイテムを中央揃えにするための調整
+                var centerOffset = (itemWidth - thumbnailSize) / 2;
+                thumbnailRect.x += centerOffset;
+
                 var isSelected = _selectedGroup == group;
 
                 // 選択状態の描画
@@ -181,10 +215,11 @@ namespace AMU.AssetManager.UI
                 }
 
                 // グループ名の描画
-                DrawGroupName(group);
+                DrawGroupName(group, itemWidth);
 
-                // クリックイベントの処理
-                if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && thumbnailRect.Contains(Event.current.mousePosition))
+                // クリックイベントの処理（全体のアイテム領域で反応）
+                var itemRect = GUILayoutUtility.GetLastRect();
+                if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && itemRect.Contains(Event.current.mousePosition))
                 {
                     _selectedGroup = group;
                     Repaint();
@@ -192,7 +227,7 @@ namespace AMU.AssetManager.UI
                 }
 
                 // ダブルクリックで確定
-                if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && Event.current.clickCount == 2 && thumbnailRect.Contains(Event.current.mousePosition))
+                if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && Event.current.clickCount == 2 && itemRect.Contains(Event.current.mousePosition))
                 {
                     _onGroupSelected?.Invoke(_selectedGroup);
                     Close();
@@ -204,7 +239,7 @@ namespace AMU.AssetManager.UI
         /// <summary>
         /// グループ名を描画（2行固定、アセット数表示付き）
         /// </summary>
-        private void DrawGroupName(AssetInfo group)
+        private void DrawGroupName(AssetInfo group, float availableWidth)
         {
             var nameStyle = new GUIStyle(EditorStyles.label)
             {
@@ -213,7 +248,6 @@ namespace AMU.AssetManager.UI
                 fontSize = 10,
                 richText = true
             };
-            var availableWidth = _thumbnailSize + 10;
 
             // グループの子アセット数を取得
             var childCount = _dataManager?.GetGroupChildren(group.uid)?.Count ?? 0;
