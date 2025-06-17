@@ -43,8 +43,7 @@ public static void Initialize()
 
 **初期化順序:**
 1. EditorPrefs設定の初期化
-2. TagTypeManagerの初期化
-3. ローカライゼーションの初期化
+2. ローカライゼーションの初期化
 
 **使用例:**
 ```csharp
@@ -94,22 +93,6 @@ private static void InitializeEditorPrefs()
 - 既存設定の保持
 - エラー時のログ出力
 
-##### TagTypeManager初期化
-```csharp
-private static void InitializeTagTypeManager()
-{
-    try
-    {
-        TagTypeManager.LoadData();
-        Debug.Log("[InitializationService] TagTypeManager initialized successfully.");
-    }
-    catch (System.Exception ex)
-    {
-        Debug.LogError($"[InitializationService] TagTypeManager initialization failed: {ex.Message}");
-    }
-}
-```
-
 ##### ローカライゼーション初期化
 ```csharp
 private static void InitializeLocalization()
@@ -150,79 +133,6 @@ namespace AMU.Editor.Core.Helper
         }
     }
 }
-```
-
-**移行パス:**
-```csharp
-// 旧コード（非推奨警告が表示される）
-using AMU.Editor.Core.Helper;
-var texture = ObjectCaptureHelper.CaptureObject(obj, path);
-
-// 新コード（推奨）
-using AMU.Editor.Core.API;
-var texture = ObjectCaptureAPI.CaptureObject(obj, path);
-```
-
-##### PipelineManagerHelper
-```csharp
-namespace AMU.Editor.Core.Helper
-{
-    [System.Obsolete("Use AMU.Editor.Core.API.VRChatAPI instead", false)]
-    public static class PipelineManagerHelper
-    {
-        [System.Obsolete("Use AMU.Editor.Core.API.VRChatAPI.GetBlueprintId instead", false)]
-        public static string GetBlueprintId(GameObject go)
-        {
-            return VRChatAPI.GetBlueprintId(go);
-        }
-
-        [System.Obsolete("Use AMU.Editor.Core.API.VRChatAPI.IsVRCAvatar instead", false)]
-        public static bool isVRCAvatar(GameObject obj)
-        {
-            return VRChatAPI.IsVRCAvatar(obj);
-        }
-    }
-}
-```
-
-**移行パス:**
-```csharp
-// 旧コード（非推奨警告が表示される）
-using AMU.Editor.Core.Helper;
-var blueprintId = PipelineManagerHelper.GetBlueprintId(avatar);
-bool isVRC = PipelineManagerHelper.isVRCAvatar(obj);
-
-// 新コード（推奨）
-using AMU.Editor.Core.API;
-var blueprintId = VRChatAPI.GetBlueprintId(avatar);
-bool isVRC = VRChatAPI.IsVRCAvatar(obj);
-```
-
-##### AMUInitializer
-```csharp
-namespace AMU.Editor.Initializer
-{
-    [System.Obsolete("Use AMU.Editor.Core.Services.InitializationService instead", false)]
-    public static class AMUInitializer
-    {
-        [System.Obsolete("Initialization is now handled automatically by InitializationService", false)]
-        public static void Initialize()
-        {
-            InitializationService.Initialize();
-        }
-    }
-}
-```
-
-**移行パス:**
-```csharp
-// 旧コード（非推奨警告が表示される）
-using AMU.Editor.Initializer;
-AMUInitializer.Initialize();
-
-// 新コード（通常は自動実行されるため手動呼び出し不要）
-using AMU.Editor.Core.Services;
-InitializationService.Initialize(); // 必要に応じて
 ```
 
 ## エラーハンドリング
@@ -266,43 +176,3 @@ private static void InitializeTagTypeManager()
     }
 }
 ```
-
-## 依存関係
-
-### 初期化順序の重要性
-
-1. **EditorPrefs** → 他のコンポーネントの設定に必要
-2. **TagTypeManager** → データ構造の基盤
-3. **Localization** → UI表示に必要
-
-### 循環依存の回避
-
-各サービスは以下のルールに従って依存関係を管理します：
-
-- **Services** → **Controllers** → **Data**
-- **API** → **Controllers**
-- **UI** → **API** + **Controllers**
-
-## 拡張ガイド
-
-### 新しい初期化処理の追加
-
-1. **メソッド追加**: `InitializationService` に新しい初期化メソッドを追加
-2. **順序考慮**: 依存関係を考慮した初期化順序
-3. **エラーハンドリング**: 失敗時の適切な処理
-4. **ログ出力**: 成功/失敗の適切なログ
-5. **再初期化対応**: `Reinitialize` メソッドへの対応
-
-### 後方互換性エイリアスの追加
-
-1. **非推奨マーク**: `[System.Obsolete]` 属性の使用
-2. **適切なメッセージ**: 移行先の明確な指示
-3. **機能維持**: 既存の動作を完全に保持
-4. **段階的廃止**: 将来的な削除計画
-
-### サービスの拡張
-
-1. **独立性**: 他のサービスへの依存を最小化
-2. **テスタビリティ**: 単体テストが可能な設計
-3. **設定可能性**: 動作をカスタマイズ可能に
-4. **モニタリング**: 適切なログとメトリクス

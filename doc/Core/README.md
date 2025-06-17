@@ -2,18 +2,20 @@
 
 ## 概要
 
-Coreモジュールは、AvatarModifyUtilities（AMU）の中核機能を提供する基盤モジュールです。以下の4つの明確な層に分離されています：
+Coreモジュールは、AvatarModifyUtilities（AMU）の中核機能を提供する基盤モジュールです。以下の6つの明確な層に分離されています：
 
 - **API層**: 外部から呼び出される公開機能
 - **Controllers層**: 永続データの管理
 - **Services層**: 初期化処理とサービス機能
 - **UI層**: ユーザーインターフェース
+- **Schema層**: データ構造とスキーマ定義
+- **Data層**: 具体的なデータ定義
 
 ## ディレクトリ構造
 
 ```
 Core/
-├── API/                    # 外部公開API
+├── Api/                    # 外部公開API
 │   ├── ObjectCaptureAPI.cs # オブジェクトキャプチャ機能
 │   └── VRChatAPI.cs        # VRChat関連機能
 ├── Controllers/            # データコントローラ
@@ -23,13 +25,19 @@ Core/
 │   ├── InitializationService.cs       # 初期化サービス
 │   └── BackwardCompatibilityAliases.cs # 後方互換性エイリアス
 ├── Data/                   # データ定義
+│   ├── Setting.cs          # 設定データ定義
+│   └── lang/               # 言語ファイル
+│       ├── ja_jp.json      # 日本語ローカライゼーション
+│       └── en_us.json      # 英語ローカライゼーション
+├── Schema/                 # スキーマ定義
+│   └── SettingItem.cs      # 設定項目のスキーマ定義
 └── UI/                     # UI関連
     └── SettingWindow.cs    # 設定ウィンドウ
 ```
 
 ## 層の詳細
 
-### API層 (`Core/API/`)
+### API層 (`Core/Api/`)
 
 外部モジュールから呼び出される公開機能を提供します。
 
@@ -99,7 +107,6 @@ Core/
   - エラーハンドリング
 - **初期化対象**:
   - EditorPrefs設定
-  - TagTypeManager
   - ローカライゼーション
 
 #### BackwardCompatibilityAliases
@@ -108,3 +115,45 @@ Core/
   - `ObjectCaptureHelper` → `ObjectCaptureAPI`
   - `PipelineManagerHelper` → `VRChatAPI`
   - `AMUInitializer` → `InitializationService`
+
+### Schema層 (`Core/Schema/`)
+
+データ構造とスキーマ定義を管理します。
+
+#### SettingItem
+- **目的**: 設定項目の型定義とメタデータ管理
+- **機能**:
+  - 型安全な設定項目定義
+  - UI自動生成のための情報提供
+  - デフォルト値と制約の管理
+- **提供する設定項目型**:
+  - `StringSettingItem`: 文字列型設定
+  - `IntSettingItem`: 整数型設定
+  - `BoolSettingItem`: 真偽値型設定
+  - `FloatSettingItem`: 浮動小数点型設定
+  - `ChoiceSettingItem`: 選択肢型設定
+  - `FilePathSettingItem`: ファイルパス型設定
+  - `TextAreaSettingItem`: テキストエリア型設定
+
+### Data層 (`Core/Data/`)
+
+具体的なデータ定義を管理します。
+
+#### SettingData
+- **目的**: AMU Coreモジュールの設定項目定義
+- **機能**:
+  - 設定項目のカテゴリ別整理
+  - デフォルト値の定義
+  - 設定項目の集中管理
+- **現在の設定カテゴリ**:
+  - `Core_general`: 言語、データフォルダ、バージョン情報など
+
+#### 言語ファイル (`Data/lang/`)
+- **目的**: 多言語対応のためのローカライゼーションデータ
+- **サポート言語**:
+  - 日本語 (`ja_jp.json`)
+  - 英語 (`en_us.json`)
+- **機能**:
+  - UI要素のテキスト翻訳
+  - 設定項目名の翻訳
+  - エラーメッセージの翻訳
