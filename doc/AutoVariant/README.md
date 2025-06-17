@@ -80,12 +80,8 @@ AutoVariantの設定は、Coreモジュールの統一設定システムを使�
 
 ```csharp
 using AMU.Editor.Core.Controllers;
-using AMU.Editor.AutoVariant.Schema;
 
-// 設定値の取得（推奨方法）
-bool enabled = PrebuildSettings.IsAutoVariantEnabled;
-
-// または、SettingsControllerを直接使用
+// 設定値の取得
 bool enabled = SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false);
 
 // 設定値の変更
@@ -138,16 +134,6 @@ SettingsController.SetSetting("AutoVariant_enableAutoVariant", true);
 
 ### Schema層 (`AutoVariant/Schema/`)
 
-データ構造とスキーマ定義を担当します。
-
-#### PrebuildSettings
-- **目的**: ビルド前処理の設定スキーマ
-- **プロパティ**:
-  - `IsOptimizationEnabled`: 最適化有効フラグ
-  - `IncludeAllAssets`: 全アセット含有フラグ
-  - `CurrentLanguage`: 現在の言語設定
-  - `BaseDirectoryPath`: ベースディレクトリパス
-  - `IsAutoVariantEnabled`: AutoVariant有効フラグ
 
 ### Data層 (`AutoVariant/Data/`)
 
@@ -189,10 +175,3 @@ SettingsController.SetSetting("AutoVariant_enableAutoVariant", true);
 - **Core.Schema**: SettingItem
 - **VRChatSDK**: IVRCSDKBuildRequestedCallback
 - **Unity Editor**: PrefabUtility, AssetDatabase, EditorPrefs
-
-## 今後の拡張予定
-
-1. **UI層の実装**: 専用設定ウィンドウの追加
-2. **多言語対応の強化**: ローカライゼーション機能の統合
-3. **ログ管理の改善**: 統一ログシステムの導入
-4. **エラーハンドリングの強化**: より詳細なエラー情報の提供

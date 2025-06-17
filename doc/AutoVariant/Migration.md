@@ -6,10 +6,14 @@
 
 ## 重要な変更点
 
-### Controllers層の削除
+## 重要な変更点
+
+### Controllers層とSchema層の削除
 - **AutoVariantController.cs が削除されました**
-- 設定管理は Core.Controllers.SettingsController に統合
+- **PrebuildSettings.cs が削除されました**
+- 設定管理は Core.Controllers.SettingsController に完全統合
 - 設定の初期化は Core システムで自動実行
+- 冗長なラッパークラスを排除し、直接的な設定アクセスに統一
 
 ## リファクタリング前後の対応表
 
@@ -19,12 +23,12 @@
 |--------|--------|----------|
 | `Helper/MaterialHelper.cs` | `Api/MaterialVariantAPI.cs` | 外部公開APIとして整理 |
 | `Watcher/AvatarExporter.cs` | `Api/AvatarExportAPI.cs` | 外部公開APIとして整理 |
-| なし | **削除** | **設定管理はCoreに統合** |
+| `Controllers/AutoVariantController.cs` | **削除** | **設定管理はCoreに統合** |
 | `Watcher/ConvertVariant.cs` | `Services/ConvertVariantService.cs` | サービス層として整理 |
 | `Watcher/MaterialOptimizationManager.cs` | `Services/MaterialOptimizationService.cs` | サービス層として整理 |
 | `Watcher/AvatarValidator.cs` | `Services/AvatarValidationService.cs` | サービス層として整理 |
 | `Watcher/Prebuild.cs` | `Services/PrebuildService.cs` | サービス層として整理 |
-| `Watcher/PrebuildSettings.cs` | `Schema/PrebuildSettings.cs` | スキーマ層として整理 |
+| `Schema/PrebuildSettings.cs` | **削除** | **設定管理はCoreに統合** |
 | `Data/Setting.cs` | `Data/Setting.cs` | 変更なし |
 
 ### クラス名とメソッドの変更
@@ -149,42 +153,53 @@ if (!exported)
 ```csharp
 // EditorPrefsに直接アクセス
 bool enabled = EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", false);
+
+// AutoVariantControllerを使用
+bool enabled = AutoVariantController.IsAutoVariantEnabled();
+
+// PrebuildSettingsを使用
+bool enabled = PrebuildSettings.IsAutoVariantEnabled;
 ```
 
 #### 移行後
 ```csharp
 using AMU.Editor.Core.Controllers;
-using AMU.Editor.AutoVariant.Schema;
 
-// Schemaを通したアクセス（推奨）
-bool enabled = PrebuildSettings.IsAutoVariantEnabled;
-
-// または、SettingsControllerを直接使用
+// SettingsControllerを直接使用（推奨）
 bool enabled = SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false);
+
+// 設定値の変更
+SettingsController.SetSetting("AutoVariant_enableAutoVariant", true);
 ```
 
-### AutoVariantController の削除対応
+### AutoVariantControllerとPrebuildSettingsの削除対応
 
 #### 移行前
 ```csharp
 using AMU.Editor.AutoVariant.Controllers;
+using AMU.Editor.AutoVariant.Schema;
 
 // AutoVariantControllerを使用
 bool enabled = AutoVariantController.IsAutoVariantEnabled();
 AutoVariantController.SetAutoVariantEnabled(true);
 AutoVariantController.InitializeSettings();
+
+// PrebuildSettingsを使用
+bool optimization = PrebuildSettings.IsOptimizationEnabled;
+string language = PrebuildSettings.CurrentLanguage;
 ```
 
 #### 移行後
 ```csharp
 using AMU.Editor.Core.Controllers;
-using AMU.Editor.AutoVariant.Schema;
 
-// Schema経由でのアクセス（読み取り）
-bool enabled = PrebuildSettings.IsAutoVariantEnabled;
-
-// SettingsController経由での設定変更
+// SettingsController経由での直接アクセス
+bool enabled = SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false);
 SettingsController.SetSetting("AutoVariant_enableAutoVariant", true);
+
+// その他の設定項目も同様に
+bool optimization = SettingsController.GetSetting<bool>("AutoVariant_enablePrebuild", true);
+string language = SettingsController.GetSetting<string>("Core_language", "ja");
 
 // 初期化はCore.Controllers.SettingsControllerが自動実行
 // 手動初期化は不要
@@ -201,11 +216,12 @@ SettingsController.SetSetting("AutoVariant_enableAutoVariant", true);
 - `PrefabAdditionDetector` → `ConvertVariantService`
 - `MyPreBuildProcess` → `PrebuildService`
 - **`AutoVariantController` → 削除（Coreに統合）**
+- **`PrebuildSettings` → 削除（Coreに統合）**
 
 ### 3. 名前空間の変更
 - すべてのクラスが新しい名前空間に移動
 - `using`文の更新が必要
-- **Controllers層が削除**
+- **Controllers層とSchema層が削除**
 
 ### 4. メソッドアクセスの変更
 - 一部のprivateメソッドがinternalに変更
@@ -239,11 +255,13 @@ if (!result)
 
 ### 3. 型安全な設定アクセス
 ```csharp
-using AMU.Editor.AutoVariant.Schema;
+using AMU.Editor.Core.Controllers;
 
-// 型安全な設定値取得
-bool optimization = PrebuildSettings.IsOptimizationEnabled;
-string language = PrebuildSettings.CurrentLanguage;
+// 直接的な設定値取得
+bool autoVariant = SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false);
+bool prebuild = SettingsController.GetSetting<bool>("AutoVariant_enablePrebuild", true);
+bool includeAssets = SettingsController.GetSetting<bool>("AutoVariant_includeAllAssets", true);
+string language = SettingsController.GetSetting<string>("Core_language", "ja");
 ```
 
 ## 移行チェックリスト
@@ -280,10 +298,10 @@ string language = PrebuildSettings.CurrentLanguage;
 
 ### 実行時エラー
 1. **設定値が反映されない**
-   - `AutoVariantController.InitializeSettings()`の実行確認
+   - `SettingsController.GetSetting`/`SetSetting`の使用を確認
 
 2. **機能が動作しない**
-   - 設定の有効性を`AutoVariantController`で確認
+   - 設定の有効性を`SettingsController`で確認
 
 3. **エクスポートが失敗する**
    - `AvatarExportAPI`の戻り値を確認してエラー原因を特定
@@ -298,20 +316,20 @@ string language = PrebuildSettings.CurrentLanguage;
 - `[MaterialOptimizationService]`
 - `[AvatarValidationService]`
 - `[PrebuildService]`
-- `[AutoVariantController]`
 
 ### デバッグ情報の取得
 ```csharp
-// 設定状態の確認
-Debug.Log($"AutoVariant Enabled: {AutoVariantController.IsAutoVariantEnabled()}");
-Debug.Log($"Prebuild Enabled: {AutoVariantController.IsPrebuildEnabled()}");
-Debug.Log($"Include All Assets: {AutoVariantController.GetIncludeAllAssets()}");
+using AMU.Editor.Core.Controllers;
 
-// 設定の検証
-if (!AutoVariantController.ValidateSettings())
-{
-    Debug.LogWarning("設定に問題があります");
-}
+// 設定状態の確認
+Debug.Log($"AutoVariant Enabled: {SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false)}");
+Debug.Log($"Prebuild Enabled: {SettingsController.GetSetting<bool>("AutoVariant_enablePrebuild", true)}");
+Debug.Log($"Include All Assets: {SettingsController.GetSetting<bool>("AutoVariant_includeAllAssets", true)}");
+
+// 設定の保存確認
+SettingsController.SaveSettings();
 ```
 
-このリファクタリングにより、コードの保守性、拡張性、テスト容易性が大幅に向上しました。移行作業が完了したら、旧ディレクトリ（Helper/、Watcher/）の削除を推奨します。
+このリファクタリングにより、コードの保守性、拡張性、テスト容易性が大幅に向上しました。移行作業が完了したら、旧ディレクトリ（Helper/、Watcher/、Controllers/、Schema/）の削除を推奨します。
+
+注意: AutoVariantControllerとPrebuildSettingsは完全に削除され、全ての設定管理はCore.Controllers.SettingsControllerに統合されました。
