@@ -60,6 +60,7 @@ namespace AMU.Editor.Core.UI
             LocalizationController.LoadLanguage(lang);
             InitializeSettings();
         }
+
         void OnGUI()
         {
             using (new GUILayout.HorizontalScope())
