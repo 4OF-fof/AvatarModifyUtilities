@@ -42,7 +42,7 @@ namespace AMU.AssetManager.UI
         private Vector2 _leftScrollPosition = Vector2.zero;
         private Vector2 _rightScrollPosition = Vector2.zero;
         private string _searchText = "";
-        private string _selectedAssetType = "Avatar";
+        private string _selectedAssetType = "";
         private AssetFilterType _currentFilter = AssetFilterType.All;
         private int _selectedSortOption = 1;
         private bool _sortDescending = true;        // Advanced Search
@@ -1170,8 +1170,8 @@ namespace AMU.AssetManager.UI
                 }
 
                 string favoriteText = asset.isFavorite ?
-                    LocalizationManager.GetText("AssetManager_removeFromFavorites") :
-                    LocalizationManager.GetText("AssetManager_addToFavorites");
+                                      LocalizationManager.GetText("AssetManager_removeFromFavorites") :
+                                      LocalizationManager.GetText("AssetManager_addToFavorites");
                 menu.AddItem(new GUIContent(favoriteText), false, () =>
                 {
                     asset.isFavorite = !asset.isFavorite;
@@ -1180,9 +1180,10 @@ namespace AMU.AssetManager.UI
                     _selectedAsset = null;
                     _needsUIRefresh = true;
                 });
-                menu.AddSeparator(""); string hiddenText = asset.isHidden ?
-     LocalizationManager.GetText("AssetManager_restoreFromArchive") :
-     LocalizationManager.GetText("AssetManager_archiveAsset");
+                menu.AddSeparator("");
+                string hiddenText = asset.isHidden ?
+                                    LocalizationManager.GetText("AssetManager_restoreFromArchive") :
+                                    LocalizationManager.GetText("AssetManager_archiveAsset");
                 menu.AddItem(new GUIContent(hiddenText), false, () =>
                 {
                     asset.isHidden = !asset.isHidden;
