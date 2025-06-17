@@ -3,36 +3,6 @@ using System.IO;
 using UnityEngine;
 using Newtonsoft.Json;
 
-namespace AMU.Data.Lang
-{
-    /// <summary>
-    /// ローカライゼーション機能を管理するマネージャー（後方互換性のため）
-    /// </summary>
-    public static partial class LocalizationManager
-    {
-        /// <summary>
-        /// 現在の言語コード
-        /// </summary>
-        public static string CurrentLanguage => AMU.Editor.Core.Controllers.LocalizationController.CurrentLanguage;
-
-        /// <summary>
-        /// 指定された言語コードの言語ファイルを読み込みます
-        /// </summary>
-        public static void LoadLanguage(string languageCode)
-        {
-            AMU.Editor.Core.Controllers.LocalizationController.LoadLanguage(languageCode);
-        }
-
-        /// <summary>
-        /// 指定されたキーのローカライズされたテキストを取得します
-        /// </summary>
-        public static string GetText(string key)
-        {
-            return AMU.Editor.Core.Controllers.LocalizationController.GetText(key);
-        }
-    }
-}
-
 namespace AMU.Editor.Core.Controllers
 {
     /// <summary>
