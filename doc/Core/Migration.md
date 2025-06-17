@@ -194,6 +194,24 @@ public class CustomInitializer
 - クラス名: `AMUInitializer` → `InitializationService`
 - 初期化は自動実行されるため、通常は手動呼び出し不要
 
+### TagTypeManager初期化の責任移行（2025年6月）
+
+TagTypeManagerの初期化責任をCore/InitializationServiceからAssetManager/AssetDataManagerに移行しました。
+
+#### 変更理由
+- TagTypeManagerはAssetManager専用の機能であり、Coreに依存させるべきではない
+- アーキテクチャの独立性を保つため
+- AssetManagerがタグタイプシステムの完全な責任を持つべき
+
+#### 変更内容
+- `InitializationService.InitializeTagTypeManager()` → **削除**
+- `AssetDataManager.Initialize()` にTagTypeManager初期化処理を追加
+- AssetManagerを使用する際に自動的にTagTypeManagerが初期化される
+
+#### 影響
+- TagTypeManagerを直接使用している場合は、事前にAssetManagerを初期化してください
+- 既存のAssetManagerウィンドウ経由での使用では変更不要
+
 ## 新しい機能の活用
 
 ### 設定管理の改善

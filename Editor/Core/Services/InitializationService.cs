@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEditor;
-using AMU.Data.TagType;
 using AMU.Editor.Core.Controllers;
 
 namespace AMU.Editor.Core.Services
@@ -29,9 +28,6 @@ namespace AMU.Editor.Core.Services
                 // EditorPrefsの初期化
                 InitializeEditorPrefs();
 
-                // TagTypeManagerの初期化
-                InitializeTagTypeManager();
-
                 // ローカライゼーションの初期化
                 InitializeLocalization();
 
@@ -49,23 +45,6 @@ namespace AMU.Editor.Core.Services
         private static void InitializeEditorPrefs()
         {
             SettingsController.InitializeEditorPrefs();
-        }
-
-        /// <summary>
-        /// TagTypeManagerの初期化を実行します
-        /// </summary>
-        private static void InitializeTagTypeManager()
-        {
-            try
-            {
-                // TagTypeManagerのデータを読み込み
-                TagTypeManager.LoadData();
-                Debug.Log("[InitializationService] TagTypeManager initialized successfully.");
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogError($"[InitializationService] TagTypeManager initialization failed: {ex.Message}");
-            }
         }
 
         /// <summary>
@@ -96,9 +75,6 @@ namespace AMU.Editor.Core.Services
                 case InitializationComponent.EditorPrefs:
                     InitializeEditorPrefs();
                     break;
-                case InitializationComponent.TagTypeManager:
-                    InitializeTagTypeManager();
-                    break;
                 case InitializationComponent.Localization:
                     InitializeLocalization();
                     break;
@@ -115,7 +91,6 @@ namespace AMU.Editor.Core.Services
     public enum InitializationComponent
     {
         EditorPrefs,
-        TagTypeManager,
         Localization,
         All
     }
