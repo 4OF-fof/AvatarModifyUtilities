@@ -22,7 +22,8 @@ Core/
 │   ├── InitializationService.cs       # 初期化サービス
 │   └── BackwardCompatibilityAliases.cs # 後方互換性エイリアス
 ├── Data/                   # データ定義
-└── UI/                     # UI関連（変更なし）
+└── UI/                     # UI関連
+    └── SettingWindow.cs    # 設定ウィンドウ
 ```
 
 ## 層の詳細
@@ -67,6 +68,23 @@ Core/
   - `InitializeEditorPrefs()`: 設定初期化
   - `GetSetting<T>(string, T)`: 設定値取得
   - `SetSetting<T>(string, T)`: 設定値保存
+
+### UI層 (`Core/UI/`)
+
+ユーザーインターフェースの描画と操作を担当します。
+
+#### SettingWindow
+- **目的**: 設定画面のUI管理
+- **機能**:
+  - 多言語対応インターフェース
+  - 設定項目の動的表示
+  - 検索・フィルタリング機能
+  - レスポンシブレイアウト
+- **主要メソッド**:
+  - `ShowWindow()`: 設定ウィンドウを開く
+- **依存関係**: 
+  - LocalizationController（ローカライゼーション）
+  - SettingsController（設定管理）
 
 ### Services層 (`Core/Services/`)
 
@@ -113,6 +131,10 @@ var value = SettingsController.GetSetting<string>("MySettingKey", "DefaultValue"
 using AMU.Editor.Core.Controllers;
 LocalizationController.LoadLanguage("en_us");
 var text = LocalizationController.GetText("ui_button_save");
+
+// UI表示
+using AMU.Editor.Core.UI;
+SettingWindow.ShowWindow();
 ```
 
 ### 後方互換性
@@ -169,6 +191,6 @@ var texture = ObjectCaptureAPI.CaptureObject(gameObject, "path.png");
 
 ### 注意事項
 
-- UIの変更は今回のリファクタリング対象外
-- 既存のUI依存関係は維持
+- UI機能は2025年6月のリファクタリングで新しい層構造に対応完了
+- UIコンポーネントは`AMU.Editor.Core.UI`名前空間を使用
 - 新しい機能は新しい層構造に従って実装

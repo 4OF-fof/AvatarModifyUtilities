@@ -107,7 +107,7 @@ namespace AMU.Editor.Core.Controllers
         /// <summary>
         /// 全ての設定項目を取得します
         /// </summary>
-        private static System.Collections.Generic.Dictionary<string, SettingItem[]> GetAllSettingItems()
+        public static System.Collections.Generic.Dictionary<string, SettingItem[]> GetAllSettingItems()
         {
             var dictList = new System.Collections.Generic.List<System.Collections.Generic.Dictionary<string, SettingItem[]>>();
             var asm = typeof(SettingsController).Assembly;
