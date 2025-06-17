@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System;
 using AMU.Editor.Core.Helper;
+using AMU.Editor.Core.Controllers;
 
 namespace AMU.Editor.AutoVariant.Api
 {
@@ -105,7 +106,7 @@ namespace AMU.Editor.AutoVariant.Api
 
         private static string CreateExportDirectory(string blueprintId)
         {
-            var basePath = EditorPrefs.GetString("Setting.Core_dirPath",
+            var basePath = SettingsController.GetSetting<string>("Core_dirPath",
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
 
             EnsureDirectoryExists(basePath);
@@ -155,7 +156,7 @@ namespace AMU.Editor.AutoVariant.Api
         private static List<string> CollectAvatarAssets(GameObject avatar)
         {
             var assetPaths = new List<string>();
-            var includeAllAssets = EditorPrefs.GetBool("Setting.AutoVariant_includeAllAssets", true);
+            var includeAllAssets = SettingsController.GetSetting<bool>("AutoVariant_includeAllAssets", true);
 
             var avatarPrefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(avatar);
             if (string.IsNullOrEmpty(avatarPrefabPath))

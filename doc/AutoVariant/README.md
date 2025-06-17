@@ -2,11 +2,10 @@
 
 ## 概要
 
-AutoVariantモジュールは、VRChatアバター用のプレハブバリアント自動生成と最適化機能を提供するモジュールです。以下の4つの明確な層に分離されています：
+AutoVariantモジュールは、VRChatアバター用のプレハブバリアント自動生成と最適化機能を提供するモジュールです。以下の3つの明確な層に分離されています：
 
 - **API層**: 外部から呼び出される公開機能
 - **Services層**: 初期化処理とサービス機能
-- **Schema層**: データ構造とスキーマ定義
 - **Data層**: 具体的なデータ定義
 
 設定管理は、Coreモジュールの統一システム（Core.Controllers.SettingsController）を使用します。
@@ -23,11 +22,9 @@ AutoVariant/
 │   ├── MaterialOptimizationService.cs # マテリアル最適化サービス
 │   ├── AvatarValidationService.cs  # アバター検証サービス
 │   └── PrebuildService.cs          # ビルド前処理サービス
-├── Data/                           # データ定義
-│   ├── Setting.cs                  # 設定データ定義
-│   └── lang/                       # 言語ファイル
-└── Schema/                         # スキーマ定義
-    └── PrebuildSettings.cs         # ビルド設定スキーマ定義
+└── Data/                           # データ定義
+    ├── Setting.cs                  # 設定データ定義
+    └── lang/                       # 言語ファイル
 ```
 
 ## 主要機能

@@ -4,7 +4,6 @@ using UnityEditor.SceneManagement;
 using System.IO;
 using AMU.Editor.Core.Helper;
 using AMU.Editor.Core.Controllers;
-using AMU.Editor.AutoVariant.Schema;
 
 namespace AMU.Editor.AutoVariant.Services
 {
@@ -30,7 +29,7 @@ namespace AMU.Editor.AutoVariant.Services
         /// </summary>
         public static void Initialize()
         {
-            if (!PrebuildSettings.IsAutoVariantEnabled)
+            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false))
                 return;
 
             EditorApplication.hierarchyChanged += OnHierarchyChanged;
@@ -57,7 +56,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static void OnHierarchyChanged()
         {
-            if (!PrebuildSettings.IsAutoVariantEnabled)
+            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false))
                 return;
             if (isProcessing)
                 return;
@@ -87,7 +86,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static System.Collections.Generic.List<GameObject> FindAddedPrefabRoots()
         {
-            if (!PrebuildSettings.IsAutoVariantEnabled)
+            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false))
                 return new System.Collections.Generic.List<GameObject>();
 
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
@@ -122,7 +121,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static void HandlePrefabAddition(GameObject go)
         {
-            if (!PrebuildSettings.IsAutoVariantEnabled)
+            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false))
                 return;
 
             var blueprintId = PipelineManagerHelper.GetBlueprintId(go);
@@ -170,7 +169,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static void EnsureVariantDirectoryExists(string variantDir)
         {
-            if (!PrebuildSettings.IsAutoVariantEnabled)
+            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false))
                 return;
             if (!AssetDatabase.IsValidFolder(variantDir))
             {
@@ -234,7 +233,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static void ReplaceWithVariant(GameObject original, string variantPath)
         {
-            if (!PrebuildSettings.IsAutoVariantEnabled)
+            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false))
                 return;
             var variantPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(variantPath);
             if (variantPrefab == null)

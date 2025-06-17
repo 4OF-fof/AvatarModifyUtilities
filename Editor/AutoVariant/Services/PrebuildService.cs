@@ -1,5 +1,5 @@
 using VRC.SDKBase.Editor.BuildPipeline;
-using AMU.Editor.AutoVariant.Schema;
+using AMU.Editor.Core.Controllers;
 
 namespace AMU.Editor.AutoVariant.Services
 {
@@ -25,7 +25,7 @@ namespace AMU.Editor.AutoVariant.Services
             }
 
             // 最適化処理の実行
-            if (PrebuildSettings.IsOptimizationEnabled)
+            if (SettingsController.GetSetting<bool>("AutoVariant_enablePrebuild", true))
             {
                 MaterialOptimizationService.OptimizeActiveAvatars();
             }
