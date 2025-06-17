@@ -343,3 +343,51 @@ SettingsController.SaveSettings();
 このリファクタリングにより、コードの保守性、拡張性、テスト容易性が大幅に向上しました。移行作業が完了したら、旧ディレクトリ（Helper/、Watcher/、Controllers/、Schema/）の削除を推奨します。
 
 注意: AutoVariantControllerとPrebuildSettingsは完全に削除され、全ての設定管理はCore.Controllers.SettingsControllerに統合されました。
+
+## 最新の変更履歴
+
+### 2025年6月18日: API移行とコード整理
+
+**主要な変更:**
+
+#### 1. ローカライゼーション API 移行
+```csharp
+// 変更前
+using AMU.Data.Lang;
+var text = LocalizationManager.GetText("key");
+
+// 変更後
+using AMU.Editor.Core.Controllers;
+var text = LocalizationController.GetText("key");
+```
+
+#### 2. Helper API から Core API への移行
+```csharp
+// 変更前
+using AMU.Editor.Core.Helper;
+var texture = ObjectCaptureHelper.CaptureObject(avatar, path, 512, 512);
+var blueprintId = PipelineManagerHelper.GetBlueprintId(avatar);
+
+// 変更後
+using AMU.Editor.Core.API;
+var texture = ObjectCaptureAPI.CaptureObject(avatar, path, 512, 512);
+var blueprintId = VRChatAPI.GetBlueprintId(avatar);
+```
+
+#### 3. 不要なusing削除
+- 実際に使用されていないusingディレクティブを削除
+- `UnityEditor.SceneManagement`を追加（PrefabStageUtility用）
+
+**影響を受けるファイル:**
+- AvatarExportService.cs
+- AvatarValidationService.cs
+- ConvertVariantService.cs
+- MaterialOptimizationService.cs
+- MaterialVariantService.cs
+- Setting.cs
+
+**移行の利点:**
+- より一貫性のあるAPI設計
+- 後方互換性のためのエイリアスから正式APIへの移行
+- フォールバック機能付きローカライゼーション
+- コードの保守性向上

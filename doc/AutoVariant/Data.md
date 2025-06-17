@@ -248,7 +248,7 @@ foreach (var category in AutoVariantSettingData.SettingItems)
 ### 言語ファイルの確認方法
 ```csharp
 // 現在の言語設定での翻訳確認
-string currentLang = EditorPrefs.GetString("Setting.Core_language", "en_us");
+string currentLang = SettingsController.GetSetting<string>("Core_language", "ja_jp");
 Debug.Log($"Current Language: {currentLang}");
 
 // 特定キーの翻訳確認

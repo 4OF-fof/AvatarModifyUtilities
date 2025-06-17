@@ -233,10 +233,10 @@ ConvertVariantService → MaterialOptimizationService → AvatarExportAPI
 - 設定への直接依存なし（API層経由で間接的に依存）
 
 ### AvatarValidationService
-- `Setting.Core_language`: エラーメッセージの言語選択
+- `SettingsController.GetSetting<string>("Core_language")`: エラーメッセージの言語選択（LocalizationController経由）
 
 ### PrebuildService
-- `Setting.AutoVariant_enablePrebuild`: 最適化処理の有効性制御
+- `SettingsController.GetSetting<bool>("AutoVariant_enablePrebuild")`: 最適化処理の有効性制御
 
 ## 今後の改善予定
 

@@ -161,8 +161,8 @@ SettingsController.SetSetting("AutoVariant_enableAutoVariant", true);
 
 ## 依存関係
 
-- **Core.Controllers**: SettingsController（設定管理）
-- **Core.Helper**: PipelineManagerHelper, ObjectCaptureHelper
+- **Core.Controllers**: SettingsController（設定管理）, LocalizationController（多言語化）
+- **Core.API**: VRChatAPI, ObjectCaptureAPI
 - **Core.Schema**: SettingItem
 - **VRChatSDK**: IVRCSDKBuildRequestedCallback
-- **Unity Editor**: PrefabUtility, AssetDatabase, EditorPrefs
+- **Unity Editor**: PrefabUtility, AssetDatabase, EditorPrefs, SceneManagement
