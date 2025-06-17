@@ -433,8 +433,7 @@ namespace AMU.AssetManager.UI
 
             _packageHeaderStyle = new GUIStyle(EditorStyles.boldLabel)
             {
-                fontSize = 12,
-                normal = { textColor = new Color(0.8f, 0.9f, 1.0f) }
+                fontSize = 12
             };
 
             _fileItemStyle = new GUIStyle(EditorStyles.label)
@@ -458,11 +457,10 @@ namespace AMU.AssetManager.UI
             var allTypes = AssetTypeManager.AllTypes;
             _assetTypeOptions = allTypes.ToArray();
 
-            // デフォルトで "Assets" を選択
             _defaultAssetTypeIndex = 0;
             for (int i = 0; i < _assetTypeOptions.Length; i++)
             {
-                if (_assetTypeOptions[i] == "Assets")
+                if (_assetTypeOptions[i] == "Other")
                 {
                     _defaultAssetTypeIndex = i;
                     break;
