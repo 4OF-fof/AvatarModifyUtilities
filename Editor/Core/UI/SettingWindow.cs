@@ -4,7 +4,8 @@ using UnityEditor;
 using System.Linq;
 using System.Reflection;
 using AMU.Data;
-using AMU.Data.Setting;
+using AMU.Editor.Setting;
+using AMU.Editor.Core.Schema;
 using AMU.Editor.Core.Controllers;
 
 namespace AMU.Editor.Core.UI
@@ -22,7 +23,9 @@ namespace AMU.Editor.Core.UI
         private string[] menuItems;
         private int selectedMenu = 0;
         private string menuSearch = "";
-        private Dictionary<string, AMU.Data.Setting.SettingItem[]> settingItems;[MenuItem("AMU/Setting", priority = 1000)]
+        private Dictionary<string, AMU.Editor.Core.Schema.SettingItem[]> settingItems;
+
+        [MenuItem("AMU/Setting", priority = 1000)]
         public static void ShowWindow()
         {
             string lang = SettingsController.GetSetting("Core_language", "en_us");
@@ -163,7 +166,7 @@ namespace AMU.Editor.Core.UI
             }
         }
 
-        private void DrawSettingItems(AMU.Data.Setting.SettingItem[] items)
+        private void DrawSettingItems(AMU.Editor.Core.Schema.SettingItem[] items)
         {
             bool hasResult = false;
             float prevLabelWidth = EditorGUIUtility.labelWidth;
@@ -175,7 +178,7 @@ namespace AMU.Editor.Core.UI
                     labelStyle.fontSize = (int)(EditorStyles.label.fontSize * 1.2f);
                     switch (item.Type)
                     {
-                        case AMU.Data.Setting.SettingType.String:
+                        case AMU.Editor.Core.Schema.SettingType.String:
                             {
                                 var stringItem = (StringSettingItem)item;
                                 string value = SettingsController.GetSetting(item.Name, stringItem.DefaultValue);
@@ -196,7 +199,7 @@ namespace AMU.Editor.Core.UI
                                 GUILayout.EndHorizontal();
                                 break;
                             }
-                        case AMU.Data.Setting.SettingType.Int:
+                        case AMU.Editor.Core.Schema.SettingType.Int:
                             {
                                 var intItem = (IntSettingItem)item;
                                 int value = SettingsController.GetSetting(item.Name, intItem.DefaultValue);
@@ -209,7 +212,7 @@ namespace AMU.Editor.Core.UI
                                     SettingsController.SetSetting(item.Name, newValue);
                                 break;
                             }
-                        case AMU.Data.Setting.SettingType.Bool:
+                        case AMU.Editor.Core.Schema.SettingType.Bool:
                             {
                                 bool value = SettingsController.GetSetting(item.Name, ((BoolSettingItem)item).DefaultValue);
                                 EditorGUI.BeginChangeCheck();
@@ -221,7 +224,7 @@ namespace AMU.Editor.Core.UI
                                     SettingsController.SetSetting(item.Name, newValue);
                                 break;
                             }
-                        case AMU.Data.Setting.SettingType.Float:
+                        case AMU.Editor.Core.Schema.SettingType.Float:
                             {
                                 var floatItem = (FloatSettingItem)item;
                                 float value = SettingsController.GetSetting(item.Name, floatItem.DefaultValue);
@@ -234,7 +237,7 @@ namespace AMU.Editor.Core.UI
                                     SettingsController.SetSetting(item.Name, newValue);
                                 break;
                             }
-                        case AMU.Data.Setting.SettingType.Choice:
+                        case AMU.Editor.Core.Schema.SettingType.Choice:
                             {
                                 var choiceItem = (ChoiceSettingItem)item;
                                 string value = SettingsController.GetSetting(item.Name, choiceItem.DefaultValue);
@@ -259,7 +262,7 @@ namespace AMU.Editor.Core.UI
                                 }
                                 break;
                             }
-                        case AMU.Data.Setting.SettingType.FilePath:
+                        case AMU.Editor.Core.Schema.SettingType.FilePath:
                             {
                                 var fileItem = (FilePathSettingItem)item;
                                 string value = SettingsController.GetSetting(item.Name, fileItem.DefaultValue);
@@ -283,7 +286,7 @@ namespace AMU.Editor.Core.UI
                                 GUILayout.EndHorizontal();
                                 break;
                             }
-                        case AMU.Data.Setting.SettingType.TextArea:
+                        case AMU.Editor.Core.Schema.SettingType.TextArea:
                             {
                                 var textAreaItem = (TextAreaSettingItem)item;
                                 string value = SettingsController.GetSetting(item.Name, textAreaItem.DefaultValue);

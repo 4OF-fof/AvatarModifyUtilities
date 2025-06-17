@@ -1,5 +1,6 @@
 using UnityEditor;
-using AMU.Data.Setting;
+using AMU.Editor.Setting;
+using AMU.Editor.Core.Schema;
 using System.Linq;
 using UnityEngine;
 
@@ -111,7 +112,7 @@ namespace AMU.Editor.Core.Controllers
         {
             var dictList = new System.Collections.Generic.List<System.Collections.Generic.Dictionary<string, SettingItem[]>>();
             var asm = typeof(SettingsController).Assembly;
-            var types = asm.GetTypes().Where(t => t.IsClass && t.IsAbstract && t.IsSealed && t.Namespace == "AMU.Data.Setting");
+            var types = asm.GetTypes().Where(t => t.IsClass && t.IsAbstract && t.IsSealed && t.Namespace == "AMU.Editor.Setting");
 
             foreach (var type in types)
             {
