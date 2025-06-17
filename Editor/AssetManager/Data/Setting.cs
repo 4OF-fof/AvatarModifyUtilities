@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using AMU.Data.Setting;
+using AMU.Editor.Core.Schema;
 
-namespace AMU.Data.Setting
+namespace AMU.Editor.Setting
 {
     public static class AssetManagerSettingData
     {

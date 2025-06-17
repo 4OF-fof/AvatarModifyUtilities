@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AMU.Data.Setting
+namespace AMU.Editor.Core.Schema
 {
     public enum SettingType { String, Int, Bool, Float, Choice, FilePath, TextArea }
 

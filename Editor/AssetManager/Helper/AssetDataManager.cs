@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEditor;
 using Newtonsoft.Json;
 using AMU.AssetManager.Data;
+using AMU.Data.TagType;
 
 namespace AMU.AssetManager.Helper
 {
@@ -98,6 +99,9 @@ namespace AMU.AssetManager.Helper
             // まず同期的にファイルの存在確認と作成を行う
             EnsureLibraryFileExists();
 
+            // TagTypeManagerの初期化（AssetManagerが管理するタグタイプ）
+            InitializeTagTypeManager();
+
             if (_assetLibrary == null && !_isLoading)
             {
                 LoadData();
@@ -130,6 +134,24 @@ namespace AMU.AssetManager.Helper
                 {
                     Debug.LogError($"[AssetDataManager] Failed to create AssetLibrary.json: {ex.Message}");
                 }
+            }
+        }
+
+        /// <summary>
+        /// TagTypeManagerの初期化を実行します
+        /// AssetManagerで管理するタグタイプシステムの初期化
+        /// </summary>
+        private void InitializeTagTypeManager()
+        {
+            try
+            {
+                // TagTypeManagerのデータを読み込み
+                AMU.Data.TagType.TagTypeManager.LoadData();
+                Debug.Log("[AssetDataManager] TagTypeManager initialized successfully.");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[AssetDataManager] TagTypeManager initialization failed: {ex.Message}");
             }
         }
 

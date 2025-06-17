@@ -1,10 +1,19 @@
-using UnityEngine;
 using System.Reflection;
 
-namespace AMU.Editor.Core.Helper
+using UnityEngine;
+
+namespace AMU.Editor.Core.API
 {
-    public static class PipelineManagerHelper
+    /// <summary>
+    /// VRChat関連の機能を提供するAPI
+    /// </summary>
+    public static class VRChatAPI
     {
+        /// <summary>
+        /// GameObjectからBlueprint IDを取得します
+        /// </summary>
+        /// <param name="go">対象のGameObject</param>
+        /// <returns>Blueprint ID（avtrで始まる場合のみ）、取得できない場合はnull</returns>
         public static string GetBlueprintId(GameObject go)
         {
             if (go == null) return null;
@@ -43,7 +52,12 @@ namespace AMU.Editor.Core.Helper
             return null;
         }
 
-        public static bool isVRCAvatar(GameObject obj)
+        /// <summary>
+        /// 指定されたGameObjectがVRCアバターかどうかを判定します
+        /// </summary>
+        /// <param name="obj">判定対象のGameObject</param>
+        /// <returns>VRCアバターの場合true、そうでなければfalse</returns>
+        public static bool IsVRCAvatar(GameObject obj)
         {
             if (obj == null) return false;
             var pipelineManager = obj.GetComponent("PipelineManager");

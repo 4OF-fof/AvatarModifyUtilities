@@ -1,22 +1,35 @@
-using UnityEngine;
-using UnityEditor;
 using System.IO;
 
-namespace AMU.Editor.Core.Helper
+using UnityEngine;
+using UnityEditor;
+using AMU.Editor.Core.Controllers;
+
+namespace AMU.Editor.Core.API
 {
-    public static class ObjectCaptureHelper
+    /// <summary>
+    /// オブジェクトキャプチャ機能を提供するAPI
+    /// </summary>
+    public static class ObjectCaptureAPI
     {
+        /// <summary>
+        /// 指定されたオブジェクトをキャプチャしてテクスチャとして保存します
+        /// </summary>
+        /// <param name="targetObject">キャプチャ対象のオブジェクト</param>
+        /// <param name="savePath">保存先パス</param>
+        /// <param name="width">キャプチャ幅</param>
+        /// <param name="height">キャプチャ高さ</param>
+        /// <returns>キャプチャされたテクスチャ</returns>
         public static Texture2D CaptureObject(GameObject targetObject, string savePath, int width = 512, int height = 512)
         {
             if (targetObject == null)
             {
-                Debug.LogError("Target object is null");
+                Debug.LogError(LocalizationController.GetText("message_error_target_null"));
                 return null;
             }
 
             if (string.IsNullOrEmpty(savePath))
             {
-                Debug.LogError("Save path is required");
+                Debug.LogError(LocalizationController.GetText("message_error_save_path_required"));
                 return null;
             }
 
@@ -28,7 +41,7 @@ namespace AMU.Editor.Core.Helper
                 Bounds bounds = GetObjectBounds(targetObject);
                 if (bounds.size == Vector3.zero)
                 {
-                    Debug.LogWarning("Object has no renderable bounds");
+                    Debug.LogWarning(LocalizationController.GetText("message_warning_no_renderable_bounds"));
                     bounds = new Bounds(targetObject.transform.position, Vector3.one);
                 }
 
@@ -110,11 +123,11 @@ namespace AMU.Editor.Core.Helper
                     AssetDatabase.ImportAsset(relativePath);
                 }
 
-                Debug.Log($"Image saved to: {path}");
+                Debug.Log(string.Format(LocalizationController.GetText("message_success_image_saved"), path));
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"Failed to save image: {e.Message}");
+                Debug.LogError(string.Format(LocalizationController.GetText("message_error_save_image_failed"), e.Message));
             }
         }
     }
