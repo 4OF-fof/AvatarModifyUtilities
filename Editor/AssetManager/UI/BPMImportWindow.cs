@@ -38,6 +38,7 @@ namespace AMU.AssetManager.UI
         private GUIStyle _boxStyle;
         private GUIStyle _packageHeaderStyle;
         private GUIStyle _fileItemStyle;
+        private GUIStyle _messageStyle;
         private bool _stylesInitialized = false;
 
         // アセットタイプ選択用
@@ -218,16 +219,10 @@ namespace AMU.AssetManager.UI
                 {
                     // 未登録のアセットが存在しない場合のメッセージ
                     EditorGUILayout.Space(20);
-                    using (new EditorGUILayout.HorizontalScope())
-                    {
-                        GUILayout.FlexibleSpace();
-                        EditorGUILayout.LabelField(
-                            LocalizationManager.GetText("BPMImport_noUnregisteredAssets"),
-                            EditorStyles.centeredGreyMiniLabel,
-                            GUILayout.ExpandWidth(false)
-                        );
-                        GUILayout.FlexibleSpace();
-                    }
+                    EditorGUILayout.LabelField(
+                        LocalizationManager.GetText("BPMImport_noUnregisteredAssets"),
+                        _messageStyle
+                    );
                     EditorGUILayout.Space(20);
                 }
                 else
@@ -446,6 +441,13 @@ namespace AMU.AssetManager.UI
             {
                 fontSize = 10,
                 normal = { textColor = Color.gray }
+            };
+
+            _messageStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
+            {
+                wordWrap = true,
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 11
             };
 
             _stylesInitialized = true;
