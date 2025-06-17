@@ -168,6 +168,7 @@
   "BPMImport_globalSettingsHelp": "これらの設定はすべてのインポートされるアセットに適用されます",
   "BPMImport_libraryLoaded": "BPMライブラリが正常に読み込まれました。{0}個のパッケージが見つかりました。",
   "BPMImport_noDataMessage": "BPMライブラリデータがありません。BPMlibrary.jsonファイルが存在することを確認してください。",
+  "BPMImport_noUnregisteredAssets": "未登録のアセットが見つかりませんでした。BPMライブラリのすべてのアセットは既にアセットマネージャーに登録されています。",
   "BPMImport_loadingMessage": "BPMライブラリを読み込み中です。しばらくお待ちください...",
   "BPMImport_importAll": "すべてインポート",
   "BPMImport_importUnregistered": "未登録のみインポート",

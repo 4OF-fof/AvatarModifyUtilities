@@ -214,18 +214,37 @@ namespace AMU.AssetManager.UI
                 // 未登録のアセットのみを取得
                 var unregisteredAssets = FindUnregisteredAssets();
 
-                foreach (var author in _bmpLibrary.authors)
+                if (unregisteredAssets.Count == 0)
                 {
-                    string authorName = author.Key;
-
-                    foreach (var package in author.Value)
+                    // 未登録のアセットが存在しない場合のメッセージ
+                    EditorGUILayout.Space(20);
+                    using (new EditorGUILayout.HorizontalScope())
                     {
-                        string packageKey = $"{authorName}|{package.itemUrl}";
+                        GUILayout.FlexibleSpace();
+                        EditorGUILayout.LabelField(
+                            LocalizationManager.GetText("BPMImport_noUnregisteredAssets"),
+                            EditorStyles.centeredGreyMiniLabel,
+                            GUILayout.ExpandWidth(false)
+                        );
+                        GUILayout.FlexibleSpace();
+                    }
+                    EditorGUILayout.Space(20);
+                }
+                else
+                {
+                    foreach (var author in _bmpLibrary.authors)
+                    {
+                        string authorName = author.Key;
 
-                        // 未登録のファイルが存在するパッケージのみ表示
-                        if (unregisteredAssets.ContainsKey(packageKey))
+                        foreach (var package in author.Value)
                         {
-                            DrawPackageItem(authorName, package, unregisteredAssets[packageKey]);
+                            string packageKey = $"{authorName}|{package.itemUrl}";
+
+                            // 未登録のファイルが存在するパッケージのみ表示
+                            if (unregisteredAssets.ContainsKey(packageKey))
+                            {
+                                DrawPackageItem(authorName, package, unregisteredAssets[packageKey]);
+                            }
                         }
                     }
                 }
@@ -325,10 +344,16 @@ namespace AMU.AssetManager.UI
 
         private void DrawImportButtons()
         {
+            // 未登録のアセットがあるかチェック
+            var unregisteredAssets = FindUnregisteredAssets();
+            bool hasUnregisteredAssets = unregisteredAssets.Count > 0;
+
+            EditorGUI.BeginDisabledGroup(!hasUnregisteredAssets);
             if (GUILayout.Button(LocalizationManager.GetText("BPMImport_importUnregistered"), GUILayout.Height(30)))
             {
                 ImportUnregisteredAssets();
             }
+            EditorGUI.EndDisabledGroup();
         }
 
 

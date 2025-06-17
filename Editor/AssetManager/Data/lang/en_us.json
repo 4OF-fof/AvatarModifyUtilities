@@ -168,6 +168,7 @@
   "BPMImport_globalSettingsHelp": "These settings will apply to all imported assets",
   "BPMImport_libraryLoaded": "BMP Library loaded successfully. Found {0} packages.",
   "BPMImport_noDataMessage": "No BPM Library data available. Please ensure BPMlibrary.json file exists.",
+  "BPMImport_noUnregisteredAssets": "No unregistered assets found. All assets in the BPM Library are already registered in Asset Manager.",
   "BPMImport_loadingMessage": "Loading BPM Library, please wait...",
   "BPMImport_importAll": "Import All",
   "BPMImport_importUnregistered": "Import Unregistered Only",
