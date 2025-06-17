@@ -3,6 +3,7 @@ using UnityEditor;
 using System.Collections.Generic;
 using AMU.Editor.Core.Helper;
 using AMU.Editor.AutoVariant.Services;
+using AMU.Data.Lang;
 
 namespace AMU.Editor.AutoVariant.Services
 {
@@ -63,7 +64,7 @@ namespace AMU.Editor.AutoVariant.Services
         {
             if (avatar == null)
             {
-                Debug.LogError("[MaterialOptimizationService] Avatar is null");
+                Debug.LogError($"[MaterialOptimizationService] {LocalizationManager.GetText("message_error_avatar_null")}");
                 return;
             }
 
@@ -77,7 +78,7 @@ namespace AMU.Editor.AutoVariant.Services
             SaveMaterialStates(avatar);
             MaterialVariantService.OptimizeMaterials(avatar);
 
-            Debug.Log($"[MaterialOptimizationService] Optimized materials for VRC Avatar: {avatar.name}");
+            Debug.Log($"[MaterialOptimizationService] {string.Format(LocalizationManager.GetText("message_info_optimization_completed"), avatar.name)}");
 
             OptimizeNestedPrefabs(avatar);
             AvatarExportService.ExportOptimizedAvatar(avatar);
@@ -155,7 +156,7 @@ namespace AMU.Editor.AutoVariant.Services
                 }
             }
 
-            Debug.Log($"[MaterialOptimizationService] Saved material states for {renderers.Length} renderers in {avatar.name}");
+            Debug.Log($"[MaterialOptimizationService] {string.Format(LocalizationManager.GetText("message_info_material_states_saved"), avatar.name, renderers.Length)}");
         }
 
         private static void RestoreMaterialStates()
@@ -171,7 +172,7 @@ namespace AMU.Editor.AutoVariant.Services
                 }
             }
 
-            Debug.Log($"[MaterialOptimizationService] Restored materials for {restoredCount} renderers");
+            Debug.Log($"[MaterialOptimizationService] {string.Format(LocalizationManager.GetText("message_info_materials_restored"), restoredCount)}");
         }
 
         private static void ClearMaterialStates()

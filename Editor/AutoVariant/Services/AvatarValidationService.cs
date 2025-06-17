@@ -56,13 +56,13 @@ namespace AMU.Editor.AutoVariant.Services
 
             if (avatars.Length == 0)
             {
-                Debug.LogWarning("[AvatarValidationService] No active avatars found");
+                Debug.LogWarning($"[AvatarValidationService] {LocalizationManager.GetText("message_warning_no_active_avatars")}");
                 return null;
             }
 
             if (avatars.Length > 1)
             {
-                Debug.LogWarning("[AvatarValidationService] Multiple active avatars found");
+                Debug.LogWarning($"[AvatarValidationService] {LocalizationManager.GetText("message_warning_multiple_avatars")}");
                 return null;
             }
 
@@ -81,22 +81,19 @@ namespace AMU.Editor.AutoVariant.Services
 
             return PipelineManagerHelper.isVRCAvatar(obj);
         }
-
         private static void ShowMultipleAvatarsError()
         {
-            var lang = EditorPrefs.GetString("Setting.Core_language", "en_us");
-            var (title, message) = GetLocalizedErrorMessage(lang);
+            var title = LocalizationManager.GetText("message_error_build_cancelled_title");
+            var message = LocalizationManager.GetText("message_error_multiple_avatars_detected");
 
             EditorUtility.DisplayDialog(title, message, "OK");
         }
 
         private static (string title, string message) GetLocalizedErrorMessage(string language)
         {
-            return language switch
-            {
-                "ja_jp" => ("ビルド中止", "Hierarchy内に複数のアバターが検出されました。1体のみがアクティブな状態にしてください。"),
-                _ => ("Build Cancelled", "Multiple avatars detected. Please activate only one avatar.")
-            };
+            var title = LocalizationManager.GetText("message_error_build_cancelled_title");
+            var message = LocalizationManager.GetText("message_error_multiple_avatars_detected");
+            return (title, message);
         }
     }
 }

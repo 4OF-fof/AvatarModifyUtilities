@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using AMU.Data.Lang;
 
 namespace AMU.Editor.AutoVariant.Services
 {
@@ -28,31 +29,29 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static bool ValidateInput(GameObject targetObject, out GameObject parentPrefab)
         {
-            parentPrefab = null;
-
-            if (targetObject == null)
+            parentPrefab = null; if (targetObject == null)
             {
-                Debug.LogError("[MaterialVariantService] Target object is null");
+                Debug.LogError($"[MaterialVariantService] {LocalizationManager.GetText("message_error_avatar_null")}");
                 return false;
             }
 
             if (PrefabUtility.GetPrefabInstanceStatus(targetObject) != PrefabInstanceStatus.Connected)
             {
-                Debug.LogError("[MaterialVariantService] Object is not a prefab instance");
+                Debug.LogError($"[MaterialVariantService] {LocalizationManager.GetText("message_error_not_prefab_instance")}");
                 return false;
             }
 
             var prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(targetObject);
             if (prefabAsset == null)
             {
-                Debug.LogError("[MaterialVariantService] Could not find corresponding prefab asset");
+                Debug.LogError($"[MaterialVariantService] {LocalizationManager.GetText("message_error_prefab_asset_not_found")}");
                 return false;
             }
 
             parentPrefab = PrefabUtility.GetCorrespondingObjectFromSource(prefabAsset);
             if (parentPrefab == null)
             {
-                Debug.LogWarning("[MaterialVariantService] This prefab doesn't seem to be a variant");
+                Debug.LogWarning($"[MaterialVariantService] {LocalizationManager.GetText("message_warning_not_variant")}");
                 return false;
             }
 
@@ -94,11 +93,9 @@ namespace AMU.Editor.AutoVariant.Services
         private static bool ProcessRendererMaterials(Renderer variantRenderer, Renderer parentRenderer, string objectName)
         {
             var variantMaterials = variantRenderer.sharedMaterials;
-            var parentMaterials = parentRenderer.sharedMaterials;
-
-            if (variantMaterials.Length != parentMaterials.Length)
+            var parentMaterials = parentRenderer.sharedMaterials; if (variantMaterials.Length != parentMaterials.Length)
             {
-                Debug.LogWarning($"[MaterialVariantService] Material count mismatch in {objectName}");
+                Debug.LogWarning($"[MaterialVariantService] {string.Format(LocalizationManager.GetText("message_warning_material_count_mismatch"), objectName)}");
                 return false;
             }
 
@@ -111,7 +108,7 @@ namespace AMU.Editor.AutoVariant.Services
                 {
                     optimizedMaterials[i] = optimizedMaterial;
                     hasOptimizations = true;
-                    Debug.Log($"[MaterialVariantService] Optimized material {i} in {objectName}");
+                    Debug.Log($"[MaterialVariantService] {string.Format(LocalizationManager.GetText("message_info_material_optimized"), objectName, i)}");
                 }
                 else
                 {
@@ -171,12 +168,12 @@ namespace AMU.Editor.AutoVariant.Services
                 if (!string.IsNullOrEmpty(prefabPath))
                 {
                     PrefabUtility.ApplyPrefabInstance(prefabRoot, InteractionMode.AutomatedAction);
-                    Debug.Log($"[MaterialVariantService] Applied override to variant prefab for {objectName}");
+                    Debug.Log($"[MaterialVariantService] {string.Format(LocalizationManager.GetText("message_info_override_applied"), objectName)}");
                 }
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"[MaterialVariantService] Error applying override for {objectName}: {e.Message}");
+                Debug.LogError($"[MaterialVariantService] {string.Format(LocalizationManager.GetText("message_error_override_failed"), objectName, e.Message)}");
             }
         }
 

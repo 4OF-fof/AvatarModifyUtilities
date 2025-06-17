@@ -5,6 +5,7 @@ using System.IO;
 using System;
 using AMU.Editor.Core.Helper;
 using AMU.Editor.Core.Controllers;
+using AMU.Data.Lang;
 
 namespace AMU.Editor.AutoVariant.Services
 {
@@ -23,7 +24,7 @@ namespace AMU.Editor.AutoVariant.Services
         {
             if (avatar == null)
             {
-                Debug.LogError("[AvatarExportService] Avatar is null");
+                Debug.LogError($"[AvatarExportService] {LocalizationManager.GetText("message_error_avatar_null")}");
                 return false;
             }
 
@@ -120,7 +121,7 @@ namespace AMU.Editor.AutoVariant.Services
 
             if (string.IsNullOrEmpty(blueprintId))
             {
-                Debug.Log("[AvatarExportService] No blueprint ID found, exporting to local directory");
+                Debug.Log($"[AvatarExportService] {LocalizationManager.GetText("message_info_export_no_blueprint")}");
             }
 
             return avatarDir;

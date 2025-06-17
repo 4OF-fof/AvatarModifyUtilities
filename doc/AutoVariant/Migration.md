@@ -284,7 +284,7 @@ string language = SettingsController.GetSetting<string>("Core_language", "ja");
 - [ ] エラーハンドリングの追加
 
 ### 機能確認
-- [ ] プリファブ自動変換の動作確認
+- [ ] プレハブ自動変換の動作確認
 - [ ] マテリアル最適化の動作確認
 - [ ] アバターエクスポートの動作確認
 - [ ] ビルド前処理の動作確認

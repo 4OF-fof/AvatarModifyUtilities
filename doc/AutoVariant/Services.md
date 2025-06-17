@@ -9,12 +9,12 @@ Services層は、AutoVariantモジュールの初期化処理とサービス機�
 ### ConvertVariantService
 
 #### 目的
-プリファブがシーンに追加された際の自動変換処理を監視・実行します。
+プレハブがシーンに追加された際の自動変換処理を監視・実行します。
 
 #### 特徴
 - `[InitializeOnLoad]`による自動初期化
 - Hierarchyの変更監視
-- プリファブバリアントの自動生成
+- プレハブバリアントの自動生成
 
 #### ライフサイクル
 
@@ -37,25 +37,25 @@ Services層は、AutoVariantモジュールの初期化処理とサービス機�
 
 ##### Hierarchy変更監視
 - **`OnHierarchyChanged()`**: Hierarchy変更時の処理
-- **`FindAddedPrefabRoots()`**: 新規追加されたプリファブルートの検出
-- **`HandlePrefabAddition(GameObject)`**: プリファブ追加時の処理
+- **`FindAddedPrefabRoots()`**: 新規追加されたプレハブルートの検出
+- **`HandlePrefabAddition(GameObject)`**: プレハブ追加時の処理
 
-##### プリファブ処理
+##### プレハブ処理
 - **`CopyAndReplaceMaterials(GameObject, string)`**: マテリアルのコピーと置換
-- **`ReplaceWithVariant(GameObject, string)`**: バリアントプリファブとの置換
+- **`ReplaceWithVariant(GameObject, string)`**: バリアントプレハブとの置換
 
 #### 処理フロー
 
 ```
 1. Hierarchy変更検出
    ↓
-2. 新規プリファブの特定
+2. 新規プレハブの特定
    ↓
 3. AMU_Variantsディレクトリ作成
    ↓
 4. マテリアルコピー・置換
    ↓
-5. プリファブバリアント作成
+5. プレハブバリアント作成
    ↓
 6. シーンオブジェクトの置換
 ```
@@ -67,7 +67,7 @@ Services層は、AutoVariantモジュールの初期化処理とサービス機�
 
 #### 主要機能
 - マテリアル状態の保存・復元
-- ネストされたプリファブの最適化
+- ネストされたプレハブの最適化
 - エクスポート処理との連携
 
 #### 主要メソッド
@@ -87,8 +87,8 @@ Services層は、AutoVariantモジュールの初期化処理とサービス機�
 **パラメータ:**
 - `avatar`: 最適化対象のアバター
 
-##### ネストプリファブ最適化
-- **`OptimizeNestedPrefabs(GameObject)`**: ネストされたプリファブの最適化
+##### ネストプレハブ最適化
+- **`OptimizeNestedPrefabs(GameObject)`**: ネストされたプレハブの最適化
 - **`OptimizeNestedPrefabsRecursive(string, HashSet<string>)`**: 再帰的な最適化処理
 
 #### マテリアル状態管理
@@ -195,7 +195,7 @@ ConvertVariantService → MaterialOptimizationService → AvatarExportAPI
 ## エラーハンドリング
 
 ### ConvertVariantService
-- プリファブ処理中の例外: ログ出力後、処理を継続
+- プレハブ処理中の例外: ログ出力後、処理を継続
 - ディレクトリ作成失敗: エラーログ出力後、処理をスキップ
 
 ### MaterialOptimizationService
@@ -214,11 +214,11 @@ ConvertVariantService → MaterialOptimizationService → AvatarExportAPI
 ### ConvertVariantService
 - 処理済みInstanceIDのキャッシュで重複処理を防止
 - 5秒間隔でキャッシュをクリア
-- プリファブステージ中は処理をスキップ
+- プレハブステージ中は処理をスキップ
 
 ### MaterialOptimizationService
 - マテリアル状態の保存を最小限に抑制
-- 一時的なプリファブインスタンスの適切な破棄
+- 一時的なプレハブインスタンスの適切な破棄
 
 ### AvatarValidationService
 - アバター検索は必要時のみ実行
@@ -245,4 +245,4 @@ ConvertVariantService → MaterialOptimizationService → AvatarExportAPI
 3. **エラー回復機能**: 処理失敗時の自動回復
 4. **ログ統合**: 統一ログシステムとの連携
 5. **設定変更の動的反映**: 設定変更時のサービス再初期化
-6. **バッチ処理最適化**: 複数プリファブの一括処理
+6. **バッチ処理最適化**: 複数プレハブの一括処理
