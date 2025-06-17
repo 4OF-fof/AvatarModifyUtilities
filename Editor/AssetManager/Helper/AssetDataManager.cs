@@ -11,7 +11,6 @@ using UnityEngine;
 using UnityEditor;
 using Newtonsoft.Json;
 using AMU.AssetManager.Data;
-using AMU.BoothPackageManager.Helper;
 
 namespace AMU.AssetManager.Helper
 {
@@ -757,35 +756,39 @@ namespace AMU.AssetManager.Helper
                 return criteria.selectedTags.Any(selectedTag =>
                     asset.tags.Any(assetTag => assetTag.ToLower().Contains(selectedTag.ToLower())));
             }
-        }
-        /// <summary>
-        /// BPMLibraryからアセットをインポート（同じitemUrlのアイテムは自動グループ化）
-        /// </summary>
-        public List<AssetInfo> ImportFromBPMLibrary(BPMDataManager bmpManager, string defaultAssetType, List<string> defaultTags = null)
+        }        /// <summary>
+                 /// BPMLibraryからアセットをインポート（同じitemUrlのアイテムは自動グループ化）
+                 /// </summary>
+        public async Task<List<AssetInfo>> ImportFromBPMLibraryAsync(string defaultAssetType, List<string> defaultTags = null)
         {
-            if (bmpManager?.Library?.authors == null)
+            var (filePath, bmpLibrary) = await BPMHelper.FindLatestBPMLibraryAsync();
+            if (bmpLibrary == null)
             {
                 Debug.LogWarning("[AssetDataManager] BPMLibrary is not loaded or empty");
                 return new List<AssetInfo>();
             }
 
+            return ImportFromBPMLibraryInternal(bmpLibrary, defaultAssetType, defaultTags);
+        }
+        private List<AssetInfo> ImportFromBPMLibraryInternal(Data.BPMLibrary bmpLibrary, string defaultAssetType, List<string> defaultTags = null)
+        {
             var importedAssets = new List<AssetInfo>();
             var existingDownloadUrls = GetExistingDownloadUrls();
             var packageGroups = new Dictionary<string, AssetInfo>(); // itemUrl -> グループアセット
 
             // BPMLibraryのlastUpdatedを取得してパース
             DateTime bmpLastUpdated = DateTime.Now; // デフォルト値
-            if (!string.IsNullOrEmpty(bmpManager.Library.lastUpdated))
+            if (!string.IsNullOrEmpty(bmpLibrary.lastUpdated))
             {
-                if (!DateTime.TryParse(bmpManager.Library.lastUpdated, out bmpLastUpdated))
+                if (!DateTime.TryParse(bmpLibrary.lastUpdated, out bmpLastUpdated))
                 {
                     // パースに失敗した場合は現在時刻を使用
                     bmpLastUpdated = DateTime.Now;
-                    Debug.LogWarning($"[AssetDataManager] Failed to parse BPM lastUpdated: {bmpManager.Library.lastUpdated}");
+                    Debug.LogWarning($"[AssetDataManager] Failed to parse BPM lastUpdated: {bmpLibrary.lastUpdated}");
                 }
             }
 
-            foreach (var author in bmpManager.Library.authors)
+            foreach (var author in bmpLibrary.authors)
             {
                 string authorName = author.Key;
                 foreach (var package in author.Value)
@@ -872,50 +875,56 @@ namespace AMU.AssetManager.Helper
                 SaveData();
 
                 // 画像を非同期で取得してサムネイルとして設定
-                _ = ProcessThumbnailsFromBPMAsync(importedAssets, bmpManager);
+                _ = ProcessThumbnailsFromBPMAsync(importedAssets, bmpLibrary);
 
                 Debug.Log($"[AssetDataManager] Imported {importedAssets.Count} assets from BPMLibrary (with auto-grouping)");
             }
 
             return importedAssets;
-        }
-
-        /// <summary>
-        /// BPMLibraryからアセットをインポート（個別設定使用）
-        /// </summary>
-        public List<AssetInfo> ImportFromBPMLibraryWithIndividualSettings(
-            BPMDataManager bmpManager,
+        }        /// <summary>
+                 /// BPMLibraryからアセットをインポート（個別設定使用）
+                 /// </summary>
+        public async Task<List<AssetInfo>> ImportFromBPMLibraryWithIndividualSettingsAsync(
             Dictionary<string, AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings> packageSettings,
-            Dictionary<string, AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings> fileSettings, Dictionary<string, List<BPMFileInfo>> unregisteredAssets = null)
+            Dictionary<string, AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings> fileSettings,
+            Dictionary<string, List<Data.BPMFileInfo>> unregisteredAssets = null)
         {
-            if (bmpManager?.Library?.authors == null)
+            var (filePath, bmpLibrary) = await BPMHelper.FindLatestBPMLibraryAsync();
+            if (bmpLibrary == null)
             {
                 Debug.LogWarning("[AssetDataManager] BPMLibrary is not loaded or empty");
                 return new List<AssetInfo>();
             }
 
+            return ImportFromBPMLibraryWithIndividualSettingsInternal(bmpLibrary, packageSettings, fileSettings, unregisteredAssets);
+        }
+
+        private List<AssetInfo> ImportFromBPMLibraryWithIndividualSettingsInternal(
+            Data.BPMLibrary bmpLibrary,
+            Dictionary<string, AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings> packageSettings,
+            Dictionary<string, AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings> fileSettings,
+            Dictionary<string, List<Data.BPMFileInfo>> unregisteredAssets = null)
+        {
             var importedAssets = new List<AssetInfo>();
             var packageGroups = new Dictionary<string, AssetInfo>(); // itemUrl -> グループアセット
 
             // BPMLibraryのlastUpdatedを取得してパース
             DateTime bmpLastUpdated = DateTime.Now;
-            if (!string.IsNullOrEmpty(bmpManager.Library.lastUpdated))
+            if (!string.IsNullOrEmpty(bmpLibrary.lastUpdated))
             {
-                if (!DateTime.TryParse(bmpManager.Library.lastUpdated, out bmpLastUpdated))
+                if (!DateTime.TryParse(bmpLibrary.lastUpdated, out bmpLastUpdated))
                 {
                     bmpLastUpdated = DateTime.Now;
-                    Debug.LogWarning($"[AssetDataManager] Failed to parse BPM lastUpdated: {bmpManager.Library.lastUpdated}");
+                    Debug.LogWarning($"[AssetDataManager] Failed to parse BPM lastUpdated: {bmpLibrary.lastUpdated}");
                 }
             }
-            foreach (var author in bmpManager.Library.authors)
+            foreach (var author in bmpLibrary.authors)
             {
                 string authorName = author.Key;
                 foreach (var package in author.Value)
                 {
-                    string packageKey = $"{authorName}|{package.itemUrl}";
-
-                    // 未登録アセットのフィルタリングが指定されている場合、そのリストのみを処理
-                    List<BPMFileInfo> filesToProcess;
+                    string packageKey = $"{authorName}|{package.itemUrl}";                    // 未登録アセットのフィルタリングが指定されている場合、そのリストのみを処理
+                    List<Data.BPMFileInfo> filesToProcess;
                     if (unregisteredAssets != null)
                     {
                         if (!unregisteredAssets.TryGetValue(packageKey, out filesToProcess))
@@ -925,7 +934,7 @@ namespace AMU.AssetManager.Helper
                     }
                     else
                     {
-                        filesToProcess = package.files ?? new List<BPMFileInfo>();
+                        filesToProcess = package.files ?? new List<Data.BPMFileInfo>();
                     }
 
                     if (filesToProcess?.Count > 0)
@@ -1021,10 +1030,8 @@ namespace AMU.AssetManager.Helper
                     _assetLibrary.assets.AddRange(importedAssets);
                 }
                 InvalidateCache();
-                SaveData();
-
-                // 画像を非同期で取得してサムネイルとして設定
-                _ = ProcessThumbnailsFromBPMAsync(importedAssets, bmpManager);
+                SaveData();                // 画像を非同期で取得してサムネイルとして設定
+                _ = ProcessThumbnailsFromBPMAsync(importedAssets, bmpLibrary);
 
                 Debug.Log($"[AssetDataManager] Imported {importedAssets.Count} unregistered assets from BPMLibrary with individual settings");
             }
@@ -1035,7 +1042,7 @@ namespace AMU.AssetManager.Helper
         /// <summary>
         /// BPMPackageからAssetInfoを作成
         /// </summary>
-        private AssetInfo CreateAssetFromBPMPackage(BPMPackage package, BPMFileInfo file, string authorName, string assetType, List<string> tags, DateTime bmpLastUpdated)
+        private AssetInfo CreateAssetFromBPMPackage(Data.BPMPackage package, Data.BPMFileInfo file, string authorName, string assetType, List<string> tags, DateTime bmpLastUpdated)
         {
             var asset = new AssetInfo
             {
@@ -1066,7 +1073,7 @@ namespace AMU.AssetManager.Helper
         /// <summary>
         /// BPMPackageからAssetInfoを作成（設定付き）
         /// </summary>
-        private AssetInfo CreateAssetFromBPMPackageWithSettings(BPMPackage package, BPMFileInfo file, string authorName, AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings settings, DateTime bmpLastUpdated)
+        private AssetInfo CreateAssetFromBPMPackageWithSettings(Data.BPMPackage package, Data.BPMFileInfo file, string authorName, AMU.AssetManager.UI.BPMImportWindow.AssetImportSettings settings, DateTime bmpLastUpdated)
         {
             var asset = new AssetInfo
             {
@@ -1092,12 +1099,10 @@ namespace AMU.AssetManager.Helper
             };
 
             return asset;
-        }
-
-        /// <summary>
-        /// BPMインポート後のサムネイル処理を非同期で実行
-        /// </summary>
-        private async Task ProcessThumbnailsFromBPMAsync(List<AssetInfo> importedAssets, BPMDataManager bmpManager)
+        }        /// <summary>
+                 /// BPMインポート後のサムネイル処理を非同期で実行
+                 /// </summary>
+        private async Task ProcessThumbnailsFromBPMAsync(List<AssetInfo> importedAssets, Data.BPMLibrary bmpLibrary)
         {
             try
             {
@@ -1113,7 +1118,7 @@ namespace AMU.AssetManager.Helper
                 {
                     if (!string.IsNullOrEmpty(groupAsset.boothItem?.boothItemUrl))
                     {
-                        var packageInfo = FindPackageByItemUrl(bmpManager, groupAsset.boothItem.boothItemUrl);
+                        var packageInfo = FindPackageByItemUrl(bmpLibrary, groupAsset.boothItem.boothItemUrl);
                         if (packageInfo != null && !string.IsNullOrEmpty(packageInfo.imageUrl) &&
                             !processedImageUrls.Contains(packageInfo.imageUrl))
                         {
@@ -1131,7 +1136,7 @@ namespace AMU.AssetManager.Helper
                 {
                     if (!string.IsNullOrEmpty(asset.boothItem?.boothItemUrl))
                     {
-                        var packageInfo = FindPackageByItemUrl(bmpManager, asset.boothItem.boothItemUrl);
+                        var packageInfo = FindPackageByItemUrl(bmpLibrary, asset.boothItem.boothItemUrl);
                         if (packageInfo != null && !string.IsNullOrEmpty(packageInfo.imageUrl) &&
                             !processedImageUrls.Contains(packageInfo.imageUrl))
                         {
@@ -1150,17 +1155,15 @@ namespace AMU.AssetManager.Helper
             {
                 Debug.LogError($"[AssetDataManager] Failed to process thumbnails from BMP: {ex.Message}");
             }
-        }
-
-        /// <summary>
-        /// itemUrlからBPMPackage情報を検索
-        /// </summary>
-        private BPMPackage FindPackageByItemUrl(BPMDataManager bmpManager, string itemUrl)
+        }        /// <summary>
+                 /// itemUrlからBPMPackage情報を検索
+                 /// </summary>
+        private Data.BPMPackage FindPackageByItemUrl(Data.BPMLibrary bmpLibrary, string itemUrl)
         {
-            if (bmpManager?.Library?.authors == null || string.IsNullOrEmpty(itemUrl))
+            if (bmpLibrary?.authors == null || string.IsNullOrEmpty(itemUrl))
                 return null;
 
-            foreach (var author in bmpManager.Library.authors)
+            foreach (var author in bmpLibrary.authors)
             {
                 foreach (var package in author.Value)
                 {
@@ -1181,13 +1184,10 @@ namespace AMU.AssetManager.Helper
         {
             if (string.IsNullOrEmpty(imageUrl) || asset == null)
                 return;
-            await _httpSemaphore.WaitAsync();
-            try
+            await _httpSemaphore.WaitAsync(); try
             {
                 // BoothItem専用のサムネイルディレクトリを使用
-                string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
-                string boothThumbnailDir = Path.Combine(coreDir, "AssetManager", "BoothItem", "Thumbnail");
+                string boothThumbnailDir = BPMHelper.GetBoothThumbnailDirectory();
 
                 if (!Directory.Exists(boothThumbnailDir))
                 {
@@ -1195,7 +1195,7 @@ namespace AMU.AssetManager.Helper
                 }
 
                 // imageURLのハッシュを使用してファイル名を生成（同じURLなら同じ名前）
-                string imageHash = GetImageHash(imageUrl);
+                string imageHash = BPMHelper.GetImageHash(imageUrl);
 
                 // 既存ファイルをチェック（拡張子違いも考慮）
                 string[] possibleExtensions = { ".png", ".jpg", ".jpeg", ".gif", ".bmp" };
@@ -1552,19 +1552,6 @@ namespace AMU.AssetManager.Helper
             }
             return urls;
         }
-
-        /// <summary>
-        /// 画像URLからハッシュ値を生成
-        /// </summary>
-        private string GetImageHash(string url)
-        {
-            using (MD5 md5 = MD5.Create())
-            {
-                byte[] hashBytes = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(url));
-                return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-            }
-        }
-
         #endregion
     }
 }

@@ -47,16 +47,12 @@ namespace AMU.AssetManager.Helper
             _thumbnailDirectory = Path.Combine(coreDir, "AssetManager", "Thumbnails");
             EnsureThumbnailDirectory();
             EnsureBoothThumbnailDirectory();
-        }
-
-        /// <summary>
-        /// BoothItem専用サムネイルディレクトリを確保
-        /// </summary>
+        }        /// <summary>
+                 /// BoothItem専用サムネイルディレクトリを確保
+                 /// </summary>
         private void EnsureBoothThumbnailDirectory()
         {
-            string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
-            string boothThumbnailDir = Path.Combine(coreDir, "AssetManager", "BoothItem", "Thumbnail");
+            string boothThumbnailDir = BPMHelper.GetBoothThumbnailDirectory();
 
             if (!Directory.Exists(boothThumbnailDir))
             {
@@ -553,18 +549,14 @@ namespace AMU.AssetManager.Helper
             {
                 Directory.CreateDirectory(_thumbnailDirectory);
             }
-        }
-
-        /// <summary>
-        /// BoothItem専用ディレクトリからサムネイルを読み込む
-        /// </summary>
+        }        /// <summary>
+                 /// BoothItem専用ディレクトリからサムネイルを読み込む
+                 /// </summary>
         private async Task<Texture2D> LoadBoothThumbnailAsync(AssetInfo asset)
         {
             try
             {
-                string coreDir = EditorPrefs.GetString("Setting.Core_dirPath",
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
-                string boothThumbnailDir = Path.Combine(coreDir, "AssetManager", "BoothItem", "Thumbnail");
+                string boothThumbnailDir = BPMHelper.GetBoothThumbnailDirectory();
 
                 if (!Directory.Exists(boothThumbnailDir))
                     return null;

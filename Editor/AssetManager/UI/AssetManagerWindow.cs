@@ -8,7 +8,7 @@ using AMU.AssetManager.Helper;
 using AMU.Editor.Core.Helper;
 using AMU.Data.Lang;
 using AMU.Data.TagType;
-using AMU.BoothPackageManager.Helper;
+
 
 namespace AMU.AssetManager.UI
 {

@@ -5,21 +5,21 @@ using UnityEngine;
 using UnityEditor;
 using AMU.AssetManager.Data;
 using AMU.AssetManager.Helper;
-using AMU.BoothPackageManager.Helper;
 using AMU.Data.Lang;
 
 namespace AMU.AssetManager.UI
 {
     public class BPMImportWindow : EditorWindow
     {
-        [Serializable]
+        [System.Serializable]
         public class AssetImportSettings
         {
-            public string assetType = "Other";
+            public string assetType = "Assets";
+            public List<string> tags = new List<string>();
         }
 
         private AssetDataManager _assetDataManager;
-        private BPMDataManager _bpmDataManager;
+        private Data.BPMLibrary _bmpLibrary;
         private Action _onImportComplete;
 
         // 個別設定
@@ -36,434 +36,245 @@ namespace AMU.AssetManager.UI
 
         private GUIStyle _headerStyle;
         private GUIStyle _boxStyle;
-        private GUIStyle _packageHeaderStyle; private GUIStyle _fileItemStyle;
+        private GUIStyle _packageHeaderStyle;
+        private GUIStyle _fileItemStyle;
         private bool _stylesInitialized = false;
 
-        public static void ShowWindowWithFile(AssetDataManager assetDataManager, string bpmLibraryPath, Action onImportComplete = null)
+        public static void ShowWindowWithFile(AssetDataManager assetDataManager, string bmpLibraryPath, Action onImportComplete = null)
         {
             var window = GetWindow<BPMImportWindow>(LocalizationManager.GetText("BPMImport_windowTitle"));
             window.minSize = new Vector2(600, 800);
             window.maxSize = new Vector2(600, 800);
             window._assetDataManager = assetDataManager;
             window._onImportComplete = onImportComplete;
-            window.LoadFromSpecificFile(bpmLibraryPath);
+            window.LoadFromSpecificFile(bmpLibraryPath);
             window.Show();
         }
 
-        private void OnEnable()
+        private async void OnEnable()
         {
-            _bpmDataManager = new BPMDataManager();
-            _bpmDataManager.OnDataLoaded += OnBPMDataLoaded;
-            _bpmDataManager.OnLoadError += OnBPMLoadError;
-
             // BPMデータの読み込み
             _isLoading = true;
             _statusMessage = LocalizationManager.GetText("BPMImport_loadingLibrary");
-            _bpmDataManager.LoadJsonIfNeeded();
-        }
 
-        private void LoadFromSpecificFile(string filePath)
-        {
-            if (_bpmDataManager == null)
-            {
-                _bpmDataManager = new BPMDataManager();
-                _bpmDataManager.OnDataLoaded += OnBPMDataLoaded;
-                _bpmDataManager.OnLoadError += OnBPMLoadError;
-            }
-
-            _isLoading = true;
-            _statusMessage = LocalizationManager.GetText("BPMImport_loadingLibrary");
-
-            // 指定されたファイルから読み込み
             try
             {
-                _bpmDataManager.LoadFromFile(filePath);
+                var (filePath, library) = await BPMHelper.FindLatestBPMLibraryAsync();
+                _bmpLibrary = library;
+                OnBPMDataLoaded();
             }
             catch (System.Exception ex)
             {
-                _isLoading = false;
-                _statusMessage = string.Format(LocalizationManager.GetText("BPMImport_loadFromFileError"), ex.Message);
-                Debug.LogError($"[BPMImportWindow] Failed to load from file: {ex}");
+                OnBPMLoadError(ex.Message);
+            }
+        }
+
+        private async void LoadFromSpecificFile(string filePath)
+        {
+            _isLoading = true;
+            _statusMessage = LocalizationManager.GetText("BPMImport_loadingLibrary");
+
+            try
+            {
+                _bmpLibrary = await BPMHelper.LoadBPMLibraryAsync(filePath);
+                OnBPMDataLoaded();
+            }
+            catch (System.Exception ex)
+            {
+                OnBPMLoadError(ex.Message);
             }
         }
 
         private void OnDisable()
         {
-            if (_bpmDataManager != null)
-            {
-                _bpmDataManager.OnDataLoaded -= OnBPMDataLoaded;
-                _bpmDataManager.OnLoadError -= OnBPMLoadError;
-            }
+            // 新しい実装では特にクリーンアップは不要
         }
 
         private void OnBPMDataLoaded()
         {
             _isLoading = false;
-            UpdateExistingDownloadUrls();
-            _statusMessage = string.Format(LocalizationManager.GetText("BPMImport_loadSuccess"), GetUnregisteredPackageCount());
+            _statusMessage = string.Format(LocalizationManager.GetText("BPMImport_libraryLoaded"), GetPackageCount());
+            CollectExistingDownloadUrls();
             Repaint();
         }
 
-        private void OnBPMLoadError()
+        private void OnBPMLoadError(string error)
         {
             _isLoading = false;
-            _statusMessage = $"Failed to load BPM Library: {_bpmDataManager?.LoadError ?? "Unknown error"}";
+            _statusMessage = $"Failed to load BMP Library: {error}";
             Repaint();
         }
-        private int GetTotalPackageCount()
+
+        private int GetPackageCount()
         {
-            if (_bpmDataManager?.Library?.authors == null)
+            if (_bmpLibrary?.authors == null)
                 return 0;
 
-            int count = 0;
-            foreach (var author in _bpmDataManager.Library.authors)
-            {
-                count += author.Value?.Count ?? 0;
-            }
-            return count;
+            return _bmpLibrary.authors.Values.Sum(packages => packages.Count);
         }
 
-        private int GetUnregisteredPackageCount()
+        private void CollectExistingDownloadUrls()
         {
-            if (_bpmDataManager?.Library?.authors == null)
-                return 0;
+            if (_bmpLibrary?.authors == null)
+                return;
 
-            int count = 0;
-            foreach (var author in _bpmDataManager.Library.authors)
+            foreach (var author in _bmpLibrary.authors)
             {
                 foreach (var package in author.Value)
                 {
-                    if (HasUnregisteredFiles(package))
+                    if (package.files != null)
                     {
-                        count++;
+                        foreach (var file in package.files)
+                        {
+                            _existingDownloadUrls.Add(file.downloadLink);
+                        }
                     }
                 }
             }
-            return count;
-        }
-
-        private void UpdateExistingDownloadUrls()
-        {
-            _existingDownloadUrls.Clear();
-            if (_assetDataManager?.Library?.assets != null)
-            {
-                foreach (var asset in _assetDataManager.Library.assets)
-                {
-                    if (!string.IsNullOrEmpty(asset.boothItem?.boothDownloadUrl))
-                    {
-                        _existingDownloadUrls.Add(asset.boothItem.boothDownloadUrl);
-                    }
-                }
-            }
-        }
-
-        private bool HasUnregisteredFiles(BPMPackage package)
-        {
-            if (package.files == null) return false;
-
-            foreach (var file in package.files)
-            {
-                if (!string.IsNullOrEmpty(file.downloadLink) && !_existingDownloadUrls.Contains(file.downloadLink))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private bool IsFileUnregistered(BPMFileInfo file)
-        {
-            return !string.IsNullOrEmpty(file.downloadLink) && !_existingDownloadUrls.Contains(file.downloadLink);
         }
 
         private void OnGUI()
         {
-            InitializeStyles();
-
-            using (new GUILayout.VerticalScope())
+            if (!_stylesInitialized)
             {
-                DrawHeader();
+                InitializeStyles();
+            }
 
-                if (_isLoading)
+            EditorGUILayout.LabelField(LocalizationManager.GetText("BPMImport_title"), _headerStyle);
+
+            GUILayout.Space(10);
+
+            // ステータス表示
+            EditorGUILayout.LabelField(LocalizationManager.GetText("BPMImport_status"), _statusMessage);
+
+            if (_isLoading)
+            {
+                EditorGUILayout.HelpBox(LocalizationManager.GetText("BPMImport_loadingMessage"), MessageType.Info);
+                return;
+            }
+
+            if (_bmpLibrary?.authors == null)
+            {
+                EditorGUILayout.HelpBox(LocalizationManager.GetText("BPMImport_noDataMessage"), MessageType.Warning);
+                return;
+            }
+
+            GUILayout.Space(10);
+
+            // 全体設定
+            DrawGlobalSettings();
+
+            GUILayout.Space(10);
+
+            // パッケージリスト表示
+            DrawPackageList();
+
+            GUILayout.Space(20);
+
+            // インポートボタン
+            DrawImportButtons();
+        }
+
+        private void DrawGlobalSettings()
+        {
+            EditorGUILayout.LabelField(LocalizationManager.GetText("BPMImport_globalSettings"), _headerStyle);
+
+            using (new EditorGUILayout.VerticalScope(_boxStyle))
+            {
+                EditorGUILayout.HelpBox(LocalizationManager.GetText("BPMImport_globalSettingsHelp"), MessageType.Info);
+            }
+        }
+
+        private void DrawPackageList()
+        {
+            EditorGUILayout.LabelField(LocalizationManager.GetText("BPMImport_packageList"), _headerStyle);
+
+            using (var scrollScope = new EditorGUILayout.ScrollViewScope(_packageListScrollPosition, GUILayout.Height(400)))
+            {
+                _packageListScrollPosition = scrollScope.scrollPosition;
+
+                foreach (var author in _bmpLibrary.authors)
                 {
-                    DrawLoadingUI();
-                }
-                else if (_bpmDataManager?.Library?.authors == null || _bpmDataManager.Library.authors.Count == 0)
-                {
-                    DrawEmptyLibraryUI();
-                }
-                else
-                {
-                    using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition))
+                    string authorName = author.Key;
+
+                    foreach (var package in author.Value)
                     {
-                        _scrollPosition = scrollView.scrollPosition;
-                        DrawIndividualSettings();
-                        DrawImportButton();
-                    }
-                }
-
-                DrawStatusMessage();
-            }
-        }
-        private void InitializeStyles()
-        {
-            if (_stylesInitialized) return;
-
-            _headerStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 16,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleCenter
-            };
-
-            _boxStyle = new GUIStyle(GUI.skin.box)
-            {
-                padding = new RectOffset(10, 10, 10, 10)
-            };
-
-            _packageHeaderStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 12,
-                fontStyle = FontStyle.Bold,
-                wordWrap = true
-            };
-
-            _fileItemStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 10,
-                wordWrap = true,
-                padding = new RectOffset(15, 5, 2, 2)
-            };
-
-            _stylesInitialized = true;
-        }
-
-        private void DrawHeader()
-        {
-            using (new GUILayout.VerticalScope(_boxStyle))
-            {
-                GUILayout.Label(LocalizationManager.GetText("BPMImport_windowTitle"), _headerStyle);
-                GUILayout.Space(5);
-                GUILayout.Label(LocalizationManager.GetText("BPMImport_selectSettings"), EditorStyles.wordWrappedLabel);
-            }
-        }
-
-        private void DrawLoadingUI()
-        {
-            using (new GUILayout.VerticalScope(_boxStyle))
-            {
-                GUILayout.FlexibleSpace();
-
-                using (new GUILayout.HorizontalScope())
-                {
-                    GUILayout.FlexibleSpace();
-                    GUILayout.Label(LocalizationManager.GetText("BPMImport_loadingLibrary"), EditorStyles.centeredGreyMiniLabel);
-                    GUILayout.FlexibleSpace();
-                }
-
-                var rect = GUILayoutUtility.GetRect(200, 20);
-                EditorGUI.ProgressBar(rect, Mathf.PingPong(Time.realtimeSinceStartup, 1.0f), "");
-
-                GUILayout.FlexibleSpace();
-            }
-        }
-
-        private void DrawEmptyLibraryUI()
-        {
-            using (new GUILayout.VerticalScope(_boxStyle))
-            {
-                GUILayout.FlexibleSpace();
-
-                using (new GUILayout.HorizontalScope())
-                {
-                    GUILayout.FlexibleSpace();
-                    GUILayout.Label(LocalizationManager.GetText("BPMImport_libraryNotFound"), EditorStyles.centeredGreyMiniLabel);
-                    GUILayout.FlexibleSpace();
-                }
-
-                using (new GUILayout.HorizontalScope())
-                {
-                    GUILayout.FlexibleSpace();
-                    GUILayout.Label(LocalizationManager.GetText("BPMImport_ensureLibraryExists"), EditorStyles.centeredGreyMiniLabel);
-                    GUILayout.FlexibleSpace();
-                }
-
-                GUILayout.FlexibleSpace();
-            }
-        }
-        private void DrawIndividualSettings()
-        {
-            using (new GUILayout.VerticalScope(_boxStyle))
-            {
-                GUILayout.Label(LocalizationManager.GetText("BPMImport_individualSettings"), EditorStyles.boldLabel);
-                GUILayout.Space(5);
-                GUILayout.Label(LocalizationManager.GetText("BPMImport_individualSettingsDesc"), EditorStyles.wordWrappedMiniLabel);
-                GUILayout.Space(10);
-
-                if (_bpmDataManager?.Library?.authors != null)
-                {
-                    bool hasUnregisteredAssets = false;
-
-                    using (var scrollView = new GUILayout.ScrollViewScope(_packageListScrollPosition))
-                    {
-                        _packageListScrollPosition = scrollView.scrollPosition;
-
-                        foreach (var author in _bpmDataManager.Library.authors)
-                        {
-                            string authorName = author.Key;
-                            var unregisteredPackages = author.Value.Where(p => HasUnregisteredFiles(p)).ToList();
-
-                            if (unregisteredPackages.Count > 0)
-                            {
-                                hasUnregisteredAssets = true;
-                                DrawAuthorSection(authorName, author.Value);
-                            }
-                        }
-                    }
-
-                    if (!hasUnregisteredAssets)
-                    {
-                        GUILayout.Space(20);
-                        using (new GUILayout.HorizontalScope())
-                        {
-                            GUILayout.FlexibleSpace();
-                            GUILayout.Label("All assets are already registered.", EditorStyles.centeredGreyMiniLabel);
-                            GUILayout.FlexibleSpace();
-                        }
-                        GUILayout.Space(20);
+                        DrawPackageItem(authorName, package);
                     }
                 }
             }
         }
-        private void DrawAuthorSection(string authorName, List<BPMPackage> packages)
+
+        private void DrawPackageItem(string authorName, Data.BPMPackage package)
         {
-            // 未登録のパッケージのみをフィルタリング
-            var unregisteredPackages = packages.Where(p => HasUnregisteredFiles(p)).ToList();
+            string packageKey = $"{authorName}|{package.itemUrl}";
 
-            if (unregisteredPackages.Count == 0)
-                return; // 未登録のものがない場合はこのセクションを表示しない
-
-            using (new GUILayout.VerticalScope("box"))
-            {
-                GUILayout.Label($"Author: {authorName}", EditorStyles.boldLabel);
-
-                foreach (var package in unregisteredPackages)
-                {
-                    DrawPackageSection(package, authorName);
-                }
-            }
-        }
-        private void DrawPackageSection(BPMPackage package, string authorName)
-        {
-            using (new GUILayout.VerticalScope("box"))
+            using (new EditorGUILayout.VerticalScope(_boxStyle))
             {
                 // パッケージヘッダー
-                GUILayout.Label(package.packageName ?? LocalizationManager.GetText("BPMImport_unknownPackage"), _packageHeaderStyle);
+                EditorGUILayout.LabelField($"[{authorName}] {package.packageName}", _packageHeaderStyle);
 
-                // 未登録ファイルのみをフィルタリング
-                var unregisteredFiles = package.files?.Where(f => IsFileUnregistered(f)).ToList() ?? new List<BPMFileInfo>();
-
-                if (unregisteredFiles.Count == 0)
-                    return; // 未登録ファイルがない場合は表示しない
-
-                // グループ化されるかどうかの表示
-                bool isGrouped = unregisteredFiles.Count > 1;
-                if (isGrouped)
+                if (package.files != null && package.files.Count > 1)
                 {
-                    GUILayout.Label(string.Format(LocalizationManager.GetText("BPMImport_groupFiles"), unregisteredFiles.Count), EditorStyles.miniLabel);
-
-                    // グループ設定
-                    string packageKey = $"{authorName}|{package.itemUrl}";
+                    // パッケージ全体の設定（複数ファイルの場合）
                     if (!_packageSettings.ContainsKey(packageKey))
                     {
                         _packageSettings[packageKey] = new AssetImportSettings();
                     }
 
-                    DrawAssetSettings(_packageSettings[packageKey], LocalizationManager.GetText("BPMImport_groupSettings"));
+                    var packageSetting = _packageSettings[packageKey];
+                    packageSetting.assetType = EditorGUILayout.TextField(LocalizationManager.GetText("BPMImport_assetType"), packageSetting.assetType);
                 }
 
-                // 個別ファイル（未登録のもののみ）
-                foreach (var file in unregisteredFiles)
+                // ファイルリスト
+                if (package.files != null)
                 {
-                    using (new GUILayout.HorizontalScope())
+                    foreach (var file in package.files)
                     {
-                        GUILayout.Space(20);
-                        using (new GUILayout.VerticalScope())
-                        {
-                            GUILayout.Label($"File: {file.fileName}", _fileItemStyle);
-
-                            if (!isGrouped)
-                            {
-                                // グループ化されない場合は個別設定
-                                string fileKey = $"{authorName}|{package.itemUrl}|{file.fileName}";
-                                if (!_fileSettings.ContainsKey(fileKey))
-                                {
-                                    _fileSettings[fileKey] = new AssetImportSettings();
-                                }
-
-                                DrawAssetSettings(_fileSettings[fileKey], "Asset Settings:");
-                            }
-                        }
+                        DrawFileItem(authorName, package, file);
                     }
                 }
             }
+
+            GUILayout.Space(5);
         }
-        private void DrawAssetSettings(AssetImportSettings settings, string label)
+
+        private void DrawFileItem(string authorName, Data.BPMPackage package, Data.BPMFileInfo file)
         {
-            using (new GUILayout.VerticalScope("box"))
+            string fileKey = $"{authorName}|{package.itemUrl}|{file.fileName}";
+
+            using (new EditorGUILayout.HorizontalScope())
             {
-                GUILayout.Label(label, EditorStyles.miniLabel);
+                EditorGUILayout.LabelField($"  • {file.fileName}", _fileItemStyle, GUILayout.Width(300));
 
-                // Asset Type
-                var allTypes = AssetTypeManager.AllTypes;
-                int selectedIndex = allTypes.IndexOf(settings.assetType);
-                if (selectedIndex == -1) selectedIndex = 0;
-
-                selectedIndex = EditorGUILayout.Popup(LocalizationManager.GetText("BPMImport_type"), selectedIndex, allTypes.ToArray());
-                if (selectedIndex >= 0 && selectedIndex < allTypes.Count)
+                // 個別ファイル設定（単一ファイルまたは個別設定が必要な場合）
+                if (!_fileSettings.ContainsKey(fileKey))
                 {
-                    settings.assetType = allTypes[selectedIndex];
+                    _fileSettings[fileKey] = new AssetImportSettings();
+                }
+
+                var fileSetting = _fileSettings[fileKey];
+                fileSetting.assetType = EditorGUILayout.TextField(fileSetting.assetType, GUILayout.Width(100));
+            }
+        }
+
+        private void DrawImportButtons()
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button(LocalizationManager.GetText("BPMImport_importAll"), GUILayout.Height(30)))
+                {
+                    ImportAllAssets();
+                }
+
+                if (GUILayout.Button(LocalizationManager.GetText("BPMImport_importUnregistered"), GUILayout.Height(30)))
+                {
+                    ImportUnregisteredAssets();
                 }
             }
         }
 
-        private void DrawImportButton()
-        {
-            GUILayout.Space(10);
-
-            using (new GUILayout.HorizontalScope())
-            {
-                GUILayout.FlexibleSpace();
-
-                GUI.enabled = !_isLoading;
-                if (GUILayout.Button(LocalizationManager.GetText("BPMImport_importAssets"), GUILayout.Width(120), GUILayout.Height(30)))
-                {
-                    PerformImport();
-                }
-                GUI.enabled = true;
-
-                if (GUILayout.Button(LocalizationManager.GetText("Common_cancel"), GUILayout.Width(80), GUILayout.Height(30)))
-                {
-                    Close();
-                }
-
-                GUILayout.FlexibleSpace();
-            }
-        }
-
-        private void DrawStatusMessage()
-        {
-            if (!string.IsNullOrEmpty(_statusMessage))
-            {
-                GUILayout.Space(10);
-                using (new GUILayout.VerticalScope(_boxStyle))
-                {
-                    GUILayout.Label(LocalizationManager.GetText("BPMImport_status"), EditorStyles.boldLabel);
-                    GUILayout.Label(_statusMessage, EditorStyles.wordWrappedMiniLabel);
-                }
-            }
-        }
-        private void PerformImport()
+        private async void ImportAllAssets()
         {
             try
             {
@@ -471,77 +282,115 @@ namespace AMU.AssetManager.UI
                 _statusMessage = LocalizationManager.GetText("BPMImport_importing");
                 Repaint();
 
-                List<AssetInfo> importedAssets;
+                var importedAssets = await _assetDataManager.ImportFromBPMLibraryWithIndividualSettingsAsync(
+                    _packageSettings, _fileSettings);
 
-                // 未登録のアセット情報を収集
-                var unregisteredAssets = CollectUnregisteredAssets();
-
-                // 個別設定を使用（未登録のアセットのみをインポート）
-                importedAssets = _assetDataManager.ImportFromBPMLibraryWithIndividualSettings(
-                    _bpmDataManager,
-                    _packageSettings,
-                    _fileSettings,
-                    unregisteredAssets
-                );
-
-                _isLoading = false;
-
-                if (importedAssets.Count > 0)
-                {
-                    _statusMessage = string.Format(LocalizationManager.GetText("BPMImport_importSuccess"), importedAssets.Count);
-
-                    // サムネイル処理の完了を少し待ってからウィンドウを閉じる
-                    EditorApplication.delayCall += () =>
-                    {
-                        _onImportComplete?.Invoke();
-                        // サムネイル処理に時間がかかる場合があるため、追加の遅延を設ける
-                        EditorApplication.delayCall += () =>
-                {
-                    EditorApplication.delayCall += () => Close();
-                };
-                    };
-                }
-                else
-                {
-                    _statusMessage = LocalizationManager.GetText("BPMImport_noNewAssets");
-                }
+                _statusMessage = string.Format(LocalizationManager.GetText("BPMImport_importComplete"), importedAssets.Count);
+                _onImportComplete?.Invoke();
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
-                _isLoading = false;
-                _statusMessage = string.Format(LocalizationManager.GetText("BPMImport_importFailed"), ex.Message);
+                _statusMessage = $"Import failed: {ex.Message}";
                 Debug.LogError($"[BPMImportWindow] Import failed: {ex}");
             }
-
-            Repaint();
+            finally
+            {
+                _isLoading = false;
+                Repaint();
+            }
         }
 
-        /// <summary>
-        /// 未登録のアセット情報を収集
-        /// </summary>
-        private Dictionary<string, List<BPMFileInfo>> CollectUnregisteredAssets()
+        private async void ImportUnregisteredAssets()
         {
-            var unregisteredAssets = new Dictionary<string, List<BPMFileInfo>>();
-
-            if (_bpmDataManager?.Library?.authors == null)
-                return unregisteredAssets;
-
-            foreach (var author in _bpmDataManager.Library.authors)
+            try
             {
+                _isLoading = true;
+                _statusMessage = LocalizationManager.GetText("BPMImport_importing");
+                Repaint();
+
+                var unregisteredAssets = FindUnregisteredAssets();
+                var importedAssets = await _assetDataManager.ImportFromBPMLibraryWithIndividualSettingsAsync(
+                    _packageSettings, _fileSettings, unregisteredAssets);
+
+                _statusMessage = string.Format(LocalizationManager.GetText("BPMImport_importComplete"), importedAssets.Count);
+                _onImportComplete?.Invoke();
+            }
+            catch (System.Exception ex)
+            {
+                _statusMessage = $"Import failed: {ex.Message}";
+                Debug.LogError($"[BPMImportWindow] Import failed: {ex}");
+            }
+            finally
+            {
+                _isLoading = false;
+                Repaint();
+            }
+        }
+
+        private Dictionary<string, List<Data.BPMFileInfo>> FindUnregisteredAssets()
+        {
+            var unregistered = new Dictionary<string, List<Data.BPMFileInfo>>();
+            var existingUrls = _assetDataManager.GetAllAssets()
+                .Where(a => a.boothItem != null && !string.IsNullOrEmpty(a.boothItem.boothDownloadUrl))
+                .Select(a => a.boothItem.boothDownloadUrl)
+                .ToHashSet();
+
+            foreach (var author in _bmpLibrary.authors)
+            {
+                string authorName = author.Key;
                 foreach (var package in author.Value)
                 {
-                    if (package.files == null) continue;
+                    string packageKey = $"{authorName}|{package.itemUrl}";
+                    var unregisteredFiles = new List<Data.BPMFileInfo>();
 
-                    var unregisteredFiles = package.files.Where(f => IsFileUnregistered(f)).ToList();
+                    if (package.files != null)
+                    {
+                        foreach (var file in package.files)
+                        {
+                            if (!existingUrls.Contains(file.downloadLink))
+                            {
+                                unregisteredFiles.Add(file);
+                            }
+                        }
+                    }
+
                     if (unregisteredFiles.Count > 0)
                     {
-                        string packageKey = $"{author.Key}|{package.itemUrl}";
-                        unregisteredAssets[packageKey] = unregisteredFiles;
+                        unregistered[packageKey] = unregisteredFiles;
                     }
                 }
             }
 
-            return unregisteredAssets;
+            return unregistered;
+        }
+
+        private void InitializeStyles()
+        {
+            _headerStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = 14,
+                normal = { textColor = Color.white }
+            };
+
+            _boxStyle = new GUIStyle(GUI.skin.box)
+            {
+                padding = new RectOffset(10, 10, 10, 10),
+                margin = new RectOffset(5, 5, 5, 5)
+            };
+
+            _packageHeaderStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = 12,
+                normal = { textColor = new Color(0.8f, 0.9f, 1.0f) }
+            };
+
+            _fileItemStyle = new GUIStyle(EditorStyles.label)
+            {
+                fontSize = 10,
+                normal = { textColor = Color.gray }
+            };
+
+            _stylesInitialized = true;
         }
     }
 }
