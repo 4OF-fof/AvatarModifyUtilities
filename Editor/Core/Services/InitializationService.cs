@@ -63,35 +63,5 @@ namespace AMU.Editor.Core.Services
                 Debug.LogError($"[InitializationService] Localization initialization failed: {ex.Message}");
             }
         }
-
-        /// <summary>
-        /// 指定されたコンポーネントの初期化を再実行します
-        /// </summary>
-        /// <param name="component">再初期化するコンポーネント</param>
-        public static void Reinitialize(InitializationComponent component)
-        {
-            switch (component)
-            {
-                case InitializationComponent.EditorPrefs:
-                    InitializeEditorPrefs();
-                    break;
-                case InitializationComponent.Localization:
-                    InitializeLocalization();
-                    break;
-                case InitializationComponent.All:
-                    Initialize();
-                    break;
-            }
-        }
-    }
-
-    /// <summary>
-    /// 初期化可能なコンポーネントの種類
-    /// </summary>
-    public enum InitializationComponent
-    {
-        EditorPrefs,
-        Localization,
-        All
     }
 }
