@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace AMU.Data.Setting
 {
-    public enum SettingType { String, Int, Bool, Float, Choice, FilePath }
+    public enum SettingType { String, Int, Bool, Float, Choice, FilePath, TextArea }
 
     public abstract class SettingItem
     {
@@ -88,6 +88,21 @@ namespace AMU.Data.Setting
             DefaultValue = defaultValue;
             ExtensionFilter = "*";
             IsDirectory = isDirectory;
+        }
+    }
+
+    public class TextAreaSettingItem : SettingItem
+    {
+        public string DefaultValue { get; }
+        public bool IsReadOnly { get; }
+        public int MinLines { get; }
+        public int MaxLines { get; }
+        public TextAreaSettingItem(string name, string defaultValue = "", bool isReadOnly = false, int minLines = 3, int maxLines = 10) : base(name, SettingType.TextArea)
+        {
+            DefaultValue = defaultValue;
+            IsReadOnly = isReadOnly;
+            MinLines = minLines;
+            MaxLines = maxLines;
         }
     }
 }
