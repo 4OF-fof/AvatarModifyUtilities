@@ -2,11 +2,14 @@
 
 ## 概要
 
-このドキュメントは、AutoVariantモジュールのリファクタリング（旧Helper/Watcher構造から新しい4層アーキテクチャへ）による変更点と移行方法を説明します。
+このドキュメントは、AutoVariantモジュールのリファクタリング（旧Helper/Watcher構造から新しい2層アーキテクチャへ）による変更点と移行方法を説明します。
 
 ## 重要な変更点
 
-## 重要な変更点
+### API層の削除
+- **API層全体が削除されました**
+- AutoVariantは内部処理に特化し、外部公開APIが不要と判断
+- MaterialVariantAPIとAvatarExportAPIはServices層に統合
 
 ### Controllers層とSchema層の削除
 - **AutoVariantController.cs が削除されました**
@@ -21,8 +24,8 @@
 
 | 旧構造 | 新構造 | 変更理由 |
 |--------|--------|----------|
-| `Helper/MaterialHelper.cs` | `Api/MaterialVariantAPI.cs` | 外部公開APIとして整理 |
-| `Watcher/AvatarExporter.cs` | `Api/AvatarExportAPI.cs` | 外部公開APIとして整理 |
+| `Helper/MaterialHelper.cs` | `Services/MaterialVariantService.cs` | 内部サービスとして整理 |
+| `Watcher/AvatarExporter.cs` | `Services/AvatarExportService.cs` | 内部サービスとして整理 |
 | `Controllers/AutoVariantController.cs` | **削除** | **設定管理はCoreに統合** |
 | `Watcher/ConvertVariant.cs` | `Services/ConvertVariantService.cs` | サービス層として整理 |
 | `Watcher/MaterialOptimizationManager.cs` | `Services/MaterialOptimizationService.cs` | サービス層として整理 |
@@ -33,17 +36,17 @@
 
 ### クラス名とメソッドの変更
 
-#### MaterialHelper → MaterialVariantAPI
+#### MaterialHelper → MaterialVariantService
 | 旧メソッド | 新メソッド | 変更点 |
 |------------|------------|--------|
-| `MaterialVariantOptimizer.OptimizeMaterials()` | `MaterialVariantAPI.OptimizeMaterials()` | クラス名変更、機能は同等 |
-| `MaterialHashCalculator.Calculate()` | `MaterialVariantAPI.MaterialHashCalculator.Calculate()` | ネストクラスとして整理 |
+| `MaterialVariantOptimizer.OptimizeMaterials()` | `MaterialVariantService.OptimizeMaterials()` | クラス名変更、機能は同等 |
+| `MaterialHashCalculator.Calculate()` | `MaterialVariantService.MaterialHashCalculator.Calculate()` | ネストクラスとして整理 |
 
-#### AvatarExporter → AvatarExportAPI
+#### AvatarExporter → AvatarExportService
 | 旧メソッド | 新メソッド | 変更点 |
 |------------|------------|--------|
-| `AvatarExporter.ExportOptimizedAvatar()` | `AvatarExportAPI.ExportOptimizedAvatar()` | 戻り値がboolに変更 |
-| なし | `AvatarExportAPI.GetAvatarAssets()` | 新規追加：アセット一覧取得 |
+| `AvatarExporter.ExportOptimizedAvatar()` | `AvatarExportService.ExportOptimizedAvatar()` | 戻り値がboolに変更 |
+| なし | `AvatarExportService.GetAvatarAssets()` | 新規追加：アセット一覧取得 |
 
 #### AvatarValidator → AvatarValidationService
 | 旧メソッド | 新メソッド | 変更点 |
@@ -115,10 +118,10 @@ MaterialVariantOptimizer.OptimizeMaterials(avatar);
 
 #### 移行後
 ```csharp
-using AMU.Editor.AutoVariant.Api;
+using AMU.Editor.AutoVariant.Services;
 
 // 使用例
-bool optimized = MaterialVariantAPI.OptimizeMaterials(avatar);
+bool optimized = MaterialVariantService.OptimizeMaterials(avatar);
 if (optimized)
 {
     Debug.Log("最適化が完了しました");
@@ -137,10 +140,10 @@ AvatarExporter.ExportOptimizedAvatar(avatar);
 
 #### 移行後
 ```csharp
-using AMU.Editor.AutoVariant.Api;
+using AMU.Editor.AutoVariant.Services;
 
 // 使用例
-bool exported = AvatarExportAPI.ExportOptimizedAvatar(avatar);
+bool exported = AvatarExportService.ExportOptimizedAvatar(avatar);
 if (!exported)
 {
     Debug.LogError("エクスポートに失敗しました");
@@ -207,23 +210,30 @@ string language = SettingsController.GetSetting<string>("Core_language", "ja");
 
 ## 破壊的変更
 
-### 1. 戻り値の変更
-- `AvatarExportAPI.ExportOptimizedAvatar()`: `void` → `bool`
+### 1. API層の削除
+- **API層全体が削除されました**
+- `MaterialVariantAPI` → `MaterialVariantService`
+- `AvatarExportAPI` → `AvatarExportService`
+- 名前空間が `AMU.Editor.AutoVariant.Api` から `AMU.Editor.AutoVariant.Services` に変更
+
+### 2. 戻り値の変更
+- `AvatarExportService.ExportOptimizedAvatar()`: `void` → `bool`
 - 成功/失敗を判定できるように変更
 
-### 2. クラス名の変更
-- `MaterialVariantOptimizer` → `MaterialVariantAPI`
+### 3. クラス名の変更
+- `MaterialVariantOptimizer` → `MaterialVariantService`
+- `AvatarExporter` → `AvatarExportService`
 - `PrefabAdditionDetector` → `ConvertVariantService`
 - `MyPreBuildProcess` → `PrebuildService`
 - **`AutoVariantController` → 削除（Coreに統合）**
 - **`PrebuildSettings` → 削除（Coreに統合）**
 
-### 3. 名前空間の変更
-- すべてのクラスが新しい名前空間に移動
+### 4. 名前空間の変更
+- API層削除により、すべてのクラスがServices層に統合
 - `using`文の更新が必要
-- **Controllers層とSchema層が削除**
+- **API層、Controllers層、Schema層が削除**
 
-### 4. メソッドアクセスの変更
+### 5. メソッドアクセスの変更
 - 一部のprivateメソッドがinternalに変更
 - 一部のpublicメソッドが整理・統合
 - **設定関連メソッドは Core.Controllers.SettingsController に移行**
@@ -304,14 +314,14 @@ string language = SettingsController.GetSetting<string>("Core_language", "ja");
    - 設定の有効性を`SettingsController`で確認
 
 3. **エクスポートが失敗する**
-   - `AvatarExportAPI`の戻り値を確認してエラー原因を特定
+   - `AvatarExportService`の戻り値を確認してエラー原因を特定
 
 ## サポート
 
 ### ログの確認
 リファクタリング後のログプレフィックス：
-- `[MaterialVariantAPI]`
-- `[AvatarExportAPI]`
+- `[MaterialVariantService]`
+- `[AvatarExportService]`
 - `[ConvertVariantService]`
 - `[MaterialOptimizationService]`
 - `[AvatarValidationService]`

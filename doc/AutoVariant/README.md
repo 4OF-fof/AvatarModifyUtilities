@@ -2,10 +2,9 @@
 
 ## 概要
 
-AutoVariantモジュールは、VRChatアバター用のプレハブバリアント自動生成と最適化機能を提供するモジュールです。以下の3つの明確な層に分離されています：
+AutoVariantモジュールは、VRChatアバター用のプレハブバリアント自動生成と最適化機能を提供するモジュールです。以下の2つの明確な層に分離されています：
 
-- **API層**: 外部から呼び出される公開機能
-- **Services層**: 初期化処理とサービス機能
+- **Services層**: 自動処理とサービス機能
 - **Data層**: 具体的なデータ定義
 
 設定管理は、Coreモジュールの統一システム（Core.Controllers.SettingsController）を使用します。
@@ -14,10 +13,9 @@ AutoVariantモジュールは、VRChatアバター用のプレハブバリアン
 
 ```
 AutoVariant/
-├── Api/                            # 外部公開API
-│   ├── MaterialVariantAPI.cs       # マテリアル最適化API
-│   └── AvatarExportAPI.cs          # アバターエクスポートAPI
 ├── Services/                       # サービス層
+│   ├── MaterialVariantService.cs   # マテリアル最適化サービス
+│   ├── AvatarExportService.cs      # アバターエクスポートサービス
 │   ├── ConvertVariantService.cs    # プレハブ変換監視サービス
 │   ├── MaterialOptimizationService.cs # マテリアル最適化サービス
 │   ├── AvatarValidationService.cs  # アバター検証サービス
@@ -51,46 +49,22 @@ AutoVariant/
 
 ## 層の詳細
 
-### API層 (`AutoVariant/Api/`)
+### Services層 (`AutoVariant/Services/`)
 
-外部モジュールから呼び出される公開機能を提供します。
+AutoVariantの全ての機能を提供するサービス層です。
 
-#### MaterialVariantAPI
+#### MaterialVariantService
 - **目的**: マテリアルバリアントの最適化
 - **主要メソッド**:
   - `OptimizeMaterials(GameObject)`: マテリアル最適化実行
 - **ユーティリティクラス**:
   - `MaterialHashCalculator`: マテリアルハッシュ計算
 
-#### AvatarExportAPI
+#### AvatarExportService
 - **目的**: 最適化されたアバターのエクスポート
 - **主要メソッド**:
   - `ExportOptimizedAvatar(GameObject)`: アバターエクスポート
   - `GetAvatarAssets(GameObject)`: アセット収集
-
-## 設定管理
-
-AutoVariantの設定は、Coreモジュールの統一設定システムを使用して管理されます：
-
-- **Core.Controllers.SettingsController**: 設定の初期化、取得、保存
-- **Core.UI.SettingWindow**: 設定UIでの表示・編集
-- **AutoVariant.Data.AutoVariantSettingData**: 設定項目の定義
-
-### 設定アクセス方法
-
-```csharp
-using AMU.Editor.Core.Controllers;
-
-// 設定値の取得
-bool enabled = SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false);
-
-// 設定値の変更
-SettingsController.SetSetting("AutoVariant_enableAutoVariant", true);
-```
-
-### Services層 (`AutoVariant/Services/`)
-
-初期化処理とサービス機能を担当します。
 
 #### ConvertVariantService
 - **目的**: プレハブ変換の監視と自動処理
@@ -132,8 +106,25 @@ SettingsController.SetSetting("AutoVariant_enableAutoVariant", true);
 - **VRCSDKコールバック**:
   - `OnBuildRequested(VRCSDKRequestedBuildType)`: ビルド要求時処理
 
-### Schema層 (`AutoVariant/Schema/`)
+## 設定管理
 
+AutoVariantの設定は、Coreモジュールの統一設定システムを使用して管理されます：
+
+- **Core.Controllers.SettingsController**: 設定の初期化、取得、保存
+- **Core.UI.SettingWindow**: 設定UIでの表示・編集
+- **AutoVariant.Data.AutoVariantSettingData**: 設定項目の定義
+
+### 設定アクセス方法
+
+```csharp
+using AMU.Editor.Core.Controllers;
+
+// 設定値の取得
+bool enabled = SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false);
+
+// 設定値の変更
+SettingsController.SetSetting("AutoVariant_enableAutoVariant", true);
+```
 
 ### Data層 (`AutoVariant/Data/`)
 

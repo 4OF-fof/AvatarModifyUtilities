@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using AMU.Editor.Core.Helper;
-using AMU.Editor.AutoVariant.Api;
+using AMU.Editor.AutoVariant.Services;
 
 namespace AMU.Editor.AutoVariant.Services
 {
@@ -75,12 +75,12 @@ namespace AMU.Editor.AutoVariant.Services
         private static void OptimizeAvatarMaterials(GameObject avatar)
         {
             SaveMaterialStates(avatar);
-            MaterialVariantAPI.OptimizeMaterials(avatar);
+            MaterialVariantService.OptimizeMaterials(avatar);
 
             Debug.Log($"[MaterialOptimizationService] Optimized materials for VRC Avatar: {avatar.name}");
 
             OptimizeNestedPrefabs(avatar);
-            AvatarExportAPI.ExportOptimizedAvatar(avatar);
+            AvatarExportService.ExportOptimizedAvatar(avatar);
         }
 
         private static void OptimizeNestedPrefabs(GameObject avatar)
@@ -135,7 +135,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static void OptimizeMaterialsForAllChildren(GameObject root)
         {
-            MaterialVariantAPI.OptimizeMaterials(root);
+            MaterialVariantService.OptimizeMaterials(root);
 
             foreach (Transform child in root.transform)
             {

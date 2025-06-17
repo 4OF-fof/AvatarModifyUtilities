@@ -5,13 +5,13 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace AMU.Editor.AutoVariant.Api
+namespace AMU.Editor.AutoVariant.Services
 {
     /// <summary>
-    /// Material Variant最適化API
-    /// 外部から呼び出される公開機能を提供
+    /// Material Variant最適化サービス
+    /// マテリアルの最適化処理を提供
     /// </summary>
-    public static class MaterialVariantAPI
+    public static class MaterialVariantService
     {
         /// <summary>
         /// 指定されたGameObjectのマテリアルを最適化する
@@ -32,27 +32,27 @@ namespace AMU.Editor.AutoVariant.Api
 
             if (targetObject == null)
             {
-                Debug.LogError("[MaterialVariantAPI] Target object is null");
+                Debug.LogError("[MaterialVariantService] Target object is null");
                 return false;
             }
 
             if (PrefabUtility.GetPrefabInstanceStatus(targetObject) != PrefabInstanceStatus.Connected)
             {
-                Debug.LogError("[MaterialVariantAPI] Object is not a prefab instance");
+                Debug.LogError("[MaterialVariantService] Object is not a prefab instance");
                 return false;
             }
 
             var prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(targetObject);
             if (prefabAsset == null)
             {
-                Debug.LogError("[MaterialVariantAPI] Could not find corresponding prefab asset");
+                Debug.LogError("[MaterialVariantService] Could not find corresponding prefab asset");
                 return false;
             }
 
             parentPrefab = PrefabUtility.GetCorrespondingObjectFromSource(prefabAsset);
             if (parentPrefab == null)
             {
-                Debug.LogWarning("[MaterialVariantAPI] This prefab doesn't seem to be a variant");
+                Debug.LogWarning("[MaterialVariantService] This prefab doesn't seem to be a variant");
                 return false;
             }
 
@@ -98,7 +98,7 @@ namespace AMU.Editor.AutoVariant.Api
 
             if (variantMaterials.Length != parentMaterials.Length)
             {
-                Debug.LogWarning($"[MaterialVariantAPI] Material count mismatch in {objectName}");
+                Debug.LogWarning($"[MaterialVariantService] Material count mismatch in {objectName}");
                 return false;
             }
 
@@ -111,7 +111,7 @@ namespace AMU.Editor.AutoVariant.Api
                 {
                     optimizedMaterials[i] = optimizedMaterial;
                     hasOptimizations = true;
-                    Debug.Log($"[MaterialVariantAPI] Optimized material {i} in {objectName}");
+                    Debug.Log($"[MaterialVariantService] Optimized material {i} in {objectName}");
                 }
                 else
                 {
@@ -171,12 +171,12 @@ namespace AMU.Editor.AutoVariant.Api
                 if (!string.IsNullOrEmpty(prefabPath))
                 {
                     PrefabUtility.ApplyPrefabInstance(prefabRoot, InteractionMode.AutomatedAction);
-                    Debug.Log($"[MaterialVariantAPI] Applied override to variant prefab for {objectName}");
+                    Debug.Log($"[MaterialVariantService] Applied override to variant prefab for {objectName}");
                 }
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"[MaterialVariantAPI] Error applying override for {objectName}: {e.Message}");
+                Debug.LogError($"[MaterialVariantService] Error applying override for {objectName}: {e.Message}");
             }
         }
 
