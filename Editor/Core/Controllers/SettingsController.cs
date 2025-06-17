@@ -1,36 +1,19 @@
-using UnityEngine;
 using UnityEditor;
-using AMU.Data.TagType;
 using AMU.Data.Setting;
 using System.Linq;
+using UnityEngine;
 
-namespace AMU.Editor.Initializer
+namespace AMU.Editor.Core.Controllers
 {
     /// <summary>
-    /// AMUの初期化処理を行うクラス
+    /// 設定データの永続化を管理するコントローラ
     /// </summary>
-    [InitializeOnLoad]
-    public static class AMUInitializer
+    public static class SettingsController
     {
-        static AMUInitializer()
-        {
-            // エディター起動時の初期化
-            EditorApplication.delayCall += Initialize;
-        }
-
-        private static void Initialize()
-        {
-            // EditorPrefsの初期化
-            InitializeEditorPrefs();
-
-            // TagTypeManagerの初期化
-            InitializeTagTypeManager();
-        }
-
         /// <summary>
-        /// EditorPrefsが設定されていない場合に初期値を設定します
+        /// 全ての設定項目のEditorPrefsを初期化します
         /// </summary>
-        private static void InitializeEditorPrefs()
+        public static void InitializeEditorPrefs()
         {
             try
             {
@@ -51,12 +34,74 @@ namespace AMU.Editor.Initializer
                     }
                 }
 
-                Debug.Log("[AMU] EditorPrefs initialized successfully.");
+                Debug.Log("[SettingsController] EditorPrefs initialized successfully.");
             }
             catch (System.Exception ex)
             {
-                Debug.LogError($"[AMU] EditorPrefs initialization failed: {ex.Message}");
+                Debug.LogError($"[SettingsController] EditorPrefs initialization failed: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// 指定された設定項目の値をEditorPrefsから取得します
+        /// </summary>
+        /// <param name="settingName">設定名</param>
+        /// <param name="defaultValue">デフォルト値</param>
+        /// <returns>設定値</returns>
+        public static T GetSetting<T>(string settingName, T defaultValue = default(T))
+        {
+            string key = $"Setting.{settingName}";
+
+            if (typeof(T) == typeof(string))
+                return (T)(object)EditorPrefs.GetString(key, defaultValue?.ToString() ?? "");
+            else if (typeof(T) == typeof(int))
+                return (T)(object)EditorPrefs.GetInt(key, defaultValue is int ? (int)(object)defaultValue : 0);
+            else if (typeof(T) == typeof(bool))
+                return (T)(object)EditorPrefs.GetBool(key, defaultValue is bool ? (bool)(object)defaultValue : false);
+            else if (typeof(T) == typeof(float))
+                return (T)(object)EditorPrefs.GetFloat(key, defaultValue is float ? (float)(object)defaultValue : 0f);
+
+            return defaultValue;
+        }
+
+        /// <summary>
+        /// 指定された設定項目の値をEditorPrefsに保存します
+        /// </summary>
+        /// <param name="settingName">設定名</param>
+        /// <param name="value">保存する値</param>
+        public static void SetSetting<T>(string settingName, T value)
+        {
+            string key = $"Setting.{settingName}";
+
+            if (typeof(T) == typeof(string))
+                EditorPrefs.SetString(key, value?.ToString() ?? "");
+            else if (typeof(T) == typeof(int))
+                EditorPrefs.SetInt(key, value is int ? (int)(object)value : 0);
+            else if (typeof(T) == typeof(bool))
+                EditorPrefs.SetBool(key, value is bool ? (bool)(object)value : false);
+            else if (typeof(T) == typeof(float))
+                EditorPrefs.SetFloat(key, value is float ? (float)(object)value : 0f);
+        }
+
+        /// <summary>
+        /// 指定された設定項目がEditorPrefsに存在するかどうかを確認します
+        /// </summary>
+        /// <param name="settingName">設定名</param>
+        /// <returns>存在する場合true</returns>
+        public static bool HasSetting(string settingName)
+        {
+            string key = $"Setting.{settingName}";
+            return EditorPrefs.HasKey(key);
+        }
+
+        /// <summary>
+        /// 指定された設定項目をEditorPrefsから削除します
+        /// </summary>
+        /// <param name="settingName">設定名</param>
+        public static void DeleteSetting(string settingName)
+        {
+            string key = $"Setting.{settingName}";
+            EditorPrefs.DeleteKey(key);
         }
 
         /// <summary>
@@ -65,7 +110,7 @@ namespace AMU.Editor.Initializer
         private static System.Collections.Generic.Dictionary<string, SettingItem[]> GetAllSettingItems()
         {
             var dictList = new System.Collections.Generic.List<System.Collections.Generic.Dictionary<string, SettingItem[]>>();
-            var asm = typeof(AMUInitializer).Assembly;
+            var asm = typeof(SettingsController).Assembly;
             var types = asm.GetTypes().Where(t => t.IsClass && t.IsAbstract && t.IsSealed && t.Namespace == "AMU.Data.Setting");
 
             foreach (var type in types)
@@ -116,20 +161,6 @@ namespace AMU.Editor.Initializer
                     var textAreaItem = (TextAreaSettingItem)item;
                     EditorPrefs.SetString(key, textAreaItem.DefaultValue);
                     break;
-            }
-        }
-
-        private static void InitializeTagTypeManager()
-        {
-            try
-            {
-                // TagTypeManagerのデータを読み込み
-                TagTypeManager.LoadData();
-                Debug.Log("[AMU] TagTypeManager initialized successfully.");
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogError($"[AMU] TagTypeManager initialization failed: {ex.Message}");
             }
         }
     }

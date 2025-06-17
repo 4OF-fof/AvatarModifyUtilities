@@ -2,10 +2,21 @@ using UnityEngine;
 using UnityEditor;
 using System.IO;
 
-namespace AMU.Editor.Core.Helper
+namespace AMU.Editor.Core.API
 {
-    public static class ObjectCaptureHelper
+    /// <summary>
+    /// オブジェクトキャプチャ機能を提供するAPI
+    /// </summary>
+    public static class ObjectCaptureAPI
     {
+        /// <summary>
+        /// 指定されたオブジェクトをキャプチャしてテクスチャとして保存します
+        /// </summary>
+        /// <param name="targetObject">キャプチャ対象のオブジェクト</param>
+        /// <param name="savePath">保存先パス</param>
+        /// <param name="width">キャプチャ幅</param>
+        /// <param name="height">キャプチャ高さ</param>
+        /// <returns>キャプチャされたテクスチャ</returns>
         public static Texture2D CaptureObject(GameObject targetObject, string savePath, int width = 512, int height = 512)
         {
             if (targetObject == null)
