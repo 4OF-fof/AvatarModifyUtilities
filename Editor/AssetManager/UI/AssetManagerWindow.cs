@@ -993,10 +993,8 @@ namespace AMU.AssetManager.UI
                     });
 
                     menu.AddSeparator("");
-                }
-
-                // グループに追加オプション（グループ以外のアセットのみ）
-                if (_selectedAssets.All(a => !a.isGroup))
+                }                // グループに追加オプション（選択されたアセットがすべてグループに追加可能な場合のみ）
+                if (_selectedAssets.All(a => !a.isGroup && !a.HasParent()))
                 {
                     menu.AddItem(new GUIContent(string.Format(LocalizationManager.GetText("AssetManager_addToGroupMultiple"), _selectedAssets.Count)), false, () =>
                     {
