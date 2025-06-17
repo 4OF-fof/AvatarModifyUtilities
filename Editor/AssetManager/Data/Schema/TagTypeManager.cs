@@ -83,6 +83,8 @@ namespace AMU.Data.TagType
             string dataDir = UnityEditor.EditorPrefs.GetString("Setting.Core_dirPath",
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
 
+            dataDir = Path.Combine(dataDir, "AssetManager");
+
             if (!Directory.Exists(dataDir))
             {
                 Directory.CreateDirectory(dataDir);
