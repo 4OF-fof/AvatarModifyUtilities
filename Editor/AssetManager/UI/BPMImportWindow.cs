@@ -190,15 +190,15 @@ namespace AMU.AssetManager.UI
 
         private void DrawSettingsOptions()
         {
-            EditorGUILayout.LabelField("Import Settings", _headerStyle);
+            EditorGUILayout.LabelField(LocalizationManager.GetText("BPMImport_importSettings"), _headerStyle);
 
             using (new EditorGUILayout.VerticalScope(_boxStyle))
             {
-                _showChildAssetSettings = EditorGUILayout.Toggle("Show child asset type settings", _showChildAssetSettings);
+                _showChildAssetSettings = EditorGUILayout.Toggle(LocalizationManager.GetText("BPMImport_showChildAssetSettings"), _showChildAssetSettings);
                 EditorGUILayout.HelpBox(
                     _showChildAssetSettings
-                        ? "Individual asset type settings will be shown for each file in multi-file packages."
-                        : "Only package-level asset type settings will be shown for multi-file packages.",
+                        ? LocalizationManager.GetText("BPMImport_childAssetSettingsEnabled")
+                        : LocalizationManager.GetText("BPMImport_childAssetSettingsDisabled"),
                     MessageType.Info);
             }
         }
@@ -274,7 +274,7 @@ namespace AMU.AssetManager.UI
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                EditorGUILayout.LabelField($"  • {file.fileName}", _fileItemStyle, GUILayout.Width(300));
+                EditorGUILayout.LabelField($"  • {file.fileName}", _fileItemStyle);
 
                 // アセットタイプ設定を表示する条件：
                 // 1. 単一ファイルの場合は常に表示
@@ -294,7 +294,7 @@ namespace AMU.AssetManager.UI
 
                     var fileSetting = _fileSettings[fileKey];
 
-                    // アセットタイプをセレクタで選択
+                    // アセットタイプをセレクタで選択（右揃え）
                     int currentIndex = GetAssetTypeIndex(fileSetting.assetType);
                     int newIndex = EditorGUILayout.Popup(currentIndex, _assetTypeOptions, GUILayout.Width(120));
 
