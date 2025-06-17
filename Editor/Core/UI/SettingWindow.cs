@@ -43,6 +43,9 @@ public class SettingWindow : EditorWindow
             menuItems = keys.ToArray();
         }
         selectedMenu = 0;
+
+        // EditorPrefsが設定されていない場合に初期値を設定
+        InitializeDefaultValues();
     }
 
     void OnEnable()
@@ -313,6 +316,85 @@ public class SettingWindow : EditorWindow
         EditorGUIUtility.labelWidth = prevLabelWidth;
         if (!hasResult)
             GUILayout.Label(LocalizationManager.GetText("empty_result"));
+    }
+
+    /// <summary>
+    /// EditorPrefsが設定されていない場合に初期値を設定します
+    /// </summary>
+    private void InitializeDefaultValues()
+    {
+        foreach (var category in settingItems)
+        {
+            foreach (var item in category.Value)
+            {
+                string key = $"Setting.{item.Name}";
+
+                // EditorPrefsに値が既に存在するかチェック
+                bool hasValue = false;
+                switch (item.Type)
+                {
+                    case AMU.Data.Setting.SettingType.String:
+                    case AMU.Data.Setting.SettingType.Choice:
+                    case AMU.Data.Setting.SettingType.FilePath:
+                    case AMU.Data.Setting.SettingType.TextArea:
+                        hasValue = EditorPrefs.HasKey(key);
+                        break;
+                    case AMU.Data.Setting.SettingType.Int:
+                        hasValue = EditorPrefs.HasKey(key);
+                        break;
+                    case AMU.Data.Setting.SettingType.Bool:
+                        hasValue = EditorPrefs.HasKey(key);
+                        break;
+                    case AMU.Data.Setting.SettingType.Float:
+                        hasValue = EditorPrefs.HasKey(key);
+                        break;
+                }
+
+                // 値が存在しない場合のみ初期値を設定
+                if (!hasValue)
+                {
+                    SetDefaultValue(item, key);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 指定された設定項目の初期値をEditorPrefsに設定します
+    /// </summary>
+    private void SetDefaultValue(AMU.Data.Setting.SettingItem item, string key)
+    {
+        switch (item.Type)
+        {
+            case AMU.Data.Setting.SettingType.String:
+                var stringItem = (StringSettingItem)item;
+                EditorPrefs.SetString(key, stringItem.DefaultValue);
+                break;
+            case AMU.Data.Setting.SettingType.Int:
+                var intItem = (IntSettingItem)item;
+                EditorPrefs.SetInt(key, intItem.DefaultValue);
+                break;
+            case AMU.Data.Setting.SettingType.Bool:
+                var boolItem = (BoolSettingItem)item;
+                EditorPrefs.SetBool(key, boolItem.DefaultValue);
+                break;
+            case AMU.Data.Setting.SettingType.Float:
+                var floatItem = (FloatSettingItem)item;
+                EditorPrefs.SetFloat(key, floatItem.DefaultValue);
+                break;
+            case AMU.Data.Setting.SettingType.Choice:
+                var choiceItem = (ChoiceSettingItem)item;
+                EditorPrefs.SetString(key, choiceItem.DefaultValue);
+                break;
+            case AMU.Data.Setting.SettingType.FilePath:
+                var fileItem = (FilePathSettingItem)item;
+                EditorPrefs.SetString(key, fileItem.DefaultValue);
+                break;
+            case AMU.Data.Setting.SettingType.TextArea:
+                var textAreaItem = (TextAreaSettingItem)item;
+                EditorPrefs.SetString(key, textAreaItem.DefaultValue);
+                break;
+        }
     }
 }
 
