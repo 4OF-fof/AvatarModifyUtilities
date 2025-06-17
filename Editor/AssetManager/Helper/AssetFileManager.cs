@@ -301,16 +301,26 @@ namespace AMU.AssetManager.Helper
             string fileName = Path.GetFileName(sourceFilePath);
             string targetPath = Path.Combine(Application.dataPath, fileName);
 
-            // ファイルが既に存在する場合は、番号を付けて重複を避ける
-            int counter = 1;
-            string nameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
-            string extension = Path.GetExtension(fileName);
+            // Assetsフォルダでのパスを取得
+            string assetPath = "Assets/" + Path.GetFileName(targetPath);
 
-            while (File.Exists(targetPath))
+            // ファイルが既に存在する場合は、既存ファイルを参照
+            if (File.Exists(targetPath))
             {
-                string newFileName = $"{nameWithoutExtension}_{counter}{extension}";
-                targetPath = Path.Combine(Application.dataPath, newFileName);
-                counter++;
+                Debug.Log($"[AssetFileManager] File already exists in Assets folder, using existing file: {targetPath}");
+                Debug.Log($"[AssetFileManager] Using existing file in Assets folder: {assetPath}");
+
+                // 既存ファイルを選択状態にする
+                EditorApplication.delayCall += () =>
+                {
+                    var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath);
+                    if (obj != null)
+                    {
+                        Selection.activeObject = obj;
+                        EditorGUIUtility.PingObject(obj);
+                    }
+                };
+                return;
             }
 
             // ファイルをコピー
@@ -318,9 +328,6 @@ namespace AMU.AssetManager.Helper
 
             // AssetDatabaseを更新
             AssetDatabase.Refresh();
-
-            // Assetsフォルダでのパスを取得
-            string assetPath = "Assets/" + Path.GetFileName(targetPath);
 
             Debug.Log($"[AssetFileManager] File imported to Assets folder: {assetPath}");
 
@@ -357,22 +364,15 @@ namespace AMU.AssetManager.Helper
                 if (!Directory.Exists(assetManagerDir))
                 {
                     Directory.CreateDirectory(assetManagerDir);
-                }
-
-                // ファイル名を取得し、重複を避ける
+                }                // ファイル名を取得し、重複を確認
                 string fileName = Path.GetFileName(originalFilePath);
                 string targetPath = Path.Combine(assetManagerDir, fileName);
 
-                // ファイルが既に存在する場合は、番号を付けて重複を避ける
-                int counter = 1;
-                string nameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
-                string extension = Path.GetExtension(fileName);
-
-                while (File.Exists(targetPath))
+                // ファイルが既に存在する場合は、既存ファイルのパスを返す
+                if (File.Exists(targetPath))
                 {
-                    string newFileName = $"{nameWithoutExtension}_{counter}{extension}";
-                    targetPath = Path.Combine(assetManagerDir, newFileName);
-                    counter++;
+                    Debug.Log($"[AssetFileManager] File already exists in CoreDir, using existing file: {targetPath}");
+                    return targetPath;
                 }
 
                 // ファイルをコピー（移動ではなくコピーで安全性を確保）

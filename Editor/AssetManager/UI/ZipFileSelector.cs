@@ -270,21 +270,18 @@ namespace AMU.AssetManager.UI
                 {
                     processedCount++;
                     SetStatus(string.Format(LocalizationManager.GetText("ZipFileSelector_extractingFile"), Path.GetFileName(file)) +
-                             $" ({processedCount}/{selectedFiles.Count})");
-
-                    string fileName = Path.GetFileName(file);
+                             $" ({processedCount}/{selectedFiles.Count})"); string fileName = Path.GetFileName(file);
                     string outputPath = Path.Combine(assetUnzipDir, fileName);
 
-                    // 同名ファイルが存在する場合は番号を付加
-                    int counter = 1;
-                    string originalOutputPath = outputPath;
-                    while (File.Exists(outputPath))
+                    // 同名ファイルが存在する場合は既存ファイルを参照
+                    if (File.Exists(outputPath))
                     {
-                        string nameWithoutExt = Path.GetFileNameWithoutExtension(originalOutputPath);
-                        string extension = Path.GetExtension(originalOutputPath);
-                        string directory = Path.GetDirectoryName(originalOutputPath);
-                        outputPath = Path.Combine(directory, $"{nameWithoutExt}_{counter}{extension}");
-                        counter++;
+                        Debug.Log($"[ZipFileSelector] File already exists, using existing file: {outputPath}");
+                        // AssetManager/unzip 以下の相対パスを保存（スラッシュ区切りで）
+                        string relativePath = $"AssetManager/unzip/{zipFileName}/{Path.GetFileName(outputPath)}";
+                        extractedPaths.Add(relativePath);
+                        successCount++;
+                        continue;
                     }
 
                     Debug.Log($"[ZipFileSelector] Extracting file: {file} -> {outputPath}");
