@@ -30,7 +30,7 @@ namespace AMU.Editor.TagType
         private GUIStyle _cardStyle;
         private bool _stylesInitialized = false;
 
-        [MenuItem("AMU/Tag & Type Manager")]
+        [MenuItem("AMU/Tag & Type Manager", priority = 999)]
         public static void ShowWindow()
         {
             var window = GetWindow<TagTypeManagerWindow>("Tag & Type Manager");

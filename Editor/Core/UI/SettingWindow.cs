@@ -19,7 +19,7 @@ public class SettingWindow : EditorWindow
     private string menuSearch = "";
     private Dictionary<string, AMU.Data.Setting.SettingItem[]> settingItems;
 
-    [MenuItem("AMU/Setting", priority = 100)]
+    [MenuItem("AMU/Setting", priority = 1000)]
     public static void ShowWindow()
     {
         string lang = EditorPrefs.GetString("Setting.Core_language", "en_us");
