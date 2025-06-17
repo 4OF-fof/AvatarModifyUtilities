@@ -2,11 +2,12 @@
 
 ## 概要
 
-Coreモジュールは、AvatarModifyUtilities（AMU）の中核機能を提供する基盤モジュールです。2025年6月のリファクタリングにより、以下の3つの明確な層に分離されました：
+Coreモジュールは、AvatarModifyUtilities（AMU）の中核機能を提供する基盤モジュールです。以下の4つの明確な層に分離されています：
 
 - **API層**: 外部から呼び出される公開機能
 - **Controllers層**: 永続データの管理
 - **Services層**: 初期化処理とサービス機能
+- **UI層**: ユーザーインターフェース
 
 ## ディレクトリ構造
 
@@ -107,90 +108,3 @@ Core/
   - `ObjectCaptureHelper` → `ObjectCaptureAPI`
   - `PipelineManagerHelper` → `VRChatAPI`
   - `AMUInitializer` → `InitializationService`
-
-## 使用方法
-
-### 新しいAPI使用例
-
-```csharp
-// オブジェクトキャプチャ
-using AMU.Editor.Core.API;
-var texture = ObjectCaptureAPI.CaptureObject(gameObject, "path/to/save.png");
-
-// VRChat機能
-using AMU.Editor.Core.API;
-var blueprintId = VRChatAPI.GetBlueprintId(avatar);
-bool isVRCAvatar = VRChatAPI.IsVRCAvatar(gameObject);
-
-// 設定管理
-using AMU.Editor.Core.Controllers;
-SettingsController.SetSetting("MySettingKey", "MyValue");
-var value = SettingsController.GetSetting<string>("MySettingKey", "DefaultValue");
-
-// ローカライゼーション
-using AMU.Editor.Core.Controllers;
-LocalizationController.LoadLanguage("en_us");
-var text = LocalizationController.GetText("ui_button_save");
-
-// UI表示
-using AMU.Editor.Core.UI;
-SettingWindow.ShowWindow();
-```
-
-### 後方互換性
-
-既存のコードは引き続き動作しますが、新しいAPIの使用が推奨されます：
-
-```csharp
-// 古い方法（非推奨だが動作する）
-using AMU.Editor.Core.Helper;
-var texture = ObjectCaptureHelper.CaptureObject(gameObject, "path.png");
-
-// 新しい方法（推奨）
-using AMU.Editor.Core.API;
-var texture = ObjectCaptureAPI.CaptureObject(gameObject, "path.png");
-```
-
-## 移行ガイド
-
-### 既存コードの移行
-
-1. **名前空間の更新**:
-   - `AMU.Editor.Core.Helper` → `AMU.Editor.Core.API`
-   - `AMU.Editor.Initializer` → `AMU.Editor.Core.Services`
-
-2. **クラス名の更新**:
-   - `ObjectCaptureHelper` → `ObjectCaptureAPI`
-   - `PipelineManagerHelper` → `VRChatAPI`
-   - `AMUInitializer` → `InitializationService`
-
-3. **メソッド名の更新**:
-   - `isVRCAvatar()` → `IsVRCAvatar()`
-
-### 段階的移行
-
-1. **Phase 1**: 後方互換性エイリアスを使用（現在）
-2. **Phase 2**: Obsolete警告を確認し、新しいAPIに移行
-3. **Phase 3**: 後方互換性エイリアスの削除（将来）
-
-## 設計原則
-
-1. **単一責任の原則**: 各層が明確な責任を持つ
-2. **依存関係の逆転**: 上位層が下位層に依存
-3. **開放閉鎖の原則**: 拡張に開放、修正に閉鎖
-4. **後方互換性**: 既存コードの動作を保証
-
-## 今後の拡張
-
-### 推奨される拡張方針
-
-1. **新しいAPI**: `Core/API/` に追加
-2. **データ管理**: `Core/Controllers/` に追加
-3. **サービス機能**: `Core/Services/` に追加
-4. **UI機能**: `Core/UI/` に追加（既存構造を維持）
-
-### 注意事項
-
-- UI機能は2025年6月のリファクタリングで新しい層構造に対応完了
-- UIコンポーネントは`AMU.Editor.Core.UI`名前空間を使用
-- 新しい機能は新しい層構造に従って実装

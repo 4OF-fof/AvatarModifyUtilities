@@ -245,86 +245,138 @@ public class MyFeature
 - 一貫したキー管理
 - エラーハンドリングの統一
 
-## 移行チェックリスト
+## Core/UI モジュールのリファクタリング（2025年6月）
 
-### コード変更
-- [ ] using文の更新
-- [ ] クラス名の更新
-- [ ] メソッド名の更新（該当する場合）
-- [ ] パラメータの確認
+### 変更概要
 
-### 動作確認
-- [ ] コンパイルエラーの解消
-- [ ] 警告メッセージの確認
-- [ ] 実行時動作の確認
-- [ ] UI表示の確認
+Core/UIモジュールは2025年6月のリファクタリングで新しい層構造に完全対応しました。
 
-### ドキュメント更新
-- [ ] 内部ドキュメントの更新
-- [ ] コメントの更新
-- [ ] README等の更新
+#### 主な変更点
 
-## よくある問題と解決策
+1. **名前空間の追加**
+   ```csharp
+   // 旧
+   public class SettingWindow : EditorWindow
+   
+   // 新
+   namespace AMU.Editor.Core.UI
+   {
+       public class SettingWindow : EditorWindow
+   }
+   ```
 
-### 1. 名前空間の競合
+2. **Controllers層の活用**
+   ```csharp
+   // 旧（直接EditorPrefs操作）
+   string lang = EditorPrefs.GetString("Setting.Core_language", "en_us");
+   EditorPrefs.SetString(key, newValue);
+   
+   // 新（SettingsController使用）
+   string lang = SettingsController.GetSetting("Core_language", "en_us");
+   SettingsController.SetSetting(item.Name, newValue);
+   ```
 
-**問題:**
+3. **ローカライゼーションAPIの更新**
+   ```csharp
+   // 旧（後方互換性API）
+   LocalizationManager.LoadLanguage(lang);
+   LocalizationManager.GetText(key);
+   
+   // 新（新しいController）
+   LocalizationController.LoadLanguage(lang);
+   LocalizationController.GetText(key);
+   ```
+
+4. **重複コードの削除**
+   - 設定項目取得ロジックをSettingsControllerに統合
+   - 初期値設定ロジックをSettingsControllerに委譲
+   - SettingDataHelperクラスの削除
+
+#### 削除された機能
+
+1. **InitializeDefaultValues()メソッド**
+   - SettingsController.InitializeEditorPrefs()で代替
+
+2. **SetDefaultValue()メソッド**
+   - SettingsControllerのSetDefaultValue()で代替
+
+3. **SettingDataHelperクラス**
+   - SettingsController.GetAllSettingItems()で代替
+
+#### 移行の影響
+
+- **既存UIコード**: 自動的に新しい層構造を活用
+- **パフォーマンス**: 重複処理の削除により改善
+- **保守性**: 責務の明確化により向上
+- **拡張性**: 新しい設定項目の追加が容易に
+
+### UI開発者向けの移行ガイド
+
+#### 新しいUIコンポーネント開発時
+
 ```csharp
-using AMU.Data.Lang;
+using AMU.Editor.Core.UI;
 using AMU.Editor.Core.Controllers;
 
-// LocalizationManager と LocalizationController の競合
+namespace AMU.Editor.Core.UI
+{
+    public class MyCustomWindow : EditorWindow
+    {
+        private void Initialize()
+        {
+            // 設定の取得
+            var setting = SettingsController.GetSetting("MySetting", "defaultValue");
+            
+            // ローカライゼーション
+            var text = LocalizationController.GetText("my_text_key");
+        }
+    }
+}
 ```
 
-**解決策:**
+#### 注意事項
+
+- UIコンポーネントは**UI専用の責務**に集中する
+- データ管理は**Controllers層**に委譲する
+- 外部公開機能（API層）は使用しない
+- 新しい名前空間 `AMU.Editor.Core.UI` を使用する
+
+## 既存コードの移行手順
+
+### 名前空間の更新
+
+1. **Helper → API層**:
+   - `AMU.Editor.Core.Helper` → `AMU.Editor.Core.API`
+
+2. **Initializer → Services層**:
+   - `AMU.Editor.Initializer` → `AMU.Editor.Core.Services`
+
+### クラス名の更新
+
+- `ObjectCaptureHelper` → `ObjectCaptureAPI`
+- `PipelineManagerHelper` → `VRChatAPI`
+- `AMUInitializer` → `InitializationService`
+
+### メソッド名の更新
+
+- `isVRCAvatar()` → `IsVRCAvatar()`
+
+### 移行フェーズ
+
+1. **Phase 1**: 後方互換性エイリアスを使用（現在）
+2. **Phase 2**: Obsolete警告を確認し、新しいAPIに移行
+3. **Phase 3**: 後方互換性エイリアスの削除（将来）
+
+### 後方互換性の例
+
+既存のコードは引き続き動作しますが、新しいAPIの使用が推奨されます：
+
 ```csharp
-using AMU.Editor.Core.Controllers;
+// 古い方法（非推奨だが動作する）
+using AMU.Editor.Core.Helper;
+var texture = ObjectCaptureHelper.CaptureObject(gameObject, "path.png");
 
-// 旧名前空間は削除し、新しいControllerのみ使用
-var text = LocalizationController.GetText("key");
+// 新しい方法（推奨）
+using AMU.Editor.Core.API;
+var texture = ObjectCaptureAPI.CaptureObject(gameObject, "path.png");
 ```
-
-### 2. Obsolete警告
-
-**問題:**
-```
-CS0618: 'ObjectCaptureHelper.CaptureObject(GameObject, string, int, int)' is obsolete: 'Use AMU.Editor.Core.API.ObjectCaptureAPI.CaptureObject instead'
-```
-
-**解決策:**
-- 警告メッセージに従って新しいAPIに移行
-- 一時的に警告を抑制する場合: `#pragma warning disable CS0618`
-
-### 3. 初期化タイミング
-
-**問題:**
-- 手動初期化が動作しない
-- 初期化順序の問題
-
-**解決策:**
-```csharp
-// 個別コンポーネントの再初期化
-InitializationService.Reinitialize(InitializationComponent.Localization);
-
-// 全体の再初期化
-InitializationService.Reinitialize(InitializationComponent.All);
-```
-
-## 段階的移行の推奨手順
-
-### 1. 新規開発
-- 必ず新APIを使用
-- 旧APIは使用しない
-
-### 2. 機能追加・修正時
-- 関連する既存コードも新APIに移行
-- 影響範囲を考慮した段階的移行
-
-### 3. 定期的なリファクタリング
-- プロジェクト全体のObsolete警告を定期的にチェック
-- 優先度の高い箇所から順次移行
-
-### 4. 移行完了の確認
-- 全てのObsolete警告の解消
-- 新アーキテクチャでの動作確認
-- パフォーマンステストの実施

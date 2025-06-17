@@ -4,13 +4,6 @@
 
 Controllers層は、永続データの管理とアクセス制御を担当します。EditorPrefs、JSONファイル、その他の永続化データへの一元的なアクセスを提供します。
 
-## 設計原則
-
-- **データアクセスの一元化**
-- **型安全性の確保**
-- **トランザクションの整合性**
-- **エラー時の安全性**
-
 ## Controllers一覧
 
 ### SettingsController
@@ -199,22 +192,6 @@ AvatarModifyUtilities/Editor/**/ja_jp.json
 AvatarModifyUtilities/Editor/**/en_us.json
 ```
 
-## 後方互換性
-
-### LocalizationManager
-
-既存の `AMU.Data.Lang.LocalizationManager` は引き続き使用可能です：
-
-```csharp
-// 古い方法（引き続き動作）
-using AMU.Data.Lang;
-var text = LocalizationManager.GetText("ui_button_save");
-
-// 新しい方法（推奨）
-using AMU.Editor.Core.Controllers;
-var text = LocalizationController.GetText("ui_button_save");
-```
-
 ## エラーハンドリング
 
 ### SettingsController
@@ -242,27 +219,3 @@ var text = LocalizationController.GetText("nonexistent_key");
 // → キー名をそのまま返す（"nonexistent_key"）
 ```
 
-## 拡張ガイド
-
-### 新しいController追加手順
-
-1. **ファイル作成**: `Core/Controllers/` 以下に新しいControllerクラスを作成
-2. **名前空間**: `AMU.Editor.Core.Controllers` を使用
-3. **クラス命名**: `{データ種別}Controller` の形式
-4. **静的クラス**: データアクセス用の静的クラスとして実装
-5. **エラーハンドリング**: 適切な例外処理とログ出力
-6. **初期化**: 必要に応じて `InitializationService` に初期化処理を追加
-
-### 設定項目の追加
-
-1. **設定定義**: `AMU.Data.Setting` 名前空間に設定項目を定義
-2. **デフォルト値**: 適切なデフォルト値を設定
-3. **型指定**: サポートされている型を使用
-4. **ドキュメント**: 設定項目の目的と使用方法を文書化
-
-### 新しい言語の追加
-
-1. **言語ファイル作成**: 該当する言語コードのJSONファイルを作成
-2. **ファイル配置**: 適切なディレクトリに配置
-3. **翻訳**: 全てのキーに対して翻訳を提供
-4. **テスト**: 言語切り替えが正常に動作することを確認
