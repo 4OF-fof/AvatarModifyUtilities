@@ -40,6 +40,10 @@ namespace AMU.AssetManager.UI
         private GUIStyle _fileItemStyle;
         private bool _stylesInitialized = false;
 
+        // アセットタイプ選択用
+        private string[] _assetTypeOptions;
+        private int _defaultAssetTypeIndex = 0;
+
         public static void ShowWindowWithFile(AssetDataManager assetDataManager, string bmpLibraryPath, Action onImportComplete = null)
         {
             var window = GetWindow<BPMImportWindow>(LocalizationManager.GetText("BPMImport_windowTitle"));
@@ -53,6 +57,9 @@ namespace AMU.AssetManager.UI
 
         private async void OnEnable()
         {
+            // アセットタイプ選択肢の初期化
+            InitializeAssetTypeOptions();
+
             // BPMデータの読み込み
             _isLoading = true;
             _statusMessage = LocalizationManager.GetText("BPMImport_loadingLibrary");
@@ -71,6 +78,9 @@ namespace AMU.AssetManager.UI
 
         private async void LoadFromSpecificFile(string filePath)
         {
+            // アセットタイプ選択肢の初期化
+            InitializeAssetTypeOptions();
+
             _isLoading = true;
             _statusMessage = LocalizationManager.GetText("BPMImport_loadingLibrary");
 
@@ -182,6 +192,33 @@ namespace AMU.AssetManager.UI
             using (new EditorGUILayout.VerticalScope(_boxStyle))
             {
                 EditorGUILayout.HelpBox(LocalizationManager.GetText("BPMImport_globalSettingsHelp"), MessageType.Info);
+
+                GUILayout.Space(5);
+
+                // デフォルトアセットタイプの選択
+                EditorGUILayout.LabelField("Default Asset Type:", EditorStyles.boldLabel);
+                int newDefaultIndex = EditorGUILayout.Popup("Asset Type", _defaultAssetTypeIndex, _assetTypeOptions);
+                if (newDefaultIndex != _defaultAssetTypeIndex && newDefaultIndex >= 0 && newDefaultIndex < _assetTypeOptions.Length)
+                {
+                    _defaultAssetTypeIndex = newDefaultIndex;
+
+                    // 新しいデフォルトタイプを既存の設定に適用
+                    string defaultType = _assetTypeOptions[_defaultAssetTypeIndex];
+                    foreach (var setting in _packageSettings.Values)
+                    {
+                        if (string.IsNullOrEmpty(setting.assetType) || setting.assetType == "Assets")
+                        {
+                            setting.assetType = defaultType;
+                        }
+                    }
+                    foreach (var setting in _fileSettings.Values)
+                    {
+                        if (string.IsNullOrEmpty(setting.assetType) || setting.assetType == "Assets")
+                        {
+                            setting.assetType = defaultType;
+                        }
+                    }
+                }
             }
         }
 
@@ -219,11 +256,22 @@ namespace AMU.AssetManager.UI
                     // パッケージ全体の設定（複数ファイルの場合）
                     if (!_packageSettings.ContainsKey(packageKey))
                     {
-                        _packageSettings[packageKey] = new AssetImportSettings();
+                        _packageSettings[packageKey] = new AssetImportSettings
+                        {
+                            assetType = _assetTypeOptions[_defaultAssetTypeIndex]
+                        };
                     }
 
                     var packageSetting = _packageSettings[packageKey];
-                    packageSetting.assetType = EditorGUILayout.TextField(LocalizationManager.GetText("BPMImport_assetType"), packageSetting.assetType);
+
+                    // アセットタイプをセレクタで選択
+                    int currentIndex = GetAssetTypeIndex(packageSetting.assetType);
+                    int newIndex = EditorGUILayout.Popup(LocalizationManager.GetText("BPMImport_assetType"), currentIndex, _assetTypeOptions);
+
+                    if (newIndex != currentIndex && newIndex >= 0 && newIndex < _assetTypeOptions.Length)
+                    {
+                        packageSetting.assetType = _assetTypeOptions[newIndex];
+                    }
                 }
 
                 // ファイルリスト
@@ -250,11 +298,22 @@ namespace AMU.AssetManager.UI
                 // 個別ファイル設定（単一ファイルまたは個別設定が必要な場合）
                 if (!_fileSettings.ContainsKey(fileKey))
                 {
-                    _fileSettings[fileKey] = new AssetImportSettings();
+                    _fileSettings[fileKey] = new AssetImportSettings
+                    {
+                        assetType = _assetTypeOptions[_defaultAssetTypeIndex]
+                    };
                 }
 
                 var fileSetting = _fileSettings[fileKey];
-                fileSetting.assetType = EditorGUILayout.TextField(fileSetting.assetType, GUILayout.Width(100));
+
+                // アセットタイプをセレクタで選択
+                int currentIndex = GetAssetTypeIndex(fileSetting.assetType);
+                int newIndex = EditorGUILayout.Popup(currentIndex, _assetTypeOptions, GUILayout.Width(120));
+
+                if (newIndex != currentIndex && newIndex >= 0 && newIndex < _assetTypeOptions.Length)
+                {
+                    fileSetting.assetType = _assetTypeOptions[newIndex];
+                }
             }
         }
 
@@ -391,6 +450,36 @@ namespace AMU.AssetManager.UI
             };
 
             _stylesInitialized = true;
+        }
+
+        private void InitializeAssetTypeOptions()
+        {
+            var allTypes = AssetTypeManager.AllTypes;
+            _assetTypeOptions = allTypes.ToArray();
+
+            // デフォルトで "Assets" を選択
+            _defaultAssetTypeIndex = 0;
+            for (int i = 0; i < _assetTypeOptions.Length; i++)
+            {
+                if (_assetTypeOptions[i] == "Assets")
+                {
+                    _defaultAssetTypeIndex = i;
+                    break;
+                }
+            }
+        }
+
+        private int GetAssetTypeIndex(string assetType)
+        {
+            if (string.IsNullOrEmpty(assetType))
+                return _defaultAssetTypeIndex;
+
+            for (int i = 0; i < _assetTypeOptions.Length; i++)
+            {
+                if (_assetTypeOptions[i] == assetType)
+                    return i;
+            }
+            return _defaultAssetTypeIndex;
         }
     }
 }
