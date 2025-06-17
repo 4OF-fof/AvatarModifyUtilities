@@ -1,6 +1,7 @@
+using System.IO;
+
 using UnityEngine;
 using UnityEditor;
-using System.IO;
 
 namespace AMU.Editor.Core.API
 {

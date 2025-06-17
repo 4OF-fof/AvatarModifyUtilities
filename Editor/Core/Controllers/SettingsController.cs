@@ -1,8 +1,10 @@
+using System.Linq;
+
 using UnityEditor;
+using UnityEngine;
+
 using AMU.Editor.Setting;
 using AMU.Editor.Core.Schema;
-using System.Linq;
-using UnityEngine;
 
 namespace AMU.Editor.Core.Controllers
 {
