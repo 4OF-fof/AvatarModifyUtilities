@@ -12,11 +12,16 @@ namespace AMU.AssetManager.UI
     public class GroupSelectorWindow : EditorWindow
     {
         private List<AssetInfo> _availableGroups;
+        private List<AssetInfo> _filteredGroups;
         private AssetInfo _selectedGroup;
         private Vector2 _scrollPosition = Vector2.zero;
         private Action<AssetInfo> _onGroupSelected;
         private AssetDataManager _dataManager;
         private AssetThumbnailManager _thumbnailManager;
+        
+        // 検索機能
+        private string _searchText = "";
+        private bool _isSearchFocused = false;
 
         // パフォーマンス最適化用のフィールド
         private Dictionary<string, Texture2D> _cachedThumbnails = new Dictionary<string, Texture2D>();
@@ -37,8 +42,8 @@ namespace AMU.AssetManager.UI
         public static void ShowWindow(AssetDataManager dataManager, Action<AssetInfo> onGroupSelected)
         {
             var window = GetWindow<GroupSelectorWindow>(true, LocalizationManager.GetText("GroupSelector_windowTitle"), true);
-            window.minSize = new Vector2(600, 500);
-            window.maxSize = new Vector2(600, 500);
+            window.minSize = new Vector2(600, 540); // 検索フィールド分の高さを追加
+            window.maxSize = new Vector2(600, 540);
             window._onGroupSelected = onGroupSelected;
             window._dataManager = dataManager;
             window._thumbnailManager = AssetThumbnailManager.Instance;
@@ -72,15 +77,17 @@ namespace AMU.AssetManager.UI
             if (_dataManager == null)
             {
                 _availableGroups = new List<AssetInfo>();
+                _filteredGroups = new List<AssetInfo>();
                 return;
             }
 
             // 利用可能なグループを取得
             _availableGroups = _dataManager.GetGroupAssets();
-            _selectedGroup = _availableGroups.FirstOrDefault();
+            _filteredGroups = new List<AssetInfo>(_availableGroups);
+            _selectedGroup = _filteredGroups.FirstOrDefault();
 
             // レイアウト計算
-            _totalRows = Mathf.CeilToInt((float)_availableGroups.Count / ITEMS_PER_ROW);
+            UpdateLayoutCalculation();
 
             // 子アセット数をキャッシュ
             _cachedChildCounts.Clear();
@@ -90,20 +97,56 @@ namespace AMU.AssetManager.UI
                 _cachedChildCounts[group.uid] = childCount;
             }
         }
+        
+        private void UpdateLayoutCalculation()
+        {
+            _totalRows = Mathf.CeilToInt((float)_filteredGroups.Count / ITEMS_PER_ROW);
+        }
+        
+        private void FilterGroups()
+        {
+            if (string.IsNullOrEmpty(_searchText))
+            {
+                _filteredGroups = new List<AssetInfo>(_availableGroups);
+            }
+            else
+            {
+                _filteredGroups = _availableGroups
+                    .Where(group => group.name.IndexOf(_searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                    .ToList();
+            }
+            
+            UpdateLayoutCalculation();
+            
+            // 選択されたグループがフィルタリング後にも存在するかチェック
+            if (_selectedGroup != null && !_filteredGroups.Contains(_selectedGroup))
+            {
+                _selectedGroup = _filteredGroups.FirstOrDefault();
+            }
+            
+            _scrollPosition = Vector2.zero; // 検索時にスクロール位置をリセット
+        }
 
         private void OnGUI()
         {
             using (new GUILayout.VerticalScope())
             {
-                // ヘッダー部分（最小限のスペース）
+                // ヘッダー部分
                 GUILayout.Space(5);
                 GUILayout.Label(LocalizationManager.GetText("GroupSelector_selectGroup"), EditorStyles.boldLabel);
                 GUILayout.Space(5);
+                
+                // 検索フィールド
+                DrawSearchField();
+                GUILayout.Space(5);
 
-                if (_availableGroups == null || _availableGroups.Count == 0)
+                if (_filteredGroups == null || _filteredGroups.Count == 0)
                 {
                     // グループがない場合
-                    GUILayout.Label(LocalizationManager.GetText("GroupSelector_noGroups"), EditorStyles.helpBox);
+                    var message = string.IsNullOrEmpty(_searchText) 
+                        ? LocalizationManager.GetText("GroupSelector_noGroups")
+                        : "検索結果が見つかりません";
+                    GUILayout.Label(message, EditorStyles.helpBox);
                     GUILayout.FlexibleSpace();
 
                     using (new GUILayout.HorizontalScope())
@@ -149,15 +192,52 @@ namespace AMU.AssetManager.UI
         }
 
         /// <summary>
+        /// 検索フィールドを描画
+        /// </summary>
+        private void DrawSearchField()
+        {
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.Label("検索:", GUILayout.Width(40));
+                
+                GUI.SetNextControlName("SearchField");
+                var newSearchText = GUILayout.TextField(_searchText, GUILayout.ExpandWidth(true));
+                
+                if (newSearchText != _searchText)
+                {
+                    _searchText = newSearchText;
+                    FilterGroups();
+                    Repaint();
+                }
+                
+                // クリアボタン
+                if (GUILayout.Button("×", GUILayout.Width(25)))
+                {
+                    _searchText = "";
+                    FilterGroups();
+                    GUI.FocusControl(null);
+                    Repaint();
+                }
+            }
+            
+            // フォーカス管理
+            if (!_isSearchFocused && Event.current.type == EventType.Repaint)
+            {
+                GUI.FocusControl("SearchField");
+                _isSearchFocused = true;
+            }
+        }
+
+        /// <summary>
         /// グループのグリッド表示を描画（修正版）
         /// </summary>
         private void DrawGroupGrid()
         {
-            if (_availableGroups == null || _availableGroups.Count == 0)
+            if (_filteredGroups == null || _filteredGroups.Count == 0)
                 return;
 
             // 表示可能な行数を計算
-            var visibleHeight = position.height - 100; // ヘッダーとボタン領域を除く
+            var visibleHeight = position.height - 140; // ヘッダー、検索フィールド、ボタン領域を除く
             var visibleRows = Mathf.CeilToInt(visibleHeight / ITEM_HEIGHT) + 1; // 余裕を持って+1
 
             // スクロール位置から可視範囲を計算
@@ -178,9 +258,9 @@ namespace AMU.AssetManager.UI
                     for (int col = 0; col < ITEMS_PER_ROW; col++)
                     {
                         int index = row * ITEMS_PER_ROW + col;
-                        if (index < _availableGroups.Count)
+                        if (index < _filteredGroups.Count)
                         {
-                            var group = _availableGroups[index];
+                            var group = _filteredGroups[index];
                             DrawGroupItem(group, ITEM_WIDTH, THUMBNAIL_SIZE);
                         }
                         else
@@ -213,9 +293,9 @@ namespace AMU.AssetManager.UI
                 for (int col = 0; col < ITEMS_PER_ROW; col++)
                 {
                     int index = row * ITEMS_PER_ROW + col;
-                    if (index < _availableGroups.Count)
+                    if (index < _filteredGroups.Count)
                     {
-                        var group = _availableGroups[index];
+                        var group = _filteredGroups[index];
                         if (!_cachedThumbnails.ContainsKey(group.uid) && !_requestedThumbnails.Contains(group.uid))
                         {
                             _requestedThumbnails.Add(group.uid);
@@ -260,6 +340,36 @@ namespace AMU.AssetManager.UI
             {
                 Close();
                 Event.current.Use();
+            }
+            
+            // 矢印キーでの選択移動
+            if (Event.current.type == EventType.KeyDown && _filteredGroups != null && _filteredGroups.Count > 0)
+            {
+                var currentIndex = _selectedGroup != null ? _filteredGroups.IndexOf(_selectedGroup) : -1;
+                var newIndex = currentIndex;
+                
+                switch (Event.current.keyCode)
+                {
+                    case KeyCode.LeftArrow:
+                        if (currentIndex > 0) newIndex = currentIndex - 1;
+                        break;
+                    case KeyCode.RightArrow:
+                        if (currentIndex < _filteredGroups.Count - 1) newIndex = currentIndex + 1;
+                        break;
+                    case KeyCode.UpArrow:
+                        if (currentIndex >= ITEMS_PER_ROW) newIndex = currentIndex - ITEMS_PER_ROW;
+                        break;
+                    case KeyCode.DownArrow:
+                        if (currentIndex + ITEMS_PER_ROW < _filteredGroups.Count) newIndex = currentIndex + ITEMS_PER_ROW;
+                        break;
+                }
+                
+                if (newIndex != currentIndex && newIndex >= 0 && newIndex < _filteredGroups.Count)
+                {
+                    _selectedGroup = _filteredGroups[newIndex];
+                    Event.current.Use();
+                    Repaint();
+                }
             }
         }
 
@@ -363,12 +473,38 @@ namespace AMU.AssetManager.UI
             // キャッシュされた子アセット数を使用
             var childCount = _cachedChildCounts.TryGetValue(group.uid, out var count) ? count : 0;
             var displayText = $"{group.name}\n({childCount}個)";
+            
+            // 検索テキストがある場合はハイライト表示
+            if (!string.IsNullOrEmpty(_searchText))
+            {
+                displayText = HighlightSearchText(displayText, _searchText);
+            }
 
             // テキストが長い場合は切り詰める
             var truncatedText = TruncateTextToFitHeight(displayText, nameStyle, rect.width, rect.height);
             var content = new GUIContent(truncatedText, group.name); // ツールチップに完全な名前を表示
 
             GUI.Label(rect, content, nameStyle);
+        }
+        
+        /// <summary>
+        /// テキスト内の検索文字列をハイライト表示用にマークアップ
+        /// </summary>
+        private string HighlightSearchText(string text, string searchText)
+        {
+            if (string.IsNullOrEmpty(searchText))
+                return text;
+                
+            var index = text.IndexOf(searchText, StringComparison.OrdinalIgnoreCase);
+            if (index >= 0)
+            {
+                var beforeText = text.Substring(0, index);
+                var highlightText = text.Substring(index, searchText.Length);
+                var afterText = text.Substring(index + searchText.Length);
+                return $"{beforeText}<color=yellow>{highlightText}</color>{afterText}";
+            }
+            
+            return text;
         }
 
         /// <summary>
