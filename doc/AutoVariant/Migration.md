@@ -2,7 +2,14 @@
 
 ## 概要
 
-このドキュメントは、AutoVariantモジュールのリファクタリング（旧Helper/Watcher構造から新しい5層アーキテクチャへ）による変更点と移行方法を説明します。
+このドキュメントは、AutoVariantモジュールのリファクタリング（旧Helper/Watcher構造から新しい4層アーキテクチャへ）による変更点と移行方法を説明します。
+
+## 重要な変更点
+
+### Controllers層の削除
+- **AutoVariantController.cs が削除されました**
+- 設定管理は Core.Controllers.SettingsController に統合
+- 設定の初期化は Core システムで自動実行
 
 ## リファクタリング前後の対応表
 
@@ -12,7 +19,7 @@
 |--------|--------|----------|
 | `Helper/MaterialHelper.cs` | `Api/MaterialVariantAPI.cs` | 外部公開APIとして整理 |
 | `Watcher/AvatarExporter.cs` | `Api/AvatarExportAPI.cs` | 外部公開APIとして整理 |
-| なし | `Controllers/AutoVariantController.cs` | 設定管理の専用コントローラ作成 |
+| なし | **削除** | **設定管理はCoreに統合** |
 | `Watcher/ConvertVariant.cs` | `Services/ConvertVariantService.cs` | サービス層として整理 |
 | `Watcher/MaterialOptimizationManager.cs` | `Services/MaterialOptimizationService.cs` | サービス層として整理 |
 | `Watcher/AvatarValidator.cs` | `Services/AvatarValidationService.cs` | サービス層として整理 |
@@ -146,14 +153,41 @@ bool enabled = EditorPrefs.GetBool("Setting.AutoVariant_enableAutoVariant", fals
 
 #### 移行後
 ```csharp
-using AMU.Editor.AutoVariant.Controllers;
+using AMU.Editor.Core.Controllers;
 using AMU.Editor.AutoVariant.Schema;
 
-// Controllerを通したアクセス（推奨）
-bool enabled = AutoVariantController.IsAutoVariantEnabled();
-
-// または、Schemaを通したアクセス
+// Schemaを通したアクセス（推奨）
 bool enabled = PrebuildSettings.IsAutoVariantEnabled;
+
+// または、SettingsControllerを直接使用
+bool enabled = SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false);
+```
+
+### AutoVariantController の削除対応
+
+#### 移行前
+```csharp
+using AMU.Editor.AutoVariant.Controllers;
+
+// AutoVariantControllerを使用
+bool enabled = AutoVariantController.IsAutoVariantEnabled();
+AutoVariantController.SetAutoVariantEnabled(true);
+AutoVariantController.InitializeSettings();
+```
+
+#### 移行後
+```csharp
+using AMU.Editor.Core.Controllers;
+using AMU.Editor.AutoVariant.Schema;
+
+// Schema経由でのアクセス（読み取り）
+bool enabled = PrebuildSettings.IsAutoVariantEnabled;
+
+// SettingsController経由での設定変更
+SettingsController.SetSetting("AutoVariant_enableAutoVariant", true);
+
+// 初期化はCore.Controllers.SettingsControllerが自動実行
+// 手動初期化は不要
 ```
 
 ## 破壊的変更
@@ -166,31 +200,30 @@ bool enabled = PrebuildSettings.IsAutoVariantEnabled;
 - `MaterialVariantOptimizer` → `MaterialVariantAPI`
 - `PrefabAdditionDetector` → `ConvertVariantService`
 - `MyPreBuildProcess` → `PrebuildService`
+- **`AutoVariantController` → 削除（Coreに統合）**
 
 ### 3. 名前空間の変更
 - すべてのクラスが新しい名前空間に移動
 - `using`文の更新が必要
+- **Controllers層が削除**
 
 ### 4. メソッドアクセスの変更
 - 一部のprivateメソッドがinternalに変更
 - 一部のpublicメソッドが整理・統合
+- **設定関連メソッドは Core.Controllers.SettingsController に移行**
 
 ## 新機能
 
-### 1. Controllers層の追加
+### 1. 統一された設定管理
 ```csharp
-using AMU.Editor.AutoVariant.Controllers;
+using AMU.Editor.Core.Controllers;
 
-// 設定の初期化
-AutoVariantController.InitializeSettings();
+// 自動初期化（手動初期化不要）
+// SettingsController.InitializeEditorPrefs(); // 自動実行
 
-// 設定の変更
-AutoVariantController.SetAutoVariantEnabled(true);
-
-// 設定の検証
-if (AutoVariantController.ValidateSettings())
-{
-    Debug.Log("設定は正常です");
+// 統一された設定アクセス
+bool enabled = SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false);
+SettingsController.SetSetting("AutoVariant_enableAutoVariant", true);
 }
 ```
 

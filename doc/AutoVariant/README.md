@@ -2,13 +2,14 @@
 
 ## 概要
 
-AutoVariantモジュールは、VRChatアバター用のプレハブバリアント自動生成と最適化機能を提供するモジュールです。以下の5つの明確な層に分離されています：
+AutoVariantモジュールは、VRChatアバター用のプレハブバリアント自動生成と最適化機能を提供するモジュールです。以下の4つの明確な層に分離されています：
 
 - **API層**: 外部から呼び出される公開機能
-- **Controllers層**: 永続データの管理
 - **Services層**: 初期化処理とサービス機能
 - **Schema層**: データ構造とスキーマ定義
 - **Data層**: 具体的なデータ定義
+
+設定管理は、Coreモジュールの統一システム（Core.Controllers.SettingsController）を使用します。
 
 ## ディレクトリ構造
 
@@ -17,8 +18,6 @@ AutoVariant/
 ├── Api/                            # 外部公開API
 │   ├── MaterialVariantAPI.cs       # マテリアル最適化API
 │   └── AvatarExportAPI.cs          # アバターエクスポートAPI
-├── Controllers/                    # データコントローラ
-│   └── AutoVariantController.cs    # AutoVariant設定管理
 ├── Services/                       # サービス層
 │   ├── ConvertVariantService.cs    # プレハブ変換監視サービス
 │   ├── MaterialOptimizationService.cs # マテリアル最適化サービス
@@ -72,22 +71,29 @@ AutoVariant/
   - `ExportOptimizedAvatar(GameObject)`: アバターエクスポート
   - `GetAvatarAssets(GameObject)`: アセット収集
 
-### Controllers層 (`AutoVariant/Controllers/`)
+## 設定管理
 
-永続データの管理とアクセス制御を担当します。
+AutoVariantの設定は、Coreモジュールの統一設定システムを使用して管理されます：
 
-#### AutoVariantController
-- **目的**: AutoVariant設定の管理
-- **機能**:
-  - 設定の初期化
-  - 設定値の取得・保存
-  - 設定の検証
-- **主要メソッド**:
-  - `InitializeSettings()`: 設定初期化
-  - `SetAutoVariantEnabled(bool)`: AutoVariant有効/無効設定
-  - `SetPrebuildEnabled(bool)`: Prebuild処理有効/無効設定
-  - `SetIncludeAllAssets(bool)`: 全アセット含有設定
-  - `ValidateSettings()`: 設定検証
+- **Core.Controllers.SettingsController**: 設定の初期化、取得、保存
+- **Core.UI.SettingWindow**: 設定UIでの表示・編集
+- **AutoVariant.Data.AutoVariantSettingData**: 設定項目の定義
+
+### 設定アクセス方法
+
+```csharp
+using AMU.Editor.Core.Controllers;
+using AMU.Editor.AutoVariant.Schema;
+
+// 設定値の取得（推奨方法）
+bool enabled = PrebuildSettings.IsAutoVariantEnabled;
+
+// または、SettingsControllerを直接使用
+bool enabled = SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false);
+
+// 設定値の変更
+SettingsController.SetSetting("AutoVariant_enableAutoVariant", true);
+```
 
 ### Services層 (`AutoVariant/Services/`)
 
@@ -153,17 +159,9 @@ AutoVariant/
 #### AutoVariantSettingData
 - **目的**: AutoVariant設定項目の定義
 - **設定項目**:
-  - `AutoVariant_enableAutoVariant`: AutoVariant機能の有効/無効
-  - `AutoVariant_enablePrebuild`: Prebuild処理の有効/無効
-  - `AutoVariant_includeAllAssets`: 全アセット含有の有効/無効
-
-## 設定管理
-
-AutoVariantモジュールの設定は`EditorPrefs`を使用して永続化されます：
-
-- `Setting.AutoVariant_enableAutoVariant`: AutoVariant機能の有効/無効（デフォルト: false）
-- `Setting.AutoVariant_enablePrebuild`: Prebuild最適化の有効/無効（デフォルト: true）
-- `Setting.AutoVariant_includeAllAssets`: エクスポート時の全アセット含有（デフォルト: true）
+  - `AutoVariant_enableAutoVariant`: AutoVariant機能の有効/無効（デフォルト: false）
+  - `AutoVariant_enablePrebuild`: Prebuild処理の有効/無効（デフォルト: true）
+  - `AutoVariant_includeAllAssets`: 全アセット含有の有効/無効（デフォルト: true）
 
 ## ワークフロー
 
@@ -189,6 +187,7 @@ AutoVariantモジュールの設定は`EditorPrefs`を使用して永続化さ�
 
 ## 依存関係
 
+- **Core.Controllers**: SettingsController（設定管理）
 - **Core.Helper**: PipelineManagerHelper, ObjectCaptureHelper
 - **Core.Schema**: SettingItem
 - **VRChatSDK**: IVRCSDKBuildRequestedCallback
