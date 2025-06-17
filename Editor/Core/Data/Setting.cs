@@ -15,7 +15,7 @@ namespace AMU.Editor.Setting
                     {
                         { "ja_jp", "日本語" },
                         { "en_us", "English" },
-                    }, "ja_jp"),
+                    }, "en_us"),
                 new FilePathSettingItem(
                     "Core_dirPath",
                     System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"),
