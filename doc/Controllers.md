@@ -563,3 +563,67 @@ public static ValidationResults ValidateGroupSchema(AssetGroupSchema group, IRea
 // Booth情報の検証
 public static ValidationResults ValidateBoothItem(BoothItemSchema boothItem)
 ```
+
+### AssetLibraryController
+
+AssetLibraryのJSONファイルの読み書きを担当するコントローラです。ライブラリの永続化を管理します。
+
+#### 名前空間
+```csharp
+using AMU.Editor.VrcAssetManager.Controllers;
+using AMU.Editor.VrcAssetManager.Schema;
+```
+
+#### 主要機能
+
+##### ライブラリの作成・保存・読み込み
+```csharp
+public static AssetLibrarySchema CreateNewLibrary()
+public static bool SaveLibrary(AssetLibrarySchema library, string filePath = null)
+public static AssetLibrarySchema LoadLibrary(string filePath = null)
+```
+
+**使用例:**
+```csharp
+// 新しいライブラリを作成
+var library = AssetLibraryController.CreateNewLibrary();
+
+// アセットを追加
+var assetId = AssetId.NewId();
+var asset = new AssetSchema("MyAsset", AssetType.Avatar, "path/to/asset.prefab");
+library.AddAsset(assetId, asset);
+
+// ライブラリを保存
+bool saved = AssetLibraryController.SaveLibrary(library);
+
+// ライブラリを読み込み
+var loadedLibrary = AssetLibraryController.LoadLibrary();
+```
+
+##### ファイル管理機能
+```csharp
+public static bool LibraryFileExists(string filePath = null)
+public static FileInfo GetLibraryFileInfo(string filePath = null)
+public static bool ValidateLibraryFile(string filePath = null)
+public static string DefaultLibraryPath { get; }
+```
+
+**使用例:**
+```csharp
+// ファイルの存在確認
+if (AssetLibraryController.LibraryFileExists())
+{
+    // ファイル情報を取得
+    var fileInfo = AssetLibraryController.GetLibraryFileInfo();
+    Debug.Log($"ファイルサイズ: {fileInfo.Length} bytes");
+    
+    // ファイルの妥当性を検証
+    if (AssetLibraryController.ValidateLibraryFile())
+    {
+        var library = AssetLibraryController.LoadLibrary();
+    }
+}
+
+// デフォルトパスを取得
+Debug.Log($"デフォルトパス: {AssetLibraryController.DefaultLibraryPath}");
+```

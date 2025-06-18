@@ -337,3 +337,188 @@ public static ValidationResults ValidateGroupSchema(AssetGroupSchema group, IRea
 // Booth情報の検証
 public static ValidationResults ValidateBoothItem(BoothItemSchema boothItem)
 ```
+
+### AssetLibraryController
+
+AssetLibraryのJSONファイルの読み書きを担当するコントローラです。
+
+#### 名前空間
+```csharp
+using AMU.Editor.VrcAssetManager.Controllers;
+using AMU.Editor.VrcAssetManager.Schema;
+```
+
+#### 主要機能
+
+##### 新しいライブラリの作成
+```csharp
+public static AssetLibrarySchema CreateNewLibrary()
+```
+
+新しい空のAssetLibrarySchemaを作成します。
+
+**戻り値:**
+- `AssetLibrarySchema`: 新しいライブラリインスタンス（失敗時はnull）
+
+**使用例:**
+```csharp
+var newLibrary = AssetLibraryController.CreateNewLibrary();
+if (newLibrary != null)
+{
+    Debug.Log("新しいライブラリが作成されました");
+}
+```
+
+##### ライブラリの保存
+```csharp
+public static bool SaveLibrary(AssetLibrarySchema library, string filePath = null)
+```
+
+AssetLibraryをJSONファイルに保存します。
+
+**パラメータ:**
+- `library`: 保存するAssetLibrarySchema
+- `filePath`: 保存先ファイルパス（nullの場合はDefaultLibraryPathを使用）
+
+**戻り値:**
+- `bool`: 保存に成功した場合true
+
+**特徴:**
+- 保存時に自動的にLastUpdatedを更新
+- ディレクトリが存在しない場合は自動作成
+- 適切なJSON設定で整形済みファイルを出力
+
+**使用例:**
+```csharp
+var library = AssetLibraryController.CreateNewLibrary();
+// ... ライブラリにアセットを追加
+
+// デフォルトパスに保存
+bool saved = AssetLibraryController.SaveLibrary(library);
+
+// 指定パスに保存
+bool savedToCustomPath = AssetLibraryController.SaveLibrary(library, @"C:\MyLibrary.json");
+```
+
+##### ライブラリの読み込み
+```csharp
+public static AssetLibrarySchema LoadLibrary(string filePath = null)
+```
+
+JSONファイルからAssetLibraryを読み込みます。
+
+**パラメータ:**
+- `filePath`: 読み込み元ファイルパス（nullの場合はDefaultLibraryPathを使用）
+
+**戻り値:**
+- `AssetLibrarySchema`: 読み込んだライブラリ（失敗時は新しい空のライブラリを返す）
+
+**特徴:**
+- ファイルが存在しない場合は新しいライブラリを作成
+- JSON解析エラー時は新しいライブラリを作成してエラーログを出力
+- 読み込み成功時はアセット数とグループ数をログ出力
+
+**使用例:**
+```csharp
+// デフォルトパスから読み込み
+var library = AssetLibraryController.LoadLibrary();
+
+// 指定パスから読み込み
+var customLibrary = AssetLibraryController.LoadLibrary(@"C:\MyLibrary.json");
+
+Debug.Log($"読み込み完了: アセット数={library.AssetCount}, グループ数={library.GroupCount}");
+```
+
+##### ファイル存在確認
+```csharp
+public static bool LibraryFileExists(string filePath = null)
+```
+
+ライブラリファイルが存在するかを確認します。
+
+**パラメータ:**
+- `filePath`: 確認するファイルパス（nullの場合はDefaultLibraryPathを使用）
+
+**戻り値:**
+- `bool`: ファイルが存在する場合true
+
+**使用例:**
+```csharp
+if (AssetLibraryController.LibraryFileExists())
+{
+    var library = AssetLibraryController.LoadLibrary();
+}
+else
+{
+    var library = AssetLibraryController.CreateNewLibrary();
+}
+```
+
+##### ファイル情報の取得
+```csharp
+public static FileInfo GetLibraryFileInfo(string filePath = null)
+```
+
+ライブラリファイルの詳細情報を取得します。
+
+**パラメータ:**
+- `filePath`: 対象ファイルパス（nullの場合はDefaultLibraryPathを使用）
+
+**戻り値:**
+- `FileInfo`: ファイル情報（存在しない場合はnull）
+
+**使用例:**
+```csharp
+var fileInfo = AssetLibraryController.GetLibraryFileInfo();
+if (fileInfo != null)
+{
+    Debug.Log($"ファイルサイズ: {fileInfo.Length:N0} bytes");
+    Debug.Log($"最終更新: {fileInfo.LastWriteTime:yyyy/MM/dd HH:mm:ss}");
+}
+```
+
+##### ファイルの検証
+```csharp
+public static bool ValidateLibraryFile(string filePath = null)
+```
+
+ライブラリファイルの形式と内容の妥当性を検証します。
+
+**パラメータ:**
+- `filePath`: 検証するファイルパス（nullの場合はDefaultLibraryPathを使用）
+
+**戻り値:**
+- `bool`: 有効なライブラリファイルの場合true
+
+**検証内容:**
+- ファイルの存在確認
+- JSONファイルの構文チェック
+- AssetLibrarySchemaへのデシリアライズ可能性確認
+
+**使用例:**
+```csharp
+if (AssetLibraryController.ValidateLibraryFile(@"C:\MyLibrary.json"))
+{
+    Debug.Log("ライブラリファイルは有効です");
+    var library = AssetLibraryController.LoadLibrary(@"C:\MyLibrary.json");
+}
+else
+{
+    Debug.LogError("ライブラリファイルが無効です");
+}
+```
+
+##### デフォルトパスの取得
+```csharp
+public static string DefaultLibraryPath { get; }
+```
+
+デフォルトのライブラリファイルパスを取得します。
+
+**戻り値:**
+- `string`: `{Application.dataPath}/AssetLibrary.json`の絶対パス
+
+**使用例:**
+```csharp
+Debug.Log($"デフォルトライブラリパス: {AssetLibraryController.DefaultLibraryPath}");
+```
