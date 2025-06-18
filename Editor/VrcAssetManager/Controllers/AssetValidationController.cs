@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AMU.Editor.VrcAssetManager.Schema;
+using AMU.Editor.Core.Controllers;
 
 namespace AMU.Editor.VrcAssetManager.Controllers
 {
@@ -21,16 +22,16 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             if (string.IsNullOrEmpty(assetId.Value))
             {
                 results.Add(ValidationResult.Critical(
-                    "アセットIDが空です",
+                    LocalizationController.GetText("VrcAssetManager_validation_error_assetIdEmpty"),
                     "Id",
-                    "新しいGUIDを生成してください"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_generateNewGuid")));
             }
             else if (!Guid.TryParse(assetId.Value, out _))
             {
                 results.Add(ValidationResult.Error(
-                    "アセットIDの形式が不正です",
+                    LocalizationController.GetText("VrcAssetManager_validation_error_assetIdInvalid"),
                     "Id",
-                    "有効なGUID形式で入力してください"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_validGuidFormat")));
             }
 
             return results;
@@ -47,50 +48,50 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             if (string.IsNullOrWhiteSpace(metadata.Name))
             {
                 results.Add(ValidationResult.Error(
-                    "アセット名が入力されていません",
+                    LocalizationController.GetText("VrcAssetManager_validation_error_nameEmpty"),
                     "Name",
-                    "わかりやすいアセット名を入力してください"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_clearName")));
             }
             else if (metadata.Name.Length > 100)
             {
                 results.Add(ValidationResult.Warning(
-                    "アセット名が長すぎます",
+                    LocalizationController.GetText("VrcAssetManager_validation_warning_nameTooLong"),
                     "Name",
-                    "100文字以内で入力してください"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_nameLength")));
             }
 
             // 説明の検証
             if (metadata.Description.Length > 1000)
             {
                 results.Add(ValidationResult.Warning(
-                    "説明が長すぎます",
+                    LocalizationController.GetText("VrcAssetManager_validation_warning_descriptionTooLong"),
                     "Description",
-                    "1000文字以内で入力してください"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_descriptionLength")));
             }
 
             // 作者名の検証
             if (string.IsNullOrWhiteSpace(metadata.AuthorName))
             {
                 results.Add(ValidationResult.Info(
-                    "作者名が設定されていません",
+                    LocalizationController.GetText("VrcAssetManager_validation_info_authorNameEmpty"),
                     "AuthorName",
-                    "作者名を設定することをお勧めします"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_setAuthorName")));
             }
             else if (metadata.AuthorName.Length > 50)
             {
                 results.Add(ValidationResult.Warning(
-                    "作者名が長すぎます",
+                    LocalizationController.GetText("VrcAssetManager_validation_warning_authorNameTooLong"),
                     "AuthorName",
-                    "50文字以内で入力してください"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_authorNameLength")));
             }
 
             // バージョンの検証
             if (string.IsNullOrWhiteSpace(metadata.Version))
             {
                 results.Add(ValidationResult.Info(
-                    "バージョンが設定されていません",
+                    LocalizationController.GetText("VrcAssetManager_validation_info_versionEmpty"),
                     "Version",
-                    "バージョン情報を設定することをお勧めします"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_setVersion")));
             }
 
             // タグの検証
@@ -98,35 +99,35 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             if (invalidTags.Any())
             {
                 results.Add(ValidationResult.Warning(
-                    "空のタグが含まれています",
+                    LocalizationController.GetText("VrcAssetManager_validation_warning_emptyTags"),
                     "Tags",
-                    "空のタグを削除してください"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_removeEmptyTags")));
             }
 
             var longTags = metadata.Tags.Where(tag => tag.Length > 20).ToList();
             if (longTags.Any())
             {
                 results.Add(ValidationResult.Warning(
-                    $"長すぎるタグがあります: {string.Join(", ", longTags)}",
+                    string.Format(LocalizationController.GetText("VrcAssetManager_validation_warning_longTags"), string.Join(", ", longTags)),
                     "Tags",
-                    "タグは20文字以内にしてください"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_tagLength")));
             }
 
             // 日付の検証
             if (metadata.CreatedDate > DateTime.Now)
             {
                 results.Add(ValidationResult.Warning(
-                    "作成日が未来の日付になっています",
+                    LocalizationController.GetText("VrcAssetManager_validation_warning_futureDateCreated"),
                     "CreatedDate",
-                    "正しい作成日を設定してください"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_correctCreatedDate")));
             }
 
             if (metadata.ModifiedDate < metadata.CreatedDate)
             {
                 results.Add(ValidationResult.Error(
-                    "更新日が作成日より前になっています",
+                    LocalizationController.GetText("VrcAssetManager_validation_error_modifiedBeforeCreated"),
                     "ModifiedDate",
-                    "正しい更新日を設定してください"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_correctModifiedDate")));
             }
 
             return results;
@@ -143,9 +144,9 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             if (string.IsNullOrWhiteSpace(fileInfo.FilePath))
             {
                 results.Add(ValidationResult.Critical(
-                    "ファイルパスが設定されていません",
+                    LocalizationController.GetText("VrcAssetManager_validation_critical_filePathEmpty"),
                     "FilePath",
-                    "有効なファイルパスを設定してください"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_setValidFilePath")));
             }
             else
             {
@@ -156,17 +157,17 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                     if (!File.Exists(fullPath))
                     {
                         results.Add(ValidationResult.Error(
-                            "指定されたファイルが存在しません",
+                            LocalizationController.GetText("VrcAssetManager_validation_error_fileNotFound"),
                             "FilePath",
-                            "存在するファイルのパスを指定してください"));
+                            LocalizationController.GetText("VrcAssetManager_validation_suggestion_existingFilePath")));
                     }
                 }
                 catch (Exception)
                 {
                     results.Add(ValidationResult.Error(
-                        "ファイルパスの形式が不正です",
+                        LocalizationController.GetText("VrcAssetManager_validation_error_filePathInvalid"),
                         "FilePath",
-                        "有効なファイルパスを指定してください"));
+                        LocalizationController.GetText("VrcAssetManager_validation_suggestion_setValidFilePath")));
                 }
             }
 
@@ -174,16 +175,16 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             if (fileInfo.FileSize.Bytes <= 0)
             {
                 results.Add(ValidationResult.Warning(
-                    "ファイルサイズが不正です",
+                    LocalizationController.GetText("VrcAssetManager_validation_warning_fileSizeInvalid"),
                     "FileSize",
-                    "正しいファイルサイズを設定してください"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_correctFileSize")));
             }
             else if (fileInfo.FileSize.Bytes > 1024L * 1024 * 1024 * 2) // 2GB
             {
                 results.Add(ValidationResult.Warning(
-                    "ファイルサイズが非常に大きいです",
+                    LocalizationController.GetText("VrcAssetManager_validation_warning_fileSizeLarge"),
                     "FileSize",
-                    "大きなファイルはパフォーマンスに影響する可能性があります"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_performanceWarning")));
             }
 
             return results;
@@ -199,9 +200,9 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             if (string.IsNullOrWhiteSpace(assetType.Value))
             {
                 results.Add(ValidationResult.Warning(
-                    "アセットタイプが不明です",
+                    LocalizationController.GetText("VrcAssetManager_validation_warning_assetTypeUnknown"),
                     "AssetType",
-                    "適切なアセットタイプを設定してください"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_setAssetType")));
             }
 
             return results;
@@ -225,9 +226,9 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                     if (!allGroups.TryGetValue(current, out var parentGroup))
                     {
                         results.Add(ValidationResult.Error(
-                            "親グループが見つかりません",
+                            LocalizationController.GetText("VrcAssetManager_validation_error_parentGroupNotFound"),
                             "ParentGroupId",
-                            "有効な親グループを設定してください"));
+                            LocalizationController.GetText("VrcAssetManager_validation_suggestion_setValidParentGroup")));
                         break;
                     }
 
@@ -237,9 +238,9 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 if (visited.Count >= 100) // 循環参照の可能性
                 {
                     results.Add(ValidationResult.Critical(
-                        "グループ階層に循環参照の可能性があります",
+                        LocalizationController.GetText("VrcAssetManager_validation_critical_circularReference"),
                         "ParentGroupId",
-                        "グループ階層を見直してください"));
+                        LocalizationController.GetText("VrcAssetManager_validation_suggestion_reviewGroupHierarchy")));
                 }
             }
 
@@ -247,9 +248,9 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             if (group.IsTopLevel && string.IsNullOrWhiteSpace(group.GroupName))
             {
                 results.Add(ValidationResult.Warning(
-                    "トップレベルグループに名前が設定されていません",
+                    LocalizationController.GetText("VrcAssetManager_validation_warning_topLevelGroupNameEmpty"),
                     "GroupName",
-                    "グループ名を設定することをお勧めします"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_setGroupName")));
             }
 
             return results;
@@ -268,25 +269,25 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 if (boothItem.ItemUrl.IsEmpty)
                 {
                     results.Add(ValidationResult.Warning(
-                        "BoothアイテムURLが設定されていません",
+                        LocalizationController.GetText("VrcAssetManager_validation_warning_boothUrlEmpty"),
                         "ItemUrl",
-                        "正しいBoothアイテムURLを設定してください"));
+                        LocalizationController.GetText("VrcAssetManager_validation_suggestion_setBoothUrl")));
                 }
                 else if (!boothItem.ItemUrl.IsValid)
                 {
                     results.Add(ValidationResult.Error(
-                        "BoothアイテムURLの形式が不正です",
+                        LocalizationController.GetText("VrcAssetManager_validation_error_boothUrlInvalid"),
                         "ItemUrl",
-                        "正しいBooth URLの形式で入力してください"));
+                        LocalizationController.GetText("VrcAssetManager_validation_suggestion_correctBoothUrlFormat")));
                 }
 
                 // ファイル名の検証
                 if (string.IsNullOrWhiteSpace(boothItem.FileName))
                 {
                     results.Add(ValidationResult.Warning(
-                        "ファイル名が設定されていません",
+                        LocalizationController.GetText("VrcAssetManager_validation_warning_boothFileNameEmpty"),
                         "FileName",
-                        "ダウンロードファイル名を設定してください"));
+                        LocalizationController.GetText("VrcAssetManager_validation_suggestion_setFileName")));
                 }
             }
 
@@ -302,7 +303,10 @@ namespace AMU.Editor.VrcAssetManager.Controllers
 
             if (asset == null)
             {
-                results.Add(ValidationResult.Critical("アセットがnullです", "", "有効なアセットを提供してください"));
+                results.Add(ValidationResult.Critical(
+                    LocalizationController.GetText("VrcAssetManager_validation_critical_assetNull"),
+                    "",
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_provideValidAsset")));
                 return results;
             }
 
@@ -336,7 +340,10 @@ namespace AMU.Editor.VrcAssetManager.Controllers
 
             if (library == null)
             {
-                results.Add(ValidationResult.Critical("ライブラリがnullです", "", "有効なライブラリを提供してください"));
+                results.Add(ValidationResult.Critical(
+                    LocalizationController.GetText("VrcAssetManager_validation_critical_libraryNull"),
+                    "",
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_provideValidLibrary")));
                 return results;
             }
 
@@ -359,9 +366,9 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             foreach (var duplicateName in duplicateNames)
             {
                 results.Add(ValidationResult.Warning(
-                    $"重複する名前のアセットがあります: {duplicateName}",
+                    string.Format(LocalizationController.GetText("VrcAssetManager_validation_warning_duplicateNames"), duplicateName),
                     "Name",
-                    "アセット名を一意にすることをお勧めします"));
+                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_uniqueAssetNames")));
             }
 
             return results;
