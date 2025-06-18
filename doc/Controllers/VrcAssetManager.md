@@ -290,71 +290,6 @@ foreach (var ext in extensions)
 }
 ```
 
-### AssetValidationController
-
-アセットの包括的なバリデーション機能を提供します。
-
-#### 名前空間
-```csharp
-using AMU.Editor.VrcAssetManager.Controllers;
-using AMU.Editor.VrcAssetManager.Schema;
-```
-
-#### 主要機能
-
-##### アセット全体の検証
-```csharp
-public static ValidationResults ValidateAsset(AssetSchema asset, IReadOnlyDictionary<string, AssetGroupSchema> allGroups = null)
-```
-
-アセット全体の包括的な検証を実行します。
-
-**パラメータ:**
-- `asset`: 検証対象のアセット
-- `allGroups`: 全グループ情報（グループ検証用、オプション）
-
-**戻り値:**
-- `ValidationResults`: 検証結果
-
-**使用例:**
-```csharp
-var asset = new AssetSchema();
-// ... アセット情報を設定
-
-var results = AssetValidationController.ValidateAsset(asset);
-
-if (results.HasCritical)
-{
-    Debug.LogError("Critical validation errors found!");
-    foreach (var error in results.Results.Where(r => r.Level == ValidationLevel.Critical))
-    {
-        Debug.LogError($"Field: {error.FieldName}, Message: {error.Message}");
-    }
-}
-```
-
-##### ライブラリ全体の検証
-```csharp
-public static ValidationResults ValidateLibrary(AssetLibrarySchema library)
-```
-
-ライブラリ全体の検証を実行します。重複チェックや整合性チェックを含みます。
-
-##### 個別コンポーネント検証
-```csharp
-// メタデータの検証（名前、説明、作者名、タグなど）
-public static ValidationResults ValidateMetadata(AssetMetadata metadata)
-
-// ファイル情報の検証（パス、サイズ、サムネイルなど）
-public static ValidationResults ValidateFileInfo(AssetFileInfo fileInfo)
-
-// グループ情報の検証（循環参照チェックなど）
-public static ValidationResults ValidateGroupSchema(AssetGroupSchema group, IReadOnlyDictionary<string, AssetGroupSchema> allGroups)
-
-// Booth情報の検証
-public static ValidationResults ValidateBoothItem(BoothItemSchema boothItem)
-```
-
 ### AssetLibraryController
 
 AssetLibraryのJSONファイルの読み書きを担当するコントローラです。
@@ -491,37 +426,6 @@ if (fileInfo != null)
 {
     Debug.Log($"ファイルサイズ: {fileInfo.Length:N0} bytes");
     Debug.Log($"最終更新: {fileInfo.LastWriteTime:yyyy/MM/dd HH:mm:ss}");
-}
-```
-
-##### ファイルの検証
-```csharp
-public static bool ValidateLibraryFile(string filePath = null)
-```
-
-ライブラリファイルの形式と内容の妥当性を検証します。
-
-**パラメータ:**
-- `filePath`: 検証するファイルパス（nullの場合はDefaultLibraryPathを使用）
-
-**戻り値:**
-- `bool`: 有効なライブラリファイルの場合true
-
-**検証内容:**
-- ファイルの存在確認
-- JSONファイルの構文チェック
-- AssetLibrarySchemaへのデシリアライズ可能性確認
-
-**使用例:**
-```csharp
-if (AssetLibraryController.ValidateLibraryFile(@"C:\MyLibrary.json"))
-{
-    Debug.Log("ライブラリファイルは有効です");
-    var library = AssetLibraryController.LoadLibrary(@"C:\MyLibrary.json");
-}
-else
-{
-    Debug.LogError("ライブラリファイルが無効です");
 }
 ```
 

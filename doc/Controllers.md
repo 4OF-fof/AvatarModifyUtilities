@@ -511,71 +511,6 @@ foreach (var ext in extensions)
 }
 ```
 
-### AssetValidationController
-
-アセットの包括的なバリデーション機能を提供します。
-
-#### 名前空間
-```csharp
-using AMU.Editor.VrcAssetManager.Controllers;
-using AMU.Editor.VrcAssetManager.Schema;
-```
-
-#### 主要機能
-
-##### アセット全体の検証
-```csharp
-public static ValidationResults ValidateAsset(AssetSchema asset, IReadOnlyDictionary<string, AssetGroupSchema> allGroups = null)
-```
-
-アセット全体の包括的な検証を実行します。
-
-**パラメータ:**
-- `asset`: 検証対象のアセット
-- `allGroups`: 全グループ情報（グループ検証用、オプション）
-
-**戻り値:**
-- `ValidationResults`: 検証結果
-
-**使用例:**
-```csharp
-var asset = new AssetSchema();
-// ... アセット情報を設定
-
-var results = AssetValidationController.ValidateAsset(asset);
-
-if (results.HasCritical)
-{
-    Debug.LogError("Critical validation errors found!");
-    foreach (var error in results.Results.Where(r => r.Level == ValidationLevel.Critical))
-    {
-        Debug.LogError($"Field: {error.FieldName}, Message: {error.Message}");
-    }
-}
-```
-
-##### ライブラリ全体の検証
-```csharp
-public static ValidationResults ValidateLibrary(AssetLibrarySchema library)
-```
-
-ライブラリ全体の検証を実行します。重複チェックや整合性チェックを含みます。
-
-##### 個別コンポーネント検証
-```csharp
-// メタデータの検証（名前、説明、作者名、タグなど）
-public static ValidationResults ValidateMetadata(AssetMetadata metadata)
-
-// ファイル情報の検証（パス、サイズ、サムネイルなど）
-public static ValidationResults ValidateFileInfo(AssetFileInfo fileInfo)
-
-// グループ情報の検証（循環参照チェックなど）
-public static ValidationResults ValidateGroupSchema(AssetGroupSchema group, IReadOnlyDictionary<string, AssetGroupSchema> allGroups)
-
-// Booth情報の検証
-public static ValidationResults ValidateBoothItem(BoothItemSchema boothItem)
-```
-
 ### AssetLibraryController
 
 AssetLibraryのJSONファイルの読み書きを担当するコントローラです。ライブラリの永続化を管理します。
@@ -616,7 +551,6 @@ var loadedLibrary = AssetLibraryController.LoadLibrary();
 ```csharp
 public static bool LibraryFileExists(string filePath = null)
 public static FileInfo GetLibraryFileInfo(string filePath = null)
-public static bool ValidateLibraryFile(string filePath = null)
 public static string DefaultLibraryPath { get; }
 ```
 
@@ -629,11 +563,8 @@ if (AssetLibraryController.LibraryFileExists())
     var fileInfo = AssetLibraryController.GetLibraryFileInfo();
     Debug.Log($"ファイルサイズ: {fileInfo.Length} bytes");
     
-    // ファイルの妥当性を検証
-    if (AssetLibraryController.ValidateLibraryFile())
-    {
-        var library = AssetLibraryController.LoadLibrary();
-    }
+    // ライブラリを読み込み
+    var library = AssetLibraryController.LoadLibrary();
 }
 
 // デフォルトパスを取得
