@@ -19,7 +19,7 @@ using AMU.Editor.VrcAssetManager.Schema;
 public static bool AddAsset(AssetId assetId, AssetSchema assetData)
 ```
 
-新しいVRCアセットをキャッシュに追加します。
+新しいVRCアセットをライブラリに追加します。
 
 **パラメータ:**
 - `assetId`: アセットの一意識別子
@@ -27,6 +27,10 @@ public static bool AddAsset(AssetId assetId, AssetSchema assetData)
 
 **戻り値:**
 - `bool`: 追加に成功した場合true
+
+**特徴:**
+- ライブラリに自動保存（非同期）
+- 重複チェック機能付き
 
 **使用例:**
 ```csharp
@@ -53,6 +57,10 @@ public static bool UpdateAsset(AssetId assetId, AssetSchema assetData)
 **戻り値:**
 - `bool`: 更新に成功した場合true
 
+**特徴:**
+- ライブラリに自動保存（非同期）
+- 存在チェック機能付き
+
 **使用例:**
 ```csharp
 var existingAsset = VrcAssetController.GetAsset(assetId);
@@ -76,6 +84,10 @@ public static bool RemoveAsset(AssetId assetId)
 **戻り値:**
 - `bool`: 削除に成功した場合true
 
+**特徴:**
+- ライブラリから自動削除（非同期保存）
+- 存在チェック機能付き
+
 **使用例:**
 ```csharp
 bool removed = VrcAssetController.RemoveAsset(assetId);
@@ -90,6 +102,10 @@ public static List<AssetSchema> GetAssetsByAuthor(string author)
 public static List<AssetSchema> SearchAssets(string searchTerm)
 ```
 
+**特徴:**
+- ライブラリキャッシュを活用した高速取得
+- リアルタイムフィルタリング（インデックス不要）
+
 **使用例:**
 ```csharp
 // 特定のアセットを取得
@@ -98,13 +114,13 @@ var asset = VrcAssetController.GetAsset(assetId);
 // 全アセットを取得
 var allAssets = VrcAssetController.GetAllAssets();
 
-// カテゴリ別に取得
+// カテゴリ別に取得（リアルタイムフィルタリング）
 var avatars = VrcAssetController.GetAssetsByCategory("Avatar");
 
-// 作者別に取得
+// 作者別に取得（リアルタイムフィルタリング）
 var authorAssets = VrcAssetController.GetAssetsByAuthor("AuthorName");
 
-//名前で取得
+//名前で検索（リアルタイム検索）
 var searchResults = VrcAssetController.SearchAssets("AwesomeAvatar");
 ```
 
@@ -116,18 +132,22 @@ public static List<string> GetAvailableCategories()
 public static List<string> GetAvailableAuthors()
 ```
 
+**特徴:**
+- AssetLibraryControllerのキャッシュを制御
+- リアルタイム統計情報の取得
+
 **使用例:**
 ```csharp
-// キャッシュをクリア
+// ライブラリキャッシュをクリア
 VrcAssetController.ClearCache();
 
 // キャッシュされているアセット数を取得
 int count = VrcAssetController.GetCachedAssetCount();
 
-// 利用可能なカテゴリを取得
+// 利用可能なカテゴリを取得（動的生成）
 var categories = VrcAssetController.GetAvailableCategories();
 
-// 利用可能な作者を取得
+// 利用可能な作者を取得（動的生成）
 var authors = VrcAssetController.GetAvailableAuthors();
 ```
 
