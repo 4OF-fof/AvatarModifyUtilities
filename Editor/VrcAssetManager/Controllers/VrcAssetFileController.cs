@@ -59,28 +59,6 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         }
 
         /// <summary>
-        /// 複数のVRCアセットファイルを一括インポートします
-        /// </summary>
-        /// <param name="filePaths">インポートするファイルパスのリスト</param>
-        /// <returns>インポートに成功したアセットデータのリスト</returns>
-        public static List<AssetSchema> ImportMultipleAssetFiles(IEnumerable<string> filePaths)
-        {
-            var importedAssets = new List<AssetSchema>();
-
-            foreach (var filePath in filePaths)
-            {
-                var assetData = ImportAssetFile(filePath);
-                if (assetData.Id != default(AssetId))
-                {
-                    importedAssets.Add(assetData);
-                }
-            }
-
-            Debug.Log(string.Format(LocalizationController.GetText("VrcAssetManager_message_success_multipleImported"), importedAssets.Count));
-            return importedAssets;
-        }
-
-        /// <summary>
         /// 指定されたディレクトリ内のVRCアセットファイルをスキャンします
         /// </summary>
         /// <param name="directoryPath">スキャンするディレクトリパス</param>

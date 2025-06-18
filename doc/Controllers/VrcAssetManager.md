@@ -143,7 +143,6 @@ using AMU.Editor.VrcAssetManager.Schema;
 ##### ファイルのインポート
 ```csharp
 public static AssetSchema ImportAssetFile(string filePath)
-public static List<AssetSchema> ImportMultipleAssetFiles(IEnumerable<string> filePaths)
 ```
 
 指定されたファイルパスからVRCアセットデータを作成します。あらゆるファイル形式をインポート可能です。
@@ -161,19 +160,11 @@ public static List<AssetSchema> ImportMultipleAssetFiles(IEnumerable<string> fil
 
 **使用例:**
 ```csharp
-// 単一ファイルのインポート
+// ファイルのインポート
 var assetData = VrcAssetFileController.ImportAssetFile(@"C:\Assets\MyAvatar.prefab");
 if (assetData.Id != default(AssetId))
 {
     VrcAssetController.AddAsset(assetData);
-}
-
-// 複数ファイルの一括インポート
-var filePaths = new[] { "file1.prefab", "file2.fbx", "file3.png" };
-var importedAssets = VrcAssetFileController.ImportMultipleAssetFiles(filePaths);
-foreach (var asset in importedAssets)
-{
-    VrcAssetController.AddAsset(asset);
 }
 ```
 

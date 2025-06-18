@@ -305,7 +305,6 @@ using AMU.Editor.VrcAssetManager.Controllers;
 ##### ファイル操作
 ```csharp
 public static AssetSchema ImportAssetFile(string filePath)
-public static List<AssetSchema> ImportMultipleAssetFiles(IEnumerable<string> filePaths)
 public static bool ExportAsset(AssetSchema assetData, string destinationPath)
 ```
 
@@ -331,9 +330,6 @@ var asset = VrcAssetFileController.ImportAssetFile(@"C:\VRCAssets\MyFile.txt");
 
 // ディレクトリスキャン（すべてのファイル）
 var files = VrcAssetFileController.ScanDirectory(@"C:\VRCAssets", true);
-
-// 一括インポート
-var assets = VrcAssetFileController.ImportMultipleAssetFiles(files);
 ```
 
 ### AssetValidationController
