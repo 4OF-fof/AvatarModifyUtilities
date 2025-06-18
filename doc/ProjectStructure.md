@@ -28,8 +28,8 @@ ModuleName/
 │   └── Setting.cs        # 設定定義
 ├── Schema/               # データスキーマ定義
 ├── Services/             # ビジネスロジック
-└── UI/                   # UIコンポーネント
-    └── _Components/          # UIコンポーネント
+└── UI/                   # UI関連
+    └── _Components/      # UIコンポーネント
 ```
 
 ## ローカライズシステム
