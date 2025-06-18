@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using AMU.Editor.VrcAssetManager.Schema;
 using AMU.Editor.VrcAssetManager.Controllers;
-using Newtonsoft.Json;
 
 namespace AMU.Editor.VrcAssetManager.UI
 {
@@ -41,13 +39,12 @@ namespace AMU.Editor.VrcAssetManager.UI
             window.titleContent = new GUIContent("Asset Library Test");
             window.Show();
         }
-
         private void OnEnable()
         {
-            _libraryFilePath = Path.GetFullPath(Path.Combine(Application.dataPath, "TestAssetLibrary.json"));
+            _libraryFilePath = AssetLibraryController.DefaultLibraryPath;
             if (_currentLibrary == null)
             {
-                _currentLibrary = new AssetLibrarySchema();
+                _currentLibrary = AssetLibraryController.CreateNewLibrary();
                 _assetMapping = new Dictionary<AssetId, AssetSchema>();
             }
         }
@@ -108,10 +105,24 @@ namespace AMU.Editor.VrcAssetManager.UI
                     {
                         SaveLibrary();
                     }
-
                     if (GUILayout.Button("Load Library"))
                     {
                         LoadLibrary();
+                    }
+                }
+
+                EditorGUILayout.Space(5);
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button("Validate File"))
+                    {
+                        ValidateLibraryFile();
+                    }
+
+                    if (GUILayout.Button("File Info"))
+                    {
+                        ShowFileInfo();
                     }
                 }
 
@@ -354,51 +365,49 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private void CreateNewLibrary()
         {
-            _currentLibrary = new AssetLibrarySchema();
-            _assetMapping = new Dictionary<AssetId, AssetSchema>();
-            LogMessage("新しいライブラリを作成しました。");
+            _currentLibrary = AssetLibraryController.CreateNewLibrary();
+            if (_currentLibrary != null)
+            {
+                _assetMapping = new Dictionary<AssetId, AssetSchema>();
+                LogMessage("新しいライブラリを作成しました。");
+            }
+            else
+            {
+                LogMessage("ライブラリの作成に失敗しました。");
+            }
         }
 
         private void SaveLibrary()
         {
-            try
+            if (AssetLibraryController.SaveLibrary(_currentLibrary, _libraryFilePath))
             {
-                var json = JsonConvert.SerializeObject(_currentLibrary, Formatting.Indented);
-                File.WriteAllText(_libraryFilePath, json);
                 LogMessage($"ライブラリを保存しました: {_libraryFilePath}");
             }
-            catch (Exception e)
+            else
             {
-                LogMessage($"保存エラー: {e.Message}");
+                LogMessage("ライブラリの保存に失敗しました。");
             }
         }
 
         private void LoadLibrary()
         {
-            try
+            var loadedLibrary = AssetLibraryController.LoadLibrary(_libraryFilePath);
+            if (loadedLibrary != null)
             {
-                if (File.Exists(_libraryFilePath))
-                {
-                    var json = File.ReadAllText(_libraryFilePath);
-                    _currentLibrary = JsonConvert.DeserializeObject<AssetLibrarySchema>(json);
+                _currentLibrary = loadedLibrary;
 
-                    // アセットマッピングを再構築
-                    _assetMapping = new Dictionary<AssetId, AssetSchema>();
-                    foreach (var kvp in _currentLibrary.Assets)
-                    {
-                        _assetMapping[kvp.Key] = kvp.Value;
-                    }
-
-                    LogMessage($"ライブラリを読み込みました: {_libraryFilePath}");
-                }
-                else
+                // アセットマッピングを再構築
+                _assetMapping = new Dictionary<AssetId, AssetSchema>();
+                foreach (var kvp in _currentLibrary.Assets)
                 {
-                    LogMessage("ファイルが見つかりません。");
+                    _assetMapping[kvp.Key] = kvp.Value;
                 }
+
+                LogMessage($"ライブラリを読み込みました: {_libraryFilePath}");
             }
-            catch (Exception e)
+            else
             {
-                LogMessage($"読み込みエラー: {e.Message}");
+                LogMessage("ライブラリの読み込みに失敗しました。");
             }
         }
 
@@ -632,6 +641,36 @@ namespace AMU.Editor.VrcAssetManager.UI
             if (lines.Length > 20)
             {
                 _testMessage = string.Join("\n", lines.Skip(lines.Length - 20));
+            }
+        }
+
+        private void ValidateLibraryFile()
+        {
+            if (AssetLibraryController.ValidateLibraryFile(_libraryFilePath))
+            {
+                LogMessage("ライブラリファイルは有効です。");
+            }
+            else
+            {
+                LogMessage("ライブラリファイルが無効です。");
+            }
+        }
+
+        private void ShowFileInfo()
+        {
+            var fileInfo = AssetLibraryController.GetLibraryFileInfo(_libraryFilePath);
+            if (fileInfo != null)
+            {
+                var info = $"ファイル情報:\n" +
+                          $"パス: {fileInfo.FullName}\n" +
+                          $"サイズ: {fileInfo.Length:N0} bytes\n" +
+                          $"作成日時: {fileInfo.CreationTime:yyyy/MM/dd HH:mm:ss}\n" +
+                          $"更新日時: {fileInfo.LastWriteTime:yyyy/MM/dd HH:mm:ss}";
+                LogMessage(info);
+            }
+            else
+            {
+                LogMessage("ファイル情報を取得できませんでした。");
             }
         }
 

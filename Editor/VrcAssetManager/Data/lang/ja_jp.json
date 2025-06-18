@@ -81,5 +81,17 @@
   "VrcAssetManager_validation_warning_duplicateNames": "重複する名前のアセットがあります: {0}",
   "VrcAssetManager_validation_suggestion_provideValidAsset": "有効なアセットを提供してください",
   "VrcAssetManager_validation_suggestion_provideValidLibrary": "有効なライブラリを提供してください",
-  "VrcAssetManager_validation_suggestion_uniqueAssetNames": "アセット名を一意にすることをお勧めします"
+  "VrcAssetManager_validation_suggestion_uniqueAssetNames": "アセット名を一意にすることをお勧めします",
+
+  "VrcAssetManager_message_success_libraryCreated": "新しいライブラリを作成しました",
+  "VrcAssetManager_message_error_libraryCreationFailed": "ライブラリの作成に失敗しました: {0}",
+  "VrcAssetManager_message_error_libraryNull": "ライブラリがnullです",
+  "VrcAssetManager_message_success_librarySaved": "ライブラリを保存しました: {0}",
+  "VrcAssetManager_message_error_librarySaveFailed": "ライブラリの保存に失敗しました {0}: {1}",
+  "VrcAssetManager_message_warning_libraryFileNotFound": "ライブラリファイルが見つかりません: {0}",
+  "VrcAssetManager_message_warning_emptyLibraryFile": "ライブラリファイルが空です: {0}",
+  "VrcAssetManager_message_error_libraryDeserializeFailed": "ライブラリのデシリアライズに失敗しました: {0}",  "VrcAssetManager_message_success_libraryLoaded": "ライブラリを読み込みました: {0} (アセット: {1}, グループ: {2})",
+  "VrcAssetManager_message_error_libraryLoadFailed": "ライブラリの読み込みに失敗しました {0}: {1}",
+  "VrcAssetManager_message_error_fileInfoFailed": "ファイル情報の取得に失敗しました {0}: {1}",
+  "VrcAssetManager_message_error_libraryValidationFailed": "ライブラリの検証に失敗しました {0}: {1}"
 }
