@@ -65,167 +65,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public static LibraryVersion Current => new LibraryVersion(1, 0, 0);
     }
 
-    /// <summary>
-    /// アセットの統計情報
-    /// </summary>
-    [Serializable]
-    public class AssetStatistics
-    {
-        [SerializeField] private int _totalAssets;
-        [SerializeField] private int _favoriteAssets;
-        [SerializeField] private int _groupAssets;
-        [SerializeField] private long _totalFileSize;
-        [SerializeField] private Dictionary<string, int> _assetTypeCount;
-        [SerializeField] private Dictionary<string, int> _tagCount;
-        [SerializeField] private Dictionary<string, int> _authorCount;
-        [SerializeField] private DateTime _lastCalculated;
 
-        public int TotalAssets => _totalAssets;
-        public int FavoriteAssets => _favoriteAssets;
-        public int GroupAssets => _groupAssets;
-        public FileSize TotalFileSize => new FileSize(_totalFileSize);
-
-        public IReadOnlyDictionary<string, int> AssetTypeCount =>
-            _assetTypeCount ?? new Dictionary<string, int>();
-
-        public IReadOnlyDictionary<string, int> TagCount =>
-            _tagCount ?? new Dictionary<string, int>();
-
-        public IReadOnlyDictionary<string, int> AuthorCount =>
-            _authorCount ?? new Dictionary<string, int>();
-
-        public DateTime LastCalculated => _lastCalculated;
-
-        public AssetStatistics()
-        {
-            _totalAssets = 0;
-            _favoriteAssets = 0;
-            _groupAssets = 0;
-            _totalFileSize = 0;
-            _assetTypeCount = new Dictionary<string, int>();
-            _tagCount = new Dictionary<string, int>();
-            _authorCount = new Dictionary<string, int>();
-            _lastCalculated = DateTime.Now;
-        }
-
-        public void Update(IEnumerable<AssetSchema> assets)
-        {
-            Reset();
-
-            foreach (var asset in assets)
-            {
-                _totalAssets++;
-
-                if (asset.State.IsFavorite) _favoriteAssets++;
-                if (asset.State.IsGroup) _groupAssets++;
-
-                _totalFileSize += asset.FileInfo.FileSize.Bytes;
-
-                // アセットタイプ集計
-                var assetType = asset.AssetType.Value;
-                _assetTypeCount[assetType] = _assetTypeCount.GetValueOrDefault(assetType, 0) + 1;
-
-                // 作者集計
-                var author = asset.Metadata.AuthorName;
-                if (!string.IsNullOrEmpty(author))
-                {
-                    _authorCount[author] = _authorCount.GetValueOrDefault(author, 0) + 1;
-                }
-
-                // タグ集計
-                foreach (var tag in asset.Metadata.Tags)
-                {
-                    _tagCount[tag] = _tagCount.GetValueOrDefault(tag, 0) + 1;
-                }
-            }
-
-            _lastCalculated = DateTime.Now;
-        }
-
-        private void Reset()
-        {
-            _totalAssets = 0;
-            _favoriteAssets = 0;
-            _groupAssets = 0;
-            _totalFileSize = 0;
-            _assetTypeCount.Clear();
-            _tagCount.Clear();
-            _authorCount.Clear();
-        }
-
-        public string GetMostCommonAssetType()
-        {
-            return _assetTypeCount.OrderByDescending(kvp => kvp.Value).FirstOrDefault().Key ?? "Other";
-        }
-
-        public string GetMostActiveAuthor()
-        {
-            return _authorCount.OrderByDescending(kvp => kvp.Value).FirstOrDefault().Key ?? string.Empty;
-        }
-
-        public IEnumerable<string> GetTopTags(int count = 10)
-        {
-            return _tagCount.OrderByDescending(kvp => kvp.Value)
-                           .Take(count)
-                           .Select(kvp => kvp.Key);
-        }
-    }
-
-    /// <summary>
-    /// バックアップの情報
-    /// </summary>
-    [Serializable]
-    public class BackupInfo
-    {
-        [SerializeField] private string _backupPath;
-        [SerializeField] private DateTime _backupTime;
-        [SerializeField] private long _backupSize;
-        [SerializeField] private int _assetCount;
-        [SerializeField] private string _checksum;
-
-        public string BackupPath
-        {
-            get => _backupPath ?? string.Empty;
-            set => _backupPath = value?.Trim() ?? string.Empty;
-        }
-
-        public DateTime BackupTime
-        {
-            get => _backupTime;
-            set => _backupTime = value;
-        }
-
-        public FileSize BackupSize => new FileSize(_backupSize);
-
-        public int AssetCount
-        {
-            get => _assetCount;
-            set => _assetCount = Math.Max(0, value);
-        }
-
-        public string Checksum
-        {
-            get => _checksum ?? string.Empty;
-            set => _checksum = value?.Trim() ?? string.Empty;
-        }
-
-        public BackupInfo()
-        {
-            _backupPath = string.Empty;
-            _backupTime = DateTime.Now;
-            _backupSize = 0;
-            _assetCount = 0;
-            _checksum = string.Empty;
-        }
-
-        public BackupInfo(string backupPath, int assetCount, long backupSize, string checksum) : this()
-        {
-            _backupPath = backupPath?.Trim() ?? string.Empty;
-            _assetCount = Math.Max(0, assetCount);
-            _backupSize = Math.Max(0, backupSize);
-            _checksum = checksum?.Trim() ?? string.Empty;
-        }
-    }
 
     /// <summary>
     /// アセットライブラリの完全なスキーマ
@@ -234,15 +74,9 @@ namespace AMU.Editor.VrcAssetManager.Schema
     public class AssetLibrarySchema
     {
         [SerializeField] private LibraryVersion _version;
-        [SerializeField] private DateTime _createdDate;
         [SerializeField] private DateTime _lastUpdated;
-        [SerializeField] private string _name;
-        [SerializeField] private string _description;
         [SerializeField] private Dictionary<string, AssetSchema> _assets;
         [SerializeField] private Dictionary<string, AssetGroupSchema> _groups;
-        [SerializeField] private AssetStatistics _statistics;
-        [SerializeField] private List<BackupInfo> _backupHistory;
-        [SerializeField] private string _dataFilePath;
 
         public LibraryVersion Version
         {
@@ -250,28 +84,10 @@ namespace AMU.Editor.VrcAssetManager.Schema
             set => _version = value;
         }
 
-        public DateTime CreatedDate
-        {
-            get => _createdDate == default ? DateTime.Now : _createdDate;
-            set => _createdDate = value;
-        }
-
         public DateTime LastUpdated
         {
             get => _lastUpdated == default ? DateTime.Now : _lastUpdated;
             set => _lastUpdated = value;
-        }
-
-        public string Name
-        {
-            get => _name ?? "Asset Library";
-            set => _name = value?.Trim() ?? "Asset Library";
-        }
-
-        public string Description
-        {
-            get => _description ?? string.Empty;
-            set => _description = value?.Trim() ?? string.Empty;
         }
 
         public IReadOnlyDictionary<AssetId, AssetSchema> Assets
@@ -310,17 +126,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
             }
         }
 
-        public AssetStatistics Statistics => _statistics ?? new AssetStatistics();
-
-        public IReadOnlyList<BackupInfo> BackupHistory =>
-            _backupHistory ?? new List<BackupInfo>();
-
-        public string DataFilePath
-        {
-            get => _dataFilePath ?? string.Empty;
-            set => _dataFilePath = value?.Trim() ?? string.Empty;
-        }
-
         public int AssetCount => _assets?.Count ?? 0;
         public int GroupCount => _groups?.Count ?? 0;
         public bool HasAssets => AssetCount > 0;
@@ -328,15 +133,9 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public AssetLibrarySchema()
         {
             _version = LibraryVersion.Current;
-            _createdDate = DateTime.Now;
             _lastUpdated = DateTime.Now;
-            _name = "Asset Library";
-            _description = string.Empty;
             _assets = new Dictionary<string, AssetSchema>();
             _groups = new Dictionary<string, AssetGroupSchema>();
-            _statistics = new AssetStatistics();
-            _backupHistory = new List<BackupInfo>();
-            _dataFilePath = string.Empty;
         }
 
         public bool AddAsset(AssetSchema asset)
@@ -433,34 +232,10 @@ namespace AMU.Editor.VrcAssetManager.Schema
                 asset.Metadata.AuthorName.Equals(authorName.Trim(), StringComparison.OrdinalIgnoreCase));
         }
 
-        public void UpdateStatistics()
-        {
-            _statistics ??= new AssetStatistics();
-            _statistics.Update(_assets?.Values ?? Enumerable.Empty<AssetSchema>());
-            _lastUpdated = DateTime.Now;
-        }
-
-        public void AddBackup(BackupInfo backupInfo)
-        {
-            if (backupInfo == null) return;
-
-            _backupHistory ??= new List<BackupInfo>();
-            _backupHistory.Add(backupInfo);
-
-            // 古いバックアップ情報を制限（最新50件まで保持）
-            if (_backupHistory.Count > 50)
-            {
-                _backupHistory.RemoveAt(0);
-            }
-
-            _lastUpdated = DateTime.Now;
-        }
-
         public void ClearAssets()
         {
             _assets?.Clear();
             _groups?.Clear();
-            UpdateStatistics();
             _lastUpdated = DateTime.Now;
         }
 
@@ -478,7 +253,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
                 }
             }
 
-            UpdateStatistics();
             _lastUpdated = DateTime.Now;
         }
     }

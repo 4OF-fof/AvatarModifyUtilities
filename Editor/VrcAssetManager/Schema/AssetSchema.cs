@@ -374,6 +374,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
     public class AssetSchema
     {
         [SerializeField] private AssetId _id;
+        [SerializeField] private AssetId _parentGroupId;
         [SerializeField] private AssetMetadata _metadata;
         [SerializeField] private AssetFileInfo _fileInfo;
         [SerializeField] private AssetState _state;
@@ -384,6 +385,12 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             get => _id;
             set => _id = value;
+        }
+
+        public AssetId ParentGroupId
+        {
+            get => _parentGroupId;
+            set => _parentGroupId = value;
         }
 
         public AssetType AssetType
@@ -430,10 +437,13 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public bool IsComplete => !string.IsNullOrEmpty(_id.Value) &&
                                   !string.IsNullOrEmpty(_metadata?.Name) &&
                                   !string.IsNullOrEmpty(_fileInfo?.FilePath);
+        public bool HasParentGroup => !string.IsNullOrEmpty(_parentGroupId.Value);
+        public bool IsTopLevel => !HasParentGroup;
 
         public AssetSchema()
         {
             _id = AssetId.NewId();
+            _parentGroupId = default;
             _metadata = new AssetMetadata();
             _fileInfo = new AssetFileInfo();
             _state = new AssetState();
@@ -458,6 +468,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             return new AssetSchema
             {
                 _id = _id,
+                _parentGroupId = _parentGroupId,
                 _metadata = new AssetMetadata
                 {
                     Name = _metadata.Name,
@@ -496,5 +507,16 @@ namespace AMU.Editor.VrcAssetManager.Schema
 
         public void AddImportFile(string filePath) => _fileInfo.AddImportFile(filePath);
         public void RemoveImportFile(string filePath) => _fileInfo.RemoveImportFile(filePath);
+
+        // 親グループの管理
+        public void SetParentGroup(AssetId parentGroupId)
+        {
+            _parentGroupId = parentGroupId;
+        }
+
+        public void RemoveFromParentGroup()
+        {
+            _parentGroupId = default;
+        }
     }
 }

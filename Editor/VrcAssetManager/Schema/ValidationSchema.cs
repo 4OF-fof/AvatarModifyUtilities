@@ -484,12 +484,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
                 return results;
             }
 
-            // 基本情報の検証
-            if (string.IsNullOrWhiteSpace(library.Name))
-            {
-                results.Add(ValidationResult.Warning("ライブラリ名が設定されていません", "Name", "ライブラリ名を設定してください"));
-            }
-
             // 各アセットの検証
             foreach (var asset in library.Assets.Values)
             {
