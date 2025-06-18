@@ -43,7 +43,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 var fileInfo = new FileInfo(filePath);
 
                 var assetData = new AssetSchema(fileName, AssetType.Other, filePath);
-                assetData.FileInfo.FileSize = new FileSize(fileInfo.Length);
+                assetData.FileInfo.FileSizeBytes = fileInfo.Length;
                 assetData.Metadata.CreatedDate = DateTime.Now;
                 assetData.Metadata.ModifiedDate = fileInfo.LastWriteTime;
 
@@ -111,7 +111,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 }
 
                 var fileInfo = new FileInfo(assetData.FileInfo.FilePath);
-                assetData.FileInfo.FileSize = new FileSize(fileInfo.Length);
+                assetData.FileInfo.FileSizeBytes = fileInfo.Length;
                 assetData.Metadata.ModifiedDate = fileInfo.LastWriteTime;
 
                 return assetData;

@@ -269,7 +269,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
     {
         [SerializeField] private string _filePath;
         [SerializeField] private string _thumbnailPath;
-        [SerializeField] private FileSize _fileSize;
+        [SerializeField] private long _fileSizeBytes;
         [SerializeField] private List<string> _importFiles;
 
         public string FilePath
@@ -284,19 +284,17 @@ namespace AMU.Editor.VrcAssetManager.Schema
             set => _thumbnailPath = value?.Trim() ?? string.Empty;
         }
 
-        public FileSize FileSize
+        public long FileSizeBytes
         {
-            get => _fileSize;
-            set => _fileSize = value;
+            get => _fileSizeBytes;
+            set => _fileSizeBytes = Math.Max(0, value);
         }
 
-        public IReadOnlyList<string> ImportFiles => _importFiles ?? new List<string>();
-
-        public AssetFileInfo()
+        public IReadOnlyList<string> ImportFiles => _importFiles ?? new List<string>(); public AssetFileInfo()
         {
             _filePath = string.Empty;
             _thumbnailPath = string.Empty;
-            _fileSize = new FileSize(0);
+            _fileSizeBytes = 0;
             _importFiles = new List<string>();
         }
 
@@ -445,7 +443,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
                 {
                     FilePath = _fileInfo.FilePath,
                     ThumbnailPath = _fileInfo.ThumbnailPath,
-                    FileSize = _fileInfo.FileSize
+                    FileSizeBytes = _fileInfo.FileSizeBytes
                 },
                 _state = new AssetState
                 {

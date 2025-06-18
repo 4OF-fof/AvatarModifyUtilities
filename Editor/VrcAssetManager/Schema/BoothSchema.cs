@@ -211,7 +211,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
     {
         [SerializeField] private string _fileName;
         [SerializeField] private string _downloadLink;
-        [SerializeField] private FileSize _fileSize;
+        [SerializeField] private long _fileSizeBytes;
         [SerializeField] private string _fileHash;
         [SerializeField] private DateTime _lastModified;
 
@@ -227,10 +227,10 @@ namespace AMU.Editor.VrcAssetManager.Schema
             set => _downloadLink = value?.Trim() ?? string.Empty;
         }
 
-        public FileSize FileSize
+        public long FileSizeBytes
         {
-            get => _fileSize;
-            set => _fileSize = value;
+            get => _fileSizeBytes;
+            set => _fileSizeBytes = Math.Max(0, value);
         }
 
         public string FileHash
@@ -251,7 +251,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             _fileName = string.Empty;
             _downloadLink = string.Empty;
-            _fileSize = new FileSize(0);
+            _fileSizeBytes = 0;
             _fileHash = string.Empty;
             _lastModified = DateTime.Now;
         }

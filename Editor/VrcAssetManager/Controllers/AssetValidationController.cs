@@ -135,17 +135,15 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                         "FilePath",
                         LocalizationController.GetText("VrcAssetManager_validation_suggestion_setValidFilePath")));
                 }
-            }
-
-            // ファイルサイズの検証
-            if (fileInfo.FileSize.Bytes <= 0)
+            }            // ファイルサイズの検証
+            if (fileInfo.FileSizeBytes <= 0)
             {
                 results.Add(ValidationResult.Warning(
                     LocalizationController.GetText("VrcAssetManager_validation_warning_fileSizeInvalid"),
                     "FileSize",
                     LocalizationController.GetText("VrcAssetManager_validation_suggestion_correctFileSize")));
             }
-            else if (fileInfo.FileSize.Bytes > 1024L * 1024 * 1024 * 2) // 2GB
+            else if (fileInfo.FileSizeBytes > 1024L * 1024 * 1024 * 2) // 2GB
             {
                 results.Add(ValidationResult.Warning(
                     LocalizationController.GetText("VrcAssetManager_validation_warning_fileSizeLarge"),
