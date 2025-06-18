@@ -159,6 +159,34 @@ bool isTopLevel = VrcAssetController.IsTopLevel(asset);
 bool isTopLevel = VrcAssetController.IsTopLevel(groupData);
 ```
 
+##### ファイルサイズの文字列変換
+```csharp
+public static string FormatFileSize(long bytes)
+public static string GetFormattedFileSize(AssetId assetId)
+public static string GetFormattedFileSize(AssetSchema asset)
+```
+
+**詳細:**
+- `FormatFileSize`: バイト数を人間が読みやすい形式（B, KB, MB, GB）に変換
+- `GetFormattedFileSize(AssetId)`: 指定したアセットIDのファイルサイズを取得してフォーマット
+- `GetFormattedFileSize(AssetSchema)`: アセットデータからファイルサイズをフォーマット
+
+**使用例:**
+```csharp
+// バイト数を直接変換
+string size1 = VrcAssetController.FormatFileSize(1024); // "1.0 KB"
+string size2 = VrcAssetController.FormatFileSize(1048576); // "1.0 MB"
+string size3 = VrcAssetController.FormatFileSize(1073741824); // "1.0 GB"
+
+// アセットのファイルサイズを取得
+var asset = VrcAssetController.GetAsset(assetId);
+string formattedSize = VrcAssetController.GetFormattedFileSize(asset);
+Debug.Log($"ファイルサイズ: {formattedSize}");
+
+// IDから直接取得
+string sizeFromId = VrcAssetController.GetFormattedFileSize(assetId);
+```
+
 ### VrcAssetFileController
 
 VRCアセットファイルの操作を管理するコントローラです。
