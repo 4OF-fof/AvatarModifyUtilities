@@ -1,0 +1,218 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+
+namespace AMU.Editor.VrcAssetManager.Schema
+{
+    /// <summary>
+    /// アセットグループのスキーマ
+    /// </summary>
+    [Serializable]
+    public class AssetGroupSchema
+    {
+        [SerializeField] private AssetId _parentGroupId;
+        [SerializeField] private List<AssetId> _childAssetIds;
+        [SerializeField] private int _groupLevel;
+        [SerializeField] private string _groupName;
+
+        public AssetId ParentGroupId
+        {
+            get => _parentGroupId;
+            set => _parentGroupId = value;
+        }
+
+        public IReadOnlyList<AssetId> ChildAssetIds => _childAssetIds ?? new List<AssetId>();
+
+        public int GroupLevel
+        {
+            get => _groupLevel;
+            set => _groupLevel = Math.Max(0, value);
+        }
+
+        public string GroupName
+        {
+            get => _groupName ?? string.Empty;
+            set => _groupName = value?.Trim() ?? string.Empty;
+        }
+
+        public bool HasParent => !string.IsNullOrEmpty(_parentGroupId.Value);
+        public bool HasChildren => _childAssetIds?.Count > 0;
+        public bool IsTopLevel => !HasParent;
+        public bool IsLeaf => !HasChildren;
+
+        public AssetGroupSchema()
+        {
+            _parentGroupId = default;
+            _childAssetIds = new List<AssetId>();
+            _groupLevel = 0;
+            _groupName = string.Empty;
+        }
+
+        public void AddChildAsset(AssetId childId)
+        {
+            if (string.IsNullOrEmpty(childId.Value)) return;
+
+            _childAssetIds ??= new List<AssetId>();
+            if (!_childAssetIds.Contains(childId))
+            {
+                _childAssetIds.Add(childId);
+            }
+        }
+
+        public void RemoveChildAsset(AssetId childId)
+        {
+            if (string.IsNullOrEmpty(childId.Value)) return;
+            _childAssetIds?.Remove(childId);
+        }
+
+        public void SetParentGroup(AssetId parentId, int level = 1)
+        {
+            _parentGroupId = parentId;
+            _groupLevel = Math.Max(0, level);
+        }
+
+        public void RemoveFromParentGroup()
+        {
+            _parentGroupId = default;
+            _groupLevel = 0;
+        }
+
+        public bool IsVisibleInList()
+        {
+            // 親グループが存在するアセットは通常非表示
+            return !HasParent;
+        }
+
+        public void ClearChildren()
+        {
+            _childAssetIds?.Clear();
+        }
+
+        public bool IsDescendantOf(AssetId ancestorId)
+        {
+            if (string.IsNullOrEmpty(ancestorId.Value)) return false;
+            return _parentGroupId == ancestorId;
+        }
+
+        public IEnumerable<AssetId> GetAllDescendants()
+        {
+            return _childAssetIds ?? Enumerable.Empty<AssetId>();
+        }
+    }
+
+    /// <summary>
+    /// グループ階層の管理ユーティリティ
+    /// </summary>
+    public static class AssetGroupHierarchy
+    {
+        /// <summary>
+        /// 循環参照をチェックする
+        /// </summary>
+        public static bool WouldCreateCycle(AssetId parentId, AssetId childId,
+            IReadOnlyDictionary<AssetId, AssetGroupSchema> groups)
+        {
+            if (parentId == childId) return true;
+
+            var visited = new HashSet<AssetId>();
+            var current = parentId;
+
+            while (!string.IsNullOrEmpty(current.Value) && visited.Add(current))
+            {
+                if (!groups.TryGetValue(current, out var group)) break;
+
+                current = group.ParentGroupId;
+                if (current == childId) return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 指定されたアセットの最大深度を計算する
+        /// </summary>
+        public static int CalculateMaxDepth(AssetId assetId,
+            IReadOnlyDictionary<AssetId, AssetGroupSchema> groups, int maxDepth = 100)
+        {
+            if (!groups.TryGetValue(assetId, out var group)) return 0;
+
+            var depth = 0;
+            var visited = new HashSet<AssetId>();
+
+            foreach (var childId in group.ChildAssetIds)
+            {
+                if (visited.Add(childId))
+                {
+                    var childDepth = CalculateMaxDepth(childId, groups, maxDepth - 1);
+                    depth = Math.Max(depth, childDepth + 1);
+                }
+
+                if (depth >= maxDepth) break;
+            }
+
+            return depth;
+        }
+
+        /// <summary>
+        /// ルートアセット（親を持たないアセット）を取得する
+        /// </summary>
+        public static IEnumerable<AssetId> GetRootAssets(IReadOnlyDictionary<AssetId, AssetGroupSchema> groups)
+        {
+            return groups.Where(kvp => kvp.Value.IsTopLevel).Select(kvp => kvp.Key);
+        }
+
+        /// <summary>
+        /// 指定されたアセットの全ての子孫を取得する
+        /// </summary>
+        public static IEnumerable<AssetId> GetAllDescendants(AssetId rootId,
+            IReadOnlyDictionary<AssetId, AssetGroupSchema> groups)
+        {
+            if (!groups.TryGetValue(rootId, out var rootGroup)) yield break;
+
+            var queue = new Queue<AssetId>(rootGroup.ChildAssetIds);
+            var visited = new HashSet<AssetId>();
+
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                if (!visited.Add(current)) continue;
+
+                yield return current;
+
+                if (groups.TryGetValue(current, out var group))
+                {
+                    foreach (var child in group.ChildAssetIds)
+                    {
+                        if (!visited.Contains(child))
+                        {
+                            queue.Enqueue(child);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 指定されたアセットの親の階層パスを取得する
+        /// </summary>
+        public static IEnumerable<AssetId> GetAncestorPath(AssetId assetId,
+            IReadOnlyDictionary<AssetId, AssetGroupSchema> groups)
+        {
+            var path = new List<AssetId>();
+            var current = assetId;
+            var visited = new HashSet<AssetId>();
+
+            while (!string.IsNullOrEmpty(current.Value) && visited.Add(current))
+            {
+                if (!groups.TryGetValue(current, out var group)) break;
+                if (!group.HasParent) break;
+
+                path.Add(group.ParentGroupId);
+                current = group.ParentGroupId;
+            }
+
+            path.Reverse();
+            return path;
+        }
+    }
+}
