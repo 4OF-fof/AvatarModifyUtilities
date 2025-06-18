@@ -266,19 +266,6 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         }
 
         /// <summary>
-        /// ファイルサイズを人間が読みやすい文字列形式に変換します
-        /// </summary>
-        /// <param name="bytes">バイト数</param>
-        /// <returns>読みやすい形式の文字列（例: "1.2 MB", "345 KB"）</returns>
-        public static string FormatFileSize(long bytes)
-        {
-            if (bytes < 1024) return $"{bytes} B";
-            if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
-            if (bytes < 1024 * 1024 * 1024) return $"{bytes / (1024.0 * 1024.0):F1} MB";
-            return $"{bytes / (1024.0 * 1024.0 * 1024.0):F1} GB";
-        }
-
-        /// <summary>
         /// 指定されたアセットのファイルサイズを人間が読みやすい文字列形式で取得します
         /// </summary>
         /// <param name="assetId">アセットID</param>
@@ -289,21 +276,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             {
                 return "0 B";
             }
-            return FormatFileSize(asset.FileInfo.FileSizeBytes);
-        }
-
-        /// <summary>
-        /// 指定されたアセットのファイルサイズを人間が読みやすい文字列形式で取得します
-        /// </summary>
-        /// <param name="asset">アセットデータ</param>
-        /// <returns>読みやすい形式の文字列</returns>
-        public static string GetFormattedFileSize(AssetSchema asset)
-        {
-            if (asset?.FileInfo == null)
-            {
-                return "0 B";
-            }
-            return FormatFileSize(asset.FileInfo.FileSizeBytes);
+            return VrcAssetFileController.FormatFileSize(asset.FileInfo.FileSizeBytes);
         }
 
         /// <summary>
