@@ -1,9 +1,5 @@
 # Controllers 一覧
 
-## 概要
-
-AvatarModifyUtilities（AMU）で提供されている全てのControllerの使用方法を説明します。Controllers層は、永続データの管理とアクセス制御を担当します。
-
 ## Core Controllers
 
 ### SettingsController

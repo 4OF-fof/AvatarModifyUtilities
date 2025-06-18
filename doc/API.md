@@ -1,9 +1,5 @@
 # 公開API一覧
 
-## 概要
-
-AvatarModifyUtilities（AMU）で公開されている全てのAPIの使用方法を説明します。
-
 ## Core API
 
 ### ObjectCaptureAPI
