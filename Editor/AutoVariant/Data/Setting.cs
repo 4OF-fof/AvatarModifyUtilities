@@ -9,7 +9,7 @@ namespace AMU.Editor.Setting
     {
         public static readonly Dictionary<string, SettingItem[]> SettingItems = new Dictionary<string, SettingItem[]>
         {
-            { "AutoVariant", new SettingItem[] {
+            { "AutoVariant_category", new SettingItem[] {
                 new BoolSettingItem("AutoVariant_enableAutoVariant", false),
                 new BoolSettingItem("AutoVariant_enablePrebuild", true),
                 new BoolSettingItem("AutoVariant_includeAllAssets", true)

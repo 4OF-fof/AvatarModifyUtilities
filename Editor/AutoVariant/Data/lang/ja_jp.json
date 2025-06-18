@@ -1,4 +1,5 @@
 {
+  "AutoVariant_category": "Auto Variant",
   "AutoVariant_enableAutoVariant": "自動でVariantを作成する",
   "AutoVariant_enablePrebuild": "ビルド前に現在のアバターを保存する",
   "AutoVariant_includeAllAssets": "関連アセットをすべて含める",

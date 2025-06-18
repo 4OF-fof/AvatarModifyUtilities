@@ -1,4 +1,5 @@
 {
+  "AutoVariant_category": "Auto Variant",
   "AutoVariant_enableAutoVariant": "Create Variants Automatically",
   "AutoVariant_enablePrebuild": "Save current avatar before building",
   "AutoVariant_includeAllAssets": "Include All Related Assets",
