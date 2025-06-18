@@ -73,7 +73,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
     {
         [SerializeField] private int _totalAssets;
         [SerializeField] private int _favoriteAssets;
-        [SerializeField] private int _hiddenAssets;
         [SerializeField] private int _groupAssets;
         [SerializeField] private long _totalFileSize;
         [SerializeField] private Dictionary<string, int> _assetTypeCount;
@@ -83,9 +82,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
 
         public int TotalAssets => _totalAssets;
         public int FavoriteAssets => _favoriteAssets;
-        public int HiddenAssets => _hiddenAssets;
         public int GroupAssets => _groupAssets;
-        public int VisibleAssets => _totalAssets - _hiddenAssets;
         public FileSize TotalFileSize => new FileSize(_totalFileSize);
 
         public IReadOnlyDictionary<string, int> AssetTypeCount =>
@@ -103,7 +100,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             _totalAssets = 0;
             _favoriteAssets = 0;
-            _hiddenAssets = 0;
             _groupAssets = 0;
             _totalFileSize = 0;
             _assetTypeCount = new Dictionary<string, int>();
@@ -121,7 +117,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
                 _totalAssets++;
 
                 if (asset.State.IsFavorite) _favoriteAssets++;
-                if (asset.State.IsHidden) _hiddenAssets++;
                 if (asset.State.IsGroup) _groupAssets++;
 
                 _totalFileSize += asset.FileInfo.FileSize.Bytes;
@@ -151,7 +146,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             _totalAssets = 0;
             _favoriteAssets = 0;
-            _hiddenAssets = 0;
             _groupAssets = 0;
             _totalFileSize = 0;
             _assetTypeCount.Clear();
@@ -413,7 +407,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             if (_assets == null) return Enumerable.Empty<AssetSchema>();
 
-            return _assets.Values.Where(asset => asset.State.IsVisible);
+            return _assets.Values.Where(asset => !asset.State.IsArchived);
         }
 
         public IEnumerable<AssetSchema> GetFavoriteAssets()

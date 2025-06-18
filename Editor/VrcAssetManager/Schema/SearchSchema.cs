@@ -226,7 +226,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
         [SerializeField] private DateRange _modifiedDateRange;
         [SerializeField] private FileSizeRange _fileSizeRange;
         [SerializeField] private bool _isFavoriteOnly;
-        [SerializeField] private bool _isHiddenOnly;
         [SerializeField] private bool _excludeGroups;
         [SerializeField] private bool _caseSensitive;
 
@@ -287,12 +286,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
             set => _isFavoriteOnly = value;
         }
 
-        public bool IsHiddenOnly
-        {
-            get => _isHiddenOnly;
-            set => _isHiddenOnly = value;
-        }
-
         public bool ExcludeGroups
         {
             get => _excludeGroups;
@@ -318,7 +311,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _modifiedDateRange = DateRange.Disabled;
             _fileSizeRange = FileSizeRange.Disabled;
             _isFavoriteOnly = false;
-            _isHiddenOnly = false;
             _excludeGroups = true;
             _caseSensitive = false;
         }
@@ -375,8 +367,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
                    _createdDateRange.IsEnabled ||
                    _modifiedDateRange.IsEnabled ||
                    _fileSizeRange.IsEnabled ||
-                   _isFavoriteOnly ||
-                   _isHiddenOnly;
+                   _isFavoriteOnly;
         }
 
         public AdvancedSearchCriteria Clone()
@@ -394,7 +385,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
                 _modifiedDateRange = _modifiedDateRange,
                 _fileSizeRange = _fileSizeRange,
                 _isFavoriteOnly = _isFavoriteOnly,
-                _isHiddenOnly = _isHiddenOnly,
                 _excludeGroups = _excludeGroups,
                 _caseSensitive = _caseSensitive
             };

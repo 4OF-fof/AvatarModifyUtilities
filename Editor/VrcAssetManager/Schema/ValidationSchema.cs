@@ -346,25 +346,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
         }
 
         /// <summary>
-        /// アセット状態の検証
-        /// </summary>
-        public static ValidationResults ValidateAssetState(AssetState state)
-        {
-            var results = new ValidationResults("AssetState");
-
-            // 特に重要な検証はないが、将来的な拡張のために残しておく
-            if (state.IsHidden && state.IsFavorite)
-            {
-                results.Add(ValidationResult.Warning(
-                    "隠されたアセットがお気に入りに設定されています",
-                    "State",
-                    "この設定が意図的かどうか確認してください"));
-            }
-
-            return results;
-        }
-
-        /// <summary>
         /// グループ情報の検証
         /// </summary>
         public static ValidationResults ValidateGroupSchema(AssetGroupSchema group, IReadOnlyDictionary<AssetId, AssetGroupSchema> allGroups)
@@ -474,7 +455,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
             results.AddRange(AssetValidationRules.ValidateMetadata(asset.Metadata).Results);
             results.AddRange(AssetValidationRules.ValidateFileInfo(asset.FileInfo).Results);
             results.AddRange(AssetValidationRules.ValidateAssetType(asset.AssetType).Results);
-            results.AddRange(AssetValidationRules.ValidateAssetState(asset.State).Results);
 
             // グループ情報の検証（存在する場合）
             if (allGroups?.TryGetValue(asset.Id, out var groupSchema) == true)
