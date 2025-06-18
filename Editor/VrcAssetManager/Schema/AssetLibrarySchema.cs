@@ -51,7 +51,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public int AssetCount => _assets?.Count ?? 0;
         public int GroupCount => _groups?.Count ?? 0;
         public bool HasAssets => AssetCount > 0;
-        
+
         public AssetLibrarySchema()
         {
             _lastUpdated = DateTime.Now;

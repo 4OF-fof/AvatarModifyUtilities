@@ -379,6 +379,33 @@ var categories = VrcAssetController.GetAvailableCategories();
 var authors = VrcAssetController.GetAvailableAuthors();
 ```
 
+##### アセット・グループの状態判定
+```csharp
+public static bool HasBoothItem(AssetId assetId)
+public static bool HasBoothItem(AssetSchema asset)
+public static bool IsTopLevel(AssetId assetId)
+public static bool IsTopLevel(AssetSchema asset)
+public static bool IsTopLevel(AssetGroupSchema group)
+```
+
+**使用例:**
+```csharp
+// BoothアイテムがあるかどうかをIDで判定
+bool hasBoothItem = VrcAssetController.HasBoothItem(assetId);
+
+// Boothアイテムがあるかどうかをアセットデータで判定
+bool hasBoothItem = VrcAssetController.HasBoothItem(assetData);
+
+// トップレベルアイテムかどうかをIDで判定
+bool isTopLevel = VrcAssetController.IsTopLevel(assetId);
+
+// トップレベルアイテムかどうかをアセットデータで判定
+bool isTopLevel = VrcAssetController.IsTopLevel(assetData);
+
+// トップレベルグループかどうかを判定
+bool isTopLevel = VrcAssetController.IsTopLevel(groupData);
+```
+
 ### VrcAssetFileController
 
 VRCアセットファイルの操作を管理するコントローラです。

@@ -37,7 +37,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
         }
         public bool HasParent => !string.IsNullOrEmpty(_parentGroupId);
         public bool HasChildren => _childAssetIds?.Count > 0;
-        public bool IsTopLevel => !HasParent;
         public bool IsLeaf => !HasChildren;
 
         public AssetGroupSchema()
@@ -158,7 +157,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         /// </summary>
         public static IEnumerable<AssetId> GetRootAssets(IReadOnlyDictionary<AssetId, AssetGroupSchema> groups)
         {
-            return groups.Where(kvp => kvp.Value.IsTopLevel).Select(kvp => kvp.Key);
+            return groups.Where(kvp => !kvp.Value.HasParent).Select(kvp => kvp.Key);
         }
 
         /// <summary>

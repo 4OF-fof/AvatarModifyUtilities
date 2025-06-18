@@ -190,10 +190,8 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                         "ParentGroupId",
                         LocalizationController.GetText("VrcAssetManager_validation_suggestion_reviewGroupHierarchy")));
                 }
-            }
-
-            // グループ名の検証
-            if (group.IsTopLevel && string.IsNullOrWhiteSpace(group.GroupName))
+            }            // グループ名の検証
+            if (!group.HasParent && string.IsNullOrWhiteSpace(group.GroupName))
             {
                 results.Add(ValidationResult.Warning(
                     LocalizationController.GetText("VrcAssetManager_validation_warning_topLevelGroupNameEmpty"),

@@ -198,6 +198,64 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         }
 
         /// <summary>
+        /// 指定されたアセットがBoothアイテムを持っているかを判定します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <returns>Boothアイテムがあればtrue</returns>
+        public static bool HasBoothItem(AssetId assetId)
+        {
+            if (!_assetCache.TryGetValue(assetId, out var asset))
+            {
+                return false;
+            }
+            return asset.BoothItem != null && asset.BoothItem.HasData;
+        }
+
+        /// <summary>
+        /// 指定されたアセットがBoothアイテムを持っているかを判定します
+        /// </summary>
+        /// <param name="asset">アセットデータ</param>
+        /// <returns>Boothアイテムがあればtrue</returns>
+        public static bool HasBoothItem(AssetSchema asset)
+        {
+            return asset?.BoothItem != null && asset.BoothItem.HasData;
+        }
+
+        /// <summary>
+        /// 指定されたアセットが親を持たないトップレベルのアイテムかを判定します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <returns>トップレベルのアイテムならtrue</returns>
+        public static bool IsTopLevel(AssetId assetId)
+        {
+            if (!_assetCache.TryGetValue(assetId, out var asset))
+            {
+                return false;
+            }
+            return string.IsNullOrEmpty(asset.ParentGroupId);
+        }
+
+        /// <summary>
+        /// 指定されたアセットが親を持たないトップレベルのアイテムかを判定します
+        /// </summary>
+        /// <param name="asset">アセットデータ</param>
+        /// <returns>トップレベルのアイテムならtrue</returns>
+        public static bool IsTopLevel(AssetSchema asset)
+        {
+            return asset != null && string.IsNullOrEmpty(asset.ParentGroupId);
+        }
+
+        /// <summary>
+        /// 指定されたグループが親を持たないトップレベルのグループかを判定します
+        /// </summary>
+        /// <param name="group">グループデータ</param>
+        /// <returns>トップレベルのグループならtrue</returns>
+        public static bool IsTopLevel(AssetGroupSchema group)
+        {
+            return group != null && !group.HasParent;
+        }
+
+        /// <summary>
         /// インデックスを更新します
         /// </summary>
         /// <param name="assetId">アセットID</param>

@@ -399,15 +399,12 @@ namespace AMU.Editor.VrcAssetManager.Schema
             get => _boothItem;
             set => _boothItem = value;
         }
-
         public DateTime LastAccessed
         {
             get => _lastAccessed == default ? DateTime.Now : _lastAccessed;
             set => _lastAccessed = value;
         }
-        public bool HasBoothItem => _boothItem != null && _boothItem.HasData;
         public bool HasParentGroup => !string.IsNullOrEmpty(_parentGroupId);
-        public bool IsTopLevel => !HasParentGroup;
 
         public AssetSchema()
         {
