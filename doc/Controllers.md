@@ -248,6 +248,8 @@ if (LocalizationController.HasKey("ui_button_save"))
 
 ## VrcAssetManager Controllers
 
+VRCアセット管理に特化したコントローラ群です。VRChatアバターやワールド開発に必要なアセットの管理機能を提供します。
+
 ### VrcAssetController
 
 VRCアセットの管理を行うメインコントローラです。
