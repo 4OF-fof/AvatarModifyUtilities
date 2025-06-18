@@ -19,7 +19,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         private static string _cachedFilePath = null;
         private static DateTime _cachedFileLastWrite = DateTime.MinValue;
         private static readonly object _cacheLock = new object();
-        
+
         /// <summary>
         /// デフォルトのAssetLibraryファイルパス
         /// EditorPrefsのCoreDir設定を使用します
@@ -134,57 +134,6 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             {
                 Debug.LogError(string.Format(LocalizationController.GetText("VrcAssetManager_message_error_libraryCreationFailed"), ex.Message));
                 return null;
-            }
-        }
-
-        /// <summary>
-        /// AssetLibraryをJSONファイルに保存します
-        /// </summary>
-        /// <param name="library">保存するAssetLibrarySchema</param>
-        /// <param name="filePath">保存先ファイルパス</param>
-        /// <returns>保存に成功した場合true</returns>
-        public static bool SaveLibrary(AssetLibrarySchema library, string filePath = null)
-        {
-            if (library == null)
-            {
-                Debug.LogError(LocalizationController.GetText("VrcAssetManager_message_error_libraryNull"));
-                return false;
-            }
-
-            var targetPath = filePath ?? DefaultLibraryPath;
-
-            try
-            {
-                // ディレクトリが存在しない場合は作成
-                var directory = Path.GetDirectoryName(targetPath);
-                if (!Directory.Exists(directory))
-                {
-                    Directory.CreateDirectory(directory);
-                }
-
-                // ライブラリの最終更新日時を設定
-                library.LastUpdated = DateTime.Now;
-
-                // JSONシリアライズ
-                var json = JsonConvert.SerializeObject(library, Formatting.Indented, new JsonSerializerSettings
-                {
-                    DateFormatHandling = DateFormatHandling.IsoDateFormat,
-                    DateTimeZoneHandling = DateTimeZoneHandling.Local
-                });
-
-                // ファイルに書き込み
-                File.WriteAllText(targetPath, json);
-
-                // キャッシュを更新
-                UpdateCache(library, targetPath);
-
-                Debug.Log(string.Format(LocalizationController.GetText("VrcAssetManager_message_success_librarySaved"), targetPath));
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError(string.Format(LocalizationController.GetText("VrcAssetManager_message_error_librarySaveFailed"), targetPath, ex.Message));
-                return false;
             }
         }
 
@@ -332,14 +281,15 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 return null;
             }
         }
-
+        
         /// <summary>
-        /// 非同期でライブラリを保存します（キャッシュは即座に更新）
+        /// AssetLibraryをJSONファイルに非同期で保存します
+        /// キャッシュは即座に更新され、ファイル書き込みはバックグラウンドで実行されます
         /// </summary>
         /// <param name="library">保存するAssetLibrarySchema</param>
         /// <param name="filePath">保存先ファイルパス</param>
         /// <returns>保存処理を開始できた場合true</returns>
-        public static bool SaveLibraryAsync(AssetLibrarySchema library, string filePath = null)
+        public static bool SaveLibrary(AssetLibrarySchema library, string filePath = null)
         {
             if (library == null)
             {

@@ -36,7 +36,6 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                     Debug.LogError("Failed to load asset library");
                     return false;
                 }
-
                 if (library.ContainsAsset(assetId))
                 {
                     Debug.LogWarning(string.Format(LocalizationController.GetText("VrcAssetManager_message_warning_assetExists"), assetId));
@@ -44,7 +43,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 }
 
                 library.AddAsset(assetId, assetData);
-                bool saved = AssetLibraryController.SaveLibraryAsync(library);
+                bool saved = AssetLibraryController.SaveLibrary(library);
 
                 if (saved)
                 {
@@ -82,9 +81,8 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                     Debug.LogError(string.Format(LocalizationController.GetText("VrcAssetManager_message_error_assetNotFound"), assetId));
                     return false;
                 }
-
                 library.AddAsset(assetId, assetData);
-                bool saved = AssetLibraryController.SaveLibraryAsync(library);
+                bool saved = AssetLibraryController.SaveLibrary(library);
 
                 if (saved)
                 {
@@ -122,9 +120,8 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                     Debug.LogError(string.Format(LocalizationController.GetText("VrcAssetManager_message_error_assetNotFound"), assetId));
                     return false;
                 }
-
                 library.RemoveAsset(assetId);
-                bool saved = AssetLibraryController.SaveLibraryAsync(library);
+                bool saved = AssetLibraryController.SaveLibrary(library);
 
                 if (saved)
                 {
