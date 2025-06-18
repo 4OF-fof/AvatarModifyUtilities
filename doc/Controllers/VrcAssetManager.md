@@ -293,6 +293,15 @@ using AMU.Editor.VrcAssetManager.Controllers;
 using AMU.Editor.VrcAssetManager.Schema;
 ```
 
+#### 設定連携
+
+AssetLibraryControllerは以下の設定システムと連携します：
+
+**EditorPrefs設定:**
+- `Setting.Core_dirPath`: ライブラリファイルの保存先ディレクトリ
+- デフォルト値: `%USERPROFILE%\Documents\AvatarModifyUtilities`
+- ファイルパス: `{CoreDir}/VrcAssetManager/VrcAssetLibrary.json`
+
 #### キャッシュシステム
 
 AssetLibraryControllerは内部でライブラリをメモリにキャッシュし、ファイルの最終更新時刻を監視してキャッシュの有効性を管理します。これにより頻繁なアクセスでもファイルIOを最小限に抑えます。
@@ -495,9 +504,14 @@ public static string DefaultLibraryPath { get; }
 デフォルトのライブラリファイルパスを取得します。
 
 **戻り値:**
-- `string`: `{Application.dataPath}/AssetLibrary.json`の絶対パス
+- `string`: `{CoreDir}/VrcAssetManager/VrcAssetLibrary.json`の絶対パス
+
+**パス構成:**
+- CoreDir: EditorPrefsの`Setting.Core_dirPath`から取得（デフォルト: `%USERPROFILE%\Documents\AvatarModifyUtilities`）
+- ファイル名: `VrcAssetLibrary.json`
 
 **使用例:**
 ```csharp
 Debug.Log($"デフォルトライブラリパス: {AssetLibraryController.DefaultLibraryPath}");
+// 出力例: C:\Users\YourName\Documents\AvatarModifyUtilities\VrcAssetManager\VrcAssetLibrary.json
 ```

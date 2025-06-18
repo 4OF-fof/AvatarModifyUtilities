@@ -252,13 +252,19 @@ VRCアセット管理に特化したコントローラ群です。VRChatアバ�
 
 ### VrcAssetController
 
-VRCアセットの管理を行うメインコントローラです。
+VRCアセットの管理を行うメインコントローラです。AssetLibraryControllerと連携してアセットの CRUD 操作を提供します。
 
 #### 名前空間
 ```csharp
 using AMU.Editor.VrcAssetManager.Controllers;
 using AMU.Editor.VrcAssetManager.Schema;
 ```
+
+#### アーキテクチャ
+
+- すべてのアセット操作はAssetLibraryControllerを通じて実行
+- ライブラリレベルでのキャッシュとファイルIO最適化
+- アセット個別のキャッシュは廃止（ライブラリ統一キャッシュに移行）
 
 #### 主要機能
 
@@ -267,7 +273,7 @@ using AMU.Editor.VrcAssetManager.Schema;
 public static bool AddAsset(AssetId assetId, AssetSchema assetData)
 ```
 
-新しいVRCアセットをキャッシュに追加します。
+新しいVRCアセットをライブラリに追加します。
 
 **パラメータ:**
 - `assetId`: アセットの一意識別子
@@ -275,6 +281,10 @@ public static bool AddAsset(AssetId assetId, AssetSchema assetData)
 
 **戻り値:**
 - `bool`: 追加に成功した場合true
+
+**特徴:**
+- AssetLibraryControllerを通じてライブラリに保存
+- 重複チェック機能付き
 
 **使用例:**
 ```csharp
@@ -523,6 +533,28 @@ using AMU.Editor.VrcAssetManager.Schema;
 
 #### 主要機能
 
+##### キャッシュ管理
+```csharp
+public static void ClearCache()
+public static bool IsCached(string filePath = null)
+public static AssetLibrarySchema ForceReloadLibrary(string filePath = null)
+```
+
+**使用例:**
+```csharp
+// キャッシュの状態確認
+if (AssetLibraryController.IsCached())
+{
+    Debug.Log("ライブラリはキャッシュ済みです");
+}
+
+// キャッシュをクリア
+AssetLibraryController.ClearCache();
+
+// キャッシュを無視して強制再読み込み
+var library = AssetLibraryController.ForceReloadLibrary();
+```
+
 ##### ライブラリの作成・保存・読み込み
 ```csharp
 public static AssetLibrarySchema CreateNewLibrary()
@@ -569,4 +601,5 @@ if (AssetLibraryController.LibraryFileExists())
 
 // デフォルトパスを取得
 Debug.Log($"デフォルトパス: {AssetLibraryController.DefaultLibraryPath}");
+// 出力例: C:\Users\YourName\Documents\AvatarModifyUtilities\VrcAssetManager\VrcAssetLibrary.json
 ```
