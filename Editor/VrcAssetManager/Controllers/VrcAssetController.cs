@@ -184,24 +184,6 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         }
 
         /// <summary>
-        /// 利用可能なカテゴリの一覧を取得します
-        /// </summary>
-        /// <returns>カテゴリ名のリスト</returns>
-        public static List<string> GetAvailableCategories()
-        {
-            return _categoryIndex.Keys.ToList();
-        }
-
-        /// <summary>
-        /// 利用可能な作者の一覧を取得します
-        /// </summary>
-        /// <returns>作者名のリスト</returns>
-        public static List<string> GetAvailableAuthors()
-        {
-            return _authorIndex.Keys.ToList();
-        }
-
-        /// <summary>
         /// アセットキャッシュをクリアします
         /// </summary>
         public static void ClearCache()
@@ -211,15 +193,6 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             _authorIndex.Clear();
 
             Debug.Log(LocalizationController.GetText("VrcAssetManager_message_success_cacheCleared"));
-        }
-
-        /// <summary>
-        /// キャッシュされているアセット数を取得します
-        /// </summary>
-        /// <returns>キャッシュされているアセット数</returns>
-        public static int GetCachedAssetCount()
-        {
-            return _assetCache.Count;
         }
 
         /// <summary>

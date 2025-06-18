@@ -84,6 +84,7 @@ public static AssetSchema GetAsset(AssetId assetId)
 public static List<AssetSchema> GetAllAssets()
 public static List<AssetSchema> GetAssetsByCategory(string category)
 public static List<AssetSchema> GetAssetsByAuthor(string author)
+public static List<AssetSchema> SearchAssets(string searchTerm)
 ```
 
 **使用例:**
@@ -99,24 +100,9 @@ var avatars = VrcAssetController.GetAssetsByCategory("Avatar");
 
 // 作者別に取得
 var authorAssets = VrcAssetController.GetAssetsByAuthor("AuthorName");
-```
 
-##### アセットの検索
-```csharp
-public static List<AssetSchema> SearchAssets(string searchTerm)
-```
-
-名前、説明、作者名で部分一致検索を行います。
-
-**パラメータ:**
-- `searchTerm`: 検索文字列
-
-**戻り値:**
-- `List<AssetSchema>`: 検索条件に一致するアセットのリスト
-
-**使用例:**
-```csharp
-var searchResults = VrcAssetController.SearchAssets("avatar");
+//名前で取得
+var searchResults = VrcAssetController.SearchAssets("AwesomeAvatar");
 ```
 
 ##### キャッシュ管理
