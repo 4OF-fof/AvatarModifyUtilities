@@ -245,3 +245,140 @@ if (LocalizationController.HasKey("ui_button_save"))
     Debug.Log($"保存ボタンテキスト: {text}");
 }
 ```
+
+## VrcAssetManager Controllers
+
+VRCアセット管理に特化したコントローラ群です。VRChatアバターやワールド開発に必要なアセットの管理機能を提供します。
+
+### VrcAssetController
+
+VRCアセットの基本的なCRUD操作とキャッシュ管理を行います。
+
+#### 名前空間
+```csharp
+using AMU.Editor.VrcAssetManager.Controllers;
+using AMU.Editor.VrcAssetManager.Schema;
+```
+
+#### 主要機能
+
+##### アセット管理
+```csharp
+public static bool AddAsset(AssetSchema assetData)
+public static bool UpdateAsset(AssetSchema assetData)
+public static bool RemoveAsset(AssetId assetId)
+```
+
+##### アセット取得・検索
+```csharp
+public static AssetSchema GetAsset(AssetId assetId)
+public static List<AssetSchema> GetAllAssets()
+public static List<AssetSchema> GetAssetsByCategory(string category)
+public static List<AssetSchema> GetAssetsByAuthor(string author)
+public static List<AssetSchema> SearchAssets(string searchTerm)
+```
+
+**使用例:**
+```csharp
+// アセットの追加
+var asset = new AssetSchema("MyAvatar", AssetType.Avatar, "Assets/MyAvatar.prefab");
+VrcAssetController.AddAsset(asset);
+
+// カテゴリ別検索
+var avatars = VrcAssetController.GetAssetsByCategory("Avatar");
+
+// テキスト検索
+var searchResults = VrcAssetController.SearchAssets("kawaii");
+```
+
+### VrcAssetFileController
+
+VRCアセットファイルのインポート・エクスポート操作を管理します。
+
+#### 名前空間
+```csharp
+using AMU.Editor.VrcAssetManager.Controllers;
+```
+
+#### 主要機能
+
+##### ファイル操作
+```csharp
+public static bool IsValidVrcAssetFile(string filePath)
+public static AssetSchema ImportAssetFile(string filePath)
+public static List<AssetSchema> ImportMultipleAssetFiles(IEnumerable<string> filePaths)
+public static bool ExportAsset(AssetSchema assetData, string destinationPath)
+```
+
+##### ディレクトリスキャン
+```csharp
+public static List<string> ScanDirectory(string directoryPath, bool recursive = true)
+```
+
+**サポートファイル形式:**
+- Prefabs (`.prefab`), Scenes (`.unity`), Packages (`.unitypackage`)
+- Models (`.fbx`, `.obj`)
+- Textures (`.png`, `.jpg`, `.jpeg`, `.tga`, `.psd`)
+- Materials (`.mat`), Shaders (`.shader`, `.hlsl`, `.cginc`)
+- Scripts (`.cs`, `.dll`, `.asmdef`)
+
+**使用例:**
+```csharp
+// ファイルインポート
+var asset = VrcAssetFileController.ImportAssetFile(@"C:\VRCAssets\MyAvatar.prefab");
+
+// ディレクトリスキャン
+var files = VrcAssetFileController.ScanDirectory(@"C:\VRCAssets", true);
+
+// 一括インポート
+var assets = VrcAssetFileController.ImportMultipleAssetFiles(files);
+```
+
+### VrcAssetSettingsController
+
+VrcAssetManager固有の設定管理を行います。
+
+#### 名前空間
+```csharp
+using AMU.Editor.VrcAssetManager.Controllers;
+```
+
+#### 主要機能
+
+##### 基本設定
+```csharp
+public static bool GetAutoScanOnStartup()
+public static void SetAutoScanOnStartup(bool enabled)
+public static string GetDefaultScanDirectory()
+public static void SetDefaultScanDirectory(string directoryPath)
+public static int GetMaxCacheSize()
+public static void SetMaxCacheSize(int maxSize)
+```
+
+##### フィルタリング設定
+```csharp
+public static List<string> GetEnabledCategories()
+public static void SetEnabledCategories(List<string> enabledCategories)
+public static List<string> GetExcludedFileExtensions()
+public static void SetExcludedFileExtensions(List<string> excludedExtensions)
+```
+
+**使用例:**
+```csharp
+// 起動時自動スキャンを有効化
+VrcAssetSettingsController.SetAutoScanOnStartup(true);
+
+// デフォルトディレクトリ設定
+VrcAssetSettingsController.SetDefaultScanDirectory("Assets/VRCAssets");
+
+// カテゴリフィルタ設定
+var enabledCategories = new List<string> { "Avatar", "Clothing", "Accessory" };
+VrcAssetSettingsController.SetEnabledCategories(enabledCategories);
+```
+
+## 詳細ドキュメント
+
+各コントローラの詳細な使用方法については、以下の専用ドキュメントを参照してください ：
+
+- [Core Controllers詳細](Controllers/Core.md)
+- [VrcAssetManager Controllers詳細](Controllers/VrcAssetManager.md)

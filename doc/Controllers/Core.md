@@ -1,4 +1,4 @@
-# Controllers 一覧
+# Controllers
 
 ## Core Controllers
 
