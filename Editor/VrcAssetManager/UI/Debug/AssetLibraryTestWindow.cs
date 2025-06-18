@@ -110,15 +110,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                     }
                 }
 
-                EditorGUILayout.Space(5);
-
-                using (new EditorGUILayout.HorizontalScope())
+                EditorGUILayout.Space(5); using (new EditorGUILayout.HorizontalScope())
                 {
-                    if (GUILayout.Button("Validate File"))
-                    {
-                        ValidateLibraryFile();
-                    }
-
                     if (GUILayout.Button("File Info"))
                     {
                         ShowFileInfo();
@@ -640,18 +633,6 @@ namespace AMU.Editor.VrcAssetManager.UI
             if (lines.Length > 20)
             {
                 _testMessage = string.Join("\n", lines.Skip(lines.Length - 20));
-            }
-        }
-
-        private void ValidateLibraryFile()
-        {
-            if (AssetLibraryController.ValidateLibraryFile(_libraryFilePath))
-            {
-                LogMessage("ライブラリファイルは有効です。");
-            }
-            else
-            {
-                LogMessage("ライブラリファイルが無効です。");
             }
         }
 

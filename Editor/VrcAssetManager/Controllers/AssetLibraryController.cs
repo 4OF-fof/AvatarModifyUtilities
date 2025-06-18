@@ -168,38 +168,5 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 return null;
             }
         }
-
-        /// <summary>
-        /// ライブラリファイルのバリデーションを行います
-        /// </summary>
-        /// <param name="filePath">検証するファイルパス</param>
-        /// <returns>有効なライブラリファイルの場合true</returns>
-        public static bool ValidateLibraryFile(string filePath = null)
-        {
-            var targetPath = filePath ?? DefaultLibraryPath;
-
-            try
-            {
-                if (!File.Exists(targetPath))
-                {
-                    return false;
-                }
-
-                var json = File.ReadAllText(targetPath);
-                if (string.IsNullOrWhiteSpace(json))
-                {
-                    return false;
-                }
-
-                // JSON構文の検証
-                var library = JsonConvert.DeserializeObject<AssetLibrarySchema>(json);
-                return library != null;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError(string.Format(LocalizationController.GetText("VrcAssetManager_message_error_libraryValidationFailed"), targetPath, ex.Message));
-                return false;
-            }
-        }
     }
 }
