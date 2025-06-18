@@ -42,7 +42,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 var fileName = Path.GetFileNameWithoutExtension(filePath);
                 var fileInfo = new FileInfo(filePath);
 
-                var assetData = new AssetSchema(fileName, AssetType.Other, filePath);
+                var assetData = new AssetSchema(fileName, "Other", filePath);
                 assetData.FileInfo.FileSizeBytes = fileInfo.Length;
                 assetData.Metadata.CreatedDate = DateTime.Now;
                 assetData.Metadata.ModifiedDate = fileInfo.LastWriteTime;

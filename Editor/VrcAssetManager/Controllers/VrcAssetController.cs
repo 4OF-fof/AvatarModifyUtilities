@@ -175,10 +175,9 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             {
                 return new List<AssetSchema>();
             }
-
             return library.Assets.Values
-                          .Where(asset => string.Equals(asset.Metadata.AssetType.ToString(), category, StringComparison.OrdinalIgnoreCase))
-                          .ToList();
+                   .Where(asset => string.Equals(asset.Metadata.AssetType, category, StringComparison.OrdinalIgnoreCase))
+                   .ToList();
         }
 
         /// <summary>

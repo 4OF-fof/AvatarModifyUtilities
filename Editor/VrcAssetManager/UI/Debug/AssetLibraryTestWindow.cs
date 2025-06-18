@@ -18,7 +18,7 @@ namespace AMU.Editor.VrcAssetManager.UI
         private string _libraryFilePath;
         private Vector2 _scrollPosition;
         private string _newAssetName = "New Asset";
-        private AssetType _newAssetType = AssetType.Other;
+        private string _newAssetType = "Other";
         private string _newAssetFilePath = "";
         private string _newAssetAuthor = "Test Author";
         private string _selectedAssetId = "";
@@ -145,18 +145,16 @@ namespace AMU.Editor.VrcAssetManager.UI
             {
                 // アセット追加UI
                 EditorGUILayout.LabelField("Add New Asset:", EditorStyles.miniBoldLabel);
-                _newAssetName = EditorGUILayout.TextField("Name:", _newAssetName);
-
-                // アセットタイプの選択
+                _newAssetName = EditorGUILayout.TextField("Name:", _newAssetName);                // アセットタイプの選択
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     EditorGUILayout.LabelField("Type:", GUILayout.Width(50));
                     var typeOptions = new string[] { "Avatar", "Clothing", "Accessory", "Other" };
-                    var selectedIndex = Array.IndexOf(typeOptions, _newAssetType.Value);
+                    var selectedIndex = Array.IndexOf(typeOptions, _newAssetType);
                     if (selectedIndex == -1) selectedIndex = 3; // Default to "Other"
 
                     selectedIndex = EditorGUILayout.Popup(selectedIndex, typeOptions);
-                    _newAssetType = new AssetType(typeOptions[selectedIndex]);
+                    _newAssetType = typeOptions[selectedIndex];
                 }
 
                 _newAssetAuthor = EditorGUILayout.TextField("Author:", _newAssetAuthor);
@@ -285,9 +283,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                 // 統計情報
                 EditorGUILayout.LabelField("Statistics:", EditorStyles.miniBoldLabel);
                 EditorGUILayout.LabelField($"Visible Assets: {_assetMapping.Values.Where(a => !a.State.IsArchived).Count()}");
-                EditorGUILayout.LabelField($"Favorite Assets: {_assetMapping.Values.Where(a => a.State.IsFavorite).Count()}");
-                EditorGUILayout.LabelField($"Avatar Assets: {_assetMapping.Values.Where(a => a.Metadata.AssetType == AssetType.Avatar).Count()}");
-                EditorGUILayout.LabelField($"Clothing Assets: {_assetMapping.Values.Where(a => a.Metadata.AssetType == AssetType.Clothing).Count()}");
+                EditorGUILayout.LabelField($"Favorite Assets: {_assetMapping.Values.Where(a => a.State.IsFavorite).Count()}"); EditorGUILayout.LabelField($"Avatar Assets: {_assetMapping.Values.Where(a => a.Metadata.AssetType == "Avatar").Count()}");
+                EditorGUILayout.LabelField($"Clothing Assets: {_assetMapping.Values.Where(a => a.Metadata.AssetType == "Clothing").Count()}");
             }
         }
 
@@ -419,10 +416,9 @@ namespace AMU.Editor.VrcAssetManager.UI
                 LogMessage("アセットの追加に失敗しました。");
             }
         }
-
         private void AddRandomAssets(int count)
         {
-            var assetTypes = new AssetType[] { AssetType.Avatar, AssetType.Clothing, AssetType.Accessory, AssetType.Other };
+            var assetTypes = new string[] { "Avatar", "Clothing", "Accessory", "Other" };
             var authors = new string[] { "Author A", "Author B", "Author C", "Test Creator" };
 
             for (int i = 0; i < count; i++)
@@ -437,7 +433,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 asset.Metadata.AuthorName = randomAuthor;
                 asset.Metadata.Description = $"This is a test asset number {i + 1}";
                 asset.AddTag("test");
-                asset.AddTag(randomType.Value.ToLower());
+                asset.AddTag(randomType.ToLower());
 
                 // ランダムでお気に入りに設定
                 if (UnityEngine.Random.Range(0, 3) == 0)

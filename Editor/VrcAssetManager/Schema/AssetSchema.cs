@@ -52,41 +52,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
     }
 
     /// <summary>
-    /// アセットタイプの定義
-    /// </summary>
-    [Serializable]
-    public struct AssetType : IEquatable<AssetType>
-    {
-        private readonly string _value;
-
-        public AssetType(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentException("AssetType cannot be null or empty", nameof(value));
-            _value = value.Trim();
-        }
-
-        public string Value => _value ?? "Other";
-
-        public bool Equals(AssetType other) => _value == other._value;
-        public override bool Equals(object obj) => obj is AssetType other && Equals(other);
-        public override int GetHashCode() => _value?.GetHashCode() ?? 0;
-        public override string ToString() => _value ?? "Other";
-
-        public static bool operator ==(AssetType left, AssetType right) => left.Equals(right);
-        public static bool operator !=(AssetType left, AssetType right) => !left.Equals(right);
-
-        public static implicit operator string(AssetType assetType) => assetType.Value;
-        public static explicit operator AssetType(string value) => new AssetType(value);
-
-        // 標準的なアセットタイプ
-        public static readonly AssetType Avatar = new AssetType("Avatar");
-        public static readonly AssetType Clothing = new AssetType("Clothing");
-        public static readonly AssetType Accessory = new AssetType("Accessory");
-        public static readonly AssetType Other = new AssetType("Other");
-    }
-
-    /// <summary>
     /// ファイルサイズの表現
     /// </summary>
     [Serializable]
@@ -132,7 +97,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         [SerializeField] private string _name;
         [SerializeField] private string _description;
         [SerializeField] private string _authorName;
-        [SerializeField] private AssetType _assetType;
+        [SerializeField] private string _assetType;
         [SerializeField] private List<string> _tags;
         [SerializeField] private List<string> _dependencies;
         [SerializeField] private DateTime _createdDate;
@@ -155,7 +120,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             set => _authorName = value?.Trim() ?? string.Empty;
         }
 
-        public AssetType AssetType
+        public string AssetType
         {
             get => _assetType;
             set => _assetType = value;
@@ -181,7 +146,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _name = string.Empty;
             _description = string.Empty;
             _authorName = string.Empty;
-            _assetType = AssetType.Other;
+            _assetType = null;
             _tags = new List<string>();
             _dependencies = new List<string>();
             _createdDate = DateTime.Now;
@@ -413,7 +378,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _lastAccessed = DateTime.Now;
         }
 
-        public AssetSchema(string name, AssetType assetType, string filePath) : this()
+        public AssetSchema(string name, string assetType, string filePath) : this()
         {
             _metadata.Name = name;
             _metadata.AssetType = assetType;
