@@ -266,20 +266,6 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         }
 
         /// <summary>
-        /// 指定されたアセットのファイルサイズを人間が読みやすい文字列形式で取得します
-        /// </summary>
-        /// <param name="assetId">アセットID</param>
-        /// <returns>読みやすい形式の文字列</returns>
-        public static string GetFormattedFileSize(AssetId assetId)
-        {
-            if (!_assetCache.TryGetValue(assetId, out var asset))
-            {
-                return "0 B";
-            }
-            return VrcAssetFileController.FormatFileSize(asset.FileInfo.FileSizeBytes);
-        }
-
-        /// <summary>
         /// インデックスを更新します
         /// </summary>
         /// <param name="assetId">アセットID</param>
