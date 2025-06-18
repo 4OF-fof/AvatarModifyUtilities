@@ -42,7 +42,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 var fileName = Path.GetFileNameWithoutExtension(filePath);
                 var fileInfo = new FileInfo(filePath);
 
-                var assetData = new AssetSchema(fileName, new AssetType(DetermineAssetCategory(filePath)), filePath);
+                var assetData = new AssetSchema(fileName, AssetType.Other, filePath);
                 assetData.FileInfo.FileSize = new FileSize(fileInfo.Length);
                 assetData.Metadata.CreatedDate = DateTime.Now;
                 assetData.Metadata.ModifiedDate = fileInfo.LastWriteTime;
@@ -133,47 +133,5 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             return (string[])SupportedFileExtensions.Clone();
         }
 
-        /// <summary>
-        /// ファイルパスからアセットカテゴリを推定します
-        /// </summary>
-        /// <param name="filePath">ファイルパス</param>
-        /// <returns>推定されたカテゴリ名</returns>
-        private static string DetermineAssetCategory(string filePath)
-        {
-            var extension = Path.GetExtension(filePath).ToLower();
-            var fileName = Path.GetFileName(filePath).ToLower();
-
-            // ファイル拡張子に基づくカテゴリ判定
-            switch (extension)
-            {
-                case ".prefab":
-                    return "Prefabs";
-                case ".unity":
-                    return "Scenes";
-                case ".unitypackage":
-                    return "Packages";
-                case ".fbx":
-                case ".obj":
-                    return "Models";
-                case ".png":
-                case ".jpg":
-                case ".jpeg":
-                case ".tga":
-                case ".psd":
-                    return "Textures";
-                case ".mat":
-                    return "Materials";
-                case ".shader":
-                case ".hlsl":
-                case ".cginc":
-                    return "Shaders";
-                case ".cs":
-                case ".dll":
-                case ".asmdef":
-                    return "Scripts";
-                default:
-                    return "Other";
-            }
-        }
     }
 }

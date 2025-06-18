@@ -145,18 +145,7 @@ using AMU.Editor.VrcAssetManager.Schema;
 public static AssetSchema ImportAssetFile(string filePath)
 ```
 
-指定されたファイルパスからVRCアセットデータを作成します。あらゆるファイル形式をインポート可能です。
-
-**主要カテゴリ（自動判定）:**
-- Prefabs: `.prefab`
-- Scenes: `.unity`
-- Packages: `.unitypackage`
-- Models: `.fbx`, `.obj`
-- Textures: `.png`, `.jpg`, `.jpeg`, `.tga`, `.psd`
-- Materials: `.mat`
-- Shaders: `.shader`, `.hlsl`, `.cginc`
-- Scripts: `.cs`, `.dll`, `.asmdef`
-- Other: 上記以外のすべてのファイル
+指定されたファイルパスからVRCアセットデータを作成します。
 
 **使用例:**
 ```csharp
