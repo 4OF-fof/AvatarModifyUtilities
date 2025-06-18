@@ -5,6 +5,7 @@
   "Core_dirPath": "Data Folder",
   "Core_versionInfo": "Version",
   "Core_repositoryUrl": "Repository URL",
+
   "ui_empty_result": "No results found",
   "ui_button_save": "Save",
   "ui_button_cancel": "Cancel",
@@ -26,6 +27,7 @@
   "ui_menu_view": "View",
   "ui_menu_tools": "Tools",
   "ui_menu_help": "Help",
+  
   "message_error_filenotfound": "File not found",
   "message_error_invalidpath": "Invalid path",
   "message_error_accessdenied": "Access denied",

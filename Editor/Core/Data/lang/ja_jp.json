@@ -5,6 +5,7 @@
   "Core_dirPath": "データ保存フォルダ",
   "Core_versionInfo": "バージョン情報",
   "Core_repositoryUrl": "リポジトリURL",
+  
   "ui_empty_result": "検索結果がありません",
   "ui_button_save": "保存",
   "ui_button_cancel": "キャンセル",
@@ -26,6 +27,7 @@
   "ui_menu_view": "表示",
   "ui_menu_tools": "ツール",
   "ui_menu_help": "ヘルプ",
+
   "message_error_filenotfound": "ファイルが見つかりません",
   "message_error_invalidpath": "無効なパスです",
   "message_error_accessdenied": "アクセスが拒否されました",
