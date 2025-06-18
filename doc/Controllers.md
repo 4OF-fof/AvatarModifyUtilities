@@ -403,50 +403,6 @@ public static ValidationResults ValidateBoothItem(BoothItemSchema boothItem)
 public static ValidationResults ValidateLibrary(AssetLibrarySchema library)
 ```
 
-### SearchCriteriaController
-
-検索条件の生成と管理を行います。
-
-#### 名前空間
-```csharp
-using AMU.Editor.VrcAssetManager.Controllers;
-```
-
-#### 主要機能
-
-##### 日付範囲の生成
-```csharp
-// 過去N日間
-var lastWeek = SearchCriteriaController.DateRangeFactory.LastDays(7);
-
-// 過去N月間
-var lastMonth = SearchCriteriaController.DateRangeFactory.LastMonths(1);
-
-// 今日
-var today = SearchCriteriaController.DateRangeFactory.Today();
-
-// 今週
-var thisWeek = SearchCriteriaController.DateRangeFactory.ThisWeek();
-
-// 無効化
-var disabled = SearchCriteriaController.DateRangeFactory.Disabled;
-```
-
-##### ファイルサイズ範囲の生成
-```csharp
-// 小さなファイル（1MB未満）
-var small = SearchCriteriaController.FileSizeRangeFactory.Small();
-
-// 大きなファイル（10MB-100MB）
-var large = SearchCriteriaController.FileSizeRangeFactory.Large();
-
-// カスタム範囲
-var custom = SearchCriteriaController.FileSizeRangeFactory.CustomMB(5, 50);
-
-// 指定サイズ以下
-var upTo10MB = SearchCriteriaController.FileSizeRangeFactory.UpTo(new FileSize(10 * 1024 * 1024));
-```
-
 ## 詳細ドキュメント
 
 各コントローラの詳細な使用方法については、以下の専用ドキュメントを参照してください ：
