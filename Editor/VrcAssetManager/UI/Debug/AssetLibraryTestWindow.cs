@@ -83,7 +83,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                 EditorGUILayout.LabelField($"Last Updated: {_currentLibrary.LastUpdated:yyyy/MM/dd HH:mm:ss}");
                 EditorGUILayout.LabelField($"Asset Count: {_currentLibrary.AssetCount}");
                 EditorGUILayout.LabelField($"Group Count: {_currentLibrary.GroupCount}");
-                EditorGUILayout.LabelField($"Has Assets: {_currentLibrary.HasAssets}");
                 EditorGUILayout.LabelField($"File Path: {_libraryFilePath}");
             }
         }

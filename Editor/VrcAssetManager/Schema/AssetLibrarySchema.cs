@@ -11,9 +11,12 @@ namespace AMU.Editor.VrcAssetManager.Schema
     [Serializable]
     public class AssetLibrarySchema
     {
-        [SerializeField] private DateTime _lastUpdated;
-        [SerializeField] private Dictionary<string, AssetSchema> _assets;
-        [SerializeField] private Dictionary<string, AssetGroupSchema> _groups;
+        [SerializeField]
+        private DateTime _lastUpdated;
+        [SerializeField]
+        private Dictionary<string, AssetSchema> _assets;
+        [SerializeField]
+        private Dictionary<string, AssetGroupSchema> _groups;
 
         public DateTime LastUpdated
         {
@@ -50,7 +53,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
 
         public int AssetCount => _assets?.Count ?? 0;
         public int GroupCount => _groups?.Count ?? 0;
-        public bool HasAssets => AssetCount > 0;
 
         public AssetLibrarySchema()
         {
