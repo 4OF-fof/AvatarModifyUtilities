@@ -248,11 +248,9 @@ if (LocalizationController.HasKey("ui_button_save"))
 
 ## VrcAssetManager Controllers
 
-VRCアセット管理に特化したコントローラ群です。VRChatアバターやワールド開発に必要なアセットの管理機能を提供します。
-
 ### VrcAssetController
 
-VRCアセットの基本的なCRUD操作とキャッシュ管理を行います。
+VRCアセットの管理を行うメインコントローラです。
 
 #### 名前空間
 ```csharp
@@ -262,14 +260,74 @@ using AMU.Editor.VrcAssetManager.Schema;
 
 #### 主要機能
 
-##### アセット管理
+##### アセットの追加
 ```csharp
-public static bool AddAsset(AssetSchema assetData)
-public static bool UpdateAsset(AssetSchema assetData)
+public static bool AddAsset(AssetId assetId, AssetSchema assetData)
+```
+
+新しいVRCアセットをキャッシュに追加します。
+
+**パラメータ:**
+- `assetId`: アセットの一意識別子
+- `assetData`: 追加するアセットデータ
+
+**戻り値:**
+- `bool`: 追加に成功した場合true
+
+**使用例:**
+```csharp
+var assetId = AssetId.NewId();
+var assetData = new AssetSchema("MyAvatar", AssetType.Avatar, "Assets/MyAvatar.prefab");
+bool success = VrcAssetController.AddAsset(assetId, assetData);
+if (success)
+{
+    Debug.Log($"アセットが正常に追加されました: {assetId}");
+}
+```
+
+##### アセットの更新
+```csharp
+public static bool UpdateAsset(AssetId assetId, AssetSchema assetData)
+```
+
+既存のVRCアセットを更新します。
+
+**パラメータ:**
+- `assetId`: 更新するアセットのID
+- `assetData`: 更新するアセットデータ
+
+**戻り値:**
+- `bool`: 更新に成功した場合true
+
+**使用例:**
+```csharp
+var existingAsset = VrcAssetController.GetAsset(assetId);
+if (existingAsset != null)
+{
+    existingAsset.Metadata.Description = "更新された説明";
+    VrcAssetController.UpdateAsset(assetId, existingAsset);
+}
+```
+
+##### アセットの削除
+```csharp
 public static bool RemoveAsset(AssetId assetId)
 ```
 
-##### アセット取得・検索
+指定されたIDのVRCアセットを削除します。
+
+**パラメータ:**
+- `assetId`: 削除するアセットのID
+
+**戻り値:**
+- `bool`: 削除に成功した場合true
+
+**使用例:**
+```csharp
+bool removed = VrcAssetController.RemoveAsset(assetId);
+```
+
+##### アセットの取得
 ```csharp
 public static AssetSchema GetAsset(AssetId assetId)
 public static List<AssetSchema> GetAllAssets()
@@ -280,122 +338,142 @@ public static List<AssetSchema> SearchAssets(string searchTerm)
 
 **使用例:**
 ```csharp
-// アセットの追加
-var asset = new AssetSchema("MyAvatar", AssetType.Avatar, "Assets/MyAvatar.prefab");
-VrcAssetController.AddAsset(asset);
+// 特定のアセットを取得
+var asset = VrcAssetController.GetAsset(assetId);
 
-// カテゴリ別検索
+// 全アセットを取得
+var allAssets = VrcAssetController.GetAllAssets();
+
+// カテゴリ別に取得
 var avatars = VrcAssetController.GetAssetsByCategory("Avatar");
 
-// テキスト検索
-var searchResults = VrcAssetController.SearchAssets("kawaii");
+// 作者別に取得
+var authorAssets = VrcAssetController.GetAssetsByAuthor("AuthorName");
+
+//名前で取得
+var searchResults = VrcAssetController.SearchAssets("AwesomeAvatar");
+```
+
+##### キャッシュ管理
+```csharp
+public static void ClearCache()
+public static int GetCachedAssetCount()
+public static List<string> GetAvailableCategories()
+public static List<string> GetAvailableAuthors()
+```
+
+**使用例:**
+```csharp
+// キャッシュをクリア
+VrcAssetController.ClearCache();
+
+// キャッシュされているアセット数を取得
+int count = VrcAssetController.GetCachedAssetCount();
+
+// 利用可能なカテゴリを取得
+var categories = VrcAssetController.GetAvailableCategories();
+
+// 利用可能な作者を取得
+var authors = VrcAssetController.GetAvailableAuthors();
 ```
 
 ### VrcAssetFileController
 
-VRCアセットファイルのインポート・エクスポート操作を管理します。
+VRCアセットファイルの操作を管理するコントローラです。
 
 #### 名前空間
 ```csharp
 using AMU.Editor.VrcAssetManager.Controllers;
+using AMU.Editor.VrcAssetManager.Schema;
 ```
 
 #### 主要機能
 
-##### ファイル操作
+##### ファイルのインポート
 ```csharp
 public static AssetSchema ImportAssetFile(string filePath)
+```
+
+指定されたファイルパスからVRCアセットデータを作成します。
+
+**使用例:**
+```csharp
+// ファイルのインポート
+var assetId = AssetId.NewId();
+var assetData = VrcAssetFileController.ImportAssetFile(@"C:\Assets\MyAvatar.prefab");
+if (assetData != null)
+{
+    VrcAssetController.AddAsset(assetId, assetData);
+}
+```
+
+##### ファイルのエクスポート
+```csharp
 public static bool ExportAsset(AssetSchema assetData, string destinationPath)
 ```
 
-すべてのファイル形式をインポート可能です。カテゴリは自動判定されます。
-
-**主要カテゴリ（自動判定）:**
-- Prefabs (`.prefab`), Scenes (`.unity`), Packages (`.unitypackage`)
-- Models (`.fbx`, `.obj`)
-- Textures (`.png`, `.jpg`, `.jpeg`, `.tga`, `.psd`)
-- Materials (`.mat`), Shaders (`.shader`, `.hlsl`, `.cginc`)
-- Scripts (`.cs`, `.dll`, `.asmdef`)
-- Other（上記以外のすべてのファイル）
-
 **使用例:**
 ```csharp
-// ファイルインポート（あらゆるファイル形式）
-var asset = VrcAssetFileController.ImportAssetFile(@"C:\VRCAssets\MyFile.txt");
+var asset = VrcAssetController.GetAsset(assetId);
+bool exported = VrcAssetFileController.ExportAsset(asset, @"C:\Export");
 ```
 
-### VrcAssetFileAPI
-
-VRCアセットファイルのAPI機能を提供します。
-
-#### 名前空間
+##### ファイル情報の更新
 ```csharp
-using AMU.Editor.VrcAssetManager.API;
+public static AssetSchema RefreshAssetFileInfo(AssetSchema assetData)
 ```
 
-##### ディレクトリスキャン
-```csharp
-public static List<string> ScanDirectory(string directoryPath, bool recursive = true)
-```
+ファイル容量や更新日時の情報を更新します。
 
 **使用例:**
+
 ```csharp
-// ディレクトリスキャン（すべてのファイル）
-var files = VrcAssetFileAPI.ScanDirectory(@"C:\VRCAssets", true);
+var asset = VrcAssetController.GetAsset(assetId);
+var refreshedAsset = VrcAssetFileController.RefreshAssetFileInfo(asset);
+VrcAssetController.UpdateAsset(assetId, refreshedAsset);
 ```
 
 ### AssetValidationController
 
-アセットのバリデーション機能を提供します。
+アセットの包括的なバリデーション機能を提供します。
 
 #### 名前空間
 ```csharp
 using AMU.Editor.VrcAssetManager.Controllers;
+using AMU.Editor.VrcAssetManager.Schema;
 ```
 
 #### 主要機能
 
 ##### アセット全体の検証
 ```csharp
-public static ValidationResults ValidateAsset(AssetSchema asset, IReadOnlyDictionary<AssetId, AssetGroupSchema> allGroups = null)
+public static ValidationResults ValidateAsset(AssetSchema asset, IReadOnlyDictionary<string, AssetGroupSchema> allGroups = null)
 ```
+
+アセット全体の包括的な検証を実行します。
+
+**パラメータ:**
+- `asset`: 検証対象のアセット
+- `allGroups`: 全グループ情報（グループ検証用、オプション）
+
+**戻り値:**
+- `ValidationResults`: 検証結果
 
 **使用例:**
 ```csharp
-using AMU.Editor.VrcAssetManager.Controllers;
-using AMU.Editor.VrcAssetManager.Schema;
+var asset = new AssetSchema();
+// ... アセット情報を設定
 
-// アセットの検証
-var validationResults = AssetValidationController.ValidateAsset(asset);
+var results = AssetValidationController.ValidateAsset(asset);
 
-if (validationResults.HasErrors)
+if (results.HasCritical)
 {
-    foreach (var result in validationResults.Results)
+    Debug.LogError("Critical validation errors found!");
+    foreach (var error in results.Results.Where(r => r.Level == ValidationLevel.Critical))
     {
-        Debug.LogError($"[{result.Level}] {result.Message}");
+        Debug.LogError($"Field: {error.FieldName}, Message: {error.Message}");
     }
 }
-```
-
-##### 個別コンポーネントの検証
-```csharp
-// アセットIDの検証
-public static ValidationResults ValidateAssetId(AssetId assetId)
-
-// メタデータの検証
-public static ValidationResults ValidateMetadata(AssetMetadata metadata)
-
-// ファイル情報の検証
-public static ValidationResults ValidateFileInfo(AssetFileInfo fileInfo)
-
-// アセットタイプの検証
-public static ValidationResults ValidateAssetType(AssetType assetType)
-
-// グループ情報の検証
-public static ValidationResults ValidateGroupSchema(AssetGroupSchema group, IReadOnlyDictionary<AssetId, AssetGroupSchema> allGroups)
-
-// Booth情報の検証
-public static ValidationResults ValidateBoothItem(BoothItemSchema boothItem)
 ```
 
 ##### ライブラリ全体の検証
@@ -403,9 +481,19 @@ public static ValidationResults ValidateBoothItem(BoothItemSchema boothItem)
 public static ValidationResults ValidateLibrary(AssetLibrarySchema library)
 ```
 
-## 詳細ドキュメント
+ライブラリ全体の検証を実行します。重複チェックや整合性チェックを含みます。
 
-各コントローラの詳細な使用方法については、以下の専用ドキュメントを参照してください ：
+##### 個別コンポーネント検証
+```csharp
+// メタデータの検証（名前、説明、作者名、タグなど）
+public static ValidationResults ValidateMetadata(AssetMetadata metadata)
 
-- [Core Controllers詳細](Controllers/Core.md)
-- [VrcAssetManager Controllers詳細](Controllers/VrcAssetManager.md)
+// ファイル情報の検証（パス、サイズ、サムネイルなど）
+public static ValidationResults ValidateFileInfo(AssetFileInfo fileInfo)
+
+// グループ情報の検証（循環参照チェックなど）
+public static ValidationResults ValidateGroupSchema(AssetGroupSchema group, IReadOnlyDictionary<string, AssetGroupSchema> allGroups)
+
+// Booth情報の検証
+public static ValidationResults ValidateBoothItem(BoothItemSchema boothItem)
+```
