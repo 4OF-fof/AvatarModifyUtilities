@@ -22,8 +22,8 @@ Assets/AvatarModifyUtilities/
 ```
 ModuleName/
 ├── API/                  # 外部API関連
-├── Controllers/          # UIとロジックの制御
-├── Data/                 # データクラスと設定
+├── Controllers/          # データの操作
+├── Data/                 # データと設定
 │   ├── lang/             # ローカライズファイル
 │   └── Setting.cs        # 設定定義
 ├── Schema/               # データスキーマ定義
