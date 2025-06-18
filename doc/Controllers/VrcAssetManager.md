@@ -16,12 +16,13 @@ using AMU.Editor.VrcAssetManager.Schema;
 
 ##### アセットの追加
 ```csharp
-public static bool AddAsset(AssetSchema assetData)
+public static bool AddAsset(AssetId assetId, AssetSchema assetData)
 ```
 
 新しいVRCアセットをキャッシュに追加します。
 
 **パラメータ:**
+- `assetId`: アセットの一意識別子
 - `assetData`: 追加するアセットデータ
 
 **戻り値:**
@@ -29,22 +30,24 @@ public static bool AddAsset(AssetSchema assetData)
 
 **使用例:**
 ```csharp
+var assetId = AssetId.NewId();
 var assetData = new AssetSchema("MyAvatar", AssetType.Avatar, "Assets/MyAvatar.prefab");
-bool success = VrcAssetController.AddAsset(assetData);
+bool success = VrcAssetController.AddAsset(assetId, assetData);
 if (success)
 {
-    Debug.Log("アセットが正常に追加されました");
+    Debug.Log($"アセットが正常に追加されました: {assetId}");
 }
 ```
 
 ##### アセットの更新
 ```csharp
-public static bool UpdateAsset(AssetSchema assetData)
+public static bool UpdateAsset(AssetId assetId, AssetSchema assetData)
 ```
 
 既存のVRCアセットを更新します。
 
 **パラメータ:**
+- `assetId`: 更新するアセットのID
 - `assetData`: 更新するアセットデータ
 
 **戻り値:**
@@ -53,10 +56,10 @@ public static bool UpdateAsset(AssetSchema assetData)
 **使用例:**
 ```csharp
 var existingAsset = VrcAssetController.GetAsset(assetId);
-if (existingAsset.Id != default(AssetId))
+if (existingAsset != null)
 {
     existingAsset.Metadata.Description = "更新された説明";
-    VrcAssetController.UpdateAsset(existingAsset);
+    VrcAssetController.UpdateAsset(assetId, existingAsset);
 }
 ```
 
@@ -150,10 +153,11 @@ public static AssetSchema ImportAssetFile(string filePath)
 **使用例:**
 ```csharp
 // ファイルのインポート
+var assetId = AssetId.NewId();
 var assetData = VrcAssetFileController.ImportAssetFile(@"C:\Assets\MyAvatar.prefab");
-if (assetData.Id != default(AssetId))
+if (assetData != null)
 {
-    VrcAssetController.AddAsset(assetData);
+    VrcAssetController.AddAsset(assetId, assetData);
 }
 ```
 
@@ -180,7 +184,7 @@ public static AssetSchema RefreshAssetFileInfo(AssetSchema assetData)
 ```csharp
 var asset = VrcAssetController.GetAsset(assetId);
 var refreshedAsset = VrcAssetFileController.RefreshAssetFileInfo(asset);
-VrcAssetController.UpdateAsset(refreshedAsset);
+VrcAssetController.UpdateAsset(assetId, refreshedAsset);
 ```
 
 ### AssetValidationController
@@ -197,7 +201,7 @@ using AMU.Editor.VrcAssetManager.Schema;
 
 ##### アセット全体の検証
 ```csharp
-public static ValidationResults ValidateAsset(AssetSchema asset, IReadOnlyDictionary<AssetId, AssetGroupSchema> allGroups = null)
+public static ValidationResults ValidateAsset(AssetSchema asset, IReadOnlyDictionary<string, AssetGroupSchema> allGroups = null)
 ```
 
 アセット全体の包括的な検証を実行します。
@@ -235,20 +239,14 @@ public static ValidationResults ValidateLibrary(AssetLibrarySchema library)
 
 ##### 個別コンポーネント検証
 ```csharp
-// アセットIDの検証
-public static ValidationResults ValidateAssetId(AssetId assetId)
-
 // メタデータの検証（名前、説明、作者名、タグなど）
 public static ValidationResults ValidateMetadata(AssetMetadata metadata)
 
 // ファイル情報の検証（パス、サイズ、サムネイルなど）
 public static ValidationResults ValidateFileInfo(AssetFileInfo fileInfo)
 
-// アセットタイプの検証
-public static ValidationResults ValidateAssetType(AssetType assetType)
-
 // グループ情報の検証（循環参照チェックなど）
-public static ValidationResults ValidateGroupSchema(AssetGroupSchema group, IReadOnlyDictionary<AssetId, AssetGroupSchema> allGroups)
+public static ValidationResults ValidateGroupSchema(AssetGroupSchema group, IReadOnlyDictionary<string, AssetGroupSchema> allGroups)
 
 // Booth情報の検証
 public static ValidationResults ValidateBoothItem(BoothItemSchema boothItem)
