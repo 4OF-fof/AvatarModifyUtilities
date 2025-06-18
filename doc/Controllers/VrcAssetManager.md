@@ -124,33 +124,6 @@ var authorAssets = VrcAssetController.GetAssetsByAuthor("AuthorName");
 var searchResults = VrcAssetController.SearchAssets("AwesomeAvatar");
 ```
 
-##### キャッシュ管理
-```csharp
-public static void ClearCache()
-public static int GetCachedAssetCount()
-public static List<string> GetAvailableCategories()
-public static List<string> GetAvailableAuthors()
-```
-
-**特徴:**
-- AssetLibraryControllerのキャッシュを制御
-- リアルタイム統計情報の取得
-
-**使用例:**
-```csharp
-// ライブラリキャッシュをクリア
-VrcAssetController.ClearCache();
-
-// キャッシュされているアセット数を取得
-int count = VrcAssetController.GetCachedAssetCount();
-
-// 利用可能なカテゴリを取得（動的生成）
-var categories = VrcAssetController.GetAvailableCategories();
-
-// 利用可能な作者を取得（動的生成）
-var authors = VrcAssetController.GetAvailableAuthors();
-```
-
 ##### アセットの状態判定
 ```csharp
 public static bool HasBoothItem(AssetId assetId)

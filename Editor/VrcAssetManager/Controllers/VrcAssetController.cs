@@ -58,12 +58,14 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 Debug.LogError(string.Format(LocalizationController.GetText("VrcAssetManager_message_error_addAssetFailed"), ex.Message));
                 return false;
             }
-        }        /// <summary>
-                 /// VRCアセットを更新します
-                 /// </summary>
-                 /// <param name="assetId">アセットID</param>
-                 /// <param name="assetData">更新するVRCアセットデータ</param>
-                 /// <returns>更新に成功した場合true</returns>
+        }
+
+        /// <summary>
+        /// VRCアセットを更新します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <param name="assetData">更新するVRCアセットデータ</param>
+        /// <returns>更新に成功した場合true</returns>
         public static bool UpdateAsset(AssetId assetId, AssetSchema assetData)
         {
             try
@@ -161,7 +163,8 @@ namespace AMU.Editor.VrcAssetManager.Controllers
 
         /// <summary>
         /// 指定されたカテゴリのVRCアセットを取得します
-        /// </summary>        /// <param name="category">カテゴリ名</param>
+        /// </summary>
+        /// <param name="category">カテゴリ名</param>
         /// <returns>カテゴリに属するVRCアセットのリスト</returns>
         public static List<AssetSchema> GetAssetsByCategory(string category)
         {
@@ -231,15 +234,6 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         }
 
         /// <summary>
-        /// アセットライブラリのキャッシュをクリアします
-        /// </summary>
-        public static void ClearCache()
-        {
-            AssetLibraryController.ClearCache();
-            Debug.Log(LocalizationController.GetText("VrcAssetManager_message_success_cacheCleared"));
-        }
-
-        /// <summary>
         /// 指定されたアセットがBoothアイテムを持っているかを判定します
         /// </summary>
         /// <param name="assetId">アセットID</param>
@@ -295,55 +289,6 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         public static bool HasChildren(AssetGroupSchema group)
         {
             return group?.ChildAssetIds?.Count > 0;
-        }
-
-        /// <summary>
-        /// キャッシュされているアセット数を取得します
-        /// </summary>
-        /// <returns>キャッシュされているアセット数</returns>
-        public static int GetCachedAssetCount()
-        {
-            var library = AssetLibraryController.LoadLibrary();
-            return library?.AssetCount ?? 0;
-        }
-
-        /// <summary>
-        /// 利用可能なカテゴリの一覧を取得します
-        /// </summary>
-        /// <returns>カテゴリ名のリスト</returns>
-        public static List<string> GetAvailableCategories()
-        {
-            var library = AssetLibraryController.LoadLibrary();
-            if (library?.Assets == null)
-            {
-                return new List<string>();
-            }
-
-            return library.Assets.Values
-                          .Select(asset => asset.Metadata.AssetType.ToString())
-                          .Distinct()
-                          .OrderBy(category => category)
-                          .ToList();
-        }
-
-        /// <summary>
-        /// 利用可能な作者の一覧を取得します
-        /// </summary>
-        /// <returns>作者名のリスト</returns>
-        public static List<string> GetAvailableAuthors()
-        {
-            var library = AssetLibraryController.LoadLibrary();
-            if (library?.Assets == null)
-            {
-                return new List<string>();
-            }
-
-            return library.Assets.Values
-                          .Select(asset => asset.Metadata.AuthorName)
-                          .Where(author => !string.IsNullOrEmpty(author))
-                          .Distinct()
-                          .OrderBy(author => author)
-                          .ToList();
         }
     }
 }
