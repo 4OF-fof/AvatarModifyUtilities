@@ -572,8 +572,8 @@ var assetId = AssetId.NewId();
 var asset = new AssetSchema("MyAsset", AssetType.Avatar, "path/to/asset.prefab");
 library.AddAsset(assetId, asset);
 
-// ライブラリを保存
-bool saved = AssetLibraryController.SaveLibrary(library);
+// ライブラリを非同期で保存
+bool saveStarted = AssetLibraryController.SaveLibrary(library);
 
 // ライブラリを読み込み
 var loadedLibrary = AssetLibraryController.LoadLibrary();

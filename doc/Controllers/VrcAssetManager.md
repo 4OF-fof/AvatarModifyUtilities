@@ -379,40 +379,40 @@ if (newLibrary != null)
 ##### ライブラリの保存
 ```csharp
 public static bool SaveLibrary(AssetLibrarySchema library, string filePath = null)
-public static bool SaveLibraryAsync(AssetLibrarySchema library, string filePath = null)
 ```
 
 **SaveLibrary():**
-AssetLibraryをJSONファイルに同期的に保存します。
-
-**SaveLibraryAsync():**
-AssetLibraryを非同期で保存します。キャッシュは即座に更新され、ファイル書き込みはバックグラウンドで実行されます。
+AssetLibraryをJSONファイルに非同期で保存します。キャッシュは即座に更新され、ファイル書き込みはバックグラウンドで実行されます。
 
 **パラメータ:**
 - `library`: 保存するAssetLibrarySchema
 - `filePath`: 保存先ファイルパス（nullの場合はDefaultLibraryPathを使用）
 
 **戻り値:**
-- `bool`: 保存に成功した場合true
+- `bool`: 保存処理を開始できた場合true
 
 **特徴:**
-- 保存時に自動的にLastUpdatedとキャッシュを更新
-- ディレクトリが存在しない場合は自動作成
-- 適切なJSON設定で整形済みファイルを出力
+- **非同期処理**: UIをブロックせずにバックグラウンドで保存
+- **即座にキャッシュ更新**: 保存処理開始時にキャッシュを即座に更新
+- **自動ディレクトリ作成**: ディレクトリが存在しない場合は自動作成
+- **適切なJSON設定**: 整形済みファイルを出力
+- **自動LastUpdated更新**: 保存時に最終更新日時を自動設定
 
 **使用例:**
 ```csharp
 var library = AssetLibraryController.CreateNewLibrary();
 // ... ライブラリにアセットを追加
 
-// 同期保存（処理完了まで待機）
-bool saved = AssetLibraryController.SaveLibrary(library);
-
-// 非同期保存（高速、UIをブロックしない）
-bool saveStarted = AssetLibraryController.SaveLibraryAsync(library);
+// 非同期保存
+bool saveStarted = AssetLibraryController.SaveLibrary(library);
 
 // 指定パスに保存
 bool savedToCustomPath = AssetLibraryController.SaveLibrary(library, @"C:\MyLibrary.json");
+
+if (saveStarted)
+{
+    Debug.Log("保存処理を開始しました");
+}
 ```
 
 ##### ライブラリの読み込み
