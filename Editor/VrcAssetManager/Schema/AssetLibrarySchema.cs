@@ -136,7 +136,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
 
             return _assets.Values.Where(asset => asset.State.IsFavorite);
         }
-        
+
         public IEnumerable<AssetSchema> GetAssetsByType(AssetType assetType)
         {
             if (_assets == null) return Enumerable.Empty<AssetSchema>();

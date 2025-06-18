@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using UnityEngine;
+using UnityEditor;
 using Newtonsoft.Json;
 using AMU.Editor.VrcAssetManager.Schema;
 using AMU.Editor.Core.Controllers;
@@ -18,13 +19,24 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         private static string _cachedFilePath = null;
         private static DateTime _cachedFileLastWrite = DateTime.MinValue;
         private static readonly object _cacheLock = new object();
-
+        
         /// <summary>
         /// デフォルトのAssetLibraryファイルパス
+        /// EditorPrefsのCoreDir設定を使用します
         /// </summary>
-        public static string DefaultLibraryPath => Path.GetFullPath(Path.Combine(Application.dataPath, "AssetLibrary.json"));        /// <summary>
-                                                                                                                                     /// キャッシュをクリアします
-                                                                                                                                     /// </summary>
+        public static string DefaultLibraryPath
+        {
+            get
+            {
+                string coreDir = UnityEditor.EditorPrefs.GetString("Setting.Core_dirPath",
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
+                return Path.Combine(coreDir, "VrcAssetManager", "VrcAssetLibrary.json");
+            }
+        }
+
+        /// <summary>
+        /// キャッシュをクリアします
+        /// </summary>
         public static void ClearCache()
         {
             lock (_cacheLock)
