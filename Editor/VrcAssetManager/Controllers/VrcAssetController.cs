@@ -252,7 +252,27 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         /// <returns>トップレベルのグループならtrue</returns>
         public static bool IsTopLevel(AssetGroupSchema group)
         {
-            return group != null && !group.HasParent;
+            return group != null && string.IsNullOrEmpty(group.ParentGroupId);
+        }
+
+        /// <summary>
+        /// 指定されたグループが親グループを持っているかを判定します
+        /// </summary>
+        /// <param name="group">グループデータ</param>
+        /// <returns>親グループがあればtrue</returns>
+        public static bool HasParent(AssetGroupSchema group)
+        {
+            return group != null && !string.IsNullOrEmpty(group.ParentGroupId);
+        }
+
+        /// <summary>
+        /// 指定されたグループが子アセットを持っているかを判定します
+        /// </summary>
+        /// <param name="group">グループデータ</param>
+        /// <returns>子アセットがあればtrue</returns>
+        public static bool HasChildren(AssetGroupSchema group)
+        {
+            return group?.ChildAssetIds?.Count > 0;
         }
 
         /// <summary>

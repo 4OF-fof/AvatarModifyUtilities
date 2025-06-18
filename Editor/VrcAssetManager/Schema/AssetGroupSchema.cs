@@ -35,9 +35,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
             get => _groupName ?? string.Empty;
             set => _groupName = value?.Trim() ?? string.Empty;
         }
-        public bool HasParent => !string.IsNullOrEmpty(_parentGroupId);
-        public bool HasChildren => _childAssetIds?.Count > 0;
-        public bool IsLeaf => !HasChildren;
 
         public AssetGroupSchema()
         {
@@ -74,11 +71,10 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _parentGroupId = string.Empty;
             _groupLevel = 0;
         }
-
         public bool IsVisibleInList()
         {
             // 親グループが存在するアセットは通常非表示
-            return !HasParent;
+            return string.IsNullOrEmpty(_parentGroupId);
         }
 
         public void ClearChildren()
@@ -157,7 +153,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         /// </summary>
         public static IEnumerable<AssetId> GetRootAssets(IReadOnlyDictionary<AssetId, AssetGroupSchema> groups)
         {
-            return groups.Where(kvp => !kvp.Value.HasParent).Select(kvp => kvp.Key);
+            return groups.Where(kvp => string.IsNullOrEmpty(kvp.Value.ParentGroupId)).Select(kvp => kvp.Key);
         }
 
         /// <summary>
@@ -203,7 +199,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             while (!string.IsNullOrEmpty(current.Value) && visited.Add(current))
             {
                 if (!groups.TryGetValue(current, out var group)) break;
-                if (!group.HasParent) break;
+                if (string.IsNullOrEmpty(group.ParentGroupId)) break;
 
                 if (AssetId.TryParse(group.ParentGroupId, out var parentAssetId))
                 {

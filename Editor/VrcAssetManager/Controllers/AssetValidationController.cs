@@ -161,8 +161,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         {
             var results = new ValidationResults("GroupSchema");
 
-            // 循環参照の検証
-            if (group.HasParent && allGroups != null)
+            if (string.IsNullOrEmpty(group.ParentGroupId) && allGroups != null)
             {
                 var visited = new HashSet<string>();
                 var current = group.ParentGroupId;
@@ -188,8 +187,8 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                         "ParentGroupId",
                         LocalizationController.GetText("VrcAssetManager_validation_suggestion_reviewGroupHierarchy")));
                 }
-            }            // グループ名の検証
-            if (!group.HasParent && string.IsNullOrWhiteSpace(group.GroupName))
+            }
+            if (string.IsNullOrEmpty(group.ParentGroupId) && string.IsNullOrWhiteSpace(group.GroupName))
             {
                 results.Add(ValidationResult.Warning(
                     LocalizationController.GetText("VrcAssetManager_validation_warning_topLevelGroupNameEmpty"),

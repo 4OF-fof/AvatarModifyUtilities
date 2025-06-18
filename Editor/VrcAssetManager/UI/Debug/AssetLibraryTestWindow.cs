@@ -325,8 +325,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 EditorGUILayout.LabelField($"ID: {groupId}");
                 EditorGUILayout.LabelField($"Level: {group.GroupLevel}");
                 EditorGUILayout.LabelField($"Children: {group.ChildAssetIds.Count}");
-
-                if (group.HasParent)
+                if (!string.IsNullOrEmpty(group.ParentGroupId))
                 {
                     EditorGUILayout.LabelField($"Parent: {group.ParentGroupId}");
                 }
