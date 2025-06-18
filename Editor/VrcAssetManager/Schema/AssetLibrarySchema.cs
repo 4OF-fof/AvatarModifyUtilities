@@ -65,8 +65,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public static LibraryVersion Current => new LibraryVersion(1, 0, 0);
     }
 
-
-
     /// <summary>
     /// アセットライブラリの完全なスキーマ
     /// </summary>
@@ -108,21 +106,12 @@ namespace AMU.Editor.VrcAssetManager.Schema
             }
         }
 
-        public IReadOnlyDictionary<AssetId, AssetGroupSchema> Groups
+        public IReadOnlyDictionary<string, AssetGroupSchema> Groups
         {
             get
             {
-                if (_groups == null) return new Dictionary<AssetId, AssetGroupSchema>();
-
-                var result = new Dictionary<AssetId, AssetGroupSchema>();
-                foreach (var kvp in _groups)
-                {
-                    if (AssetId.TryParse(kvp.Key, out var assetId))
-                    {
-                        result[assetId] = kvp.Value;
-                    }
-                }
-                return result;
+                if (_groups == null) return new Dictionary<string, AssetGroupSchema>();
+                return _groups;
             }
         }
 
@@ -137,13 +126,12 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _assets = new Dictionary<string, AssetSchema>();
             _groups = new Dictionary<string, AssetGroupSchema>();
         }
-
-        public bool AddAsset(AssetSchema asset)
+        public bool AddAsset(AssetId assetId, AssetSchema asset)
         {
-            if (asset == null) return false;
+            if (string.IsNullOrEmpty(assetId.Value) || asset == null) return false;
 
             _assets ??= new Dictionary<string, AssetSchema>();
-            _assets[asset.Id.Value] = asset;
+            _assets[assetId.Value] = asset;
             _lastUpdated = DateTime.Now;
 
             return true;
@@ -157,8 +145,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
             if (removed)
             {
                 _lastUpdated = DateTime.Now;
-
-                // 関連するグループ情報も削除
                 _groups?.Remove(assetId.Value);
             }
 
@@ -176,30 +162,29 @@ namespace AMU.Editor.VrcAssetManager.Schema
             if (string.IsNullOrEmpty(assetId.Value)) return false;
             return _assets?.ContainsKey(assetId.Value) ?? false;
         }
-
-        public void AddGroup(AssetId assetId, AssetGroupSchema group)
+        public void AddGroup(string groupId, AssetGroupSchema group)
         {
-            if (string.IsNullOrEmpty(assetId.Value) || group == null) return;
+            if (string.IsNullOrEmpty(groupId) || group == null) return;
 
             _groups ??= new Dictionary<string, AssetGroupSchema>();
-            _groups[assetId.Value] = group;
+            _groups[groupId] = group;
             _lastUpdated = DateTime.Now;
         }
 
-        public void RemoveGroup(AssetId assetId)
+        public void RemoveGroup(string groupId)
         {
-            if (string.IsNullOrEmpty(assetId.Value)) return;
+            if (string.IsNullOrEmpty(groupId)) return;
 
-            if (_groups?.Remove(assetId.Value) == true)
+            if (_groups?.Remove(groupId) == true)
             {
                 _lastUpdated = DateTime.Now;
             }
         }
 
-        public AssetGroupSchema GetGroup(AssetId assetId)
+        public AssetGroupSchema GetGroup(string groupId)
         {
-            if (string.IsNullOrEmpty(assetId.Value)) return null;
-            return _groups?.GetValueOrDefault(assetId.Value);
+            if (string.IsNullOrEmpty(groupId)) return null;
+            return _groups?.GetValueOrDefault(groupId);
         }
 
         public IEnumerable<AssetSchema> GetVisibleAssets()
@@ -215,12 +200,11 @@ namespace AMU.Editor.VrcAssetManager.Schema
 
             return _assets.Values.Where(asset => asset.State.IsFavorite);
         }
-
         public IEnumerable<AssetSchema> GetAssetsByType(AssetType assetType)
         {
             if (_assets == null) return Enumerable.Empty<AssetSchema>();
 
-            return _assets.Values.Where(asset => asset.AssetType == assetType);
+            return _assets.Values.Where(asset => asset.Metadata.AssetType == assetType);
         }
 
         public IEnumerable<AssetSchema> GetAssetsByAuthor(string authorName)

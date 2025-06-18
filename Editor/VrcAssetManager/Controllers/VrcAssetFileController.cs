@@ -46,7 +46,6 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 assetData.FileInfo.FileSize = new FileSize(fileInfo.Length);
                 assetData.Metadata.CreatedDate = DateTime.Now;
                 assetData.Metadata.ModifiedDate = fileInfo.LastWriteTime;
-                assetData.Metadata.Version = "1.0.0";
 
                 Debug.Log(string.Format(LocalizationController.GetText("VrcAssetManager_message_success_fileImported"), fileName));
                 return assetData;

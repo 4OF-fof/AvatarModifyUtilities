@@ -28,6 +28,9 @@ namespace AMU.Editor.VrcAssetManager.UI
         private bool _showAssetDetails = false;
         private bool _showGroupDetails = false;
 
+        // アセットIDとアセットのマッピングを保持
+        private Dictionary<AssetId, AssetSchema> _assetMapping = new Dictionary<AssetId, AssetSchema>();
+
         [MenuItem("Tools/Asset Library Test Window")]
         public static void ShowWindow()
         {
@@ -44,6 +47,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             if (_currentLibrary == null)
             {
                 _currentLibrary = new AssetLibrarySchema();
+                _assetMapping = new Dictionary<AssetId, AssetSchema>();
             }
         }
 
@@ -253,10 +257,11 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 if (_showAssetDetails)
                 {
-                    foreach (var kvp in _currentLibrary.Assets)
+                    foreach (var kvp in _assetMapping)
                     {
+                        var assetId = kvp.Key;
                         var asset = kvp.Value;
-                        DrawAssetItem(asset);
+                        DrawAssetItem(assetId, asset);
                     }
                 }
 
@@ -268,8 +273,9 @@ namespace AMU.Editor.VrcAssetManager.UI
                 {
                     foreach (var kvp in _currentLibrary.Groups)
                     {
+                        var groupId = kvp.Key;
                         var group = kvp.Value;
-                        DrawGroupItem(kvp.Key, group);
+                        DrawGroupItem(groupId, group);
                     }
                 }
 
@@ -277,31 +283,31 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 // 統計情報
                 EditorGUILayout.LabelField("Statistics:", EditorStyles.miniBoldLabel);
-                EditorGUILayout.LabelField($"Visible Assets: {_currentLibrary.GetVisibleAssets().Count()}");
-                EditorGUILayout.LabelField($"Favorite Assets: {_currentLibrary.GetFavoriteAssets().Count()}");
-                EditorGUILayout.LabelField($"Avatar Assets: {_currentLibrary.GetAssetsByType(AssetType.Avatar).Count()}");
-                EditorGUILayout.LabelField($"Clothing Assets: {_currentLibrary.GetAssetsByType(AssetType.Clothing).Count()}");
+                EditorGUILayout.LabelField($"Visible Assets: {_assetMapping.Values.Where(a => !a.State.IsArchived).Count()}");
+                EditorGUILayout.LabelField($"Favorite Assets: {_assetMapping.Values.Where(a => a.State.IsFavorite).Count()}");
+                EditorGUILayout.LabelField($"Avatar Assets: {_assetMapping.Values.Where(a => a.Metadata.AssetType == AssetType.Avatar).Count()}");
+                EditorGUILayout.LabelField($"Clothing Assets: {_assetMapping.Values.Where(a => a.Metadata.AssetType == AssetType.Clothing).Count()}");
             }
         }
 
-        private void DrawAssetItem(AssetSchema asset)
+        private void DrawAssetItem(AssetId assetId, AssetSchema asset)
         {
             using (new EditorGUILayout.VerticalScope("helpBox"))
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.LabelField($"[{asset.AssetType}] {asset.Metadata.Name}", EditorStyles.boldLabel);
+                    EditorGUILayout.LabelField($"[{asset.Metadata.AssetType}] {asset.Metadata.Name}", EditorStyles.boldLabel);
                     if (asset.State.IsFavorite)
                     {
                         EditorGUILayout.LabelField("★", GUILayout.Width(20));
                     }
                     if (GUILayout.Button("Select", GUILayout.Width(60)))
                     {
-                        _selectedAssetId = asset.Id.Value;
+                        _selectedAssetId = assetId.Value;
                     }
                 }
 
-                EditorGUILayout.LabelField($"ID: {asset.Id}");
+                EditorGUILayout.LabelField($"ID: {assetId}");
                 EditorGUILayout.LabelField($"Author: {asset.Metadata.AuthorName}");
                 EditorGUILayout.LabelField($"File: {asset.FileInfo.FilePath}");
                 EditorGUILayout.LabelField($"Created: {asset.Metadata.CreatedDate:yyyy/MM/dd}");
@@ -313,7 +319,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             }
         }
 
-        private void DrawGroupItem(AssetId groupId, AssetGroupSchema group)
+        private void DrawGroupItem(string groupId, AssetGroupSchema group)
         {
             using (new EditorGUILayout.VerticalScope("helpBox"))
             {
@@ -352,6 +358,7 @@ namespace AMU.Editor.VrcAssetManager.UI
         private void CreateNewLibrary()
         {
             _currentLibrary = new AssetLibrarySchema();
+            _assetMapping = new Dictionary<AssetId, AssetSchema>();
             LogMessage("新しいライブラリを作成しました。");
         }
 
@@ -377,6 +384,14 @@ namespace AMU.Editor.VrcAssetManager.UI
                 {
                     var json = File.ReadAllText(_libraryFilePath);
                     _currentLibrary = JsonConvert.DeserializeObject<AssetLibrarySchema>(json);
+
+                    // アセットマッピングを再構築
+                    _assetMapping = new Dictionary<AssetId, AssetSchema>();
+                    foreach (var kvp in _currentLibrary.Assets)
+                    {
+                        _assetMapping[kvp.Key] = kvp.Value;
+                    }
+
                     LogMessage($"ライブラリを読み込みました: {_libraryFilePath}");
                 }
                 else
@@ -392,12 +407,14 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private void AddTestAsset()
         {
+            var assetId = AssetId.NewId();
             var asset = new AssetSchema(_newAssetName, _newAssetType, _newAssetFilePath);
             asset.Metadata.AuthorName = _newAssetAuthor;
 
-            if (_currentLibrary.AddAsset(asset))
+            if (_currentLibrary.AddAsset(assetId, asset))
             {
-                LogMessage($"アセットを追加しました: {asset.Metadata.Name} (ID: {asset.Id})");
+                _assetMapping[assetId] = asset;
+                LogMessage($"アセットを追加しました: {asset.Metadata.Name} (ID: {assetId})");
             }
             else
             {
@@ -417,6 +434,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 var assetName = $"Random Asset {i + 1}";
                 var filePath = $"/path/to/asset_{i + 1}.unity";
 
+                var assetId = AssetId.NewId();
                 var asset = new AssetSchema(assetName, randomType, filePath);
                 asset.Metadata.AuthorName = randomAuthor;
                 asset.Metadata.Description = $"This is a test asset number {i + 1}";
@@ -429,7 +447,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                     asset.State.IsFavorite = true;
                 }
 
-                _currentLibrary.AddAsset(asset);
+                _currentLibrary.AddAsset(assetId, asset);
+                _assetMapping[assetId] = asset;
             }
 
             LogMessage($"{count}個のランダムアセットを追加しました。");
@@ -438,6 +457,7 @@ namespace AMU.Editor.VrcAssetManager.UI
         private void ClearAllAssets()
         {
             _currentLibrary.ClearAssets();
+            _assetMapping.Clear();
             LogMessage("すべてのアセットをクリアしました。");
         }
 
@@ -453,6 +473,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             {
                 if (_currentLibrary.RemoveAsset(assetId))
                 {
+                    _assetMapping.Remove(assetId);
                     LogMessage($"アセットを削除しました: {assetId}");
                 }
                 else
@@ -481,7 +502,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 {
                     var info = $"Asset Info:\n" +
                               $"Name: {asset.Metadata.Name}\n" +
-                              $"Type: {asset.AssetType}\n" +
+                              $"Type: {asset.Metadata.AssetType}\n" +
                               $"Author: {asset.Metadata.AuthorName}\n" +
                               $"File: {asset.FileInfo.FilePath}\n" +
                               $"Favorite: {asset.State.IsFavorite}\n" +
@@ -529,7 +550,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private void CreateGroup()
         {
-            var groupId = AssetId.NewId();
+            var groupId = Guid.NewGuid().ToString();
             var group = new AssetGroupSchema();
             group.GroupName = _newGroupName;
 
@@ -547,7 +568,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
             // 最初のグループを取得（簡易実装）
             var firstGroup = _currentLibrary.Groups.FirstOrDefault();
-            if (firstGroup.Key.Value == null)
+            if (string.IsNullOrEmpty(firstGroup.Key))
             {
                 LogMessage("グループが存在しません。先にグループを作成してください。");
                 return;

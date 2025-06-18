@@ -20,26 +20,27 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         /// <summary>
         /// VRCアセットを追加します
         /// </summary>
+        /// <param name="assetId">アセットID</param>
         /// <param name="assetData">追加するVRCアセットデータ</param>
         /// <returns>追加に成功した場合true</returns>
-        public static bool AddAsset(AssetSchema assetData)
+        public static bool AddAsset(AssetId assetId, AssetSchema assetData)
         {
             try
             {
-                if (assetData.Id == default(AssetId))
+                if (assetId == default(AssetId))
                 {
                     Debug.LogError(LocalizationController.GetText("VrcAssetManager_message_error_invalidAssetId"));
                     return false;
                 }
 
-                if (_assetCache.ContainsKey(assetData.Id))
+                if (_assetCache.ContainsKey(assetId))
                 {
-                    Debug.LogWarning(string.Format(LocalizationController.GetText("VrcAssetManager_message_warning_assetExists"), assetData.Id));
-                    return UpdateAsset(assetData);
+                    Debug.LogWarning(string.Format(LocalizationController.GetText("VrcAssetManager_message_warning_assetExists"), assetId));
+                    return UpdateAsset(assetId, assetData);
                 }
 
-                _assetCache[assetData.Id] = assetData;
-                UpdateIndices(assetData);
+                _assetCache[assetId] = assetData;
+                UpdateIndices(assetId, assetData);
 
                 Debug.Log(string.Format(LocalizationController.GetText("VrcAssetManager_message_success_assetAdded"), assetData.Metadata.Name));
                 return true;
@@ -54,23 +55,24 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         /// <summary>
         /// VRCアセットを更新します
         /// </summary>
+        /// <param name="assetId">アセットID</param>
         /// <param name="assetData">更新するVRCアセットデータ</param>
         /// <returns>更新に成功した場合true</returns>
-        public static bool UpdateAsset(AssetSchema assetData)
+        public static bool UpdateAsset(AssetId assetId, AssetSchema assetData)
         {
             try
             {
-                if (!_assetCache.ContainsKey(assetData.Id))
+                if (!_assetCache.ContainsKey(assetId))
                 {
-                    Debug.LogError(string.Format(LocalizationController.GetText("VrcAssetManager_message_error_assetNotFound"), assetData.Id));
+                    Debug.LogError(string.Format(LocalizationController.GetText("VrcAssetManager_message_error_assetNotFound"), assetId));
                     return false;
                 }
 
-                var oldAssetData = _assetCache[assetData.Id];
-                RemoveFromIndices(oldAssetData);
+                var oldAssetData = _assetCache[assetId];
+                RemoveFromIndices(assetId, oldAssetData);
 
-                _assetCache[assetData.Id] = assetData;
-                UpdateIndices(assetData);
+                _assetCache[assetId] = assetData;
+                UpdateIndices(assetId, assetData);
 
                 Debug.Log(string.Format(LocalizationController.GetText("VrcAssetManager_message_success_assetUpdated"), assetData.Metadata.Name));
                 return true;
@@ -97,7 +99,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                     return false;
                 }
 
-                RemoveFromIndices(assetData);
+                RemoveFromIndices(assetId, assetData);
                 _assetCache.Remove(assetId);
 
                 Debug.Log(string.Format(LocalizationController.GetText("VrcAssetManager_message_success_assetRemoved"), assetData.Metadata.Name));
@@ -198,8 +200,9 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         /// <summary>
         /// インデックスを更新します
         /// </summary>
+        /// <param name="assetId">アセットID</param>
         /// <param name="assetData">更新対象のアセットデータ</param>
-        private static void UpdateIndices(AssetSchema assetData)
+        private static void UpdateIndices(AssetId assetId, AssetSchema assetData)
         {
             // カテゴリインデックスの更新
             var category = assetData.Metadata.AssetType.Value;
@@ -209,9 +212,9 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 {
                     _categoryIndex[category] = new List<AssetId>();
                 }
-                if (!_categoryIndex[category].Contains(assetData.Id))
+                if (!_categoryIndex[category].Contains(assetId))
                 {
-                    _categoryIndex[category].Add(assetData.Id);
+                    _categoryIndex[category].Add(assetId);
                 }
             }
 
@@ -222,9 +225,9 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 {
                     _authorIndex[assetData.Metadata.AuthorName] = new List<AssetId>();
                 }
-                if (!_authorIndex[assetData.Metadata.AuthorName].Contains(assetData.Id))
+                if (!_authorIndex[assetData.Metadata.AuthorName].Contains(assetId))
                 {
-                    _authorIndex[assetData.Metadata.AuthorName].Add(assetData.Id);
+                    _authorIndex[assetData.Metadata.AuthorName].Add(assetId);
                 }
             }
         }
@@ -232,14 +235,15 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         /// <summary>
         /// インデックスからアセットを削除します
         /// </summary>
+        /// <param name="assetId">アセットID</param>
         /// <param name="assetData">削除対象のアセットデータ</param>
-        private static void RemoveFromIndices(AssetSchema assetData)
+        private static void RemoveFromIndices(AssetId assetId, AssetSchema assetData)
         {
             // カテゴリインデックスから削除
             var category = assetData.Metadata.AssetType.Value;
             if (!string.IsNullOrEmpty(category) && _categoryIndex.ContainsKey(category))
             {
-                _categoryIndex[category].Remove(assetData.Id);
+                _categoryIndex[category].Remove(assetId);
                 if (_categoryIndex[category].Count == 0)
                 {
                     _categoryIndex.Remove(category);
@@ -249,7 +253,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             // 作者インデックスから削除
             if (!string.IsNullOrEmpty(assetData.Metadata.AuthorName) && _authorIndex.ContainsKey(assetData.Metadata.AuthorName))
             {
-                _authorIndex[assetData.Metadata.AuthorName].Remove(assetData.Id);
+                _authorIndex[assetData.Metadata.AuthorName].Remove(assetId);
                 if (_authorIndex[assetData.Metadata.AuthorName].Count == 0)
                 {
                     _authorIndex.Remove(assetData.Metadata.AuthorName);

@@ -132,7 +132,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
         [SerializeField] private string _name;
         [SerializeField] private string _description;
         [SerializeField] private string _authorName;
-        [SerializeField] private string _version;
         [SerializeField] private AssetType _assetType;
         [SerializeField] private List<string> _tags;
         [SerializeField] private List<string> _dependencies;
@@ -150,17 +149,10 @@ namespace AMU.Editor.VrcAssetManager.Schema
             get => _description ?? string.Empty;
             set => _description = value?.Trim() ?? string.Empty;
         }
-
         public string AuthorName
         {
             get => _authorName ?? string.Empty;
             set => _authorName = value?.Trim() ?? string.Empty;
-        }
-
-        public string Version
-        {
-            get => _version ?? string.Empty;
-            set => _version = value?.Trim() ?? string.Empty;
         }
 
         public AssetType AssetType
@@ -189,7 +181,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _name = string.Empty;
             _description = string.Empty;
             _authorName = string.Empty;
-            _version = string.Empty;
             _assetType = AssetType.Other;
             _tags = new List<string>();
             _dependencies = new List<string>();
@@ -373,34 +364,16 @@ namespace AMU.Editor.VrcAssetManager.Schema
     [Serializable]
     public class AssetSchema
     {
-        [SerializeField] private AssetId _id;
-        [SerializeField] private AssetId _parentGroupId;
+        [SerializeField] private string _parentGroupId;
         [SerializeField] private AssetMetadata _metadata;
         [SerializeField] private AssetFileInfo _fileInfo;
         [SerializeField] private AssetState _state;
         [SerializeField] private BoothItemSchema _boothItem;
         [SerializeField] private DateTime _lastAccessed;
-
-        public AssetId Id
+        public string ParentGroupId
         {
-            get => _id;
-            set => _id = value;
-        }
-
-        public AssetId ParentGroupId
-        {
-            get => _parentGroupId;
-            set => _parentGroupId = value;
-        }
-
-        public AssetType AssetType
-        {
-            get => _metadata?.AssetType ?? AssetType.Other;
-            set
-            {
-                if (_metadata != null)
-                    _metadata.AssetType = value;
-            }
+            get => _parentGroupId ?? string.Empty;
+            set => _parentGroupId = value?.Trim() ?? string.Empty;
         }
 
         public AssetMetadata Metadata
@@ -432,18 +405,13 @@ namespace AMU.Editor.VrcAssetManager.Schema
             get => _lastAccessed == default ? DateTime.Now : _lastAccessed;
             set => _lastAccessed = value;
         }
-
         public bool HasBoothItem => _boothItem != null && _boothItem.HasData;
-        public bool IsComplete => !string.IsNullOrEmpty(_id.Value) &&
-                                  !string.IsNullOrEmpty(_metadata?.Name) &&
-                                  !string.IsNullOrEmpty(_fileInfo?.FilePath);
-        public bool HasParentGroup => !string.IsNullOrEmpty(_parentGroupId.Value);
+        public bool HasParentGroup => !string.IsNullOrEmpty(_parentGroupId);
         public bool IsTopLevel => !HasParentGroup;
 
         public AssetSchema()
         {
-            _id = AssetId.NewId();
-            _parentGroupId = default;
+            _parentGroupId = string.Empty;
             _metadata = new AssetMetadata();
             _fileInfo = new AssetFileInfo();
             _state = new AssetState();
@@ -467,14 +435,12 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             return new AssetSchema
             {
-                _id = _id,
                 _parentGroupId = _parentGroupId,
                 _metadata = new AssetMetadata
                 {
                     Name = _metadata.Name,
                     Description = _metadata.Description,
                     AuthorName = _metadata.AuthorName,
-                    Version = _metadata.Version,
                     AssetType = _metadata.AssetType,
                     CreatedDate = _metadata.CreatedDate,
                     ModifiedDate = _metadata.ModifiedDate
@@ -506,17 +472,15 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public bool HasDependency(string dependency) => _metadata.HasDependency(dependency);
 
         public void AddImportFile(string filePath) => _fileInfo.AddImportFile(filePath);
-        public void RemoveImportFile(string filePath) => _fileInfo.RemoveImportFile(filePath);
-
-        // 親グループの管理
-        public void SetParentGroup(AssetId parentGroupId)
+        public void RemoveImportFile(string filePath) => _fileInfo.RemoveImportFile(filePath);        // 親グループの管理
+        public void SetParentGroup(string parentGroupId)
         {
-            _parentGroupId = parentGroupId;
+            _parentGroupId = parentGroupId?.Trim() ?? string.Empty;
         }
 
         public void RemoveFromParentGroup()
         {
-            _parentGroupId = default;
+            _parentGroupId = string.Empty;
         }
     }
 }

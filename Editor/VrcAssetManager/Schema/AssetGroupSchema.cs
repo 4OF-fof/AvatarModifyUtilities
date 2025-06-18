@@ -11,15 +11,15 @@ namespace AMU.Editor.VrcAssetManager.Schema
     [Serializable]
     public class AssetGroupSchema
     {
-        [SerializeField] private AssetId _parentGroupId;
+        [SerializeField] private string _parentGroupId;
         [SerializeField] private List<AssetId> _childAssetIds;
         [SerializeField] private int _groupLevel;
         [SerializeField] private string _groupName;
 
-        public AssetId ParentGroupId
+        public string ParentGroupId
         {
-            get => _parentGroupId;
-            set => _parentGroupId = value;
+            get => _parentGroupId ?? string.Empty;
+            set => _parentGroupId = value?.Trim() ?? string.Empty;
         }
 
         public IReadOnlyList<AssetId> ChildAssetIds => _childAssetIds ?? new List<AssetId>();
@@ -35,15 +35,14 @@ namespace AMU.Editor.VrcAssetManager.Schema
             get => _groupName ?? string.Empty;
             set => _groupName = value?.Trim() ?? string.Empty;
         }
-
-        public bool HasParent => !string.IsNullOrEmpty(_parentGroupId.Value);
+        public bool HasParent => !string.IsNullOrEmpty(_parentGroupId);
         public bool HasChildren => _childAssetIds?.Count > 0;
         public bool IsTopLevel => !HasParent;
         public bool IsLeaf => !HasChildren;
 
         public AssetGroupSchema()
         {
-            _parentGroupId = default;
+            _parentGroupId = string.Empty;
             _childAssetIds = new List<AssetId>();
             _groupLevel = 0;
             _groupName = string.Empty;
@@ -65,16 +64,15 @@ namespace AMU.Editor.VrcAssetManager.Schema
             if (string.IsNullOrEmpty(childId.Value)) return;
             _childAssetIds?.Remove(childId);
         }
-
-        public void SetParentGroup(AssetId parentId, int level = 1)
+        public void SetParentGroup(string parentId, int level = 1)
         {
-            _parentGroupId = parentId;
+            _parentGroupId = parentId?.Trim() ?? string.Empty;
             _groupLevel = Math.Max(0, level);
         }
 
         public void RemoveFromParentGroup()
         {
-            _parentGroupId = default;
+            _parentGroupId = string.Empty;
             _groupLevel = 0;
         }
 
@@ -88,10 +86,9 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             _childAssetIds?.Clear();
         }
-
-        public bool IsDescendantOf(AssetId ancestorId)
+        public bool IsDescendantOf(string ancestorId)
         {
-            if (string.IsNullOrEmpty(ancestorId.Value)) return false;
+            if (string.IsNullOrEmpty(ancestorId)) return false;
             return _parentGroupId == ancestorId;
         }
 
@@ -121,7 +118,10 @@ namespace AMU.Editor.VrcAssetManager.Schema
             {
                 if (!groups.TryGetValue(current, out var group)) break;
 
-                current = group.ParentGroupId;
+                if (string.IsNullOrEmpty(group.ParentGroupId)) break;
+                if (!AssetId.TryParse(group.ParentGroupId, out var parentAssetId)) break;
+
+                current = parentAssetId;
                 if (current == childId) return true;
             }
 
@@ -191,7 +191,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
                 }
             }
         }
-
         /// <summary>
         /// 指定されたアセットの親の階層パスを取得する
         /// </summary>
@@ -207,8 +206,15 @@ namespace AMU.Editor.VrcAssetManager.Schema
                 if (!groups.TryGetValue(current, out var group)) break;
                 if (!group.HasParent) break;
 
-                path.Add(group.ParentGroupId);
-                current = group.ParentGroupId;
+                if (AssetId.TryParse(group.ParentGroupId, out var parentAssetId))
+                {
+                    path.Add(parentAssetId);
+                    current = parentAssetId;
+                }
+                else
+                {
+                    break;
+                }
             }
 
             path.Reverse();

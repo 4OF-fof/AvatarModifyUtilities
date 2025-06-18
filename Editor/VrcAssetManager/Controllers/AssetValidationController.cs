@@ -13,31 +13,6 @@ namespace AMU.Editor.VrcAssetManager.Controllers
     public static class AssetValidationController
     {
         /// <summary>
-        /// アセットIDの検証
-        /// </summary>
-        public static ValidationResults ValidateAssetId(AssetId assetId)
-        {
-            var results = new ValidationResults("AssetId");
-
-            if (string.IsNullOrEmpty(assetId.Value))
-            {
-                results.Add(ValidationResult.Critical(
-                    LocalizationController.GetText("VrcAssetManager_validation_error_assetIdEmpty"),
-                    "Id",
-                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_generateNewGuid")));
-            }
-            else if (!Guid.TryParse(assetId.Value, out _))
-            {
-                results.Add(ValidationResult.Error(
-                    LocalizationController.GetText("VrcAssetManager_validation_error_assetIdInvalid"),
-                    "Id",
-                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_validGuidFormat")));
-            }
-
-            return results;
-        }
-
-        /// <summary>
         /// アセットメタデータの検証
         /// </summary>
         public static ValidationResults ValidateMetadata(AssetMetadata metadata)
@@ -83,15 +58,6 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                     LocalizationController.GetText("VrcAssetManager_validation_warning_authorNameTooLong"),
                     "AuthorName",
                     LocalizationController.GetText("VrcAssetManager_validation_suggestion_authorNameLength")));
-            }
-
-            // バージョンの検証
-            if (string.IsNullOrWhiteSpace(metadata.Version))
-            {
-                results.Add(ValidationResult.Info(
-                    LocalizationController.GetText("VrcAssetManager_validation_info_versionEmpty"),
-                    "Version",
-                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_setVersion")));
             }
 
             // タグの検証
@@ -191,37 +157,19 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         }
 
         /// <summary>
-        /// アセットタイプの検証
-        /// </summary>
-        public static ValidationResults ValidateAssetType(AssetType assetType)
-        {
-            var results = new ValidationResults("AssetType");
-
-            if (string.IsNullOrWhiteSpace(assetType.Value))
-            {
-                results.Add(ValidationResult.Warning(
-                    LocalizationController.GetText("VrcAssetManager_validation_warning_assetTypeUnknown"),
-                    "AssetType",
-                    LocalizationController.GetText("VrcAssetManager_validation_suggestion_setAssetType")));
-            }
-
-            return results;
-        }
-
-        /// <summary>
         /// グループスキーマの検証
         /// </summary>
-        public static ValidationResults ValidateGroupSchema(AssetGroupSchema group, IReadOnlyDictionary<AssetId, AssetGroupSchema> allGroups)
+        public static ValidationResults ValidateGroupSchema(AssetGroupSchema group, IReadOnlyDictionary<string, AssetGroupSchema> allGroups)
         {
             var results = new ValidationResults("GroupSchema");
 
             // 循環参照の検証
             if (group.HasParent && allGroups != null)
             {
-                var visited = new HashSet<AssetId>();
+                var visited = new HashSet<string>();
                 var current = group.ParentGroupId;
 
-                while (!string.IsNullOrEmpty(current.Value) && visited.Add(current))
+                while (!string.IsNullOrEmpty(current) && visited.Add(current))
                 {
                     if (!allGroups.TryGetValue(current, out var parentGroup))
                     {
@@ -297,7 +245,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         /// <summary>
         /// アセット全体の検証
         /// </summary>
-        public static ValidationResults ValidateAsset(AssetSchema asset, IReadOnlyDictionary<AssetId, AssetGroupSchema> allGroups = null)
+        public static ValidationResults ValidateAsset(AssetSchema asset, IReadOnlyDictionary<string, AssetGroupSchema> allGroups = null)
         {
             var results = new ValidationResults($"Asset: {asset?.Metadata?.Name ?? "Unknown"}");
 
@@ -311,13 +259,11 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             }
 
             // 各コンポーネントの検証
-            results.AddRange(ValidateAssetId(asset.Id).Results);
             results.AddRange(ValidateMetadata(asset.Metadata).Results);
             results.AddRange(ValidateFileInfo(asset.FileInfo).Results);
-            results.AddRange(ValidateAssetType(asset.AssetType).Results);
 
             // グループ情報の検証（存在する場合）
-            if (allGroups?.TryGetValue(asset.Id, out var groupSchema) == true)
+            if (!string.IsNullOrEmpty(asset.ParentGroupId) && allGroups?.TryGetValue(asset.ParentGroupId, out var groupSchema) == true)
             {
                 results.AddRange(ValidateGroupSchema(groupSchema, allGroups).Results);
             }
