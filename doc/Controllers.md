@@ -334,48 +334,6 @@ var files = VrcAssetFileController.ScanDirectory(@"C:\VRCAssets", true);
 var assets = VrcAssetFileController.ImportMultipleAssetFiles(files);
 ```
 
-### VrcAssetSettingsController
-
-VrcAssetManager固有の設定管理を行います。
-
-#### 名前空間
-```csharp
-using AMU.Editor.VrcAssetManager.Controllers;
-```
-
-#### 主要機能
-
-##### 基本設定
-```csharp
-public static bool GetAutoScanOnStartup()
-public static void SetAutoScanOnStartup(bool enabled)
-public static string GetDefaultScanDirectory()
-public static void SetDefaultScanDirectory(string directoryPath)
-public static int GetMaxCacheSize()
-public static void SetMaxCacheSize(int maxSize)
-```
-
-##### フィルタリング設定
-```csharp
-public static List<string> GetEnabledCategories()
-public static void SetEnabledCategories(List<string> enabledCategories)
-public static List<string> GetExcludedFileExtensions()
-public static void SetExcludedFileExtensions(List<string> excludedExtensions)
-```
-
-**使用例:**
-```csharp
-// 起動時自動スキャンを有効化
-VrcAssetSettingsController.SetAutoScanOnStartup(true);
-
-// デフォルトディレクトリ設定
-VrcAssetSettingsController.SetDefaultScanDirectory("Assets/VRCAssets");
-
-// カテゴリフィルタ設定
-var enabledCategories = new List<string> { "Avatar", "Clothing", "Accessory" };
-VrcAssetSettingsController.SetEnabledCategories(enabledCategories);
-```
-
 ## 詳細ドキュメント
 
 各コントローラの詳細な使用方法については、以下の専用ドキュメントを参照してください ：
