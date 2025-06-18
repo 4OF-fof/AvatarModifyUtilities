@@ -243,3 +243,117 @@ var asset = VrcAssetController.GetAsset(assetId);
 var refreshedAsset = VrcAssetFileController.RefreshAssetFileInfo(asset);
 VrcAssetController.UpdateAsset(refreshedAsset);
 ```
+
+### AssetValidationController
+
+アセットの包括的なバリデーション機能を提供します。
+
+#### 名前空間
+```csharp
+using AMU.Editor.VrcAssetManager.Controllers;
+using AMU.Editor.VrcAssetManager.Schema;
+```
+
+#### 主要機能
+
+##### アセット全体の検証
+```csharp
+public static ValidationResults ValidateAsset(AssetSchema asset, IReadOnlyDictionary<AssetId, AssetGroupSchema> allGroups = null)
+```
+
+アセット全体の包括的な検証を実行します。
+
+**パラメータ:**
+- `asset`: 検証対象のアセット
+- `allGroups`: 全グループ情報（グループ検証用、オプション）
+
+**戻り値:**
+- `ValidationResults`: 検証結果
+
+**使用例:**
+```csharp
+var asset = new AssetSchema();
+// ... アセット情報を設定
+
+var results = AssetValidationController.ValidateAsset(asset);
+
+if (results.HasCritical)
+{
+    Debug.LogError("Critical validation errors found!");
+    foreach (var error in results.Results.Where(r => r.Level == ValidationLevel.Critical))
+    {
+        Debug.LogError($"Field: {error.FieldName}, Message: {error.Message}");
+    }
+}
+```
+
+##### ライブラリ全体の検証
+```csharp
+public static ValidationResults ValidateLibrary(AssetLibrarySchema library)
+```
+
+ライブラリ全体の検証を実行します。重複チェックや整合性チェックを含みます。
+
+##### 個別コンポーネント検証
+```csharp
+// アセットIDの検証
+public static ValidationResults ValidateAssetId(AssetId assetId)
+
+// メタデータの検証（名前、説明、作者名、タグなど）
+public static ValidationResults ValidateMetadata(AssetMetadata metadata)
+
+// ファイル情報の検証（パス、サイズ、サムネイルなど）
+public static ValidationResults ValidateFileInfo(AssetFileInfo fileInfo)
+
+// アセットタイプの検証
+public static ValidationResults ValidateAssetType(AssetType assetType)
+
+// グループ情報の検証（循環参照チェックなど）
+public static ValidationResults ValidateGroupSchema(AssetGroupSchema group, IReadOnlyDictionary<AssetId, AssetGroupSchema> allGroups)
+
+// Booth情報の検証
+public static ValidationResults ValidateBoothItem(BoothItemSchema boothItem)
+```
+
+### SearchCriteriaController
+
+検索条件の生成と管理を行う統合コントローラです。
+
+#### 名前空間
+```csharp
+using AMU.Editor.VrcAssetManager.Controllers;
+using AMU.Editor.VrcAssetManager.Schema;
+```
+
+#### 主要機能
+
+##### 日付範囲の生成
+```csharp
+// 基本的な範囲
+var last7Days = SearchCriteriaController.DateRangeFactory.LastDays(7);
+var lastMonth = SearchCriteriaController.DateRangeFactory.LastMonths(1);
+var lastYear = SearchCriteriaController.DateRangeFactory.LastYears(1);
+
+// 特定期間
+var today = SearchCriteriaController.DateRangeFactory.Today();
+var thisWeek = SearchCriteriaController.DateRangeFactory.ThisWeek();
+var thisMonth = SearchCriteriaController.DateRangeFactory.ThisMonth();
+var thisYear = SearchCriteriaController.DateRangeFactory.ThisYear();
+
+// 無効化
+var disabled = SearchCriteriaController.DateRangeFactory.Disabled;
+```
+
+##### ファイルサイズ範囲の生成
+```csharp
+// 定義済みサイズ
+var small = SearchCriteriaController.FileSizeRangeFactory.Small();      // 1MB未満
+var medium = SearchCriteriaController.FileSizeRangeFactory.Medium();    // 1MB-10MB
+var large = SearchCriteriaController.FileSizeRangeFactory.Large();      // 10MB-100MB
+var veryLarge = SearchCriteriaController.FileSizeRangeFactory.VeryLarge(); // 100MB以上
+
+// カスタム範囲
+var customMB = SearchCriteriaController.FileSizeRangeFactory.CustomMB(5, 50);
+var upTo10MB = SearchCriteriaController.FileSizeRangeFactory.UpTo(new FileSize(10 * 1024 * 1024));
+var atLeast100MB = SearchCriteriaController.FileSizeRangeFactory.AtLeast(new FileSize(100 * 1024 * 1024));
+```

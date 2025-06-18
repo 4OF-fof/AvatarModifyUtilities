@@ -95,20 +95,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
             return _isEnabled && date >= _startDate && date <= _endDate;
         }
 
-        public static DateRange LastDays(int days)
-        {
-            var endDate = DateTime.Now;
-            var startDate = endDate.AddDays(-days);
-            return new DateRange(startDate, endDate, true);
-        }
-
-        public static DateRange LastMonths(int months)
-        {
-            var endDate = DateTime.Now;
-            var startDate = endDate.AddMonths(-months);
-            return new DateRange(startDate, endDate, true);
-        }
-
         public static DateRange Disabled => new DateRange(DateTime.MinValue, DateTime.MaxValue, false);
     }
 

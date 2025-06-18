@@ -22,11 +22,11 @@ Assets/AvatarModifyUtilities/
 ```
 ModuleName/
 ├── API/                  # 外部API関連
-├── Controllers/          # データの操作
+├── Controllers/          # データの操作・ビジネスロジック
 ├── Data/                 # データと設定
 │   ├── lang/             # ローカライズファイル
 │   └── Setting.cs        # 設定定義
-├── Schema/               # データスキーマ定義
+├── Schema/               # データスキーマ定義（純粋なデータ構造のみ）
 ├── Services/             # ビジネスロジック
 └── UI/                   # UI関連
     └── _Components/      # UIコンポーネント
@@ -177,8 +177,7 @@ namespace AMU.Editor.Setting
 1. **機能ごとにモジュール分割**する
 2. **共通機能はCoreに配置**する
 3. **UIとロジックを分離**する
-4. **スキーマ定義は専用フォルダ**に配置する
-5. **ヘルパークラスは用途に応じて配置**する
+4. **スキーマ定義は専用フォルダ**に配置し、純粋なデータ構造のみとする
 
 ## 新機能追加時の手順
 

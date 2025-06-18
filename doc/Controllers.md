@@ -334,6 +334,109 @@ var files = VrcAssetFileController.ScanDirectory(@"C:\VRCAssets", true);
 var assets = VrcAssetFileController.ImportMultipleAssetFiles(files);
 ```
 
+### AssetValidationController
+
+アセットのバリデーション機能を提供します。
+
+#### 名前空間
+```csharp
+using AMU.Editor.VrcAssetManager.Controllers;
+```
+
+#### 主要機能
+
+##### アセット全体の検証
+```csharp
+public static ValidationResults ValidateAsset(AssetSchema asset, IReadOnlyDictionary<AssetId, AssetGroupSchema> allGroups = null)
+```
+
+**使用例:**
+```csharp
+using AMU.Editor.VrcAssetManager.Controllers;
+using AMU.Editor.VrcAssetManager.Schema;
+
+// アセットの検証
+var validationResults = AssetValidationController.ValidateAsset(asset);
+
+if (validationResults.HasErrors)
+{
+    foreach (var result in validationResults.Results)
+    {
+        Debug.LogError($"[{result.Level}] {result.Message}");
+    }
+}
+```
+
+##### 個別コンポーネントの検証
+```csharp
+// アセットIDの検証
+public static ValidationResults ValidateAssetId(AssetId assetId)
+
+// メタデータの検証
+public static ValidationResults ValidateMetadata(AssetMetadata metadata)
+
+// ファイル情報の検証
+public static ValidationResults ValidateFileInfo(AssetFileInfo fileInfo)
+
+// アセットタイプの検証
+public static ValidationResults ValidateAssetType(AssetType assetType)
+
+// グループ情報の検証
+public static ValidationResults ValidateGroupSchema(AssetGroupSchema group, IReadOnlyDictionary<AssetId, AssetGroupSchema> allGroups)
+
+// Booth情報の検証
+public static ValidationResults ValidateBoothItem(BoothItemSchema boothItem)
+```
+
+##### ライブラリ全体の検証
+```csharp
+public static ValidationResults ValidateLibrary(AssetLibrarySchema library)
+```
+
+### SearchCriteriaController
+
+検索条件の生成と管理を行います。
+
+#### 名前空間
+```csharp
+using AMU.Editor.VrcAssetManager.Controllers;
+```
+
+#### 主要機能
+
+##### 日付範囲の生成
+```csharp
+// 過去N日間
+var lastWeek = SearchCriteriaController.DateRangeFactory.LastDays(7);
+
+// 過去N月間
+var lastMonth = SearchCriteriaController.DateRangeFactory.LastMonths(1);
+
+// 今日
+var today = SearchCriteriaController.DateRangeFactory.Today();
+
+// 今週
+var thisWeek = SearchCriteriaController.DateRangeFactory.ThisWeek();
+
+// 無効化
+var disabled = SearchCriteriaController.DateRangeFactory.Disabled;
+```
+
+##### ファイルサイズ範囲の生成
+```csharp
+// 小さなファイル（1MB未満）
+var small = SearchCriteriaController.FileSizeRangeFactory.Small();
+
+// 大きなファイル（10MB-100MB）
+var large = SearchCriteriaController.FileSizeRangeFactory.Large();
+
+// カスタム範囲
+var custom = SearchCriteriaController.FileSizeRangeFactory.CustomMB(5, 50);
+
+// 指定サイズ以下
+var upTo10MB = SearchCriteriaController.FileSizeRangeFactory.UpTo(new FileSize(10 * 1024 * 1024));
+```
+
 ## 詳細ドキュメント
 
 各コントローラの詳細な使用方法については、以下の専用ドキュメントを参照してください ：
