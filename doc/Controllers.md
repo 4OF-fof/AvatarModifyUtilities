@@ -359,24 +359,12 @@ var searchResults = VrcAssetController.SearchAssets("AwesomeAvatar");
 ##### キャッシュ管理
 ```csharp
 public static void ClearCache()
-public static int GetCachedAssetCount()
-public static List<string> GetAvailableCategories()
-public static List<string> GetAvailableAuthors()
 ```
 
 **使用例:**
 ```csharp
 // キャッシュをクリア
 VrcAssetController.ClearCache();
-
-// キャッシュされているアセット数を取得
-int count = VrcAssetController.GetCachedAssetCount();
-
-// 利用可能なカテゴリを取得
-var categories = VrcAssetController.GetAvailableCategories();
-
-// 利用可能な作者を取得
-var authors = VrcAssetController.GetAvailableAuthors();
 ```
 
 ##### アセットの状態判定
@@ -420,27 +408,6 @@ bool hasChildren = VrcAssetController.HasChildren(groupData);
 
 // リーフ判定（子を持たない）が必要な場合
 bool isLeaf = !VrcAssetController.HasChildren(groupData);
-```
-
-##### ファイルサイズの文字列変換
-```csharp
-public static string FormatFileSize(long bytes)
-public static string GetFormattedFileSize(AssetId assetId)
-public static string GetFormattedFileSize(AssetSchema asset)
-```
-
-**使用例:**
-```csharp
-// バイト数を人間が読みやすい形式に変換
-string readable = VrcAssetController.FormatFileSize(1024000); // "1000.0 KB"
-string readable2 = VrcAssetController.FormatFileSize(2048576); // "2.0 MB"
-
-// アセットIDからフォーマット済みファイルサイズを取得
-string size = VrcAssetController.GetFormattedFileSize(assetId);
-
-// アセットデータからフォーマット済みファイルサイズを取得
-var asset = VrcAssetController.GetAsset(assetId);
-string size = VrcAssetController.GetFormattedFileSize(asset);
 ```
 
 ### VrcAssetFileController
@@ -497,6 +464,51 @@ public static AssetSchema RefreshAssetFileInfo(AssetSchema assetData)
 var asset = VrcAssetController.GetAsset(assetId);
 var refreshedAsset = VrcAssetFileController.RefreshAssetFileInfo(asset);
 VrcAssetController.UpdateAsset(assetId, refreshedAsset);
+```
+
+##### ファイルサイズの文字列変換
+```csharp
+public static string FormatFileSize(long bytes)
+public static string GetFormattedFileSize(AssetSchema asset)
+public static string GetFormattedFileSize(AssetId assetId)
+```
+
+**詳細:**
+- `FormatFileSize`: バイト数を人間が読みやすい形式（B, KB, MB, GB）に変換
+- `GetFormattedFileSize(AssetSchema)`: アセットデータからファイルサイズをフォーマット
+- `GetFormattedFileSize(AssetId)`: 指定したアセットIDのファイルサイズを取得してフォーマット
+
+**使用例:**
+```csharp
+// バイト数を直接変換
+string size1 = VrcAssetFileController.FormatFileSize(1024); // "1.0 KB"
+string size2 = VrcAssetFileController.FormatFileSize(1048576); // "1.0 MB"
+string size3 = VrcAssetFileController.FormatFileSize(1073741824); // "1.0 GB"
+
+// アセットのファイルサイズを取得
+var asset = VrcAssetController.GetAsset(assetId);
+string formattedSize = VrcAssetFileController.GetFormattedFileSize(asset);
+Debug.Log($"ファイルサイズ: {formattedSize}");
+
+// IDから直接取得
+string sizeFromId = VrcAssetFileController.GetFormattedFileSize(assetId);
+Debug.Log($"ファイルサイズ: {sizeFromId}");
+```
+
+##### サポートされているファイル拡張子の取得
+```csharp
+public static string[] GetSupportedFileExtensions()
+```
+
+VRCアセットとしてサポートされているファイル拡張子の一覧を取得します。
+
+**使用例:**
+```csharp
+var extensions = VrcAssetFileController.GetSupportedFileExtensions();
+foreach (var ext in extensions)
+{
+    Debug.Log($"サポートされている拡張子: {ext}");
+}
 ```
 
 ### AssetValidationController

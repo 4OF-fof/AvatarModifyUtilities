@@ -155,34 +155,6 @@ bool isTopLevel = VrcAssetController.IsTopLevel(assetId);
 bool isTopLevel = VrcAssetController.IsTopLevel(asset);
 ```
 
-##### ファイルサイズの文字列変換
-```csharp
-public static string FormatFileSize(long bytes)
-public static string GetFormattedFileSize(AssetId assetId)
-public static string GetFormattedFileSize(AssetSchema asset)
-```
-
-**詳細:**
-- `FormatFileSize`: バイト数を人間が読みやすい形式（B, KB, MB, GB）に変換
-- `GetFormattedFileSize(AssetId)`: 指定したアセットIDのファイルサイズを取得してフォーマット
-- `GetFormattedFileSize(AssetSchema)`: アセットデータからファイルサイズをフォーマット
-
-**使用例:**
-```csharp
-// バイト数を直接変換
-string size1 = VrcAssetController.FormatFileSize(1024); // "1.0 KB"
-string size2 = VrcAssetController.FormatFileSize(1048576); // "1.0 MB"
-string size3 = VrcAssetController.FormatFileSize(1073741824); // "1.0 GB"
-
-// アセットのファイルサイズを取得
-var asset = VrcAssetController.GetAsset(assetId);
-string formattedSize = VrcAssetController.GetFormattedFileSize(asset);
-Debug.Log($"ファイルサイズ: {formattedSize}");
-
-// IDから直接取得
-string sizeFromId = VrcAssetController.GetFormattedFileSize(assetId);
-```
-
 ##### グループの状態判定
 ```csharp
 public static bool HasParent(AssetGroupSchema group)
@@ -271,6 +243,51 @@ public static AssetSchema RefreshAssetFileInfo(AssetSchema assetData)
 var asset = VrcAssetController.GetAsset(assetId);
 var refreshedAsset = VrcAssetFileController.RefreshAssetFileInfo(asset);
 VrcAssetController.UpdateAsset(assetId, refreshedAsset);
+```
+
+##### ファイルサイズの文字列変換
+```csharp
+public static string FormatFileSize(long bytes)
+public static string GetFormattedFileSize(AssetSchema asset)
+public static string GetFormattedFileSize(AssetId assetId)
+```
+
+**詳細:**
+- `FormatFileSize`: バイト数を人間が読みやすい形式（B, KB, MB, GB）に変換
+- `GetFormattedFileSize(AssetSchema)`: アセットデータからファイルサイズをフォーマット
+- `GetFormattedFileSize(AssetId)`: 指定したアセットIDのファイルサイズを取得してフォーマット
+
+**使用例:**
+```csharp
+// バイト数を直接変換
+string size1 = VrcAssetFileController.FormatFileSize(1024); // "1.0 KB"
+string size2 = VrcAssetFileController.FormatFileSize(1048576); // "1.0 MB"
+string size3 = VrcAssetFileController.FormatFileSize(1073741824); // "1.0 GB"
+
+// アセットのファイルサイズを取得
+var asset = VrcAssetController.GetAsset(assetId);
+string formattedSize = VrcAssetFileController.GetFormattedFileSize(asset);
+Debug.Log($"ファイルサイズ: {formattedSize}");
+
+// IDから直接取得
+string sizeFromId = VrcAssetFileController.GetFormattedFileSize(assetId);
+Debug.Log($"ファイルサイズ: {sizeFromId}");
+```
+
+##### サポートされているファイル拡張子の取得
+```csharp
+public static string[] GetSupportedFileExtensions()
+```
+
+VRCアセットとしてサポートされているファイル拡張子の一覧を取得します。
+
+**使用例:**
+```csharp
+var extensions = VrcAssetFileController.GetSupportedFileExtensions();
+foreach (var ext in extensions)
+{
+    Debug.Log($"サポートされている拡張子: {ext}");
+}
 ```
 
 ### AssetValidationController
