@@ -80,11 +80,8 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private void DrawLibraryInfo()
         {
-            EditorGUILayout.LabelField("Library Information", EditorStyles.boldLabel);
-
-            using (new EditorGUILayout.VerticalScope("box"))
+            EditorGUILayout.LabelField("Library Information", EditorStyles.boldLabel); using (new EditorGUILayout.VerticalScope("box"))
             {
-                EditorGUILayout.LabelField($"Version: {_currentLibrary.Version}");
                 EditorGUILayout.LabelField($"Last Updated: {_currentLibrary.LastUpdated:yyyy/MM/dd HH:mm:ss}");
                 EditorGUILayout.LabelField($"Asset Count: {_currentLibrary.AssetCount}");
                 EditorGUILayout.LabelField($"Group Count: {_currentLibrary.GroupCount}");
