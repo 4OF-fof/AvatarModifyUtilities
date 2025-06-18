@@ -168,26 +168,6 @@ if (assetData.Id != default(AssetId))
 }
 ```
 
-##### ディレクトリスキャン
-```csharp
-public static List<string> ScanDirectory(string directoryPath, bool recursive = true)
-```
-
-指定されたディレクトリ内のすべてのファイルをスキャンします。ファイル形式による制限はありません。
-
-**パラメータ:**
-- `directoryPath`: スキャンするディレクトリパス
-- `recursive`: サブディレクトリも含めるかどうか（デフォルト: true）
-
-**使用例:**
-```csharp
-// 再帰的スキャン（すべてのファイル）
-var files = VrcAssetFileController.ScanDirectory(@"C:\VRCAssets", true);
-
-// 単一ディレクトリのみスキャン
-var filesInRoot = VrcAssetFileController.ScanDirectory(@"C:\VRCAssets", false);
-```
-
 ##### ファイルのエクスポート
 ```csharp
 public static bool ExportAsset(AssetSchema assetData, string destinationPath)
@@ -209,6 +189,37 @@ public static AssetSchema RefreshAssetFileInfo(AssetSchema assetData)
 var asset = VrcAssetController.GetAsset(assetId);
 var refreshedAsset = VrcAssetFileController.RefreshAssetFileInfo(asset);
 VrcAssetController.UpdateAsset(refreshedAsset);
+```
+
+### VrcAssetFileAPI
+
+VRCアセットファイルのAPI機能を提供します。
+
+#### 名前空間
+```csharp
+using AMU.Editor.VrcAssetManager.API;
+```
+
+#### 主要機能
+
+##### ディレクトリスキャン
+```csharp
+public static List<string> ScanDirectory(string directoryPath, bool recursive = true)
+```
+
+指定されたディレクトリ内のすべてのファイルをスキャンします。ファイル形式による制限はありません。
+
+**パラメータ:**
+- `directoryPath`: スキャンするディレクトリパス
+- `recursive`: サブディレクトリも含めるかどうか（デフォルト: true）
+
+**使用例:**
+```csharp
+// 再帰的スキャン（すべてのファイル）
+var files = VrcAssetFileAPI.ScanDirectory(@"C:\VRCAssets", true);
+
+// 単一ディレクトリのみスキャン
+var filesInRoot = VrcAssetFileAPI.ScanDirectory(@"C:\VRCAssets", false);
 ```
 
 ### AssetValidationController

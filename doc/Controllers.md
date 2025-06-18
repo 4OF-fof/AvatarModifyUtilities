@@ -308,12 +308,7 @@ public static AssetSchema ImportAssetFile(string filePath)
 public static bool ExportAsset(AssetSchema assetData, string destinationPath)
 ```
 
-##### ディレクトリスキャン
-```csharp
-public static List<string> ScanDirectory(string directoryPath, bool recursive = true)
-```
-
-すべてのファイル形式をインポート・スキャン可能です。カテゴリは自動判定されます。
+すべてのファイル形式をインポート可能です。カテゴリは自動判定されます。
 
 **主要カテゴリ（自動判定）:**
 - Prefabs (`.prefab`), Scenes (`.unity`), Packages (`.unitypackage`)
@@ -327,9 +322,26 @@ public static List<string> ScanDirectory(string directoryPath, bool recursive = 
 ```csharp
 // ファイルインポート（あらゆるファイル形式）
 var asset = VrcAssetFileController.ImportAssetFile(@"C:\VRCAssets\MyFile.txt");
+```
 
+### VrcAssetFileAPI
+
+VRCアセットファイルのAPI機能を提供します。
+
+#### 名前空間
+```csharp
+using AMU.Editor.VrcAssetManager.API;
+```
+
+##### ディレクトリスキャン
+```csharp
+public static List<string> ScanDirectory(string directoryPath, bool recursive = true)
+```
+
+**使用例:**
+```csharp
 // ディレクトリスキャン（すべてのファイル）
-var files = VrcAssetFileController.ScanDirectory(@"C:\VRCAssets", true);
+var files = VrcAssetFileAPI.ScanDirectory(@"C:\VRCAssets", true);
 ```
 
 ### AssetValidationController
