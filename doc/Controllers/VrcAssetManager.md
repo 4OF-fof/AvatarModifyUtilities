@@ -300,7 +300,60 @@ using AMU.Editor.VrcAssetManager.Controllers;
 using AMU.Editor.VrcAssetManager.Schema;
 ```
 
+#### キャッシュシステム
+
+AssetLibraryControllerは内部でライブラリをメモリにキャッシュし、ファイルの最終更新時刻を監視してキャッシュの有効性を管理します。これにより頻繁なアクセスでもファイルIOを最小限に抑えます。
+
+**キャッシュの特徴:**
+- ライブラリ全体をメモリに保存
+- ファイル更新時刻の監視による自動無効化
+- スレッドセーフな実装
+- 明示的なキャッシュクリア機能
+
 #### 主要機能
+
+##### キャッシュ管理
+```csharp
+public static void ClearCache()
+public static bool IsCached(string filePath = null)
+```
+
+**ClearCache():**
+キャッシュをクリアして次回アクセス時に強制的にファイルから読み込みます。
+
+**IsCached():**
+指定されたファイルがキャッシュされているかを確認します。
+
+**使用例:**
+```csharp
+// キャッシュが有効かチェック
+if (AssetLibraryController.IsCached())
+{
+    Debug.Log("ライブラリはキャッシュから読み込まれます");
+}
+
+// キャッシュをクリア
+AssetLibraryController.ClearCache();
+```
+
+##### 強制再読み込み
+```csharp
+public static AssetLibrarySchema ForceReloadLibrary(string filePath = null)
+```
+
+キャッシュを無視してライブラリを強制的に再読み込みします。
+
+**パラメータ:**
+- `filePath`: 読み込み元ファイルパス（nullの場合はDefaultLibraryPathを使用）
+
+**戻り値:**
+- `AssetLibrarySchema`: 読み込んだライブラリ（失敗時はnull）
+
+**使用例:**
+```csharp
+// 外部でファイルが変更された可能性がある場合
+var library = AssetLibraryController.ForceReloadLibrary();
+```
 
 ##### 新しいライブラリの作成
 ```csharp
@@ -324,9 +377,14 @@ if (newLibrary != null)
 ##### ライブラリの保存
 ```csharp
 public static bool SaveLibrary(AssetLibrarySchema library, string filePath = null)
+public static bool SaveLibraryAsync(AssetLibrarySchema library, string filePath = null)
 ```
 
-AssetLibraryをJSONファイルに保存します。
+**SaveLibrary():**
+AssetLibraryをJSONファイルに同期的に保存します。
+
+**SaveLibraryAsync():**
+AssetLibraryを非同期で保存します。キャッシュは即座に更新され、ファイル書き込みはバックグラウンドで実行されます。
 
 **パラメータ:**
 - `library`: 保存するAssetLibrarySchema
@@ -336,7 +394,7 @@ AssetLibraryをJSONファイルに保存します。
 - `bool`: 保存に成功した場合true
 
 **特徴:**
-- 保存時に自動的にLastUpdatedを更新
+- 保存時に自動的にLastUpdatedとキャッシュを更新
 - ディレクトリが存在しない場合は自動作成
 - 適切なJSON設定で整形済みファイルを出力
 
@@ -345,8 +403,11 @@ AssetLibraryをJSONファイルに保存します。
 var library = AssetLibraryController.CreateNewLibrary();
 // ... ライブラリにアセットを追加
 
-// デフォルトパスに保存
+// 同期保存（処理完了まで待機）
 bool saved = AssetLibraryController.SaveLibrary(library);
+
+// 非同期保存（高速、UIをブロックしない）
+bool saveStarted = AssetLibraryController.SaveLibraryAsync(library);
 
 // 指定パスに保存
 bool savedToCustomPath = AssetLibraryController.SaveLibrary(library, @"C:\MyLibrary.json");
@@ -357,7 +418,7 @@ bool savedToCustomPath = AssetLibraryController.SaveLibrary(library, @"C:\MyLibr
 public static AssetLibrarySchema LoadLibrary(string filePath = null)
 ```
 
-JSONファイルからAssetLibraryを読み込みます。
+JSONファイルからAssetLibraryを読み込みます。キャッシュが有効な場合はキャッシュから返します。
 
 **パラメータ:**
 - `filePath`: 読み込み元ファイルパス（nullの場合はDefaultLibraryPathを使用）
@@ -366,17 +427,21 @@ JSONファイルからAssetLibraryを読み込みます。
 - `AssetLibrarySchema`: 読み込んだライブラリ（失敗時は新しい空のライブラリを返す）
 
 **特徴:**
+- **キャッシュ機能**: 同一ファイルで変更がない場合はキャッシュから高速取得
 - ファイルが存在しない場合は新しいライブラリを作成
 - JSON解析エラー時は新しいライブラリを作成してエラーログを出力
 - 読み込み成功時はアセット数とグループ数をログ出力
 
 **使用例:**
 ```csharp
-// デフォルトパスから読み込み
+// デフォルトパスから読み込み（キャッシュ有効）
 var library = AssetLibraryController.LoadLibrary();
 
 // 指定パスから読み込み
 var customLibrary = AssetLibraryController.LoadLibrary(@"C:\MyLibrary.json");
+
+// 強制再読み込み（キャッシュ無視）
+var reloadedLibrary = AssetLibraryController.ForceReloadLibrary();
 
 Debug.Log($"読み込み完了: アセット数={library.AssetCount}, グループ数={library.GroupCount}");
 ```
