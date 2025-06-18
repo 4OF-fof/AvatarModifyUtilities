@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using AMU.Editor.VrcAssetManager.Schema;
+using AMU.Editor.VrcAssetManager.Controllers;
 using Newtonsoft.Json;
 
 namespace AMU.Editor.VrcAssetManager.UI
@@ -309,7 +310,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 EditorGUILayout.LabelField($"File: {asset.FileInfo.FilePath}");
                 EditorGUILayout.LabelField($"Created: {asset.Metadata.CreatedDate:yyyy/MM/dd}");
 
-                if (asset.HasParentGroup)
+                if (!VrcAssetController.IsTopLevel(asset))
                 {
                     EditorGUILayout.LabelField($"Parent Group: {asset.ParentGroupId}");
                 }
@@ -601,8 +602,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
             if (AssetId.TryParse(_selectedAssetId, out var assetId))
             {
-                var asset = _currentLibrary.GetAsset(assetId);
-                if (asset != null && asset.HasParentGroup)
+                var asset = _currentLibrary.GetAsset(assetId); if (asset != null && !VrcAssetController.IsTopLevel(asset))
                 {
                     var groupId = asset.ParentGroupId;
                     var group = _currentLibrary.GetGroup(groupId);
