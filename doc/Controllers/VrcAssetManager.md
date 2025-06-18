@@ -131,13 +131,12 @@ var categories = VrcAssetController.GetAvailableCategories();
 var authors = VrcAssetController.GetAvailableAuthors();
 ```
 
-##### アセット・グループの状態判定
+##### アセットの状態判定
 ```csharp
 public static bool HasBoothItem(AssetId assetId)
 public static bool HasBoothItem(AssetSchema asset)
 public static bool IsTopLevel(AssetId assetId)
 public static bool IsTopLevel(AssetSchema asset)
-public static bool IsTopLevel(AssetGroupSchema group)
 ```
 
 **使用例:**
@@ -154,9 +153,6 @@ bool isTopLevel = VrcAssetController.IsTopLevel(assetId);
 
 // トップレベルアイテムかどうかをアセットデータで判定
 bool isTopLevel = VrcAssetController.IsTopLevel(asset);
-
-// トップレベルグループかどうかを判定
-bool isTopLevel = VrcAssetController.IsTopLevel(groupData);
 ```
 
 ##### ファイルサイズの文字列変換
@@ -191,13 +187,11 @@ string sizeFromId = VrcAssetController.GetFormattedFileSize(assetId);
 ```csharp
 public static bool HasParent(AssetGroupSchema group)
 public static bool HasChildren(AssetGroupSchema group)
-public static bool IsTopLevel(AssetGroupSchema group)
 ```
 
 **詳細:**
 - `HasParent`: グループが親グループを持っているかを判定（ParentGroupIdの有無をチェック）
 - `HasChildren`: グループが子アセットを持っているかを判定（ChildAssetIdsの要素数をチェック）
-- `IsTopLevel`: グループがトップレベル（親なし）かを判定（HasParentの逆）
 
 **使用例:**
 ```csharp
