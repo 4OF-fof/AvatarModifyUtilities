@@ -140,13 +140,15 @@ using AMU.Editor.VrcAssetManager.Schema;
 
 #### 主要機能
 
-##### ファイルの検証
+##### ファイルのインポート
 ```csharp
-public static bool IsValidVrcAssetFile(string filePath)
-public static bool ValidateAssetFile(AssetSchema assetData)
+public static AssetSchema ImportAssetFile(string filePath)
+public static List<AssetSchema> ImportMultipleAssetFiles(IEnumerable<string> filePaths)
 ```
 
-**サポートファイル形式:**
+指定されたファイルパスからVRCアセットデータを作成します。あらゆるファイル形式をインポート可能です。
+
+**主要カテゴリ（自動判定）:**
 - Prefabs: `.prefab`
 - Scenes: `.unity`
 - Packages: `.unitypackage`
@@ -155,21 +157,7 @@ public static bool ValidateAssetFile(AssetSchema assetData)
 - Materials: `.mat`
 - Shaders: `.shader`, `.hlsl`, `.cginc`
 - Scripts: `.cs`, `.dll`, `.asmdef`
-
-**使用例:**
-```csharp
-bool isValid = VrcAssetFileController.IsValidVrcAssetFile(@"C:\Assets\MyAvatar.prefab");
-if (isValid)
-{
-    Debug.Log("有効なVRCアセットファイルです");
-}
-```
-
-##### ファイルのインポート
-```csharp
-public static AssetSchema ImportAssetFile(string filePath)
-public static List<AssetSchema> ImportMultipleAssetFiles(IEnumerable<string> filePaths)
-```
+- Other: 上記以外のすべてのファイル
 
 **使用例:**
 ```csharp
@@ -194,13 +182,15 @@ foreach (var asset in importedAssets)
 public static List<string> ScanDirectory(string directoryPath, bool recursive = true)
 ```
 
+指定されたディレクトリ内のすべてのファイルをスキャンします。ファイル形式による制限はありません。
+
 **パラメータ:**
 - `directoryPath`: スキャンするディレクトリパス
 - `recursive`: サブディレクトリも含めるかどうか（デフォルト: true）
 
 **使用例:**
 ```csharp
-// 再帰的スキャン
+// 再帰的スキャン（すべてのファイル）
 var files = VrcAssetFileController.ScanDirectory(@"C:\VRCAssets", true);
 
 // 単一ディレクトリのみスキャン

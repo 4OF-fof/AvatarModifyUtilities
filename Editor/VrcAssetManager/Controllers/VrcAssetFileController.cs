@@ -22,21 +22,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             ".cs", ".dll", ".asmdef"
         };
 
-        /// <summary>
-        /// 指定されたパスがVRCアセットとして有効かどうかを判定します
-        /// </summary>
-        /// <param name="filePath">ファイルパス</param>
-        /// <returns>有効な場合true</returns>
-        public static bool IsValidVrcAssetFile(string filePath)
-        {
-            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
-            {
-                return false;
-            }
 
-            var extension = Path.GetExtension(filePath).ToLower();
-            return SupportedFileExtensions.Contains(extension);
-        }
 
         /// <summary>
         /// VRCアセットファイルをインポートします
@@ -47,7 +33,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         {
             try
             {
-                if (!IsValidVrcAssetFile(filePath))
+                if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
                 {
                     Debug.LogError(string.Format(LocalizationController.GetText("VrcAssetManager_message_error_invalidFile"), filePath));
                     return default(AssetSchema);
@@ -114,12 +100,9 @@ namespace AMU.Editor.VrcAssetManager.Controllers
 
                 var searchOption = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 
-                foreach (var extension in SupportedFileExtensions)
-                {
-                    var pattern = "*" + extension;
-                    var files = Directory.GetFiles(directoryPath, pattern, searchOption);
-                    foundFiles.AddRange(files);
-                }
+                // 全てのファイルを取得
+                var files = Directory.GetFiles(directoryPath, "*.*", searchOption);
+                foundFiles.AddRange(files);
 
                 Debug.Log(string.Format(LocalizationController.GetText("VrcAssetManager_message_success_scanCompleted"), foundFiles.Count, directoryPath));
             }
@@ -128,7 +111,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 Debug.LogError(string.Format(LocalizationController.GetText("VrcAssetManager_message_error_scanFailed"), ex.Message));
             }
 
-            return foundFiles.Distinct().ToList();
+            return foundFiles;
         }
 
         /// <summary>
@@ -167,15 +150,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             }
         }
 
-        /// <summary>
-        /// VRCアセットファイルが存在するかどうかを確認します
-        /// </summary>
-        /// <param name="assetData">確認するアセットデータ</param>
-        /// <returns>ファイルが存在する場合true</returns>
-        public static bool ValidateAssetFile(AssetSchema assetData)
-        {
-            return !string.IsNullOrEmpty(assetData.FileInfo.FilePath) && File.Exists(assetData.FileInfo.FilePath);
-        }
+
 
         /// <summary>
         /// VRCアセットファイルの情報を更新します
@@ -186,7 +161,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         {
             try
             {
-                if (!ValidateAssetFile(assetData))
+                if (string.IsNullOrEmpty(assetData.FileInfo.FilePath) || !File.Exists(assetData.FileInfo.FilePath))
                 {
                     Debug.LogWarning(string.Format(LocalizationController.GetText("VrcAssetManager_message_warning_fileNotFound"), assetData.FileInfo.FilePath));
                     return assetData;

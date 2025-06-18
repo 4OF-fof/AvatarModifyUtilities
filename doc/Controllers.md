@@ -304,7 +304,6 @@ using AMU.Editor.VrcAssetManager.Controllers;
 
 ##### ファイル操作
 ```csharp
-public static bool IsValidVrcAssetFile(string filePath)
 public static AssetSchema ImportAssetFile(string filePath)
 public static List<AssetSchema> ImportMultipleAssetFiles(IEnumerable<string> filePaths)
 public static bool ExportAsset(AssetSchema assetData, string destinationPath)
@@ -315,19 +314,22 @@ public static bool ExportAsset(AssetSchema assetData, string destinationPath)
 public static List<string> ScanDirectory(string directoryPath, bool recursive = true)
 ```
 
-**サポートファイル形式:**
+すべてのファイル形式をインポート・スキャン可能です。カテゴリは自動判定されます。
+
+**主要カテゴリ（自動判定）:**
 - Prefabs (`.prefab`), Scenes (`.unity`), Packages (`.unitypackage`)
 - Models (`.fbx`, `.obj`)
 - Textures (`.png`, `.jpg`, `.jpeg`, `.tga`, `.psd`)
 - Materials (`.mat`), Shaders (`.shader`, `.hlsl`, `.cginc`)
 - Scripts (`.cs`, `.dll`, `.asmdef`)
+- Other（上記以外のすべてのファイル）
 
 **使用例:**
 ```csharp
-// ファイルインポート
-var asset = VrcAssetFileController.ImportAssetFile(@"C:\VRCAssets\MyAvatar.prefab");
+// ファイルインポート（あらゆるファイル形式）
+var asset = VrcAssetFileController.ImportAssetFile(@"C:\VRCAssets\MyFile.txt");
 
-// ディレクトリスキャン
+// ディレクトリスキャン（すべてのファイル）
 var files = VrcAssetFileController.ScanDirectory(@"C:\VRCAssets", true);
 
 // 一括インポート
