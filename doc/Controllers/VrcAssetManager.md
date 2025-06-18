@@ -187,6 +187,42 @@ Debug.Log($"ファイルサイズ: {formattedSize}");
 string sizeFromId = VrcAssetController.GetFormattedFileSize(assetId);
 ```
 
+##### グループの状態判定
+```csharp
+public static bool HasParent(AssetGroupSchema group)
+public static bool HasChildren(AssetGroupSchema group)
+public static bool IsTopLevel(AssetGroupSchema group)
+```
+
+**詳細:**
+- `HasParent`: グループが親グループを持っているかを判定（ParentGroupIdの有無をチェック）
+- `HasChildren`: グループが子アセットを持っているかを判定（ChildAssetIdsの要素数をチェック）
+- `IsTopLevel`: グループがトップレベル（親なし）かを判定（HasParentの逆）
+
+**使用例:**
+```csharp
+// グループの親子関係を判定
+var group = librarySchema.GetGroup(groupId);
+
+bool hasParent = VrcAssetController.HasParent(group);
+if (hasParent)
+{
+    Debug.Log($"親グループID: {group.ParentGroupId}");
+}
+
+bool hasChildren = VrcAssetController.HasChildren(group);
+Debug.Log($"子アセット数: {group.ChildAssetIds.Count}");
+
+bool isTopLevel = VrcAssetController.IsTopLevel(group);
+bool isLeaf = !VrcAssetController.HasChildren(group); // リーフ判定
+
+// 条件分岐での活用
+if (VrcAssetController.IsTopLevel(group) && VrcAssetController.HasChildren(group))
+{
+    Debug.Log("トップレベルで子を持つグループです");
+}
+```
+
 ### VrcAssetFileController
 
 VRCアセットファイルの操作を管理するコントローラです。
