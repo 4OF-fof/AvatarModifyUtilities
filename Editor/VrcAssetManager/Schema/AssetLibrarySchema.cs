@@ -60,6 +60,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _assets = new Dictionary<string, AssetSchema>();
             _groups = new Dictionary<string, AssetGroupSchema>();
         }
+
         public bool AddAsset(AssetId assetId, AssetSchema asset)
         {
             if (string.IsNullOrEmpty(assetId.Value) || asset == null) return false;
@@ -96,6 +97,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             if (string.IsNullOrEmpty(assetId.Value)) return false;
             return _assets?.ContainsKey(assetId.Value) ?? false;
         }
+
         public void AddGroup(string groupId, AssetGroupSchema group)
         {
             if (string.IsNullOrEmpty(groupId) || group == null) return;
@@ -134,6 +136,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
 
             return _assets.Values.Where(asset => asset.State.IsFavorite);
         }
+        
         public IEnumerable<AssetSchema> GetAssetsByType(AssetType assetType)
         {
             if (_assets == null) return Enumerable.Empty<AssetSchema>();
