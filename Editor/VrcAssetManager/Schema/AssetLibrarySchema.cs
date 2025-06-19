@@ -76,22 +76,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
             return assets[assetId];
         }
 
-        public List<AssetSchema> GetAssetsByType(string assetType)
-        {
-            if (string.IsNullOrWhiteSpace(assetType) || !assetTypes.Contains(assetType))
-                return new List<AssetSchema>();
-
-            return assets.Values.Where(asset => asset.Metadata.AssetType.Equals(assetType, StringComparison.OrdinalIgnoreCase)).ToList();
-        }
-
-        public List<AssetSchema> GetAssetsByTag(string tag)
-        {
-            if (string.IsNullOrWhiteSpace(tag) || !tags.Contains(tag))
-                return new List<AssetSchema>();
-
-            return assets.Values.Where(asset => asset.Metadata.Tags.Contains(tag)).ToList();
-        }
-
         public List<AssetSchema> GetAllAssets()
         {
             return assets.Values.ToList();
