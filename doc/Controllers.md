@@ -402,24 +402,6 @@ bool isTopLevel = VrcAssetController.IsTopLevel(assetData);
 
 ```
 
-##### グループの状態判定
-```csharp
-public static bool HasParent(AssetGroupSchema group)
-public static bool HasChildren(AssetGroupSchema group)
-```
-
-**使用例:**
-```csharp
-// グループが親を持っているかを判定
-bool hasParent = VrcAssetController.HasParent(groupData);
-
-// グループが子アセットを持っているかを判定
-bool hasChildren = VrcAssetController.HasChildren(groupData);
-
-// リーフ判定（子を持たない）が必要な場合
-bool isLeaf = !VrcAssetController.HasChildren(groupData);
-```
-
 ### VrcAssetFileController
 
 VRCアセットファイルの操作を管理するコントローラです。

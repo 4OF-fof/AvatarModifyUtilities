@@ -207,7 +207,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 // キャッシュを更新
                 UpdateCache(library, targetPath);
 
-                Debug.Log(string.Format(LocalizationController.GetText("VrcAssetManager_message_success_libraryLoaded"), targetPath, library.AssetCount, library.GroupCount));
+                Debug.Log(string.Format(LocalizationController.GetText("VrcAssetManager_message_success_libraryLoaded"), targetPath, library.AssetCount));
                 return library;
             }
             catch (Exception ex)

@@ -15,8 +15,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
         private DateTime _lastUpdated;
         [SerializeField]
         private Dictionary<string, AssetSchema> _assets;
-        [SerializeField]
-        private Dictionary<string, AssetGroupSchema> _groups;
 
         public DateTime LastUpdated
         {
@@ -42,23 +40,12 @@ namespace AMU.Editor.VrcAssetManager.Schema
             }
         }
 
-        public IReadOnlyDictionary<string, AssetGroupSchema> Groups
-        {
-            get
-            {
-                if (_groups == null) return new Dictionary<string, AssetGroupSchema>();
-                return _groups;
-            }
-        }
-
         public int AssetCount => _assets?.Count ?? 0;
-        public int GroupCount => _groups?.Count ?? 0;
 
         public AssetLibrarySchema()
         {
             _lastUpdated = DateTime.Now;
             _assets = new Dictionary<string, AssetSchema>();
-            _groups = new Dictionary<string, AssetGroupSchema>();
         }
 
         public bool AddAsset(AssetId assetId, AssetSchema asset)
@@ -80,7 +67,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
             if (removed)
             {
                 _lastUpdated = DateTime.Now;
-                _groups?.Remove(assetId.Value);
             }
 
             return removed;
@@ -96,31 +82,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             if (string.IsNullOrEmpty(assetId.Value)) return false;
             return _assets?.ContainsKey(assetId.Value) ?? false;
-        }
-
-        public void AddGroup(string groupId, AssetGroupSchema group)
-        {
-            if (string.IsNullOrEmpty(groupId) || group == null) return;
-
-            _groups ??= new Dictionary<string, AssetGroupSchema>();
-            _groups[groupId] = group;
-            _lastUpdated = DateTime.Now;
-        }
-
-        public void RemoveGroup(string groupId)
-        {
-            if (string.IsNullOrEmpty(groupId)) return;
-
-            if (_groups?.Remove(groupId) == true)
-            {
-                _lastUpdated = DateTime.Now;
-            }
-        }
-
-        public AssetGroupSchema GetGroup(string groupId)
-        {
-            if (string.IsNullOrEmpty(groupId)) return null;
-            return _groups?.GetValueOrDefault(groupId);
         }
 
         public IEnumerable<AssetSchema> GetVisibleAssets()
@@ -156,24 +117,12 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public void ClearAssets()
         {
             _assets?.Clear();
-            _groups?.Clear();
             _lastUpdated = DateTime.Now;
         }
 
         public void Optimize()
         {
-            // 無効なアセット参照をクリーンアップ
-            if (_groups != null)
-            {
-                var validAssetIds = new HashSet<string>(_assets?.Keys ?? Enumerable.Empty<string>());
-                var invalidGroups = _groups.Where(kvp => !validAssetIds.Contains(kvp.Key)).ToList();
-
-                foreach (var invalidGroup in invalidGroups)
-                {
-                    _groups.Remove(invalidGroup.Key);
-                }
-            }
-
+            // 今後必要に応じて最適化処理を実装
             _lastUpdated = DateTime.Now;
         }
     }

@@ -268,23 +268,5 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         {
             return asset != null && string.IsNullOrEmpty(asset.ParentGroupId);
         }
-
-        /// <summary>
-        /// 指定されたグループが親グループを持っているかを判定します
-        /// </summary>
-        /// <param name="group">グループデータ</param>
-        /// <returns>親グループがあればtrue</returns>
-        public static bool HasParent(AssetGroupSchema group)
-        {
-            return group != null && !string.IsNullOrEmpty(group.ParentGroupId);
-        }        /// <summary>
-                 /// 指定されたグループが子アセットを持っているかを判定します
-                 /// </summary>
-                 /// <param name="group">グループデータ</param>
-                 /// <returns>子アセットがあればtrue</returns>
-        public static bool HasChildren(AssetGroupSchema group)
-        {
-            return group?.ChildAssetIds?.Count > 0;
-        }
     }
 }

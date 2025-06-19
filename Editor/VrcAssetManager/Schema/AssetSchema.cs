@@ -333,6 +333,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         [SerializeField] private AssetState _state;
         [SerializeField] private BoothItemSchema _boothItem;
         [SerializeField] private DateTime _lastAccessed;
+        [SerializeField] private List<string> _childAssetIds;
         public string ParentGroupId
         {
             get => _parentGroupId ?? string.Empty;
@@ -362,11 +363,14 @@ namespace AMU.Editor.VrcAssetManager.Schema
             get => _boothItem;
             set => _boothItem = value;
         }
+
         public DateTime LastAccessed
         {
             get => _lastAccessed == default ? DateTime.Now : _lastAccessed;
             set => _lastAccessed = value;
         }
+
+        public IReadOnlyList<string> ChildAssetIds => _childAssetIds ?? new List<string>();
 
         public AssetSchema()
         {
@@ -376,6 +380,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _state = new AssetState();
             _boothItem = null;
             _lastAccessed = DateTime.Now;
+            _childAssetIds = null;
         }
 
         public AssetSchema(string name, string assetType, string filePath) : this()
@@ -417,7 +422,8 @@ namespace AMU.Editor.VrcAssetManager.Schema
                     IsArchived = _state.IsArchived
                 },
                 _boothItem = _boothItem?.Clone(),
-                _lastAccessed = _lastAccessed
+                _lastAccessed = _lastAccessed,
+                _childAssetIds = _childAssetIds != null ? new List<string>(_childAssetIds) : null
             };
         }
 
@@ -429,9 +435,40 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public void AddDependency(string dependency) => _metadata.AddDependency(dependency);
         public void RemoveDependency(string dependency) => _metadata.RemoveDependency(dependency);
         public bool HasDependency(string dependency) => _metadata.HasDependency(dependency);
-
         public void AddImportFile(string filePath) => _fileInfo.AddImportFile(filePath);
-        public void RemoveImportFile(string filePath) => _fileInfo.RemoveImportFile(filePath);        // 親グループの管理
+        public void RemoveImportFile(string filePath) => _fileInfo.RemoveImportFile(filePath);
+
+        // 子アセットの管理
+        public void AddChildAsset(string childAssetId)
+        {
+            if (string.IsNullOrWhiteSpace(childAssetId)) return;
+
+            _childAssetIds ??= new List<string>();
+            var trimmedId = childAssetId.Trim();
+            if (!_childAssetIds.Contains(trimmedId))
+            {
+                _childAssetIds.Add(trimmedId);
+            }
+        }
+
+        public void RemoveChildAsset(string childAssetId)
+        {
+            if (string.IsNullOrWhiteSpace(childAssetId)) return;
+            _childAssetIds?.Remove(childAssetId.Trim());
+        }
+
+        public void ClearChildAssets()
+        {
+            _childAssetIds?.Clear();
+        }
+
+        public bool HasChildAsset(string childAssetId)
+        {
+            if (string.IsNullOrWhiteSpace(childAssetId)) return false;
+            return _childAssetIds?.Contains(childAssetId.Trim()) ?? false;
+        }
+
+        // 親グループの管理
         public void SetParentGroup(string parentGroupId)
         {
             _parentGroupId = parentGroupId?.Trim() ?? string.Empty;

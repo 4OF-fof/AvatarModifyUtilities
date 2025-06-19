@@ -20,12 +20,9 @@ namespace AMU.Editor.VrcAssetManager.UI
         private string _newAssetName = "New Asset";
         private string _newAssetType = "Other";
         private string _newAssetFilePath = "";
-        private string _newAssetAuthor = "Test Author";
-        private string _selectedAssetId = "";
-        private string _newGroupName = "New Group";
+        private string _newAssetAuthor = "Test Author"; private string _selectedAssetId = "";
         private string _testMessage = "";
         private bool _showAssetDetails = false;
-        private bool _showGroupDetails = false;
 
         // アセットIDとアセットのマッピングを保持
         private Dictionary<AssetId, AssetSchema> _assetMapping = new Dictionary<AssetId, AssetSchema>();
@@ -56,12 +53,9 @@ namespace AMU.Editor.VrcAssetManager.UI
             DrawHeader();
             EditorGUILayout.Space(10);
             DrawLibraryInfo();
-            EditorGUILayout.Space(10);
-            DrawFileOperations();
+            EditorGUILayout.Space(10); DrawFileOperations();
             EditorGUILayout.Space(10);
             DrawAssetOperations();
-            EditorGUILayout.Space(10);
-            DrawGroupOperations();
             EditorGUILayout.Space(10);
             DrawAssetList();
             EditorGUILayout.Space(10);
@@ -80,9 +74,7 @@ namespace AMU.Editor.VrcAssetManager.UI
         {
             EditorGUILayout.LabelField("Library Information", EditorStyles.boldLabel); using (new EditorGUILayout.VerticalScope("box"))
             {
-                EditorGUILayout.LabelField($"Last Updated: {_currentLibrary.LastUpdated:yyyy/MM/dd HH:mm:ss}");
-                EditorGUILayout.LabelField($"Asset Count: {_currentLibrary.AssetCount}");
-                EditorGUILayout.LabelField($"Group Count: {_currentLibrary.GroupCount}");
+                EditorGUILayout.LabelField($"Last Updated: {_currentLibrary.LastUpdated:yyyy/MM/dd HH:mm:ss}"); EditorGUILayout.LabelField($"Asset Count: {_currentLibrary.AssetCount}");
                 EditorGUILayout.LabelField($"File Path: {_libraryFilePath}");
             }
         }
@@ -217,35 +209,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                 }
             }
         }
-
-        private void DrawGroupOperations()
-        {
-            EditorGUILayout.LabelField("Group Operations", EditorStyles.boldLabel);
-
-            using (new EditorGUILayout.VerticalScope("box"))
-            {
-                _newGroupName = EditorGUILayout.TextField("Group Name:", _newGroupName);
-
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    if (GUILayout.Button("Create Group"))
-                    {
-                        CreateGroup();
-                    }
-
-                    if (GUILayout.Button("Add Asset to Group"))
-                    {
-                        AddAssetToGroup();
-                    }
-
-                    if (GUILayout.Button("Remove from Group"))
-                    {
-                        RemoveAssetFromGroup();
-                    }
-                }
-            }
-        }
-
         private void DrawAssetList()
         {
             EditorGUILayout.LabelField("Asset List", EditorStyles.boldLabel);
@@ -261,20 +224,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                         var assetId = kvp.Key;
                         var asset = kvp.Value;
                         DrawAssetItem(assetId, asset);
-                    }
-                }
-
-                EditorGUILayout.Space(5);
-
-                _showGroupDetails = EditorGUILayout.Foldout(_showGroupDetails, "Show Group Details");
-
-                if (_showGroupDetails)
-                {
-                    foreach (var kvp in _currentLibrary.Groups)
-                    {
-                        var groupId = kvp.Key;
-                        var group = kvp.Value;
-                        DrawGroupItem(groupId, group);
                     }
                 }
 
@@ -313,21 +262,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                 if (!VrcAssetController.IsTopLevel(asset))
                 {
                     EditorGUILayout.LabelField($"Parent Group: {asset.ParentGroupId}");
-                }
-            }
-        }
-
-        private void DrawGroupItem(string groupId, AssetGroupSchema group)
-        {
-            using (new EditorGUILayout.VerticalScope("helpBox"))
-            {
-                EditorGUILayout.LabelField($"Group: {group.GroupName}", EditorStyles.boldLabel);
-                EditorGUILayout.LabelField($"ID: {groupId}");
-                EditorGUILayout.LabelField($"Level: {group.GroupLevel}");
-                EditorGUILayout.LabelField($"Children: {group.ChildAssetIds.Count}");
-                if (!string.IsNullOrEmpty(group.ParentGroupId))
-                {
-                    EditorGUILayout.LabelField($"Parent: {group.ParentGroupId}");
                 }
             }
         }
@@ -534,83 +468,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                 else
                 {
                     LogMessage($"アセットが見つかりません: {assetId}");
-                }
-            }
-            else
-            {
-                LogMessage("無効なAsset IDです。");
-            }
-        }
-
-        private void CreateGroup()
-        {
-            var groupId = Guid.NewGuid().ToString();
-            var group = new AssetGroupSchema();
-            group.GroupName = _newGroupName;
-
-            _currentLibrary.AddGroup(groupId, group);
-            LogMessage($"グループを作成しました: {_newGroupName} (ID: {groupId})");
-        }
-
-        private void AddAssetToGroup()
-        {
-            if (string.IsNullOrEmpty(_selectedAssetId))
-            {
-                LogMessage("Asset IDが指定されていません。");
-                return;
-            }
-
-            // 最初のグループを取得（簡易実装）
-            var firstGroup = _currentLibrary.Groups.FirstOrDefault();
-            if (string.IsNullOrEmpty(firstGroup.Key))
-            {
-                LogMessage("グループが存在しません。先にグループを作成してください。");
-                return;
-            }
-
-            if (AssetId.TryParse(_selectedAssetId, out var assetId))
-            {
-                var asset = _currentLibrary.GetAsset(assetId);
-                if (asset != null)
-                {
-                    asset.SetParentGroup(firstGroup.Key);
-                    firstGroup.Value.AddChildAsset(assetId);
-                    LogMessage($"アセットをグループに追加しました: {asset.Metadata.Name} -> {firstGroup.Value.GroupName}");
-                }
-                else
-                {
-                    LogMessage($"アセットが見つかりません: {assetId}");
-                }
-            }
-            else
-            {
-                LogMessage("無効なAsset IDです。");
-            }
-        }
-
-        private void RemoveAssetFromGroup()
-        {
-            if (string.IsNullOrEmpty(_selectedAssetId))
-            {
-                LogMessage("Asset IDが指定されていません。");
-                return;
-            }
-
-            if (AssetId.TryParse(_selectedAssetId, out var assetId))
-            {
-                var asset = _currentLibrary.GetAsset(assetId); if (asset != null && !VrcAssetController.IsTopLevel(asset))
-                {
-                    var groupId = asset.ParentGroupId;
-                    var group = _currentLibrary.GetGroup(groupId);
-
-                    asset.RemoveFromParentGroup();
-                    group?.RemoveChildAsset(assetId);
-
-                    LogMessage($"アセットをグループから削除しました: {asset.Metadata.Name}");
-                }
-                else
-                {
-                    LogMessage("アセットがグループに属していません。");
                 }
             }
             else
