@@ -15,13 +15,6 @@ namespace AMU.Editor.VrcAssetManager.Controllers
     /// </summary>
     public static class VrcAssetFileController
     {
-        private static readonly string[] SupportedFileExtensions = {
-            ".prefab", ".unity", ".unitypackage", ".fbx", ".obj",
-            ".png", ".jpg", ".jpeg", ".tga", ".psd",
-            ".mat", ".shader", ".hlsl", ".cginc",
-            ".cs", ".dll", ".asmdef"
-        };
-
 
 
         /// <summary>
@@ -119,15 +112,6 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 Debug.LogError(string.Format(LocalizationController.GetText("VrcAssetManager_message_error_refreshFailed"), ex.Message));
                 return assetData;
             }
-        }
-
-        /// <summary>
-        /// サポートされているファイル拡張子の一覧を取得します
-        /// </summary>
-        /// <returns>サポートされているファイル拡張子のリスト</returns>
-        public static string[] GetSupportedFileExtensions()
-        {
-            return (string[])SupportedFileExtensions.Clone();
         }
 
         /// <summary>

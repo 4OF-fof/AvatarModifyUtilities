@@ -233,22 +233,6 @@ string sizeFromId = VrcAssetFileController.GetFormattedFileSize(assetId);
 Debug.Log($"ファイルサイズ: {sizeFromId}");
 ```
 
-##### サポートされているファイル拡張子の取得
-```csharp
-public static string[] GetSupportedFileExtensions()
-```
-
-VRCアセットとしてサポートされているファイル拡張子の一覧を取得します。
-
-**使用例:**
-```csharp
-var extensions = VrcAssetFileController.GetSupportedFileExtensions();
-foreach (var ext in extensions)
-{
-    Debug.Log($"サポートされている拡張子: {ext}");
-}
-```
-
 ### AssetLibraryController
 
 AssetLibraryのJSONファイルの読み書きを担当するコントローラです。
