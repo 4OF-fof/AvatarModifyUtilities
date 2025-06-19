@@ -93,14 +93,12 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             }
         }
 
-
-
         /// <summary>
         /// VRCアセットファイルの情報を更新します
         /// </summary>
         /// <param name="assetData">更新するアセットデータ</param>
         /// <returns>更新されたアセットデータ</returns>
-        public static AssetSchema RefreshAssetFileInfo(AssetSchema assetData)
+        public static AssetSchema UpdateAssetFileInfo(AssetSchema assetData)
         {
             try
             {
@@ -137,7 +135,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         /// </summary>
         /// <param name="bytes">バイト数</param>
         /// <returns>読みやすい形式の文字列（例: "1.2 MB", "345 KB"）</returns>
-        public static string FormatFileSize(long bytes)
+        public static string ConvertBytesToString(long bytes)
         {
             if (bytes < 1024) return $"{bytes} B";
             if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
@@ -156,7 +154,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             {
                 return "0 B";
             }
-            return FormatFileSize(asset.FileInfo.FileSizeBytes);
+            return ConvertBytesToString(asset.FileInfo.FileSizeBytes);
         }
 
         /// <summary>
@@ -171,7 +169,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             {
                 return "0 B";
             }
-            return FormatFileSize(asset.FileInfo.FileSizeBytes);
+            return ConvertBytesToString(asset.FileInfo.FileSizeBytes);
         }
     }
 }

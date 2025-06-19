@@ -191,7 +191,7 @@ bool exported = VrcAssetFileController.ExportAsset(asset, @"C:\Export");
 
 ##### ファイル情報の更新
 ```csharp
-public static AssetSchema RefreshAssetFileInfo(AssetSchema assetData)
+public static AssetSchema UpdateAssetFileInfo(AssetSchema assetData)
 ```
 
 ファイル容量や更新日時の情報を更新します。
@@ -200,28 +200,28 @@ public static AssetSchema RefreshAssetFileInfo(AssetSchema assetData)
 
 ```csharp
 var asset = VrcAssetController.GetAsset(assetId);
-var refreshedAsset = VrcAssetFileController.RefreshAssetFileInfo(asset);
+var refreshedAsset = VrcAssetFileController.UpdateAssetFileInfo(asset);
 VrcAssetController.UpdateAsset(assetId, refreshedAsset);
 ```
 
 ##### ファイルサイズの文字列変換
 ```csharp
-public static string FormatFileSize(long bytes)
+public static string ConvertBytesToString(long bytes)
 public static string GetFormattedFileSize(AssetSchema asset)
 public static string GetFormattedFileSize(AssetId assetId)
 ```
 
 **詳細:**
-- `FormatFileSize`: バイト数を人間が読みやすい形式（B, KB, MB, GB）に変換
+- `ConvertBytesToString`: バイト数を人間が読みやすい形式（B, KB, MB, GB）に変換
 - `GetFormattedFileSize(AssetSchema)`: アセットデータからファイルサイズをフォーマット
 - `GetFormattedFileSize(AssetId)`: 指定したアセットIDのファイルサイズを取得してフォーマット
 
 **使用例:**
 ```csharp
 // バイト数を直接変換
-string size1 = VrcAssetFileController.FormatFileSize(1024); // "1.0 KB"
-string size2 = VrcAssetFileController.FormatFileSize(1048576); // "1.0 MB"
-string size3 = VrcAssetFileController.FormatFileSize(1073741824); // "1.0 GB"
+string size1 = VrcAssetFileController.ConvertBytesToString(1024); // "1.0 KB"
+string size2 = VrcAssetFileController.ConvertBytesToString(1048576); // "1.0 MB"
+string size3 = VrcAssetFileController.ConvertBytesToString(1073741824); // "1.0 GB"
 
 // アセットのファイルサイズを取得
 var asset = VrcAssetController.GetAsset(assetId);
@@ -526,7 +526,7 @@ if (optimized)
 
 ##### ファイル存在確認
 ```csharp
-public static bool LibraryFileExists(string filePath = null)
+public static bool HasLibraryFile(string filePath = null)
 ```
 
 ライブラリファイルが存在するかを確認します。
@@ -539,7 +539,7 @@ public static bool LibraryFileExists(string filePath = null)
 
 **使用例:**
 ```csharp
-if (AssetLibraryController.LibraryFileExists())
+if (AssetLibraryController.HasLibraryFile())
 {
     var library = AssetLibraryController.LoadLibrary();
 }

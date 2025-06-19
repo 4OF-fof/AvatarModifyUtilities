@@ -253,7 +253,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         /// </summary>
         /// <param name="filePath">確認するファイルパス</param>
         /// <returns>ファイルが存在する場合true</returns>
-        public static bool LibraryFileExists(string filePath = null)
+        public static bool HasLibraryFile(string filePath = null)
         {
             var targetPath = filePath ?? DefaultLibraryPath;
             return File.Exists(targetPath);
