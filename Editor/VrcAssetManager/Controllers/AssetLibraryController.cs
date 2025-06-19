@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using AMU.Editor.VrcAssetManager.Schema;
 using Newtonsoft.Json;
+using AMU.Editor.Core.Controller;
 
 namespace AMU.Editor.VrcAssetManager.Controller
 {
@@ -13,6 +14,9 @@ namespace AMU.Editor.VrcAssetManager.Controller
         #region Library Management
 
         private DateTime lastUpdated;
+        //TODO use Core_DirPath
+        private string DefaultLibraryPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities", "VrcAssetManager", "AssetLibrary.json");
+
         public AssetLibrarySchema library { get; private set; }
 
         public void InitializeLibrary()
@@ -33,6 +37,11 @@ namespace AMU.Editor.VrcAssetManager.Controller
             lastUpdated = DateTime.Now;
         }
 
+        public void LoadAssetLibrary()
+        {
+            LoadAssetLibrary(DefaultLibraryPath);
+        }
+
         public void LoadAssetLibrary(string path)
         {
             if (string.IsNullOrEmpty(path))
@@ -43,6 +52,11 @@ namespace AMU.Editor.VrcAssetManager.Controller
             if (File.GetLastWriteTime(path) < lastUpdated) return;
 
             ForceLoadAssetLibrary(path);
+        }
+
+        public void ForceLoadAssetLibrary()
+        {
+            ForceLoadAssetLibrary(DefaultLibraryPath);
         }
 
         public void ForceLoadAssetLibrary(string path)
@@ -64,6 +78,11 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
         }
 
+        public void SaveAssetLibrary()
+        {
+            SaveAssetLibrary(DefaultLibraryPath);
+        }
+
         public void SaveAssetLibrary(string path)
         {
             if (File.GetLastWriteTime(path) > lastUpdated)
@@ -73,6 +92,11 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
 
             ForceSaveAssetLibrary(path);
+        }
+
+        public void ForceSaveAssetLibrary()
+        {
+            ForceSaveAssetLibrary(DefaultLibraryPath);
         }
 
         public void ForceSaveAssetLibrary(string path)
@@ -91,6 +115,34 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 throw new InvalidOperationException($"Failed to save asset library to {path}: {ex.Message}", ex);
             }
         }
+
+        public void SyncAssetLibrary()
+        {
+            SyncAssetLibrary(DefaultLibraryPath);
+        }
+
+        public void SyncAssetLibrary(string path)
+        {
+            if (library == null)
+                throw new InvalidOperationException("Asset library is not initialized.");
+
+            if (string.IsNullOrEmpty(path))
+                throw new ArgumentException("Asset library path cannot be null or empty.");
+
+            if (!System.IO.File.Exists(path))
+                throw new FileNotFoundException($"Asset library file not found at {path}");
+
+            var lastWriteTime = File.GetLastWriteTime(path);
+            Debug.Log($"Last write time of asset library: {lastWriteTime}, Last updated time: {lastUpdated}");
+            if (lastWriteTime < lastUpdated)
+            {
+                ForceSaveAssetLibrary(path);
+            }
+            else
+            {
+                ForceLoadAssetLibrary(path);
+            }
+        }
         #endregion
 
         #region Asset Management
@@ -99,14 +151,61 @@ namespace AMU.Editor.VrcAssetManager.Controller
             if (library == null || asset == null || library.Assets.ContainsKey(asset.AssetId))
                 throw new ArgumentException("Asset is null or already exists in the library.");
 
+            SyncAssetLibrary();
             library.AddAsset(asset);
+            lastUpdated = DateTime.Now;
+            SaveAssetLibrary();
         }
 
-        public void AddTestAsset()
+        public void UpdateAsset(AssetSchema asset)
         {
-            var testAsset = new AssetSchema();
+            if (library == null || asset == null || !library.Assets.ContainsKey(asset.AssetId))
+                throw new ArgumentException("Asset is null or does not exist in the library.");
 
-            AddAsset(testAsset);
+            SyncAssetLibrary();
+            library.UpdateAsset(asset);
+            lastUpdated = DateTime.Now;
+            SaveAssetLibrary();
+        }
+
+        public void RemoveAsset(Guid assetId)
+        {
+            if (library == null || assetId == Guid.Empty || !library.Assets.ContainsKey(assetId))
+                throw new ArgumentException("Asset ID is invalid or does not exist in the library.");
+
+            SyncAssetLibrary();
+            library.RemoveAsset(assetId);
+            lastUpdated = DateTime.Now;
+            SaveAssetLibrary();
+        }
+
+        public AssetSchema GetAsset(Guid assetId)
+        {
+            if (library == null || assetId == Guid.Empty || !library.Assets.ContainsKey(assetId))
+                throw new ArgumentException("Asset ID is invalid or does not exist in the library.");
+
+            SyncAssetLibrary();
+            return library.GetAsset(assetId);
+        }
+
+        public IReadOnlyList<AssetSchema> GetAllAssets()
+        {
+            if (library == null)
+                throw new InvalidOperationException("Asset library is not initialized.");
+
+            SyncAssetLibrary();
+            return library.Assets.Values.ToList();
+        }
+
+        public void ClearAssets()
+        {
+            if (library == null)
+                throw new InvalidOperationException("Asset library is not initialized.");
+
+            SyncAssetLibrary();
+            library.ClearAssets();
+            lastUpdated = DateTime.Now;
+            SaveAssetLibrary();
         }
         #endregion
     }

@@ -3,6 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 using AMU.Editor.VrcAssetManager.Controller;
+using AMU.Editor.VrcAssetManager.Schema;
 
 namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
 {
@@ -26,8 +27,7 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
             _assetLibraryController = new AssetLibraryController();
 
             // デフォルトのテストファイルパスを設定
-            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            _testFilePath = Path.Combine(documentsPath, "AvatarModifyUtilities", "TestAssetLibrary.json");
+            _testFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities", "VrcAssetManager", "AssetLibrary.json");
 
             LogMessage("AssetLibraryController テストウィンドウが初期化されました。");
         }
@@ -132,6 +132,19 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                     LogMessage($"ライブラリ強制読み込み ({Path.GetFileName(_testFilePath)}): 失敗 - {ex.Message}");
                 }
             }
+            if (GUILayout.Button("データ同期"))
+            {
+                try
+                {
+                    _assetLibraryController.SyncAssetLibrary(_testFilePath);
+                    LogMessage($"データ同期 ({Path.GetFileName(_testFilePath)}): 成功");
+                    ShowLibraryInfo();
+                }
+                catch (Exception ex)
+                {
+                    LogMessage($"データ同期 ({Path.GetFileName(_testFilePath)}): 失敗 - {ex.Message}");
+                }
+            }
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal();
@@ -165,7 +178,7 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
             {
                 try
                 {
-                    _assetLibraryController.AddTestAsset();
+                    _assetLibraryController.AddAsset(new AssetSchema());
                     LogMessage("テストアセット追加: 成功");
                     ShowLibraryInfo();
                 }
