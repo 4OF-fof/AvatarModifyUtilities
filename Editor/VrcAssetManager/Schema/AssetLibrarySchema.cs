@@ -5,17 +5,11 @@ using UnityEngine;
 
 namespace AMU.Editor.VrcAssetManager.Schema
 {
-    [Serializable]
-    public class AssetLibrarySchema : ISerializationCallbackReceiver
+    public class AssetLibrarySchema
     {
-        [SerializeField]
-        private string lastUpdatedSerialized;
         private DateTime lastUpdated;
-        [SerializeField]
         private Dictionary<Guid, AssetSchema> assets;
-        [SerializeField]
         private List<string> tags;
-        [SerializeField]
         private List<string> assetTypes;
         
         public AssetLibrarySchema()
@@ -186,25 +180,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             assetTypes.Clear();
             LastUpdated = DateTime.Now;
-        }
-        #endregion
-
-        #region Serialization
-        public void OnBeforeSerialize()
-        {
-            lastUpdatedSerialized = lastUpdated.ToString("O");
-        }
-        
-        public void OnAfterDeserialize()
-        {
-            if (DateTime.TryParse(lastUpdatedSerialized, out var dt))
-            {
-                lastUpdated = dt;
-            }
-            else
-            {
-                lastUpdated = DateTime.Now;
-            }
         }
         #endregion
     }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using AMU.Editor.VrcAssetManager.Schema;
+using Newtonsoft.Json;
 
 namespace AMU.Editor.VrcAssetManager.Controllers
 {
@@ -47,7 +48,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             try
             {
                 var json = System.IO.File.ReadAllText(path);
-                library = JsonUtility.FromJson<AssetLibrarySchema>(json);
+                library = JsonConvert.DeserializeObject<AssetLibrarySchema>(json);
                 lastUpdated = File.GetLastWriteTime(path);
                 return true;
             }
@@ -79,7 +80,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
 
             try
             {
-                var json = JsonUtility.ToJson(library, true);
+                var json = JsonConvert.SerializeObject(library, Formatting.Indented);
                 System.IO.File.WriteAllText(path, json);
                 lastUpdated = DateTime.Now;
                 return true;

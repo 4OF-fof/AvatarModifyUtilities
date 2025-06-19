@@ -7,17 +7,16 @@ using UnityEngine;
 namespace AMU.Editor.VrcAssetManager.Schema
 {
     #region AssetSchema
-    [Serializable]
     public class AssetSchema
     {
-        [SerializeField] private Guid assetId;
-        [SerializeField] private AssetMetadata metadata;
-        [SerializeField] private AssetFileInfo fileInfo;
-        [SerializeField] private AssetState state;
-        [SerializeField] private BoothItemSchema boothItem;
-        [SerializeField] private string parentGroupId;
-        [SerializeField] private List<string> childAssetIds;
-        [SerializeField] private DateTime lastAccessed;
+        private Guid assetId;
+        private AssetMetadata metadata;
+        private AssetFileInfo fileInfo;
+        private AssetState state;
+        private BoothItemSchema boothItem;
+        private string parentGroupId;
+        private List<string> childAssetIds;
+        private DateTime lastAccessed;
 
         public AssetSchema()
         {
@@ -77,18 +76,17 @@ namespace AMU.Editor.VrcAssetManager.Schema
     #endregion
 
     #region AssetMetadata
-    [Serializable]
     public class AssetMetadata
     {
-        [SerializeField] private string _name;
-        [SerializeField] private string _description;
-        [SerializeField] private string authorName;
-        [SerializeField] private string _thumbnailPath;
-        [SerializeField] private string _assetType;
-        [SerializeField] private List<string> _tags;
-        [SerializeField] private List<string> _dependencies;
-        [SerializeField] private DateTime _createdDate;
-        [SerializeField] private DateTime _modifiedDate;
+        private string _name;
+        private string _description;
+        private string authorName;
+        private string _thumbnailPath;
+        private string _assetType;
+        private List<string> _tags;
+        private List<string> _dependencies;
+        private DateTime _createdDate;
+        private DateTime _modifiedDate;
 
         public AssetMetadata()
         {
@@ -154,11 +152,10 @@ namespace AMU.Editor.VrcAssetManager.Schema
     #endregion
 
     #region AssetFileInfo
-    [Serializable]
     public class AssetFileInfo
     {
-        [SerializeField] private string filePath;
-        [SerializeField] private List<string> importFiles;
+        private string filePath;
+        private List<string> importFiles;
 
         public AssetFileInfo()
         {
@@ -179,12 +176,11 @@ namespace AMU.Editor.VrcAssetManager.Schema
     #endregion
 
     #region AssetState
-    [Serializable]
     public class AssetState
     {
-        [SerializeField] private bool isFavorite;
-        [SerializeField] private bool isGroup;
-        [SerializeField] private bool isArchived;
+        private bool isFavorite;
+        private bool isGroup;
+        private bool isArchived;
 
         public AssetState()
         {
@@ -216,15 +212,14 @@ namespace AMU.Editor.VrcAssetManager.Schema
     #endregion
 
     #region BoothItemSchema
-    [Serializable]
     public class BoothItemSchema
     {
-        [SerializeField] private string itemName;
-        [SerializeField] private string authorName;
-        [SerializeField] private string itemUrl;
-        [SerializeField] private string imageUrl;
-        [SerializeField] private string fileName;
-        [SerializeField] private string downloadUrl;
+        private string itemName;
+        private string authorName;
+        private string itemUrl;
+        private string imageUrl;
+        private string fileName;
+        private string downloadUrl;
 
         public BoothItemSchema()
         {
