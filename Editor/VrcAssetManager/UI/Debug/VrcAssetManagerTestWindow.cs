@@ -577,8 +577,35 @@ namespace AMU.Editor.VrcAssetManager.UI.Debug
 
                 if (AssetId.TryParse(_testAssetId, out AssetId assetId))
                 {
-                    var updatedData = new AssetSchema($"{_testAssetName}_Updated", _testAssetType, "");
-                    updatedData.Metadata.Description = "Updated by test window";
+                    // 既存のアセットを取得
+                    var existingAsset = VrcAssetController.GetAsset(assetId);
+                    if (existingAsset == null)
+                    {
+                        LogMessage("Asset not found");
+                        return;
+                    }
+
+                    // 新しいメタデータでアセットを作成
+                    var updatedMetadata = new AssetMetadata(
+                        $"{_testAssetName}_Updated",
+                        "Updated by test window",
+                        existingAsset.Metadata.AuthorName,
+                        _testAssetType,
+                        new List<string>(existingAsset.Metadata.Tags),
+                        new List<string>(existingAsset.Metadata.Dependencies),
+                        existingAsset.Metadata.CreatedDate,
+                        DateTime.Now
+                    );
+
+                    var updatedData = new AssetSchema(
+                        existingAsset.ParentGroupId,
+                        updatedMetadata,
+                        existingAsset.FileInfo,
+                        existingAsset.State,
+                        existingAsset.BoothItem,
+                        existingAsset.LastAccessed,
+                        new List<string>(existingAsset.ChildAssetIds)
+                    );
 
                     bool result = VrcAssetController.UpdateAsset(assetId, updatedData);
                     LogMessage($"Update asset result: {result}");

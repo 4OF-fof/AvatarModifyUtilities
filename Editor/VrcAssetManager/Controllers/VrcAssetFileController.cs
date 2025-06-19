@@ -15,8 +15,6 @@ namespace AMU.Editor.VrcAssetManager.Controllers
     /// </summary>
     public static class VrcAssetFileController
     {
-
-
         /// <summary>
         /// VRCアセットファイルをインポートします
         /// </summary>
@@ -35,10 +33,35 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 var fileName = Path.GetFileNameWithoutExtension(filePath);
                 var fileInfo = new FileInfo(filePath);
 
-                var assetData = new AssetSchema(fileName, "Other", filePath);
-                assetData.FileInfo.FileSizeBytes = fileInfo.Length;
-                assetData.Metadata.CreatedDate = DateTime.Now;
-                assetData.Metadata.ModifiedDate = fileInfo.LastWriteTime;
+                // 新しいスキーマ構造に合わせてAssetMetadataを作成
+                var metadata = new AssetMetadata(
+                    fileName,
+                    "",
+                    "",
+                    "Other",
+                    null,
+                    null,
+                    DateTime.Now,
+                    fileInfo.LastWriteTime
+                );
+
+                // AssetFileInfoを作成
+                var assetFileInfo = new AssetFileInfo(
+                    filePath,
+                    "",
+                    fileInfo.Length
+                );
+
+                // AssetStateを作成
+                var state = new AssetState();
+
+                // AssetSchemaを作成
+                var assetData = new AssetSchema(
+                    "",
+                    metadata,
+                    assetFileInfo,
+                    state
+                );
 
                 Debug.Log(string.Format(LocalizationController.GetText("VrcAssetManager_message_success_fileImported"), fileName));
                 return assetData;
@@ -102,10 +125,39 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 }
 
                 var fileInfo = new FileInfo(assetData.FileInfo.FilePath);
-                assetData.FileInfo.FileSizeBytes = fileInfo.Length;
-                assetData.Metadata.ModifiedDate = fileInfo.LastWriteTime;
 
-                return assetData;
+                // 新しいスキーマ構造に合わせて更新されたAssetMetadataを作成
+                var updatedMetadata = new AssetMetadata(
+                    assetData.Metadata.Name,
+                    assetData.Metadata.Description,
+                    assetData.Metadata.AuthorName,
+                    assetData.Metadata.AssetType,
+                    new List<string>(assetData.Metadata.Tags),
+                    new List<string>(assetData.Metadata.Dependencies),
+                    assetData.Metadata.CreatedDate,
+                    fileInfo.LastWriteTime
+                );
+
+                // 更新されたAssetFileInfoを作成
+                var updatedFileInfo = new AssetFileInfo(
+                    assetData.FileInfo.FilePath,
+                    assetData.FileInfo.ThumbnailPath,
+                    fileInfo.Length,
+                    new List<string>(assetData.FileInfo.ImportFiles)
+                );
+
+                // 更新されたAssetSchemaを作成
+                var updatedAssetData = new AssetSchema(
+                    assetData.ParentGroupId,
+                    updatedMetadata,
+                    updatedFileInfo,
+                    assetData.State,
+                    assetData.BoothItem,
+                    assetData.LastAccessed,
+                    new List<string>(assetData.ChildAssetIds)
+                );
+
+                return updatedAssetData;
             }
             catch (Exception ex)
             {

@@ -23,7 +23,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public DateTime LastUpdated
         {
             get => _lastUpdated == default ? DateTime.Now : _lastUpdated;
-            set => _lastUpdated = value;
+            private set => _lastUpdated = value;
         }
 
         public IReadOnlyDictionary<AssetId, AssetSchema> Assets
@@ -74,7 +74,10 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _assetTypes = new List<string>();
         }
 
-        public bool AddAsset(AssetId assetId, AssetSchema asset)
+        /// <summary>
+        /// アセットを追加します（内部使用専用）
+        /// </summary>
+        internal bool AddAsset(AssetId assetId, AssetSchema asset)
         {
             if (string.IsNullOrEmpty(assetId.Value) || asset == null) return false;
 
@@ -85,7 +88,10 @@ namespace AMU.Editor.VrcAssetManager.Schema
             return true;
         }
 
-        public bool RemoveAsset(AssetId assetId)
+        /// <summary>
+        /// アセットを削除します（内部使用専用）
+        /// </summary>
+        internal bool RemoveAsset(AssetId assetId)
         {
             if (string.IsNullOrEmpty(assetId.Value)) return false;
 
@@ -140,7 +146,10 @@ namespace AMU.Editor.VrcAssetManager.Schema
                 asset.Metadata.AuthorName.Equals(authorName.Trim(), StringComparison.OrdinalIgnoreCase));
         }
 
-        public void ClearAssets()
+        /// <summary>
+        /// すべてのアセットをクリアします（内部使用専用）
+        /// </summary>
+        internal void ClearAssets()
         {
             _assets?.Clear();
             _lastUpdated = DateTime.Now;
@@ -252,7 +261,10 @@ namespace AMU.Editor.VrcAssetManager.Schema
             return _assetTypes?.Contains(assetType.Trim()) ?? false;
         }
 
-        public void Optimize()
+        /// <summary>
+        /// ライブラリを最適化します（内部使用専用）
+        /// </summary>
+        internal void Optimize()
         {
             _lastUpdated = DateTime.Now;
         }

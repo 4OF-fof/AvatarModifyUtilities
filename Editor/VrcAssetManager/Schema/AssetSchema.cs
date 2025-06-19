@@ -106,41 +106,38 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public string Name
         {
             get => _name ?? string.Empty;
-            set => _name = value?.Trim() ?? string.Empty;
+            private set => _name = value?.Trim() ?? string.Empty;
         }
 
         public string Description
         {
             get => _description ?? string.Empty;
-            set => _description = value?.Trim() ?? string.Empty;
+            private set => _description = value?.Trim() ?? string.Empty;
         }
         public string AuthorName
         {
             get => _authorName ?? string.Empty;
-            set => _authorName = value?.Trim() ?? string.Empty;
+            private set => _authorName = value?.Trim() ?? string.Empty;
         }
 
         public string AssetType
         {
             get => _assetType;
-            set => _assetType = value;
+            private set => _assetType = value;
         }
 
         public IReadOnlyList<string> Tags => _tags ?? new List<string>();
-        public IReadOnlyList<string> Dependencies => _dependencies ?? new List<string>();
-
-        public DateTime CreatedDate
+        public IReadOnlyList<string> Dependencies => _dependencies ?? new List<string>(); public DateTime CreatedDate
         {
             get => _createdDate == default ? DateTime.Now : _createdDate;
-            set => _createdDate = value;
+            private set => _createdDate = value;
         }
 
         public DateTime ModifiedDate
         {
             get => _modifiedDate == default ? DateTime.Now : _modifiedDate;
-            set => _modifiedDate = value;
+            private set => _modifiedDate = value;
         }
-
         public AssetMetadata()
         {
             _name = string.Empty;
@@ -153,73 +150,36 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _modifiedDate = DateTime.Now;
         }
 
-        public void AddTag(string tag)
+        /// <summary>
+        /// AssetMetadataの新しいインスタンスを作成します（内部使用専用）
+        /// </summary>
+        internal AssetMetadata(string name, string description, string authorName, string assetType,
+            List<string> tags = null, List<string> dependencies = null,
+            DateTime? createdDate = null, DateTime? modifiedDate = null)
         {
-            if (string.IsNullOrWhiteSpace(tag)) return;
-
-            _tags ??= new List<string>();
-            var trimmedTag = tag.Trim();
-            if (!_tags.Contains(trimmedTag))
-            {
-                _tags.Add(trimmedTag);
-                _modifiedDate = DateTime.Now;
-            }
+            _name = name?.Trim() ?? string.Empty;
+            _description = description?.Trim() ?? string.Empty;
+            _authorName = authorName?.Trim() ?? string.Empty;
+            _assetType = assetType;
+            _tags = tags ?? new List<string>();
+            _dependencies = dependencies ?? new List<string>();
+            _createdDate = createdDate ?? DateTime.Now;
+            _modifiedDate = modifiedDate ?? DateTime.Now;
         }
 
-        public void RemoveTag(string tag)
-        {
-            if (string.IsNullOrWhiteSpace(tag)) return;
-
-            _tags ??= new List<string>();
-            if (_tags.Remove(tag.Trim()))
-            {
-                _modifiedDate = DateTime.Now;
-            }
-        }
-
-        public void ClearTags()
-        {
-            _tags?.Clear();
-            _modifiedDate = DateTime.Now;
-        }
-
-        public bool HasTag(string tag)
+        /// <summary>
+        /// タグの判定（内部使用専用）
+        /// </summary>
+        internal bool HasTag(string tag)
         {
             if (string.IsNullOrWhiteSpace(tag)) return false;
             return _tags?.Contains(tag.Trim()) ?? false;
         }
 
-        public void AddDependency(string dependency)
-        {
-            if (string.IsNullOrWhiteSpace(dependency)) return;
-
-            _dependencies ??= new List<string>();
-            var trimmedDep = dependency.Trim();
-            if (!_dependencies.Contains(trimmedDep))
-            {
-                _dependencies.Add(trimmedDep);
-                _modifiedDate = DateTime.Now;
-            }
-        }
-
-        public void RemoveDependency(string dependency)
-        {
-            if (string.IsNullOrWhiteSpace(dependency)) return;
-
-            _dependencies ??= new List<string>();
-            if (_dependencies.Remove(dependency.Trim()))
-            {
-                _modifiedDate = DateTime.Now;
-            }
-        }
-
-        public void ClearDependencies()
-        {
-            _dependencies?.Clear();
-            _modifiedDate = DateTime.Now;
-        }
-
-        public bool HasDependency(string dependency)
+        /// <summary>
+        /// 依存関係の判定（内部使用専用）
+        /// </summary>
+        internal bool HasDependency(string dependency)
         {
             if (string.IsNullOrWhiteSpace(dependency)) return false;
             return _dependencies?.Contains(dependency.Trim()) ?? false;
@@ -240,19 +200,19 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public string FilePath
         {
             get => _filePath ?? string.Empty;
-            set => _filePath = value?.Trim() ?? string.Empty;
+            private set => _filePath = value?.Trim() ?? string.Empty;
         }
 
         public string ThumbnailPath
         {
             get => _thumbnailPath ?? string.Empty;
-            set => _thumbnailPath = value?.Trim() ?? string.Empty;
+            private set => _thumbnailPath = value?.Trim() ?? string.Empty;
         }
 
         public long FileSizeBytes
         {
             get => _fileSizeBytes;
-            set => _fileSizeBytes = Math.Max(0, value);
+            private set => _fileSizeBytes = Math.Max(0, value);
         }
 
         public IReadOnlyList<string> ImportFiles => _importFiles ?? new List<string>(); public AssetFileInfo()
@@ -263,26 +223,19 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _importFiles = new List<string>();
         }
 
+        /// <summary>
+        /// AssetFileInfoの新しいインスタンスを作成します（内部使用専用）
+        /// </summary>
+        internal AssetFileInfo(string filePath, string thumbnailPath = "", long fileSizeBytes = 0, List<string> importFiles = null)
+        {
+            _filePath = filePath?.Trim() ?? string.Empty;
+            _thumbnailPath = thumbnailPath?.Trim() ?? string.Empty;
+            _fileSizeBytes = Math.Max(0, fileSizeBytes);
+            _importFiles = importFiles ?? new List<string>();
+        }
+
         public bool FileExists => !string.IsNullOrEmpty(_filePath) && File.Exists(_filePath);
         public bool ThumbnailExists => !string.IsNullOrEmpty(_thumbnailPath) && File.Exists(_thumbnailPath);
-
-        public void AddImportFile(string filePath)
-        {
-            if (string.IsNullOrWhiteSpace(filePath)) return;
-
-            _importFiles ??= new List<string>();
-            var trimmedPath = filePath.Trim();
-            if (!_importFiles.Contains(trimmedPath))
-            {
-                _importFiles.Add(trimmedPath);
-            }
-        }
-
-        public void RemoveImportFile(string filePath)
-        {
-            if (string.IsNullOrWhiteSpace(filePath)) return;
-            _importFiles?.Remove(filePath.Trim());
-        }
     }
 
     /// <summary>
@@ -298,19 +251,19 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public bool IsFavorite
         {
             get => _isFavorite;
-            set => _isFavorite = value;
+            private set => _isFavorite = value;
         }
 
         public bool IsGroup
         {
             get => _isGroup;
-            set => _isGroup = value;
+            private set => _isGroup = value;
         }
 
         public bool IsArchived
         {
             get => _isArchived;
-            set => _isArchived = value;
+            private set => _isArchived = value;
         }
 
         public AssetState()
@@ -318,6 +271,16 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _isFavorite = false;
             _isGroup = false;
             _isArchived = false;
+        }
+
+        /// <summary>
+        /// AssetStateの新しいインスタンスを作成します（内部使用専用）
+        /// </summary>
+        internal AssetState(bool isFavorite, bool isGroup, bool isArchived)
+        {
+            _isFavorite = isFavorite;
+            _isGroup = isGroup;
+            _isArchived = isArchived;
         }
     }
 
@@ -334,40 +297,41 @@ namespace AMU.Editor.VrcAssetManager.Schema
         [SerializeField] private BoothItemSchema _boothItem;
         [SerializeField] private DateTime _lastAccessed;
         [SerializeField] private List<string> _childAssetIds;
+
         public string ParentGroupId
         {
             get => _parentGroupId ?? string.Empty;
-            set => _parentGroupId = value?.Trim() ?? string.Empty;
+            private set => _parentGroupId = value?.Trim() ?? string.Empty;
         }
 
         public AssetMetadata Metadata
         {
             get => _metadata ?? (_metadata = new AssetMetadata());
-            set => _metadata = value ?? new AssetMetadata();
+            private set => _metadata = value ?? new AssetMetadata();
         }
 
         public AssetFileInfo FileInfo
         {
             get => _fileInfo ?? (_fileInfo = new AssetFileInfo());
-            set => _fileInfo = value ?? new AssetFileInfo();
+            private set => _fileInfo = value ?? new AssetFileInfo();
         }
 
         public AssetState State
         {
             get => _state ?? (_state = new AssetState());
-            set => _state = value ?? new AssetState();
+            private set => _state = value ?? new AssetState();
         }
 
         public BoothItemSchema BoothItem
         {
             get => _boothItem;
-            set => _boothItem = value;
+            private set => _boothItem = value;
         }
 
         public DateTime LastAccessed
         {
             get => _lastAccessed == default ? DateTime.Now : _lastAccessed;
-            set => _lastAccessed = value;
+            private set => _lastAccessed = value;
         }
 
         public IReadOnlyList<string> ChildAssetIds => _childAssetIds ?? new List<string>();
@@ -383,100 +347,93 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _childAssetIds = null;
         }
 
-        public AssetSchema(string name, string assetType, string filePath) : this()
+        /// <summary>
+        /// AssetSchemaの新しいインスタンスを作成します
+        /// </summary>
+        internal AssetSchema(string name, string assetType, string filePath) : this()
         {
-            _metadata.Name = name;
-            _metadata.AssetType = assetType;
-            _fileInfo.FilePath = filePath;
+            _metadata = new AssetMetadata(name, "", "", assetType);
+            _fileInfo = new AssetFileInfo(filePath);
         }
 
-        public void UpdateLastAccessed()
+        /// <summary>
+        /// AssetSchemaの新しいインスタンスを作成します（内部使用専用）
+        /// </summary>
+        internal AssetSchema(string parentGroupId, AssetMetadata metadata, AssetFileInfo fileInfo,
+            AssetState state, BoothItemSchema boothItem = null, DateTime? lastAccessed = null,
+            List<string> childAssetIds = null)
+        {
+            _parentGroupId = parentGroupId?.Trim() ?? string.Empty;
+            _metadata = metadata ?? new AssetMetadata();
+            _fileInfo = fileInfo ?? new AssetFileInfo();
+            _state = state ?? new AssetState();
+            _boothItem = boothItem;
+            _lastAccessed = lastAccessed ?? DateTime.Now;
+            _childAssetIds = childAssetIds;
+        }
+
+        /// <summary>
+        /// 最終アクセス日時を更新します（内部使用専用）
+        /// </summary>
+        internal void UpdateLastAccessed()
         {
             _lastAccessed = DateTime.Now;
         }
 
         public AssetSchema Clone()
         {
-            return new AssetSchema
-            {
-                _parentGroupId = _parentGroupId,
-                _metadata = new AssetMetadata
-                {
-                    Name = _metadata.Name,
-                    Description = _metadata.Description,
-                    AuthorName = _metadata.AuthorName,
-                    AssetType = _metadata.AssetType,
-                    CreatedDate = _metadata.CreatedDate,
-                    ModifiedDate = _metadata.ModifiedDate
-                },
-                _fileInfo = new AssetFileInfo
-                {
-                    FilePath = _fileInfo.FilePath,
-                    ThumbnailPath = _fileInfo.ThumbnailPath,
-                    FileSizeBytes = _fileInfo.FileSizeBytes
-                },
-                _state = new AssetState
-                {
-                    IsFavorite = _state.IsFavorite,
-                    IsGroup = _state.IsGroup,
-                    IsArchived = _state.IsArchived
-                },
-                _boothItem = _boothItem?.Clone(),
-                _lastAccessed = _lastAccessed,
-                _childAssetIds = _childAssetIds != null ? new List<string>(_childAssetIds) : null
-            };
+            var clonedMetadata = new AssetMetadata(
+                _metadata.Name,
+                _metadata.Description,
+                _metadata.AuthorName,
+                _metadata.AssetType,
+                new List<string>(_metadata.Tags),
+                new List<string>(_metadata.Dependencies),
+                _metadata.CreatedDate,
+                _metadata.ModifiedDate
+            );
+
+            var clonedFileInfo = new AssetFileInfo(
+                _fileInfo.FilePath,
+                _fileInfo.ThumbnailPath,
+                _fileInfo.FileSizeBytes,
+                new List<string>(_fileInfo.ImportFiles)
+            );
+
+            var clonedState = new AssetState(
+                _state.IsFavorite,
+                _state.IsGroup,
+                _state.IsArchived
+            );
+
+            return new AssetSchema(
+                _parentGroupId,
+                clonedMetadata,
+                clonedFileInfo,
+                clonedState,
+                _boothItem?.Clone(),
+                _lastAccessed,
+                _childAssetIds != null ? new List<string>(_childAssetIds) : null
+            );
         }
 
-        // タグとDependencyの管理はAssetMetadataに、インポートファイルはAssetFileInfoに委譲
-        public void AddTag(string tag) => _metadata.AddTag(tag);
-        public void RemoveTag(string tag) => _metadata.RemoveTag(tag);
-        public bool HasTag(string tag) => _metadata.HasTag(tag);
+        /// <summary>
+        /// タグの判定（内部使用専用）
+        /// </summary>
+        internal bool HasTag(string tag) => _metadata.HasTag(tag);
 
-        public void AddDependency(string dependency) => _metadata.AddDependency(dependency);
-        public void RemoveDependency(string dependency) => _metadata.RemoveDependency(dependency);
-        public bool HasDependency(string dependency) => _metadata.HasDependency(dependency);
-        public void AddImportFile(string filePath) => _fileInfo.AddImportFile(filePath);
-        public void RemoveImportFile(string filePath) => _fileInfo.RemoveImportFile(filePath);
+        /// <summary>
+        /// 依存関係の判定（内部使用専用）
+        /// </summary>
+        internal bool HasDependency(string dependency) => _metadata.HasDependency(dependency);
 
-        // 子アセットの管理
-        public void AddChildAsset(string childAssetId)
-        {
-            if (string.IsNullOrWhiteSpace(childAssetId)) return;
-
-            _childAssetIds ??= new List<string>();
-            var trimmedId = childAssetId.Trim();
-            if (!_childAssetIds.Contains(trimmedId))
-            {
-                _childAssetIds.Add(trimmedId);
-            }
-        }
-
-        public void RemoveChildAsset(string childAssetId)
-        {
-            if (string.IsNullOrWhiteSpace(childAssetId)) return;
-            _childAssetIds?.Remove(childAssetId.Trim());
-        }
-
-        public void ClearChildAssets()
-        {
-            _childAssetIds?.Clear();
-        }
-
-        public bool HasChildAsset(string childAssetId)
+        /// <summary>
+        /// 子アセットの判定（内部使用専用）
+        /// </summary>
+        internal bool HasChildAsset(string childAssetId)
         {
             if (string.IsNullOrWhiteSpace(childAssetId)) return false;
             return _childAssetIds?.Contains(childAssetId.Trim()) ?? false;
-        }
-
-        // 親グループの管理
-        public void SetParentGroup(string parentGroupId)
-        {
-            _parentGroupId = parentGroupId?.Trim() ?? string.Empty;
-        }
-
-        public void RemoveFromParentGroup()
-        {
-            _parentGroupId = string.Empty;
         }
     }
 }

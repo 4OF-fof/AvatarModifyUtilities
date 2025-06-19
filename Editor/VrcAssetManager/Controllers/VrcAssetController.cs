@@ -266,5 +266,798 @@ namespace AMU.Editor.VrcAssetManager.Controllers
         {
             return asset != null && string.IsNullOrEmpty(asset.ParentGroupId);
         }
+
+        #region Asset Metadata Operations
+
+        /// <summary>
+        /// アセットのメタデータを更新します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <param name="name">名前</param>
+        /// <param name="description">説明</param>
+        /// <param name="authorName">作者名</param>
+        /// <param name="assetType">アセットタイプ</param>
+        /// <returns>更新に成功した場合true</returns>
+        public static bool UpdateMetadata(AssetId assetId, string name = null, string description = null,
+            string authorName = null, string assetType = null)
+        {
+            try
+            {
+                var library = AssetLibraryController.LoadLibrary();
+                if (library == null) return false;
+
+                var asset = library.GetAsset(assetId);
+                if (asset == null) return false;
+
+                var updatedMetadata = new AssetMetadata(
+                    name ?? asset.Metadata.Name,
+                    description ?? asset.Metadata.Description,
+                    authorName ?? asset.Metadata.AuthorName,
+                    assetType ?? asset.Metadata.AssetType,
+                    new List<string>(asset.Metadata.Tags),
+                    new List<string>(asset.Metadata.Dependencies),
+                    asset.Metadata.CreatedDate,
+                    DateTime.Now
+                );
+
+                var updatedAsset = new AssetSchema(
+                    asset.ParentGroupId,
+                    updatedMetadata,
+                    asset.FileInfo,
+                    asset.State,
+                    asset.BoothItem,
+                    asset.LastAccessed,
+                    new List<string>(asset.ChildAssetIds)
+                );
+
+                library.AddAsset(assetId, updatedAsset);
+                return AssetLibraryController.SaveLibrary(library);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to update metadata for asset {assetId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// アセットにタグを追加します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <param name="tag">追加するタグ</param>
+        /// <returns>追加に成功した場合true</returns>
+        public static bool AddTag(AssetId assetId, string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag)) return false;
+
+            try
+            {
+                var library = AssetLibraryController.LoadLibrary();
+                if (library == null) return false;
+
+                var asset = library.GetAsset(assetId);
+                if (asset == null) return false;
+
+                var tags = new List<string>(asset.Metadata.Tags);
+                var trimmedTag = tag.Trim();
+                if (tags.Contains(trimmedTag)) return true; // 既に存在する場合は成功とする
+
+                tags.Add(trimmedTag);
+
+                var updatedMetadata = new AssetMetadata(
+                    asset.Metadata.Name,
+                    asset.Metadata.Description,
+                    asset.Metadata.AuthorName,
+                    asset.Metadata.AssetType,
+                    tags,
+                    new List<string>(asset.Metadata.Dependencies),
+                    asset.Metadata.CreatedDate,
+                    DateTime.Now
+                );
+
+                var updatedAsset = new AssetSchema(
+                    asset.ParentGroupId,
+                    updatedMetadata,
+                    asset.FileInfo,
+                    asset.State,
+                    asset.BoothItem,
+                    asset.LastAccessed,
+                    new List<string>(asset.ChildAssetIds)
+                );
+
+                library.AddAsset(assetId, updatedAsset);
+                return AssetLibraryController.SaveLibrary(library);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to add tag to asset {assetId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// アセットからタグを削除します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <param name="tag">削除するタグ</param>
+        /// <returns>削除に成功した場合true</returns>
+        public static bool RemoveTag(AssetId assetId, string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag)) return false;
+
+            try
+            {
+                var library = AssetLibraryController.LoadLibrary();
+                if (library == null) return false;
+
+                var asset = library.GetAsset(assetId);
+                if (asset == null) return false;
+
+                var tags = new List<string>(asset.Metadata.Tags);
+                if (!tags.Remove(tag.Trim())) return true; // 存在しない場合は成功とする
+
+                var updatedMetadata = new AssetMetadata(
+                    asset.Metadata.Name,
+                    asset.Metadata.Description,
+                    asset.Metadata.AuthorName,
+                    asset.Metadata.AssetType,
+                    tags,
+                    new List<string>(asset.Metadata.Dependencies),
+                    asset.Metadata.CreatedDate,
+                    DateTime.Now
+                );
+
+                var updatedAsset = new AssetSchema(
+                    asset.ParentGroupId,
+                    updatedMetadata,
+                    asset.FileInfo,
+                    asset.State,
+                    asset.BoothItem,
+                    asset.LastAccessed,
+                    new List<string>(asset.ChildAssetIds)
+                );
+
+                library.AddAsset(assetId, updatedAsset);
+                return AssetLibraryController.SaveLibrary(library);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to remove tag from asset {assetId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// アセットのタグをクリアします
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <returns>クリアに成功した場合true</returns>
+        public static bool ClearTags(AssetId assetId)
+        {
+            try
+            {
+                var library = AssetLibraryController.LoadLibrary();
+                if (library == null) return false;
+
+                var asset = library.GetAsset(assetId);
+                if (asset == null) return false;
+
+                var updatedMetadata = new AssetMetadata(
+                    asset.Metadata.Name,
+                    asset.Metadata.Description,
+                    asset.Metadata.AuthorName,
+                    asset.Metadata.AssetType,
+                    new List<string>(),
+                    new List<string>(asset.Metadata.Dependencies),
+                    asset.Metadata.CreatedDate,
+                    DateTime.Now
+                );
+
+                var updatedAsset = new AssetSchema(
+                    asset.ParentGroupId,
+                    updatedMetadata,
+                    asset.FileInfo,
+                    asset.State,
+                    asset.BoothItem,
+                    asset.LastAccessed,
+                    new List<string>(asset.ChildAssetIds)
+                );
+
+                library.AddAsset(assetId, updatedAsset);
+                return AssetLibraryController.SaveLibrary(library);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to clear tags for asset {assetId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// アセットが指定されたタグを持っているかを判定します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <param name="tag">タグ</param>
+        /// <returns>タグを持っている場合true</returns>
+        public static bool HasTag(AssetId assetId, string tag)
+        {
+            var asset = GetAsset(assetId);
+            return asset?.HasTag(tag) ?? false;
+        }
+
+        #endregion
+
+        #region Asset Dependency Operations
+
+        /// <summary>
+        /// アセットに依存関係を追加します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <param name="dependency">追加する依存関係</param>
+        /// <returns>追加に成功した場合true</returns>
+        public static bool AddDependency(AssetId assetId, string dependency)
+        {
+            if (string.IsNullOrWhiteSpace(dependency)) return false;
+
+            try
+            {
+                var library = AssetLibraryController.LoadLibrary();
+                if (library == null) return false;
+
+                var asset = library.GetAsset(assetId);
+                if (asset == null) return false;
+
+                var dependencies = new List<string>(asset.Metadata.Dependencies);
+                var trimmedDep = dependency.Trim();
+                if (dependencies.Contains(trimmedDep)) return true; // 既に存在する場合は成功とする
+
+                dependencies.Add(trimmedDep);
+
+                var updatedMetadata = new AssetMetadata(
+                    asset.Metadata.Name,
+                    asset.Metadata.Description,
+                    asset.Metadata.AuthorName,
+                    asset.Metadata.AssetType,
+                    new List<string>(asset.Metadata.Tags),
+                    dependencies,
+                    asset.Metadata.CreatedDate,
+                    DateTime.Now
+                );
+
+                var updatedAsset = new AssetSchema(
+                    asset.ParentGroupId,
+                    updatedMetadata,
+                    asset.FileInfo,
+                    asset.State,
+                    asset.BoothItem,
+                    asset.LastAccessed,
+                    new List<string>(asset.ChildAssetIds)
+                );
+
+                library.AddAsset(assetId, updatedAsset);
+                return AssetLibraryController.SaveLibrary(library);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to add dependency to asset {assetId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// アセットから依存関係を削除します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <param name="dependency">削除する依存関係</param>
+        /// <returns>削除に成功した場合true</returns>
+        public static bool RemoveDependency(AssetId assetId, string dependency)
+        {
+            if (string.IsNullOrWhiteSpace(dependency)) return false;
+
+            try
+            {
+                var library = AssetLibraryController.LoadLibrary();
+                if (library == null) return false;
+
+                var asset = library.GetAsset(assetId);
+                if (asset == null) return false;
+
+                var dependencies = new List<string>(asset.Metadata.Dependencies);
+                if (!dependencies.Remove(dependency.Trim())) return true; // 存在しない場合は成功とする
+
+                var updatedMetadata = new AssetMetadata(
+                    asset.Metadata.Name,
+                    asset.Metadata.Description,
+                    asset.Metadata.AuthorName,
+                    asset.Metadata.AssetType,
+                    new List<string>(asset.Metadata.Tags),
+                    dependencies,
+                    asset.Metadata.CreatedDate,
+                    DateTime.Now
+                );
+
+                var updatedAsset = new AssetSchema(
+                    asset.ParentGroupId,
+                    updatedMetadata,
+                    asset.FileInfo,
+                    asset.State,
+                    asset.BoothItem,
+                    asset.LastAccessed,
+                    new List<string>(asset.ChildAssetIds)
+                );
+
+                library.AddAsset(assetId, updatedAsset);
+                return AssetLibraryController.SaveLibrary(library);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to remove dependency from asset {assetId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// アセットの依存関係をクリアします
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <returns>クリアに成功した場合true</returns>
+        public static bool ClearDependencies(AssetId assetId)
+        {
+            try
+            {
+                var library = AssetLibraryController.LoadLibrary();
+                if (library == null) return false;
+
+                var asset = library.GetAsset(assetId);
+                if (asset == null) return false;
+
+                var updatedMetadata = new AssetMetadata(
+                    asset.Metadata.Name,
+                    asset.Metadata.Description,
+                    asset.Metadata.AuthorName,
+                    asset.Metadata.AssetType,
+                    new List<string>(asset.Metadata.Tags),
+                    new List<string>(),
+                    asset.Metadata.CreatedDate,
+                    DateTime.Now
+                );
+
+                var updatedAsset = new AssetSchema(
+                    asset.ParentGroupId,
+                    updatedMetadata,
+                    asset.FileInfo,
+                    asset.State,
+                    asset.BoothItem,
+                    asset.LastAccessed,
+                    new List<string>(asset.ChildAssetIds)
+                );
+
+                library.AddAsset(assetId, updatedAsset);
+                return AssetLibraryController.SaveLibrary(library);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to clear dependencies for asset {assetId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// アセットが指定された依存関係を持っているかを判定します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <param name="dependency">依存関係</param>
+        /// <returns>依存関係を持っている場合true</returns>
+        public static bool HasDependency(AssetId assetId, string dependency)
+        {
+            var asset = GetAsset(assetId);
+            return asset?.HasDependency(dependency) ?? false;
+        }
+
+        #endregion
+
+        #region Asset File Operations
+
+        /// <summary>
+        /// アセットのファイル情報を更新します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <param name="filePath">ファイルパス</param>
+        /// <param name="thumbnailPath">サムネイルパス</param>
+        /// <param name="fileSizeBytes">ファイルサイズ</param>
+        /// <returns>更新に成功した場合true</returns>
+        public static bool UpdateFileInfo(AssetId assetId, string filePath = null, string thumbnailPath = null, long? fileSizeBytes = null)
+        {
+            try
+            {
+                var library = AssetLibraryController.LoadLibrary();
+                if (library == null) return false;
+
+                var asset = library.GetAsset(assetId);
+                if (asset == null) return false;
+
+                var updatedFileInfo = new AssetFileInfo(
+                    filePath ?? asset.FileInfo.FilePath,
+                    thumbnailPath ?? asset.FileInfo.ThumbnailPath,
+                    fileSizeBytes ?? asset.FileInfo.FileSizeBytes,
+                    new List<string>(asset.FileInfo.ImportFiles)
+                );
+
+                var updatedAsset = new AssetSchema(
+                    asset.ParentGroupId,
+                    asset.Metadata,
+                    updatedFileInfo,
+                    asset.State,
+                    asset.BoothItem,
+                    asset.LastAccessed,
+                    new List<string>(asset.ChildAssetIds)
+                );
+
+                library.AddAsset(assetId, updatedAsset);
+                return AssetLibraryController.SaveLibrary(library);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to update file info for asset {assetId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// アセットにインポートファイルを追加します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <param name="filePath">追加するファイルパス</param>
+        /// <returns>追加に成功した場合true</returns>
+        public static bool AddImportFile(AssetId assetId, string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath)) return false;
+
+            try
+            {
+                var library = AssetLibraryController.LoadLibrary();
+                if (library == null) return false;
+
+                var asset = library.GetAsset(assetId);
+                if (asset == null) return false;
+
+                var importFiles = new List<string>(asset.FileInfo.ImportFiles);
+                var trimmedPath = filePath.Trim();
+                if (importFiles.Contains(trimmedPath)) return true; // 既に存在する場合は成功とする
+
+                importFiles.Add(trimmedPath);
+
+                var updatedFileInfo = new AssetFileInfo(
+                    asset.FileInfo.FilePath,
+                    asset.FileInfo.ThumbnailPath,
+                    asset.FileInfo.FileSizeBytes,
+                    importFiles
+                );
+
+                var updatedAsset = new AssetSchema(
+                    asset.ParentGroupId,
+                    asset.Metadata,
+                    updatedFileInfo,
+                    asset.State,
+                    asset.BoothItem,
+                    asset.LastAccessed,
+                    new List<string>(asset.ChildAssetIds)
+                );
+
+                library.AddAsset(assetId, updatedAsset);
+                return AssetLibraryController.SaveLibrary(library);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to add import file to asset {assetId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// アセットからインポートファイルを削除します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <param name="filePath">削除するファイルパス</param>
+        /// <returns>削除に成功した場合true</returns>
+        public static bool RemoveImportFile(AssetId assetId, string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath)) return false;
+
+            try
+            {
+                var library = AssetLibraryController.LoadLibrary();
+                if (library == null) return false;
+
+                var asset = library.GetAsset(assetId);
+                if (asset == null) return false;
+
+                var importFiles = new List<string>(asset.FileInfo.ImportFiles);
+                if (!importFiles.Remove(filePath.Trim())) return true; // 存在しない場合は成功とする
+
+                var updatedFileInfo = new AssetFileInfo(
+                    asset.FileInfo.FilePath,
+                    asset.FileInfo.ThumbnailPath,
+                    asset.FileInfo.FileSizeBytes,
+                    importFiles
+                );
+
+                var updatedAsset = new AssetSchema(
+                    asset.ParentGroupId,
+                    asset.Metadata,
+                    updatedFileInfo,
+                    asset.State,
+                    asset.BoothItem,
+                    asset.LastAccessed,
+                    new List<string>(asset.ChildAssetIds)
+                );
+
+                library.AddAsset(assetId, updatedAsset);
+                return AssetLibraryController.SaveLibrary(library);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to remove import file from asset {assetId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region Asset State Operations
+
+        /// <summary>
+        /// アセットの状態を更新します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <param name="isFavorite">お気に入り状態</param>
+        /// <param name="isGroup">グループ状態</param>
+        /// <param name="isArchived">アーカイブ状態</param>
+        /// <returns>更新に成功した場合true</returns>
+        public static bool UpdateState(AssetId assetId, bool? isFavorite = null, bool? isGroup = null, bool? isArchived = null)
+        {
+            try
+            {
+                var library = AssetLibraryController.LoadLibrary();
+                if (library == null) return false;
+
+                var asset = library.GetAsset(assetId);
+                if (asset == null) return false;
+
+                var updatedState = new AssetState(
+                    isFavorite ?? asset.State.IsFavorite,
+                    isGroup ?? asset.State.IsGroup,
+                    isArchived ?? asset.State.IsArchived
+                );
+
+                var updatedAsset = new AssetSchema(
+                    asset.ParentGroupId,
+                    asset.Metadata,
+                    asset.FileInfo,
+                    updatedState,
+                    asset.BoothItem,
+                    asset.LastAccessed,
+                    new List<string>(asset.ChildAssetIds)
+                );
+
+                library.AddAsset(assetId, updatedAsset);
+                return AssetLibraryController.SaveLibrary(library);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to update state for asset {assetId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region Asset Group Operations
+
+        /// <summary>
+        /// アセットに子アセットを追加します
+        /// </summary>
+        /// <param name="assetId">親アセットID</param>
+        /// <param name="childAssetId">子アセットID</param>
+        /// <returns>追加に成功した場合true</returns>
+        public static bool AddChildAsset(AssetId assetId, string childAssetId)
+        {
+            if (string.IsNullOrWhiteSpace(childAssetId)) return false;
+
+            try
+            {
+                var library = AssetLibraryController.LoadLibrary();
+                if (library == null) return false;
+
+                var asset = library.GetAsset(assetId);
+                if (asset == null) return false;
+
+                var childAssetIds = new List<string>(asset.ChildAssetIds);
+                var trimmedId = childAssetId.Trim();
+                if (childAssetIds.Contains(trimmedId)) return true; // 既に存在する場合は成功とする
+
+                childAssetIds.Add(trimmedId);
+
+                var updatedAsset = new AssetSchema(
+                    asset.ParentGroupId,
+                    asset.Metadata,
+                    asset.FileInfo,
+                    asset.State,
+                    asset.BoothItem,
+                    asset.LastAccessed,
+                    childAssetIds
+                );
+
+                library.AddAsset(assetId, updatedAsset);
+                return AssetLibraryController.SaveLibrary(library);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to add child asset to asset {assetId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// アセットから子アセットを削除します
+        /// </summary>
+        /// <param name="assetId">親アセットID</param>
+        /// <param name="childAssetId">子アセットID</param>
+        /// <returns>削除に成功した場合true</returns>
+        public static bool RemoveChildAsset(AssetId assetId, string childAssetId)
+        {
+            if (string.IsNullOrWhiteSpace(childAssetId)) return false;
+
+            try
+            {
+                var library = AssetLibraryController.LoadLibrary();
+                if (library == null) return false;
+
+                var asset = library.GetAsset(assetId);
+                if (asset == null) return false;
+
+                var childAssetIds = new List<string>(asset.ChildAssetIds);
+                if (!childAssetIds.Remove(childAssetId.Trim())) return true; // 存在しない場合は成功とする
+
+                var updatedAsset = new AssetSchema(
+                    asset.ParentGroupId,
+                    asset.Metadata,
+                    asset.FileInfo,
+                    asset.State,
+                    asset.BoothItem,
+                    asset.LastAccessed,
+                    childAssetIds
+                );
+
+                library.AddAsset(assetId, updatedAsset);
+                return AssetLibraryController.SaveLibrary(library);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to remove child asset from asset {assetId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// アセットの子アセットをクリアします
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <returns>クリアに成功した場合true</returns>
+        public static bool ClearChildAssets(AssetId assetId)
+        {
+            try
+            {
+                var library = AssetLibraryController.LoadLibrary();
+                if (library == null) return false;
+
+                var asset = library.GetAsset(assetId);
+                if (asset == null) return false;
+
+                var updatedAsset = new AssetSchema(
+                    asset.ParentGroupId,
+                    asset.Metadata,
+                    asset.FileInfo,
+                    asset.State,
+                    asset.BoothItem,
+                    asset.LastAccessed,
+                    new List<string>()
+                );
+
+                library.AddAsset(assetId, updatedAsset);
+                return AssetLibraryController.SaveLibrary(library);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to clear child assets for asset {assetId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// アセットが指定された子アセットを持っているかを判定します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <param name="childAssetId">子アセットID</param>
+        /// <returns>子アセットを持っている場合true</returns>
+        public static bool HasChildAsset(AssetId assetId, string childAssetId)
+        {
+            var asset = GetAsset(assetId);
+            return asset?.HasChildAsset(childAssetId) ?? false;
+        }
+
+        /// <summary>
+        /// アセットの親グループを設定します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <param name="parentGroupId">親グループID</param>
+        /// <returns>設定に成功した場合true</returns>
+        public static bool SetParentGroup(AssetId assetId, string parentGroupId)
+        {
+            try
+            {
+                var library = AssetLibraryController.LoadLibrary();
+                if (library == null) return false;
+
+                var asset = library.GetAsset(assetId);
+                if (asset == null) return false;
+
+                var updatedAsset = new AssetSchema(
+                    parentGroupId?.Trim() ?? string.Empty,
+                    asset.Metadata,
+                    asset.FileInfo,
+                    asset.State,
+                    asset.BoothItem,
+                    asset.LastAccessed,
+                    new List<string>(asset.ChildAssetIds)
+                );
+
+                library.AddAsset(assetId, updatedAsset);
+                return AssetLibraryController.SaveLibrary(library);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to set parent group for asset {assetId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// アセットを親グループから削除します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <returns>削除に成功した場合true</returns>
+        public static bool RemoveFromParentGroup(AssetId assetId)
+        {
+            return SetParentGroup(assetId, string.Empty);
+        }
+
+        /// <summary>
+        /// アセットの最終アクセス日時を更新します
+        /// </summary>
+        /// <param name="assetId">アセットID</param>
+        /// <returns>更新に成功した場合true</returns>
+        public static bool UpdateLastAccessed(AssetId assetId)
+        {
+            try
+            {
+                var library = AssetLibraryController.LoadLibrary();
+                if (library == null) return false;
+
+                var asset = library.GetAsset(assetId);
+                if (asset == null) return false;
+
+                asset.UpdateLastAccessed();
+                library.AddAsset(assetId, asset);
+                return AssetLibraryController.SaveLibrary(library);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to update last accessed for asset {assetId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        #endregion
     }
 }

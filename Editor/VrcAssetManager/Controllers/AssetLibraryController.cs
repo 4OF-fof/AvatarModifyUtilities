@@ -298,14 +298,10 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 Debug.LogError(LocalizationController.GetText("VrcAssetManager_message_error_libraryNull"));
                 return false;
             }
-
             var targetPath = filePath ?? DefaultLibraryPath;
 
             try
             {
-                // ライブラリの最終更新日時を設定
-                library.LastUpdated = DateTime.Now;
-
                 // キャッシュを即座に更新
                 UpdateCache(library, targetPath);
 
