@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using Newtonsoft.Json;
@@ -346,5 +348,302 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 return false;
             }
         }
+
+        #region タグ管理
+
+        /// <summary>
+        /// ライブラリにタグを追加します
+        /// </summary>
+        /// <param name="tag">追加するタグ</param>
+        /// <param name="filePath">対象ライブラリファイルパス</param>
+        /// <returns>追加に成功した場合はtrue</returns>
+        public static bool AddTag(string tag, string filePath = null)
+        {
+            var library = LoadLibrary(filePath);
+            if (library == null) return false;
+
+            var result = library.InternalAddTag(tag);
+            if (result)
+            {
+                SaveLibrary(library, filePath);
+                Debug.Log(string.Format("Tag added to library: {0}", tag));
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// ライブラリからタグを削除します
+        /// </summary>
+        /// <param name="tag">削除するタグ</param>
+        /// <param name="filePath">対象ライブラリファイルパス</param>
+        /// <returns>削除に成功した場合はtrue</returns>
+        public static bool RemoveTag(string tag, string filePath = null)
+        {
+            var library = LoadLibrary(filePath);
+            if (library == null) return false;
+
+            var result = library.InternalRemoveTag(tag);
+            if (result)
+            {
+                SaveLibrary(library, filePath);
+                Debug.Log(string.Format("Tag removed from library: {0}", tag));
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// ライブラリにアセットタイプを追加します
+        /// </summary>
+        /// <param name="assetType">追加するアセットタイプ</param>
+        /// <param name="filePath">対象ライブラリファイルパス</param>
+        /// <returns>追加に成功した場合はtrue</returns>
+        public static bool AddAssetType(string assetType, string filePath = null)
+        {
+            var library = LoadLibrary(filePath);
+            if (library == null) return false;
+
+            var result = library.InternalAddAssetType(assetType);
+            if (result)
+            {
+                SaveLibrary(library, filePath);
+                Debug.Log(string.Format("AssetType added to library: {0}", assetType));
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// ライブラリからアセットタイプを削除します
+        /// </summary>
+        /// <param name="assetType">削除するアセットタイプ</param>
+        /// <param name="filePath">対象ライブラリファイルパス</param>
+        /// <returns>削除に成功した場合はtrue</returns>
+        public static bool RemoveAssetType(string assetType, string filePath = null)
+        {
+            var library = LoadLibrary(filePath);
+            if (library == null) return false;
+
+            var result = library.InternalRemoveAssetType(assetType);
+            if (result)
+            {
+                SaveLibrary(library, filePath);
+                Debug.Log(string.Format("AssetType removed from library: {0}", assetType));
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// ライブラリのすべてのタグをクリアします
+        /// </summary>
+        /// <param name="filePath">対象ライブラリファイルパス</param>
+        /// <returns>クリアに成功した場合はtrue</returns>
+        public static bool ClearTags(string filePath = null)
+        {
+            var library = LoadLibrary(filePath);
+            if (library == null) return false;
+
+            library.InternalClearTags();
+            SaveLibrary(library, filePath);
+            Debug.Log("All tags cleared from library");
+            return true;
+        }
+
+        /// <summary>
+        /// ライブラリのすべてのアセットタイプをクリアします
+        /// </summary>
+        /// <param name="filePath">対象ライブラリファイルパス</param>
+        /// <returns>クリアに成功した場合はtrue</returns>
+        public static bool ClearAssetTypes(string filePath = null)
+        {
+            var library = LoadLibrary(filePath);
+            if (library == null) return false;
+
+            library.InternalClearAssetTypes();
+            SaveLibrary(library, filePath);
+            Debug.Log("All asset types cleared from library");
+            return true;
+        }
+
+        #endregion
+
+        #region 同期・最適化機能
+
+        /// <summary>
+        /// アセット内で使用されているタグを収集してライブラリのタグリストに自動追加します
+        /// </summary>
+        /// <param name="filePath">対象ライブラリファイルパス</param>
+        /// <returns>同期に成功した場合はtrue</returns>
+        public static bool SynchronizeTagsFromAssets(string filePath = null)
+        {
+            var library = LoadLibrary(filePath);
+            if (library == null) return false;
+
+            var initialTagCount = library.TagsCount;
+            var newTags = new HashSet<string>();
+
+            foreach (var asset in library.Assets.Values)
+            {
+                foreach (var tag in asset.Metadata.Tags)
+                {
+                    if (!string.IsNullOrWhiteSpace(tag) && !library.HasTag(tag))
+                    {
+                        newTags.Add(tag.Trim());
+                    }
+                }
+            }
+
+            foreach (var tag in newTags)
+            {
+                library.InternalAddTag(tag);
+            }
+
+            if (newTags.Count > 0)
+            {
+                SaveLibrary(library, filePath);
+                Debug.Log(string.Format("Synchronized {0} tags from assets to library", newTags.Count));
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// アセット内で使用されているアセットタイプを収集してライブラリのアセットタイプリストに自動追加します
+        /// </summary>
+        /// <param name="filePath">対象ライブラリファイルパス</param>
+        /// <returns>同期に成功した場合はtrue</returns>
+        public static bool SynchronizeAssetTypesFromAssets(string filePath = null)
+        {
+            var library = LoadLibrary(filePath);
+            if (library == null) return false;
+
+            var newAssetTypes = new HashSet<string>();
+
+            foreach (var asset in library.Assets.Values)
+            {
+                var assetType = asset.Metadata.AssetType;
+                if (!string.IsNullOrWhiteSpace(assetType) && !library.HasAssetType(assetType))
+                {
+                    newAssetTypes.Add(assetType.Trim());
+                }
+            }
+
+            foreach (var assetType in newAssetTypes)
+            {
+                library.InternalAddAssetType(assetType);
+            }
+
+            if (newAssetTypes.Count > 0)
+            {
+                SaveLibrary(library, filePath);
+                Debug.Log(string.Format("Synchronized {0} asset types from assets to library", newAssetTypes.Count));
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 未使用のタグをライブラリから削除します
+        /// </summary>
+        /// <param name="filePath">対象ライブラリファイルパス</param>
+        /// <returns>クリーンアップに成功した場合はtrue</returns>
+        public static bool CleanupUnusedTags(string filePath = null)
+        {
+            var library = LoadLibrary(filePath);
+            if (library == null) return false;
+
+            var usedTags = new HashSet<string>();
+            foreach (var asset in library.Assets.Values)
+            {
+                foreach (var tag in asset.Metadata.Tags)
+                {
+                    usedTags.Add(tag);
+                }
+            }
+
+            var tagsToRemove = library.Tags.Where(tag => !usedTags.Contains(tag)).ToList();
+            foreach (var tag in tagsToRemove)
+            {
+                library.InternalRemoveTag(tag);
+            }
+
+            if (tagsToRemove.Count > 0)
+            {
+                SaveLibrary(library, filePath);
+                Debug.Log(string.Format("Cleaned up {0} unused tags from library", tagsToRemove.Count));
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 未使用のアセットタイプをライブラリから削除します
+        /// </summary>
+        /// <param name="filePath">対象ライブラリファイルパス</param>
+        /// <returns>クリーンアップに成功した場合はtrue</returns>
+        public static bool CleanupUnusedAssetTypes(string filePath = null)
+        {
+            var library = LoadLibrary(filePath);
+            if (library == null) return false;
+
+            var usedAssetTypes = new HashSet<string>();
+            foreach (var asset in library.Assets.Values)
+            {
+                if (!string.IsNullOrWhiteSpace(asset.Metadata.AssetType))
+                {
+                    usedAssetTypes.Add(asset.Metadata.AssetType);
+                }
+            }
+
+            var assetTypesToRemove = library.AssetTypes.Where(assetType => !usedAssetTypes.Contains(assetType)).ToList();
+            foreach (var assetType in assetTypesToRemove)
+            {
+                library.InternalRemoveAssetType(assetType);
+            }
+
+            if (assetTypesToRemove.Count > 0)
+            {
+                SaveLibrary(library, filePath);
+                Debug.Log(string.Format("Cleaned up {0} unused asset types from library", assetTypesToRemove.Count));
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// ライブラリを最適化します（アセットからの同期と未使用項目のクリーンアップを実行）
+        /// </summary>
+        /// <param name="filePath">対象ライブラリファイルパス</param>
+        /// <returns>最適化に成功した場合はtrue</returns>
+        public static bool OptimizeLibrary(string filePath = null)
+        {
+            try
+            {
+                Debug.Log("Starting library optimization...");
+
+                // アセットからタグとアセットタイプを同期
+                SynchronizeTagsFromAssets(filePath);
+                SynchronizeAssetTypesFromAssets(filePath);
+
+                // 未使用のタグとアセットタイプを削除
+                CleanupUnusedTags(filePath);
+                CleanupUnusedAssetTypes(filePath);
+
+                var library = LoadLibrary(filePath);
+                if (library != null)
+                {
+                    library.Optimize();
+                    SaveLibrary(library, filePath);
+                }
+
+                Debug.Log("Library optimization completed successfully");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(string.Format("Library optimization failed: {0}", ex.Message));
+                return false;
+            }
+        }
+
+        #endregion
     }
 }

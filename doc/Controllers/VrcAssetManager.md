@@ -398,20 +398,130 @@ JSONファイルからAssetLibraryを読み込みます。キャッシュが有�
 - **キャッシュ機能**: 同一ファイルで変更がない場合はキャッシュから高速取得
 - ファイルが存在しない場合は新しいライブラリを作成
 - JSON解析エラー時は新しいライブラリを作成してエラーログを出力
-- 読み込み成功時はアセット数とグループ数をログ出力
+
+##### タグ管理
+```csharp
+public static bool AddTag(string tag, string filePath = null)
+public static bool RemoveTag(string tag, string filePath = null)
+public static bool ClearTags(string filePath = null)
+```
+
+**AddTag():**
+ライブラリにタグを追加します。重複する場合は追加されません。
+
+**RemoveTag():**
+ライブラリからタグを削除します。
+
+**ClearTags():**
+ライブラリのすべてのタグをクリアします。
+
+**パラメータ:**
+- `tag`: 対象のタグ（AddTag/RemoveTagのみ）
+- `filePath`: 対象ライブラリファイルパス（nullの場合はDefaultLibraryPathを使用）
+
+**戻り値:**
+- `bool`: 操作に成功した場合true
 
 **使用例:**
 ```csharp
-// デフォルトパスから読み込み（キャッシュ有効）
-var library = AssetLibraryController.LoadLibrary();
+// タグを追加
+bool tagAdded = AssetLibraryController.AddTag("Avatar");
+bool clothingAdded = AssetLibraryController.AddTag("Clothing");
 
-// 指定パスから読み込み
-var customLibrary = AssetLibraryController.LoadLibrary(@"C:\MyLibrary.json");
+// タグを削除
+bool tagRemoved = AssetLibraryController.RemoveTag("Avatar");
 
-// 強制再読み込み（キャッシュ無視）
-var reloadedLibrary = AssetLibraryController.ForceReloadLibrary();
+// すべてのタグをクリア
+bool tagsCleared = AssetLibraryController.ClearTags();
+```
 
-Debug.Log($"読み込み完了: アセット数={library.AssetCount}, グループ数={library.GroupCount}");
+##### アセットタイプ管理
+```csharp
+public static bool AddAssetType(string assetType, string filePath = null)
+public static bool RemoveAssetType(string assetType, string filePath = null)
+public static bool ClearAssetTypes(string filePath = null)
+```
+
+**AddAssetType():**
+ライブラリにアセットタイプを追加します。重複する場合は追加されません。
+
+**RemoveAssetType():**
+ライブラリからアセットタイプを削除します。
+
+**ClearAssetTypes():**
+ライブラリのすべてのアセットタイプをクリアします。
+
+**パラメータ:**
+- `assetType`: 対象のアセットタイプ（AddAssetType/RemoveAssetTypeのみ）
+- `filePath`: 対象ライブラリファイルパス（nullの場合はDefaultLibraryPathを使用）
+
+**戻り値:**
+- `bool`: 操作に成功した場合true
+
+**使用例:**
+```csharp
+// アセットタイプを追加
+bool avatarTypeAdded = AssetLibraryController.AddAssetType("Avatar");
+bool prefabTypeAdded = AssetLibraryController.AddAssetType("Prefab");
+
+// アセットタイプを削除
+bool typeRemoved = AssetLibraryController.RemoveAssetType("Avatar");
+
+// すべてのアセットタイプをクリア
+bool typesCleared = AssetLibraryController.ClearAssetTypes();
+```
+
+##### 同期・最適化機能
+```csharp
+public static bool SynchronizeTagsFromAssets(string filePath = null)
+public static bool SynchronizeAssetTypesFromAssets(string filePath = null)
+public static bool CleanupUnusedTags(string filePath = null)
+public static bool CleanupUnusedAssetTypes(string filePath = null)
+public static bool OptimizeLibrary(string filePath = null)
+```
+
+**SynchronizeTagsFromAssets():**
+アセット内で使用されているタグを収集してライブラリのタグリストに自動追加します。
+
+**SynchronizeAssetTypesFromAssets():**
+アセット内で使用されているアセットタイプを収集してライブラリのアセットタイプリストに自動追加します。
+
+**CleanupUnusedTags():**
+アセットで使用されていないタグをライブラリから削除します。
+
+**CleanupUnusedAssetTypes():**
+アセットで使用されていないアセットタイプをライブラリから削除します。
+
+**OptimizeLibrary():**
+上記の同期・クリーンアップ処理をすべて実行してライブラリを最適化します。
+
+**パラメータ:**
+- `filePath`: 対象ライブラリファイルパス（nullの場合はDefaultLibraryPathを使用）
+
+**戻り値:**
+- `bool`: 操作に成功した場合true
+
+**使用例:**
+```csharp
+// アセットからタグを同期
+bool tagsSynced = AssetLibraryController.SynchronizeTagsFromAssets();
+
+// アセットからアセットタイプを同期
+bool typesSynced = AssetLibraryController.SynchronizeAssetTypesFromAssets();
+
+// 未使用のタグを削除
+bool tagsCleanedUp = AssetLibraryController.CleanupUnusedTags();
+
+// 未使用のアセットタイプを削除
+bool typesCleanedUp = AssetLibraryController.CleanupUnusedAssetTypes();
+
+// ライブラリ全体を最適化
+bool optimized = AssetLibraryController.OptimizeLibrary();
+
+if (optimized)
+{
+    Debug.Log("ライブラリが最適化されました");
+}
 ```
 
 ##### ファイル存在確認
