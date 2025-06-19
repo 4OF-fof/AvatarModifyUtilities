@@ -9,7 +9,7 @@ namespace AMU.Editor.VrcAssetManager.Controllers
 {
     public class AssetLibraryController
     {
-        #region Library
+        #region Library Management
 
         private DateTime lastUpdated;
         public AssetLibrarySchema library { get; private set; }
@@ -89,6 +89,33 @@ namespace AMU.Editor.VrcAssetManager.Controllers
                 Debug.LogError($"Failed to force save asset library: {ex.Message}");
                 return false;
             }
+        }
+        #endregion
+
+        #region Asset Management
+        public bool AddAsset(AssetSchema asset)
+        {
+            if (library == null || asset == null || library.Assets.ContainsKey(asset.AssetId))
+            {
+                Debug.LogError("Invalid asset or library not initialized.");
+                return false;
+            }
+
+            library.AddAsset(asset);
+            return true;
+        }
+
+        public bool AddTestAsset()
+        {
+            if (library == null)
+            {
+                Debug.LogError("Asset library is not initialized.");
+                return false;
+            }
+
+            var testAsset = new AssetSchema();
+
+            return library.AddAsset(testAsset);
         }
         #endregion
     }
