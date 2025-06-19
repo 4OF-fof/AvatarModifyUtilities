@@ -114,6 +114,15 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
             }
             EditorGUILayout.EndHorizontal();
 
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("アセットを追加"))
+            {
+                bool result = _assetLibraryController.AddTestAsset();
+                LogMessage($"テストアセット追加: {(result ? "成功" : "失敗")}");
+                if (result) ShowLibraryInfo();
+            }
+            EditorGUILayout.EndHorizontal();
+
             EditorGUILayout.Space();
 
             // ログ表示エリア
