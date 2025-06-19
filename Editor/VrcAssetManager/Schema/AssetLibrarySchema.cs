@@ -151,6 +151,45 @@ namespace AMU.Editor.VrcAssetManager.Schema
         }
         #endregion
 
+        #region AssetType Methods
+        public bool AddAssetType(string assetType)
+        {
+            if (string.IsNullOrWhiteSpace(assetType) || assetTypes.Contains(assetType))
+                return false;
+
+            assetTypes.Add(assetType.Trim());
+            LastUpdated = DateTime.Now;
+            return true;
+        }
+
+        public bool RemoveAssetType(string assetType)
+        {
+            if (string.IsNullOrWhiteSpace(assetType) || !assetTypes.Contains(assetType))
+                return false;
+
+            assetTypes.Remove(assetType);
+            LastUpdated = DateTime.Now;
+            return true;
+        }
+
+        public bool AssetTypeExists(string assetType)
+        {
+            return !string.IsNullOrWhiteSpace(assetType) && assetTypes.Contains(assetType);
+        }
+
+        public List<string> GetAllAssetTypes()
+        {
+            return assetTypes.ToList();
+        }
+
+        public void ClearAssetTypes()
+        {
+            assetTypes.Clear();
+            LastUpdated = DateTime.Now;
+        }
+        #endregion
+
+        #region Serialization
         public void OnBeforeSerialize()
         {
             lastUpdatedSerialized = lastUpdated.ToString("O");
@@ -167,5 +206,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
                 lastUpdated = DateTime.Now;
             }
         }
+        #endregion
     }
 }
