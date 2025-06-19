@@ -97,6 +97,9 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public bool Equals(AssetId other) => _value == other._value;
         public override string ToString() => _value ?? string.Empty;
 
+        public override bool Equals(object obj) => obj is AssetId other && Equals(other);
+        public override int GetHashCode() => _value?.GetHashCode() ?? 0;
+
         public static bool operator ==(AssetId left, AssetId right) => left.Equals(right);
         public static bool operator !=(AssetId left, AssetId right) => !left.Equals(right);
 
