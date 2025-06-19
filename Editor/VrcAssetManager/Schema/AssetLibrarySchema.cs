@@ -11,7 +11,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         private Dictionary<Guid, AssetSchema> assets;
         private List<string> tags;
         private List<string> assetTypes;
-        
+
         public AssetLibrarySchema()
         {
             lastUpdated = DateTime.Now;
@@ -41,34 +41,31 @@ namespace AMU.Editor.VrcAssetManager.Schema
         #endregion
 
         #region Asset Methods
-        public bool AddAsset(AssetSchema asset)
+        public void AddAsset(AssetSchema asset)
         {
             if (asset == null || assets.ContainsKey(asset.AssetId))
-                return false;
+                throw new ArgumentException("Asset is null or already exists in the library.");
 
             assets[asset.AssetId] = asset;
             LastUpdated = DateTime.Now;
-            return true;
         }
 
-        public bool UpdateAsset(AssetSchema asset)
+        public void UpdateAsset(AssetSchema asset)
         {
             if (asset == null || !assets.ContainsKey(asset.AssetId))
-                return false;
+                throw new ArgumentException("Asset is null or does not exist in the library.");
 
             assets[asset.AssetId] = asset;
             LastUpdated = DateTime.Now;
-            return true;
         }
-        
-        public bool RemoveAsset(Guid assetId)
+
+        public void RemoveAsset(Guid assetId)
         {
             if (assetId == Guid.Empty || !assets.ContainsKey(assetId))
-                return false;
+                throw new ArgumentException("Asset ID is invalid or does not exist in the library.");
 
             assets.Remove(assetId);
             LastUpdated = DateTime.Now;
-            return true;
         }
 
         public AssetSchema GetAsset(Guid assetId)
@@ -108,24 +105,21 @@ namespace AMU.Editor.VrcAssetManager.Schema
         #endregion
 
         #region Tag Methods
-        public bool AddTag(string tag)
+        public void AddTag(string tag)
         {
             if (string.IsNullOrWhiteSpace(tag) || tags.Contains(tag))
-                return false;
+                throw new ArgumentException("Tag is null, empty, or already exists in the library.");
 
             tags.Add(tag.Trim());
             LastUpdated = DateTime.Now;
-            return true;
         }
 
-        public bool RemoveTag(string tag)
+        public void RemoveTag(string tag)
         {
             if (string.IsNullOrWhiteSpace(tag) || !tags.Contains(tag))
-                return false;
-
+                throw new ArgumentException("Tag is null, empty, or does not exist in the library.");
             tags.Remove(tag);
             LastUpdated = DateTime.Now;
-            return true;
         }
 
         public bool TagExists(string tag)
@@ -146,24 +140,22 @@ namespace AMU.Editor.VrcAssetManager.Schema
         #endregion
 
         #region AssetType Methods
-        public bool AddAssetType(string assetType)
+        public void AddAssetType(string assetType)
         {
             if (string.IsNullOrWhiteSpace(assetType) || assetTypes.Contains(assetType))
-                return false;
+                throw new ArgumentException("Asset type is null, empty, or already exists in the library.");
 
             assetTypes.Add(assetType.Trim());
             LastUpdated = DateTime.Now;
-            return true;
         }
 
-        public bool RemoveAssetType(string assetType)
+        public void RemoveAssetType(string assetType)
         {
             if (string.IsNullOrWhiteSpace(assetType) || !assetTypes.Contains(assetType))
-                return false;
+                throw new ArgumentException("Asset type is null, empty, or does not exist in the library.");
 
             assetTypes.Remove(assetType);
             LastUpdated = DateTime.Now;
-            return true;
         }
 
         public bool AssetTypeExists(string assetType)

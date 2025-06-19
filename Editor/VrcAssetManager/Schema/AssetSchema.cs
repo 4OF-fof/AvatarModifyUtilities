@@ -29,7 +29,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             childAssetIds = new List<string>();
             lastAccessed = DateTime.Now;
         }
-        
+
         #region Properties
         public Guid AssetId => assetId;
 
@@ -72,7 +72,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
 
         public bool HasChildAssets => childAssetIds != null && childAssetIds.Count > 0;
         #endregion
-        }
+    }
     #endregion
 
     #region AssetMetadata
@@ -135,7 +135,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public IReadOnlyList<string> Tags => _tags ?? new List<string>();
 
         public IReadOnlyList<string> Dependencies => _dependencies ?? new List<string>();
-        
+
         public DateTime CreatedDate
         {
             get => _createdDate == default ? DateTime.Now : _createdDate;

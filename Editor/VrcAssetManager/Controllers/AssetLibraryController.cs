@@ -15,108 +15,98 @@ namespace AMU.Editor.VrcAssetManager.Controller
         private DateTime lastUpdated;
         public AssetLibrarySchema library { get; private set; }
 
-        public bool InitializeLibrary()
+        public void InitializeLibrary()
         {
-            if (library != null) return true;
+            if (library != null)
+            {
+                Debug.LogWarning("Asset library is already initialized.");
+                return;
+            }
 
             library = new AssetLibrarySchema();
             lastUpdated = DateTime.Now;
-            return true;
         }
 
-        public bool LoadAssetLibrary(string path)
+        public void ForceInitializeLibrary()
         {
-            if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path))
-            {
-                Debug.LogError($"Asset library file not found at {path}");
-                return false;
-            }
-
-            if (File.GetLastWriteTime(path) < lastUpdated) return true;
-
-            return ForceLoadAssetLibrary(path);
+            library = new AssetLibrarySchema();
+            lastUpdated = DateTime.Now;
         }
 
-        public bool ForceLoadAssetLibrary(string path)
+        public void LoadAssetLibrary(string path)
         {
-            if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path))
-            {
-                Debug.LogError($"Asset library file not found at {path}");
-                return false;
-            }
+            if (string.IsNullOrEmpty(path))
+                throw new ArgumentException("Asset library path cannot be null or empty.");
+            if (!System.IO.File.Exists(path))
+                throw new FileNotFoundException($"Asset library file not found at {path}");
+
+            if (File.GetLastWriteTime(path) < lastUpdated) return;
+
+            ForceLoadAssetLibrary(path);
+        }
+
+        public void ForceLoadAssetLibrary(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                throw new ArgumentException("Asset library path cannot be null or empty.");
+            if (!System.IO.File.Exists(path))
+                throw new FileNotFoundException($"Asset library file not found at {path}");
 
             try
             {
                 var json = System.IO.File.ReadAllText(path);
                 library = JsonConvert.DeserializeObject<AssetLibrarySchema>(json);
                 lastUpdated = File.GetLastWriteTime(path);
-                return true;
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Failed to force load asset library: {ex.Message}");
-                return false;
+                throw new InvalidOperationException($"Failed to load asset library from {path}: {ex.Message}", ex);
             }
         }
 
-        public bool SaveAssetLibrary(string path)
+        public void SaveAssetLibrary(string path)
         {
             if (File.GetLastWriteTime(path) > lastUpdated)
             {
                 Debug.LogWarning($"Asset library file at {path} is newer than the current library. Skipping save.");
-                return false;
+                return;
             }
 
-            return ForceSaveAssetLibrary(path);
+            ForceSaveAssetLibrary(path);
         }
 
-        public bool ForceSaveAssetLibrary(string path)
+        public void ForceSaveAssetLibrary(string path)
         {
             if (library == null)
-            {
-                Debug.LogError("Asset library is not initialized.");
-                return false;
-            }
+                throw new InvalidOperationException("Asset library is not initialized.");
 
             try
             {
                 var json = JsonConvert.SerializeObject(library, Formatting.Indented);
                 System.IO.File.WriteAllText(path, json);
                 lastUpdated = DateTime.Now;
-                return true;
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Failed to force save asset library: {ex.Message}");
-                return false;
+                throw new InvalidOperationException($"Failed to save asset library to {path}: {ex.Message}", ex);
             }
         }
         #endregion
 
         #region Asset Management
-        public bool AddAsset(AssetSchema asset)
+        public void AddAsset(AssetSchema asset)
         {
             if (library == null || asset == null || library.Assets.ContainsKey(asset.AssetId))
-            {
-                Debug.LogError("Invalid asset or library not initialized.");
-                return false;
-            }
+                throw new ArgumentException("Asset is null or already exists in the library.");
 
             library.AddAsset(asset);
-            return true;
         }
 
-        public bool AddTestAsset()
+        public void AddTestAsset()
         {
-            if (library == null)
-            {
-                Debug.LogError("Asset library is not initialized.");
-                return false;
-            }
-
             var testAsset = new AssetSchema();
 
-            return library.AddAsset(testAsset);
+            AddAsset(testAsset);
         }
         #endregion
     }
