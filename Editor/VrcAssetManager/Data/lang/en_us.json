@@ -90,7 +90,8 @@
   "VrcAssetManager_message_error_librarySaveFailed": "Failed to save library to {0}: {1}",
   "VrcAssetManager_message_warning_libraryFileNotFound": "Library file not found: {0}",
   "VrcAssetManager_message_warning_emptyLibraryFile": "Library file is empty: {0}",
-  "VrcAssetManager_message_error_libraryDeserializeFailed": "Failed to deserialize library from: {0}",  "VrcAssetManager_message_success_libraryLoaded": "Library loaded successfully from: {0} (Assets: {1}, Groups: {2})",
+  "VrcAssetManager_message_error_libraryDeserializeFailed": "Failed to deserialize library from: {0}",
+  "VrcAssetManager_message_success_libraryLoaded": "Library loaded successfully from: {0} (Assets: {1})",
   "VrcAssetManager_message_error_libraryLoadFailed": "Failed to load library from {0}: {1}",
   "VrcAssetManager_message_error_fileInfoFailed": "Failed to get file info for {0}: {1}",
   "VrcAssetManager_message_error_libraryValidationFailed": "Library validation failed for {0}: {1}"

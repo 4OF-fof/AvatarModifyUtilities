@@ -90,7 +90,8 @@
   "VrcAssetManager_message_error_librarySaveFailed": "ライブラリの保存に失敗しました {0}: {1}",
   "VrcAssetManager_message_warning_libraryFileNotFound": "ライブラリファイルが見つかりません: {0}",
   "VrcAssetManager_message_warning_emptyLibraryFile": "ライブラリファイルが空です: {0}",
-  "VrcAssetManager_message_error_libraryDeserializeFailed": "ライブラリのデシリアライズに失敗しました: {0}",  "VrcAssetManager_message_success_libraryLoaded": "ライブラリを読み込みました: {0} (アセット: {1}, グループ: {2})",
+  "VrcAssetManager_message_error_libraryDeserializeFailed": "ライブラリのデシリアライズに失敗しました: {0}",
+  "VrcAssetManager_message_success_libraryLoaded": "ライブラリを読み込みました: {0} (アセット数: {1})",
   "VrcAssetManager_message_error_libraryLoadFailed": "ライブラリの読み込みに失敗しました {0}: {1}",
   "VrcAssetManager_message_error_fileInfoFailed": "ファイル情報の取得に失敗しました {0}: {1}",
   "VrcAssetManager_message_error_libraryValidationFailed": "ライブラリの検証に失敗しました {0}: {1}"
