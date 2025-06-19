@@ -302,4 +302,5 @@ namespace AMU.Editor.VrcAssetManager.Schema
         }
         #endregion
     }
+    #endregion
 }
