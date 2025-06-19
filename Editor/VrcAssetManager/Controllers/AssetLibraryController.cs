@@ -208,5 +208,111 @@ namespace AMU.Editor.VrcAssetManager.Controller
             SaveAssetLibrary();
         }
         #endregion
+
+        #region Tag Management
+        public void AddTag(string tag)
+        {
+            if (library == null || string.IsNullOrWhiteSpace(tag) || library.Tags.Contains(tag))
+                throw new ArgumentException("Tag is null, empty, or already exists in the library.");
+
+            SyncAssetLibrary();
+            library.AddTag(tag.Trim());
+            lastUpdated = DateTime.Now;
+            SaveAssetLibrary();
+        }
+
+        public void RemoveTag(string tag)
+        {
+            if (library == null || string.IsNullOrWhiteSpace(tag) || !library.Tags.Contains(tag))
+                throw new ArgumentException("Tag is null, empty, or does not exist in the library.");
+
+            SyncAssetLibrary();
+            library.RemoveTag(tag.Trim());
+            lastUpdated = DateTime.Now;
+            SaveAssetLibrary();
+        }
+
+        public bool TagExists(string tag)
+        {
+            if (library == null || string.IsNullOrWhiteSpace(tag))
+                throw new ArgumentException("Tag is null or empty.");
+
+            SyncAssetLibrary();
+            return library.TagExists(tag.Trim());
+        }
+
+        public IReadOnlyList<string> GetAllTags()
+        {
+            if (library == null)
+                throw new InvalidOperationException("Asset library is not initialized.");
+
+            SyncAssetLibrary();
+            return library.Tags.ToList();
+        }
+
+        public void ClearTags()
+        {
+            if (library == null)
+                throw new InvalidOperationException("Asset library is not initialized.");
+
+            SyncAssetLibrary();
+            library.ClearTags();
+            lastUpdated = DateTime.Now;
+            SaveAssetLibrary();
+        }
+        #endregion
+
+        #region AssetType Management
+        public void AddAssetType(string assetType)
+        {
+            if (library == null || string.IsNullOrWhiteSpace(assetType) || library.AssetTypes.Contains(assetType))
+                throw new ArgumentException("Asset type is null, empty, or already exists in the library.");
+
+            SyncAssetLibrary();
+            library.AddAssetType(assetType.Trim());
+            lastUpdated = DateTime.Now;
+            SaveAssetLibrary();
+        }
+
+        public void RemoveAssetType(string assetType)
+        {
+            if (library == null || string.IsNullOrWhiteSpace(assetType) || !library.AssetTypes.Contains(assetType))
+                throw new ArgumentException("Asset type is null, empty, or does not exist in the library.");
+
+            SyncAssetLibrary();
+            library.RemoveAssetType(assetType.Trim());
+            lastUpdated = DateTime.Now;
+            SaveAssetLibrary();
+        }
+
+        public bool AssetTypeExists(string assetType)
+        {
+            if (library == null || string.IsNullOrWhiteSpace(assetType))
+                throw new ArgumentException("Asset type is null or empty.");
+
+            SyncAssetLibrary();
+            return library.AssetTypeExists(assetType.Trim());
+        }
+
+        public IReadOnlyList<string> GetAllAssetTypes()
+        {
+            if (library == null)
+                throw new InvalidOperationException("Asset library is not initialized.");
+
+            SyncAssetLibrary();
+            return library.AssetTypes.ToList();
+        }
+
+        public void ClearAssetTypes()
+        {
+            if (library == null)
+                throw new InvalidOperationException("Asset library is not initialized.");
+
+            SyncAssetLibrary();
+            library.ClearAssetTypes();
+            lastUpdated = DateTime.Now;
+            SaveAssetLibrary();
+        }
+        #endregion
     }
 }

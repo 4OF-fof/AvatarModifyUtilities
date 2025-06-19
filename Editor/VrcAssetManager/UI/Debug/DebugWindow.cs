@@ -29,6 +29,16 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
             // デフォルトのテストファイルパスを設定
             _testFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities", "VrcAssetManager", "AssetLibrary.json");
 
+            // ライブラリの初期状態を確認
+            try
+            {
+                ShowLibraryInfo();
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"初期ライブラリ状態確認: 失敗 - {ex.Message}");
+            }
+
             LogMessage("AssetLibraryController テストウィンドウが初期化されました。");
         }
 
@@ -95,9 +105,7 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                     LogMessage($"ライブラリ強制初期化: 失敗 - {ex.Message}");
                 }
             }
-            EditorGUILayout.EndHorizontal();
 
-            EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("ライブラリ情報を表示"))
             {
                 ShowLibraryInfo();
@@ -173,12 +181,12 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                     LogMessage($"ライブラリ強制保存 ({Path.GetFileName(_testFilePath)}): 失敗 - {ex.Message}");
                 }
             }
-            EditorGUILayout.EndHorizontal(); EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("テストアセットを追加"))
+            EditorGUILayout.EndHorizontal(); EditorGUILayout.BeginHorizontal(); if (GUILayout.Button("テストアセットを追加"))
             {
                 try
                 {
-                    _assetLibraryController.AddAsset(new AssetSchema());
+                    var testAsset = new AssetSchema();
+                    _assetLibraryController.AddAsset(testAsset);
                     LogMessage("テストアセット追加: 成功");
                     ShowLibraryInfo();
                 }
@@ -187,79 +195,101 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                     LogMessage($"テストアセット追加: 失敗 - {ex.Message}");
                 }
             }
-
-            if (GUILayout.Button("ライブラリをクリア"))
-            {
-                if (EditorUtility.DisplayDialog("確認", "ライブラリの全アセットをクリアしますか？", "はい", "キャンセル"))
-                {
-                    try
-                    {
-                        _assetLibraryController.library?.ClearAssets();
-                        LogMessage("ライブラリクリア: 成功");
-                        ShowLibraryInfo();
-                    }
-                    catch (Exception ex)
-                    {
-                        LogMessage($"ライブラリクリア: 失敗 - {ex.Message}");
-                    }
-                }
-            }
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("テストタグを追加"))
             {
                 try
                 {
-                    if (_assetLibraryController.library != null)
+                    var testTags = new[] { "Test", "Debug", "Sample", "Development" };
+                    foreach (var tag in testTags)
                     {
-                        var testTags = new[] { "Test", "Debug", "Sample", "Development" };
-                        foreach (var tag in testTags)
+                        if (!_assetLibraryController.TagExists(tag))
                         {
-                            if (!_assetLibraryController.library.TagExists(tag))
-                            {
-                                _assetLibraryController.library.AddTag(tag);
-                            }
+                            _assetLibraryController.AddTag(tag);
                         }
-                        LogMessage("テストタグ追加: 成功");
-                        ShowLibraryInfo();
                     }
-                    else
-                    {
-                        LogMessage("テストタグ追加: 失敗 - ライブラリが初期化されていません");
-                    }
+                    LogMessage("テストタグ追加: 成功");
+                    ShowLibraryInfo();
                 }
                 catch (Exception ex)
                 {
                     LogMessage($"テストタグ追加: 失敗 - {ex.Message}");
                 }
             }
-
             if (GUILayout.Button("テストアセットタイプを追加"))
             {
                 try
                 {
-                    if (_assetLibraryController.library != null)
+                    var testAssetTypes = new[] { "Avatar", "Accessory", "Cloth", "Animation" };
+                    foreach (var assetType in testAssetTypes)
                     {
-                        var testAssetTypes = new[] { "Avatar", "Accessory", "Cloth", "Animation" };
-                        foreach (var assetType in testAssetTypes)
+                        if (!_assetLibraryController.AssetTypeExists(assetType))
                         {
-                            if (!_assetLibraryController.library.AssetTypeExists(assetType))
-                            {
-                                _assetLibraryController.library.AddAssetType(assetType);
-                            }
+                            _assetLibraryController.AddAssetType(assetType);
                         }
-                        LogMessage("テストアセットタイプ追加: 成功");
-                        ShowLibraryInfo();
                     }
-                    else
-                    {
-                        LogMessage("テストアセットタイプ追加: 失敗 - ライブラリが初期化されていません");
-                    }
+                    LogMessage("テストアセットタイプ追加: 成功");
+                    ShowLibraryInfo();
                 }
                 catch (Exception ex)
                 {
                     LogMessage($"テストアセットタイプ追加: 失敗 - {ex.Message}");
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.Space();
+
+            // 個別管理機能
+            EditorGUILayout.LabelField("個別管理", EditorStyles.boldLabel);
+
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("アセットをクリア"))
+            {
+                if (EditorUtility.DisplayDialog("確認", "ライブラリの全アセットをクリアしますか？", "はい", "キャンセル"))
+                {
+                    try
+                    {
+                        _assetLibraryController.ClearAssets();
+                        LogMessage("アセットクリア: 成功");
+                        ShowLibraryInfo();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMessage($"アセットクリア: 失敗 - {ex.Message}");
+                    }
+                }
+            }
+            if (GUILayout.Button("タグをクリア"))
+            {
+                if (EditorUtility.DisplayDialog("確認", "全てのタグをクリアしますか？", "はい", "キャンセル"))
+                {
+                    try
+                    {
+                        _assetLibraryController.ClearTags();
+                        LogMessage("タグクリア: 成功");
+                        ShowLibraryInfo();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMessage($"タグクリア: 失敗 - {ex.Message}");
+                    }
+                }
+            }
+
+            if (GUILayout.Button("アセットタイプをクリア"))
+            {
+                if (EditorUtility.DisplayDialog("確認", "全てのアセットタイプをクリアしますか？", "はい", "キャンセル"))
+                {
+                    try
+                    {
+                        _assetLibraryController.ClearAssetTypes();
+                        LogMessage("アセットタイプクリア: 成功");
+                        ShowLibraryInfo();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMessage($"アセットタイプクリア: 失敗 - {ex.Message}");
+                    }
                 }
             }
             EditorGUILayout.EndHorizontal();
@@ -288,42 +318,45 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
         }
         private void ShowLibraryInfo()
         {
-            if (_assetLibraryController.library == null)
+            try
             {
-                LogMessage("ライブラリが初期化されていません。");
-                return;
-            }
+                _assetLibraryController.LoadAssetLibrary(_testFilePath);
+                var assets = _assetLibraryController.GetAllAssets();
+                var tags = _assetLibraryController.GetAllTags();
+                var assetTypes = _assetLibraryController.GetAllAssetTypes();
 
-            var library = _assetLibraryController.library;
-            LogMessage($"=== ライブラリ情報 ===");
-            LogMessage($"最終更新: {library.LastUpdated:yyyy/MM/dd HH:mm:ss}");
-            LogMessage($"アセット数: {library.AssetCount}");
-            LogMessage($"タグ数: {library.TagsCount}");
-            LogMessage($"アセットタイプ数: {library.AssetTypeCount}");
+                LogMessage($"=== ライブラリ情報 ===");
+                LogMessage($"アセット数: {assets.Count}");
+                LogMessage($"タグ数: {tags.Count}");
+                LogMessage($"アセットタイプ数: {assetTypes.Count}");
 
-            if (library.AssetCount > 0)
-            {
-                LogMessage("アセット一覧:");
-                var assets = library.GetAllAssets();
-                for (int i = 0; i < Math.Min(assets.Count, 10); i++) // 最大10件まで表示
+                if (assets.Count > 0)
                 {
-                    var asset = assets[i];
-                    LogMessage($"  {i + 1}. {asset.AssetId} (タイプ: {asset.Metadata.AssetType})");
+                    LogMessage("アセット一覧:");
+                    for (int i = 0; i < Math.Min(assets.Count, 10); i++) // 最大10件まで表示
+                    {
+                        var asset = assets[i];
+                        LogMessage($"  {i + 1}. {asset.AssetId} (タイプ: {asset.Metadata.AssetType})");
+                    }
+                    if (assets.Count > 10)
+                    {
+                        LogMessage($"  ... および他 {assets.Count - 10} 件");
+                    }
                 }
-                if (assets.Count > 10)
+
+                if (tags.Count > 0)
                 {
-                    LogMessage($"  ... および他 {assets.Count - 10} 件");
+                    LogMessage($"タグ一覧: {string.Join(", ", tags)}");
+                }
+
+                if (assetTypes.Count > 0)
+                {
+                    LogMessage($"アセットタイプ一覧: {string.Join(", ", assetTypes)}");
                 }
             }
-
-            if (library.TagsCount > 0)
+            catch (Exception ex)
             {
-                LogMessage($"タグ一覧: {string.Join(", ", library.GetAllTags())}");
-            }
-
-            if (library.AssetTypeCount > 0)
-            {
-                LogMessage($"アセットタイプ一覧: {string.Join(", ", library.GetAllAssetTypes())}");
+                LogMessage($"ライブラリ情報取得: 失敗 - {ex.Message}");
             }
         }
 
