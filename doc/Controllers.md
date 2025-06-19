@@ -366,17 +366,6 @@ var authorAssets = VrcAssetController.GetAssetsByAuthor("AuthorName");
 var searchResults = VrcAssetController.SearchAssets("AwesomeAvatar");
 ```
 
-##### キャッシュ管理
-```csharp
-public static void ClearCache()
-```
-
-**使用例:**
-```csharp
-// キャッシュをクリア
-VrcAssetController.ClearCache();
-```
-
 ##### アセットの状態判定
 ```csharp
 public static bool HasBoothItem(AssetId assetId)
@@ -535,6 +524,54 @@ AssetLibraryController.ClearCache();
 
 // キャッシュを無視して強制再読み込み
 var library = AssetLibraryController.ForceReloadLibrary();
+```
+
+##### ライブラリ管理とタグ・アセットタイプ操作
+```csharp
+public static bool AddTag(string tag, string filePath = null)
+public static bool RemoveTag(string tag, string filePath = null)
+public static bool AddAssetType(string assetType, string filePath = null)
+public static bool RemoveAssetType(string assetType, string filePath = null)
+public static bool ClearTags(string filePath = null)
+public static bool ClearAssetTypes(string filePath = null)
+```
+
+**使用例:**
+```csharp
+// タグの追加と削除
+bool tagAdded = AssetLibraryController.AddTag("VRChat");
+bool tagRemoved = AssetLibraryController.RemoveTag("Deprecated");
+
+// アセットタイプの追加と削除
+bool typeAdded = AssetLibraryController.AddAssetType("CustomAvatar");
+bool typeRemoved = AssetLibraryController.RemoveAssetType("OldType");
+
+// 全タグ・アセットタイプの削除
+bool tagsCleared = AssetLibraryController.ClearTags();
+bool typesCleared = AssetLibraryController.ClearAssetTypes();
+```
+
+##### ライブラリの同期と最適化
+```csharp
+public static bool SynchronizeTagsFromAssets(string filePath = null)
+public static bool SynchronizeAssetTypesFromAssets(string filePath = null)
+public static bool CleanupUnusedTags(string filePath = null)
+public static bool CleanupUnusedAssetTypes(string filePath = null)
+public static bool OptimizeLibrary(string filePath = null)
+```
+
+**使用例:**
+```csharp
+// アセットから使用されているタグとアセットタイプを同期
+bool tagsSynced = AssetLibraryController.SynchronizeTagsFromAssets();
+bool typesSynced = AssetLibraryController.SynchronizeAssetTypesFromAssets();
+
+// 未使用のタグとアセットタイプを削除
+bool unusedTagsRemoved = AssetLibraryController.CleanupUnusedTags();
+bool unusedTypesRemoved = AssetLibraryController.CleanupUnusedAssetTypes();
+
+// ライブラリ全体を最適化（未使用要素の削除と同期を一括実行）
+bool optimized = AssetLibraryController.OptimizeLibrary();
 ```
 
 ##### ライブラリの作成・保存・読み込み
