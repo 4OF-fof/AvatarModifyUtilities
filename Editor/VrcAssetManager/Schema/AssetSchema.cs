@@ -116,6 +116,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         [SerializeField] private string _name;
         [SerializeField] private string _description;
         [SerializeField] private string _authorName;
+        [SerializeField] private string _thumbnailPath;
         [SerializeField] private string _assetType;
         [SerializeField] private List<string> _tags;
         [SerializeField] private List<string> _dependencies;
@@ -127,6 +128,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _name = string.Empty;
             _description = string.Empty;
             _authorName = string.Empty;
+            _thumbnailPath = string.Empty;
             _assetType = string.Empty;
             _tags = new List<string>();
             _dependencies = new List<string>();
@@ -151,6 +153,12 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             get => _authorName ?? string.Empty;
             private set => _authorName = value?.Trim() ?? string.Empty;
+        }
+
+        public string ThumbnailPath
+        {
+            get => _thumbnailPath ?? string.Empty;
+            private set => _thumbnailPath = value?.Trim() ?? string.Empty;
         }
 
         public string AssetType
@@ -183,13 +191,11 @@ namespace AMU.Editor.VrcAssetManager.Schema
     public class AssetFileInfo
     {
         [SerializeField] private string _filePath;
-        [SerializeField] private string _thumbnailPath;
         [SerializeField] private List<string> _importFiles;
 
         public AssetFileInfo()
         {
             _filePath = string.Empty;
-            _thumbnailPath = string.Empty;
             _importFiles = new List<string>();
         }
 
@@ -198,12 +204,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             get => _filePath ?? string.Empty;
             private set => _filePath = value?.Trim() ?? string.Empty;
-        }
-
-        public string ThumbnailPath
-        {
-            get => _thumbnailPath ?? string.Empty;
-            private set => _thumbnailPath = value?.Trim() ?? string.Empty;
         }
 
         public IReadOnlyList<string> ImportFiles => _importFiles ?? new List<string>();
