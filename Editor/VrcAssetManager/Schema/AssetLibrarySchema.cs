@@ -15,6 +15,10 @@ namespace AMU.Editor.VrcAssetManager.Schema
         private DateTime _lastUpdated;
         [SerializeField]
         private Dictionary<string, AssetSchema> _assets;
+        [SerializeField]
+        private List<string> _tags;
+        [SerializeField]
+        private List<string> _assetTypes;
 
         public DateTime LastUpdated
         {
@@ -42,10 +46,238 @@ namespace AMU.Editor.VrcAssetManager.Schema
 
         public int AssetCount => _assets?.Count ?? 0;
 
+        /// <summary>
+        /// ライブラリ内で使用可能なタグのリスト
+        /// </summary>
+        public IReadOnlyList<string> Tags => _tags ?? new List<string>();
+
+        /// <summary>
+        /// ライブラリ内で使用可能なアセットタイプのリスト
+        /// </summary>
+        public IReadOnlyList<string> AssetTypes => _assetTypes ?? new List<string>();
+
+        /// <summary>
+        /// タグの数
+        /// </summary>
+        public int TagsCount => _tags?.Count ?? 0;
+
+        /// <summary>
+        /// アセットタイプの数
+        /// </summary>
+        public int AssetTypeCount => _assetTypes?.Count ?? 0;
+
         public AssetLibrarySchema()
         {
             _lastUpdated = DateTime.Now;
             _assets = new Dictionary<string, AssetSchema>();
+            _tags = new List<string>();
+            _assetTypes = new List<string>();
+        }
+
+        /// <summary>
+        /// タグをライブラリに追加します
+        /// </summary>
+        /// <param name="tag">追加するタグ</param>
+        /// <returns>追加に成功した場合はtrue</returns>
+        public bool AddTag(string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag)) return false;
+
+            _tags ??= new List<string>();
+            var trimmedTag = tag.Trim();
+            if (!_tags.Contains(trimmedTag))
+            {
+                _tags.Add(trimmedTag);
+                _lastUpdated = DateTime.Now;
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// タグをライブラリから削除します
+        /// </summary>
+        /// <param name="tag">削除するタグ</param>
+        /// <returns>削除に成功した場合はtrue</returns>
+        public bool RemoveTag(string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag)) return false;
+
+            var removed = _tags?.Remove(tag.Trim()) ?? false;
+            if (removed)
+            {
+                _lastUpdated = DateTime.Now;
+            }
+            return removed;
+        }
+
+        /// <summary>
+        /// アセットタイプをライブラリに追加します
+        /// </summary>
+        /// <param name="assetType">追加するアセットタイプ</param>
+        /// <returns>追加に成功した場合はtrue</returns>
+        public bool AddAssetType(string assetType)
+        {
+            if (string.IsNullOrWhiteSpace(assetType)) return false;
+
+            _assetTypes ??= new List<string>();
+            var trimmedType = assetType.Trim();
+            if (!_assetTypes.Contains(trimmedType))
+            {
+                _assetTypes.Add(trimmedType);
+                _lastUpdated = DateTime.Now;
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// アセットタイプをライブラリから削除します
+        /// </summary>
+        /// <param name="assetType">削除するアセットタイプ</param>
+        /// <returns>削除に成功した場合はtrue</returns>
+        public bool RemoveAssetType(string assetType)
+        {
+            if (string.IsNullOrWhiteSpace(assetType)) return false;
+
+            var removed = _assetTypes?.Remove(assetType.Trim()) ?? false;
+            if (removed)
+            {
+                _lastUpdated = DateTime.Now;
+            }
+            return removed;
+        }
+
+        /// <summary>
+        /// 指定されたタグがライブラリに存在するかどうかを確認します
+        /// </summary>
+        /// <param name="tag">確認するタグ</param>
+        /// <returns>存在する場合はtrue</returns>
+        public bool HasTag(string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag)) return false;
+            return _tags?.Contains(tag.Trim()) ?? false;
+        }
+
+        /// <summary>
+        /// 指定されたアセットタイプがライブラリに存在するかどうかを確認します
+        /// </summary>
+        /// <param name="assetType">確認するアセットタイプ</param>
+        /// <returns>存在する場合はtrue</returns>
+        public bool HasAssetType(string assetType)
+        {
+            if (string.IsNullOrWhiteSpace(assetType)) return false;
+            return _assetTypes?.Contains(assetType.Trim()) ?? false;
+        }
+
+        /// <summary>
+        /// アセット内で使用されているタグを収集してライブラリのタグリストに自動追加します
+        /// </summary>
+        public void SynchronizeTagsFromAssets()
+        {
+            if (_assets == null) return;
+
+            _tags ??= new List<string>();
+            var newTags = new HashSet<string>();
+
+            foreach (var asset in _assets.Values)
+            {
+                foreach (var tag in asset.Metadata.Tags)
+                {
+                    if (!string.IsNullOrWhiteSpace(tag) && !_tags.Contains(tag))
+                    {
+                        newTags.Add(tag.Trim());
+                    }
+                }
+            }
+
+            if (newTags.Count > 0)
+            {
+                _tags.AddRange(newTags);
+                _lastUpdated = DateTime.Now;
+            }
+        }
+
+        /// <summary>
+        /// アセット内で使用されているアセットタイプを収集してライブラリのアセットタイプリストに自動追加します
+        /// </summary>
+        public void SynchronizeAssetTypesFromAssets()
+        {
+            if (_assets == null) return;
+
+            _assetTypes ??= new List<string>();
+            var newAssetTypes = new HashSet<string>();
+
+            foreach (var asset in _assets.Values)
+            {
+                var assetType = asset.Metadata.AssetType;
+                if (!string.IsNullOrWhiteSpace(assetType) && !_assetTypes.Contains(assetType))
+                {
+                    newAssetTypes.Add(assetType.Trim());
+                }
+            }
+
+            if (newAssetTypes.Count > 0)
+            {
+                _assetTypes.AddRange(newAssetTypes);
+                _lastUpdated = DateTime.Now;
+            }
+        }
+
+        /// <summary>
+        /// 未使用のタグをライブラリから削除します
+        /// </summary>
+        public void CleanupUnusedTags()
+        {
+            if (_assets == null || _tags == null) return;
+
+            var usedTags = new HashSet<string>();
+            foreach (var asset in _assets.Values)
+            {
+                foreach (var tag in asset.Metadata.Tags)
+                {
+                    usedTags.Add(tag);
+                }
+            }
+
+            var tagsToRemove = _tags.Where(tag => !usedTags.Contains(tag)).ToList();
+            foreach (var tag in tagsToRemove)
+            {
+                _tags.Remove(tag);
+            }
+
+            if (tagsToRemove.Count > 0)
+            {
+                _lastUpdated = DateTime.Now;
+            }
+        }
+
+        /// <summary>
+        /// 未使用のアセットタイプをライブラリから削除します
+        /// </summary>
+        public void CleanupUnusedAssetTypes()
+        {
+            if (_assets == null || _assetTypes == null) return;
+
+            var usedAssetTypes = new HashSet<string>();
+            foreach (var asset in _assets.Values)
+            {
+                if (!string.IsNullOrWhiteSpace(asset.Metadata.AssetType))
+                {
+                    usedAssetTypes.Add(asset.Metadata.AssetType);
+                }
+            }
+
+            var assetTypesToRemove = _assetTypes.Where(assetType => !usedAssetTypes.Contains(assetType)).ToList();
+            foreach (var assetType in assetTypesToRemove)
+            {
+                _assetTypes.Remove(assetType);
+            }
+
+            if (assetTypesToRemove.Count > 0)
+            {
+                _lastUpdated = DateTime.Now;
+            }
         }
 
         public bool AddAsset(AssetId assetId, AssetSchema asset)
@@ -120,9 +352,34 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _lastUpdated = DateTime.Now;
         }
 
+        /// <summary>
+        /// すべてのタグをクリアします
+        /// </summary>
+        public void ClearTags()
+        {
+            _tags?.Clear();
+            _lastUpdated = DateTime.Now;
+        }
+
+        /// <summary>
+        /// すべてのアセットタイプをクリアします
+        /// </summary>
+        public void ClearAssetTypes()
+        {
+            _assetTypes?.Clear();
+            _lastUpdated = DateTime.Now;
+        }
+
         public void Optimize()
         {
-            // 今後必要に応じて最適化処理を実装
+            // アセットから自動的にタグとアセットタイプを同期
+            SynchronizeTagsFromAssets();
+            SynchronizeAssetTypesFromAssets();
+
+            // 未使用のタグとアセットタイプを削除
+            CleanupUnusedTags();
+            CleanupUnusedAssetTypes();
+
             _lastUpdated = DateTime.Now;
         }
     }
