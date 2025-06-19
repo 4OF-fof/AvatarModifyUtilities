@@ -14,7 +14,7 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
         private string _logText = "";
         private bool _autoScroll = true;
 
-        [MenuItem("AvatarModifyUtilities/Debug/AssetLibraryController Test Window")]
+        [MenuItem("Debug/AssetLibraryController Test Window")]
         public static void ShowWindow()
         {
             var window = GetWindow<DebugWindow>("AssetLibraryController Debug");
@@ -159,7 +159,7 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                 for (int i = 0; i < Math.Min(assets.Count, 10); i++) // 最大10件まで表示
                 {
                     var asset = assets[i];
-                    LogMessage($"  {i + 1}. {asset.AssetId} (タイプ: {asset.Metadata.AssetType})");
+                    LogMessage($"  {i + 1}. {asset.AssetId:D} (タイプ: {asset.Metadata.AssetType})");
                 }
                 if (assets.Count > 10)
                 {

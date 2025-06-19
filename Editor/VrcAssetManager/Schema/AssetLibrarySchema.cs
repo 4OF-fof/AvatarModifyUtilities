@@ -12,16 +12,16 @@ namespace AMU.Editor.VrcAssetManager.Schema
         private string lastUpdatedSerialized;
         private DateTime lastUpdated;
         [SerializeField]
-        private Dictionary<AssetId, AssetSchema> assets;
+        private Dictionary<Guid, AssetSchema> assets;
         [SerializeField]
         private List<string> tags;
         [SerializeField]
         private List<string> assetTypes;
-
+        
         public AssetLibrarySchema()
         {
             lastUpdated = DateTime.Now;
-            assets = new Dictionary<AssetId, AssetSchema>();
+            assets = new Dictionary<Guid, AssetSchema>();
             tags = new List<string>();
             assetTypes = new List<string>();
         }
@@ -33,7 +33,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             private set => lastUpdated = value;
         }
 
-        public IReadOnlyDictionary<AssetId, AssetSchema> Assets => assets ?? new Dictionary<AssetId, AssetSchema>();
+        public IReadOnlyDictionary<Guid, AssetSchema> Assets => assets ?? new Dictionary<Guid, AssetSchema>();
 
         public IReadOnlyList<string> Tags => tags ?? new List<string>();
 
@@ -66,10 +66,10 @@ namespace AMU.Editor.VrcAssetManager.Schema
             LastUpdated = DateTime.Now;
             return true;
         }
-
-        public bool RemoveAsset(AssetId assetId)
+        
+        public bool RemoveAsset(Guid assetId)
         {
-            if (assetId == null || !assets.ContainsKey(assetId))
+            if (assetId == Guid.Empty || !assets.ContainsKey(assetId))
                 return false;
 
             assets.Remove(assetId);
@@ -77,9 +77,9 @@ namespace AMU.Editor.VrcAssetManager.Schema
             return true;
         }
 
-        public AssetSchema GetAsset(AssetId assetId)
+        public AssetSchema GetAsset(Guid assetId)
         {
-            if (assetId == null || !assets.ContainsKey(assetId))
+            if (assetId == Guid.Empty || !assets.ContainsKey(assetId))
                 return null;
 
             return assets[assetId];
