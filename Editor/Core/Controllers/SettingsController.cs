@@ -6,7 +6,7 @@ using UnityEngine;
 using AMU.Editor.Setting;
 using AMU.Editor.Core.Schema;
 
-namespace AMU.Editor.Core.Controllers
+namespace AMU.Editor.Core.Controller
 {
     /// <summary>
     /// 設定データの永続化を管理するコントローラ

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using AMU.Editor.Core.Schema;
-using AMU.Editor.Core.Controllers;
+using AMU.Editor.Core.Controller;
 
 namespace AMU.Editor.Core.UI.Components
 {

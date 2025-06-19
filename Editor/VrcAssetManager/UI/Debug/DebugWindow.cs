@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
-using AMU.Editor.VrcAssetManager.Controllers;
+using AMU.Editor.VrcAssetManager.Controller;
 
 namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-using AMU.Editor.Core.Controllers;
+using AMU.Editor.Core.Controller;
 
 namespace AMU.Editor.VrcAssetManager.API
 {

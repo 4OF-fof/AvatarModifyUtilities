@@ -6,7 +6,7 @@ using UnityEditor;
 
 using AMU.Editor.Setting;
 using AMU.Editor.Core.Schema;
-using AMU.Editor.Core.Controllers;
+using AMU.Editor.Core.Controller;
 using AMU.Editor.Core.UI.Components;
 
 namespace AMU.Editor.Core.UI

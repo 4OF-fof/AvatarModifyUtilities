@@ -1,6 +1,6 @@
 using VRC.SDKBase.Editor.BuildPipeline;
 
-using AMU.Editor.Core.Controllers;
+using AMU.Editor.Core.Controller;
 
 namespace AMU.Editor.AutoVariant.Services
 {

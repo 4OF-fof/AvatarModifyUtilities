@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEditor;
 
 using AMU.Editor.Core.API;
-using AMU.Editor.Core.Controllers;
+using AMU.Editor.Core.Controller;
 
 namespace AMU.Editor.AutoVariant.Services
 {

@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 using UnityEngine;
 using UnityEditor;
 
-using AMU.Editor.Core.Controllers;
+using AMU.Editor.Core.Controller;
 
 namespace AMU.Editor.AutoVariant.Services
 {

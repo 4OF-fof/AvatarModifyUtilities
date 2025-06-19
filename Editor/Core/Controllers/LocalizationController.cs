@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
 
-namespace AMU.Editor.Core.Controllers
+namespace AMU.Editor.Core.Controller
 {
     /// <summary>
     /// ローカライゼーション機能を管理するコントローラ

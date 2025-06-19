@@ -61,14 +61,14 @@ namespace AMU.Data.Lang
         /// <summary>
         /// 現在の言語コード
         /// </summary>
-        public static string CurrentLanguage => AMU.Editor.Core.Controllers.LocalizationController.CurrentLanguage;
+        public static string CurrentLanguage => AMU.Editor.Core.Controller.LocalizationController.CurrentLanguage;
 
         /// <summary>
         /// 指定された言語コードの言語ファイルを読み込みます
         /// </summary>
         public static void LoadLanguage(string languageCode)
         {
-            AMU.Editor.Core.Controllers.LocalizationController.LoadLanguage(languageCode);
+            AMU.Editor.Core.Controller.LocalizationController.LoadLanguage(languageCode);
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace AMU.Data.Lang
         /// </summary>
         public static string GetText(string key)
         {
-            return AMU.Editor.Core.Controllers.LocalizationController.GetText(key);
+            return AMU.Editor.Core.Controller.LocalizationController.GetText(key);
         }
     }
 }
