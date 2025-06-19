@@ -99,7 +99,7 @@ public static AssetSchema GetAsset(AssetId assetId)
 public static List<AssetSchema> GetAllAssets()
 public static List<AssetSchema> GetAssetsByCategory(string category)
 public static List<AssetSchema> GetAssetsByAuthor(string author)
-public static List<AssetSchema> SearchAssets(string searchTerm)
+public static List<AssetSchema> GetAssetsByName(string searchTerm)
 ```
 
 **特徴:**
@@ -120,8 +120,8 @@ var avatars = VrcAssetController.GetAssetsByCategory("Avatar");
 // 作者別に取得（リアルタイムフィルタリング）
 var authorAssets = VrcAssetController.GetAssetsByAuthor("AuthorName");
 
-//名前で検索（リアルタイム検索）
-var searchResults = VrcAssetController.SearchAssets("AwesomeAvatar");
+//名前で取得（リアルタイム検索）
+var searchResults = VrcAssetController.GetAssetsByName("AwesomeAvatar");
 ```
 
 ##### アセットの状態判定

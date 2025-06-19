@@ -201,14 +201,12 @@ namespace AMU.Editor.VrcAssetManager.Controllers
             return library.Assets.Values
                           .Where(asset => string.Equals(asset.Metadata.AuthorName, author, StringComparison.OrdinalIgnoreCase))
                           .ToList();
-        }
-
-        /// <summary>
-        /// 名前でVRCアセットを検索します
-        /// </summary>
-        /// <param name="searchTerm">検索文字列</param>
-        /// <returns>検索条件に一致するVRCアセットのリスト</returns>
-        public static List<AssetSchema> SearchAssets(string searchTerm)
+        }        /// <summary>
+                 /// 名前でVRCアセットを取得します
+                 /// </summary>
+                 /// <param name="searchTerm">検索文字列</param>
+                 /// <returns>検索条件に一致するVRCアセットのリスト</returns>
+        public static List<AssetSchema> GetAssetsByName(string searchTerm)
         {
             if (string.IsNullOrEmpty(searchTerm))
             {

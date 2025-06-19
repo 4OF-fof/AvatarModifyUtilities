@@ -345,7 +345,7 @@ public static AssetSchema GetAsset(AssetId assetId)
 public static List<AssetSchema> GetAllAssets()
 public static List<AssetSchema> GetAssetsByCategory(string category)
 public static List<AssetSchema> GetAssetsByAuthor(string author)
-public static List<AssetSchema> SearchAssets(string searchTerm)
+public static List<AssetSchema> GetAssetsByName(string searchTerm)
 ```
 
 **使用例:**
@@ -363,7 +363,7 @@ var avatars = VrcAssetController.GetAssetsByCategory("Avatar");
 var authorAssets = VrcAssetController.GetAssetsByAuthor("AuthorName");
 
 //名前で取得
-var searchResults = VrcAssetController.SearchAssets("AwesomeAvatar");
+var searchResults = VrcAssetController.GetAssetsByName("AwesomeAvatar");
 ```
 
 ##### アセットの状態判定
