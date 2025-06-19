@@ -122,7 +122,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Debug
             }
             EditorGUILayout.EndHorizontal();
 
-            _showLibraryDetails = EditorGUILayout.Foldout(_showLibraryDetails, "Show Library Details");
+            _showLibraryDetails = EditorGUILayout.Foldout(_showLibraryDetails, "Show Asset Library Status");
 
             EditorGUILayout.EndVertical();
             EditorGUILayout.Space();
@@ -198,41 +198,200 @@ namespace AMU.Editor.VrcAssetManager.UI.Debug
 
         private void DrawLibraryDetails()
         {
-            if (_showLibraryDetails && _currentLibrary != null)
+            if (_showLibraryDetails)
             {
-                EditorGUILayout.LabelField("Library Details", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Asset Library Status", EditorStyles.boldLabel);
                 EditorGUILayout.BeginVertical("box");
 
-                var allAssets = VrcAssetController.GetAllAssets();
-                EditorGUILayout.LabelField($"Asset Count: {allAssets.Count}");
+                // ライブラリファイル情報
+                DrawLibraryFileInfo();
+                EditorGUILayout.Space();
 
-                var library = AssetLibraryController.LoadLibrary();
-                if (library != null)
-                {
-                    EditorGUILayout.LabelField($"Last Updated: {library.LastUpdated}");
-                }
+                // ライブラリの基本情報
+                DrawLibraryBasicInfo();
+                EditorGUILayout.Space();
 
-                _showAssetDetails = EditorGUILayout.Foldout(_showAssetDetails, "Asset List");
-                if (_showAssetDetails)
-                {
-                    var assets = VrcAssetController.GetAllAssets();
-                    foreach (var asset in assets.Take(10)) // 最初の10件のみ表示
-                    {
-                        EditorGUILayout.BeginHorizontal();
-                        EditorGUILayout.LabelField($"Name: {asset.Metadata.Name}");
-                        EditorGUILayout.LabelField($"Type: {asset.Metadata.AssetType}");
-                        EditorGUILayout.EndHorizontal();
-                    }
+                // アセット統計情報
+                DrawAssetStatistics();
+                EditorGUILayout.Space();
 
-                    if (assets.Count > 10)
-                    {
-                        EditorGUILayout.LabelField($"... and {assets.Count - 10} more assets");
-                    }
-                }
+                // アセット詳細リスト
+                DrawAssetDetailsList();
 
                 EditorGUILayout.EndVertical();
                 EditorGUILayout.Space();
             }
+        }
+
+        private void DrawLibraryFileInfo()
+        {
+            EditorGUILayout.LabelField("Library File Information", EditorStyles.boldLabel);
+            EditorGUILayout.BeginVertical("box");
+
+            string libraryPath = AssetLibraryController.DefaultLibraryPath;
+            EditorGUILayout.LabelField($"Library Path: {libraryPath}");
+
+            if (File.Exists(libraryPath))
+            {
+                var fileInfo = new FileInfo(libraryPath);
+                EditorGUILayout.LabelField($"File Size: {GetFileSizeString(fileInfo.Length)}");
+                EditorGUILayout.LabelField($"Last Modified: {fileInfo.LastWriteTime}");
+                EditorGUILayout.LabelField($"File Exists: Yes");
+            }
+            else
+            {
+                EditorGUILayout.LabelField("File Exists: No", EditorStyles.centeredGreyMiniLabel);
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawLibraryBasicInfo()
+        {
+            EditorGUILayout.LabelField("Library Basic Information", EditorStyles.boldLabel);
+            EditorGUILayout.BeginVertical("box");
+
+            var library = AssetLibraryController.LoadLibrary();
+            if (library != null)
+            {
+                _currentLibrary = library;
+                EditorGUILayout.LabelField($"Last Updated: {library.LastUpdated}");
+                EditorGUILayout.LabelField($"Asset Count: {library.AssetCount}");
+                EditorGUILayout.LabelField($"Tags Count: {library.TagsCount}");
+                EditorGUILayout.LabelField($"Asset Types Count: {library.AssetTypeCount}");
+            }
+            else
+            {
+                EditorGUILayout.LabelField("Library: Not loaded or not found", EditorStyles.centeredGreyMiniLabel);
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawAssetStatistics()
+        {
+            EditorGUILayout.LabelField("Asset Statistics", EditorStyles.boldLabel);
+            EditorGUILayout.BeginVertical("box");
+
+            var allAssets = VrcAssetController.GetAllAssets();
+            EditorGUILayout.LabelField($"Total Assets: {allAssets.Count}");
+
+            if (allAssets.Count > 0)
+            {
+                // アセットタイプ別統計
+                var typeGroups = allAssets.GroupBy(a => a.Metadata.AssetType)
+                                         .OrderByDescending(g => g.Count())
+                                         .ToList();
+
+                EditorGUILayout.LabelField("Assets by Type:", EditorStyles.miniBoldLabel);
+                foreach (var group in typeGroups.Take(5)) // 上位5タイプを表示
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField($"  {group.Key}:", GUILayout.Width(120));
+                    EditorGUILayout.LabelField($"{group.Count()} assets");
+                    EditorGUILayout.EndHorizontal();
+                }
+
+                if (typeGroups.Count > 5)
+                {
+                    EditorGUILayout.LabelField($"  ... and {typeGroups.Count - 5} more types");
+                }
+
+                // 最近追加されたアセット
+                var recentAssets = allAssets
+                    .Where(a => a.Metadata.CreatedDate != default)
+                    .OrderByDescending(a => a.Metadata.CreatedDate)
+                    .Take(3)
+                    .ToList();
+
+                if (recentAssets.Count > 0)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUILayout.LabelField("Recently Added Assets:", EditorStyles.miniBoldLabel);
+                    foreach (var asset in recentAssets)
+                    {
+                        EditorGUILayout.BeginHorizontal();
+                        EditorGUILayout.LabelField($"  {asset.Metadata.Name}", GUILayout.Width(200));
+                        EditorGUILayout.LabelField($"({asset.Metadata.AssetType})", GUILayout.Width(100));
+                        EditorGUILayout.LabelField($"{asset.Metadata.CreatedDate:MM/dd HH:mm}");
+                        EditorGUILayout.EndHorizontal();
+                    }
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawAssetDetailsList()
+        {
+            _showAssetDetails = EditorGUILayout.Foldout(_showAssetDetails, "Asset Details List");
+            if (_showAssetDetails)
+            {
+                EditorGUILayout.BeginVertical("box");
+
+                var library = AssetLibraryController.LoadLibrary();
+                if (library == null || library.AssetCount == 0)
+                {
+                    EditorGUILayout.LabelField("No assets found in library", EditorStyles.centeredGreyMiniLabel);
+                }
+                else
+                {
+                    var assetPairs = library.Assets.Take(10).ToList();
+                    EditorGUILayout.LabelField($"Showing first 10 of {library.AssetCount} assets:");
+                    EditorGUILayout.Space();
+
+                    // ヘッダー
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Name", EditorStyles.boldLabel, GUILayout.Width(150));
+                    EditorGUILayout.LabelField("Type", EditorStyles.boldLabel, GUILayout.Width(100));
+                    EditorGUILayout.LabelField("ID", EditorStyles.boldLabel, GUILayout.Width(100));
+                    EditorGUILayout.LabelField("Size", EditorStyles.boldLabel, GUILayout.Width(80));
+                    EditorGUILayout.LabelField("Created", EditorStyles.boldLabel);
+                    EditorGUILayout.EndHorizontal();
+
+                    EditorGUILayout.Space();
+
+                    foreach (var kvp in assetPairs)
+                    {
+                        var assetId = kvp.Key;
+                        var asset = kvp.Value;
+
+                        EditorGUILayout.BeginHorizontal();
+                        EditorGUILayout.LabelField(asset.Metadata.Name, GUILayout.Width(150));
+                        EditorGUILayout.LabelField(asset.Metadata.AssetType, GUILayout.Width(100));
+                        EditorGUILayout.LabelField(assetId.Value.Substring(0, Math.Min(8, assetId.Value.Length)), GUILayout.Width(100));
+
+                        string sizeText = "N/A";
+                        if (asset.FileInfo.FileSizeBytes > 0)
+                        {
+                            sizeText = GetFileSizeString(asset.FileInfo.FileSizeBytes);
+                        }
+                        EditorGUILayout.LabelField(sizeText, GUILayout.Width(80));
+
+                        string dateText = asset.Metadata.CreatedDate != default
+                            ? asset.Metadata.CreatedDate.ToString("MM/dd HH:mm")
+                            : "N/A";
+                        EditorGUILayout.LabelField(dateText);
+                        EditorGUILayout.EndHorizontal();
+                    }
+
+                    if (library.AssetCount > 10)
+                    {
+                        EditorGUILayout.Space();
+                        EditorGUILayout.LabelField($"... and {library.AssetCount - 10} more assets", EditorStyles.centeredGreyMiniLabel);
+                    }
+                }
+
+                EditorGUILayout.EndVertical();
+            }
+        }
+
+        private string GetFileSizeString(long bytes)
+        {
+            if (bytes < 1024) return $"{bytes} B";
+            if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+            if (bytes < 1024 * 1024 * 1024) return $"{bytes / (1024.0 * 1024.0):F1} MB";
+            return $"{bytes / (1024.0 * 1024.0 * 1024.0):F1} GB";
         }
 
         private void DrawLogOutput()
