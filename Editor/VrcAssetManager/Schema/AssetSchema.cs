@@ -32,6 +32,8 @@ namespace AMU.Editor.VrcAssetManager.Schema
         }
 
         #region Properties
+        public AssetId AssetId => _assetId;
+
         public AssetMetadata Metadata => _metadata ?? (_metadata = new AssetMetadata());
 
         public AssetFileInfo FileInfo => _fileInfo ?? (_fileInfo = new AssetFileInfo());
