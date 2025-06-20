@@ -35,7 +35,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
 
         public int AssetCount => assets?.Count ?? 0;
 
-        public int TagsCount => tags?.Count ?? 0;
+        public int TagCount => tags?.Count ?? 0;
 
         public int AssetTypeCount => assetTypes?.Count ?? 0;
         #endregion

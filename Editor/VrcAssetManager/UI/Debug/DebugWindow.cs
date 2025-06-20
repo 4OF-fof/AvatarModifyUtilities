@@ -80,7 +80,7 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                 LogMessage("ライブラリ初期化: 成功");
             }
 
-            if (GUILayout.Button("強制初期化"))
+            if (GUILayout.Button("ライブラリを強制初期化"))
             {
                 _assetLibraryController.ForceInitializeLibrary();
                 LogMessage("ライブラリ強制初期化: 成功");
@@ -183,7 +183,9 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                     LogMessage($"ライブラリ強制保存 ({Path.GetFileName(_testFilePath)}): 失敗 - {ex.Message}");
                 }
             }
-            EditorGUILayout.EndHorizontal(); EditorGUILayout.BeginHorizontal(); if (GUILayout.Button("テストアセットを追加"))
+            EditorGUILayout.EndHorizontal(); EditorGUILayout.BeginHorizontal();
+            
+            if (GUILayout.Button("テストアセットを追加"))
             {
                 try
                 {
@@ -325,7 +327,6 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                 var assets = _assetLibraryController.GetAllAssets();
                 var tags = _assetLibraryController.GetAllTags();
                 var assetTypes = _assetLibraryController.GetAllAssetTypes();
-
                 LogMessage($"=== ライブラリ情報 ===");
                 LogMessage($"アセット数: {assets?.Count ?? 0}");
                 LogMessage($"タグ数: {tags?.Count ?? 0}");
@@ -334,10 +335,13 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                 if (assets != null && assets.Count > 0)
                 {
                     LogMessage("アセット一覧:");
-                    for (int i = 0; i < Math.Min(assets.Count, 10); i++) // 最大10件まで表示
+                    int count = 0;
+                    foreach (var kvp in assets)
                     {
-                        var asset = assets[i];
-                        LogMessage($"  {i + 1}. {asset.AssetId} (タイプ: {asset.Metadata.AssetType})");
+                        if (count >= 10) break; // 最大10件まで表示
+                        var asset = kvp.Value;
+                        LogMessage($"  {count + 1}. {asset.AssetId} (タイプ: {asset.Metadata.AssetType})");
+                        count++;
                     }
                     if (assets.Count > 10)
                     {

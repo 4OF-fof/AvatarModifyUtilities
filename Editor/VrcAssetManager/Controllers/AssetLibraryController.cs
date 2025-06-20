@@ -31,6 +31,17 @@ namespace AMU.Editor.VrcAssetManager.Controller
             SaveAssetLibrary();
         }
 
+        public void ForceInitializeLibrary()
+        {
+            if (library != null)
+            {
+                Debug.LogWarning("Asset library is already initialized. Forcing re-initialization.");
+            }
+            library = new AssetLibrarySchema();
+            lastUpdated = DateTime.Now;
+            ForceSaveAssetLibrary();
+        }
+
         public void LoadAssetLibrary()
         {
             if (!File.Exists(libraryPath))
@@ -242,16 +253,16 @@ namespace AMU.Editor.VrcAssetManager.Controller
             return library.GetAsset(assetId);
         }
 
-        public IReadOnlyList<AssetSchema> GetAllAssets()
+        public IReadOnlyDictionary<Guid, AssetSchema> GetAllAssets()
         {
             if (library == null)
             {
                 Debug.LogWarning("Asset library is not initialized. Cannot get all assets.");
-                return new List<AssetSchema>();
+                return new Dictionary<Guid, AssetSchema>();
             }
 
             SyncAssetLibrary();
-            return library.Assets.Values.ToList();
+            return library.Assets;
         }
 
         public void ClearAssets()
@@ -266,6 +277,18 @@ namespace AMU.Editor.VrcAssetManager.Controller
             library.ClearAssets();
             lastUpdated = DateTime.Now;
             SaveAssetLibrary();
+        }
+
+        public int GetAssetCount()
+        {
+            if (library == null)
+            {
+                Debug.LogWarning("Asset library is not initialized. Cannot get asset count.");
+                return 0;
+            }
+
+            SyncAssetLibrary();
+            return library.AssetCount;
         }
         #endregion
 
@@ -359,6 +382,18 @@ namespace AMU.Editor.VrcAssetManager.Controller
             library.ClearTags();
             lastUpdated = DateTime.Now;
             SaveAssetLibrary();
+        }
+
+        public int GetTagCount()
+        {
+            if (library == null)
+            {
+                Debug.LogWarning("Asset library is not initialized. Cannot get tag count.");
+                return 0;
+            }
+
+            SyncAssetLibrary();
+            return library.TagCount;
         }
 
         public void OptimizeTags()
@@ -472,6 +507,18 @@ namespace AMU.Editor.VrcAssetManager.Controller
             library.ClearAssetTypes();
             lastUpdated = DateTime.Now;
             SaveAssetLibrary();
+        }
+
+        public int GetAssetTypeCount()
+        {
+            if (library == null)
+            {
+                Debug.LogWarning("Asset library is not initialized. Cannot get asset type count.");
+                return 0;
+            }
+
+            SyncAssetLibrary();
+            return library.AssetTypeCount;
         }
 
         public void OptimizeAssetTypes()
