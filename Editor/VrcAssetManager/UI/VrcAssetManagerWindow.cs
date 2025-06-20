@@ -13,7 +13,7 @@ namespace AMU.Editor.VrcAssetManager.UI
     public class VrcAssetManagerWindow : EditorWindow
     {
         private AssetLibraryController _controller = new AssetLibraryController();
-        private IReadOnlyDictionary<Guid, AssetSchema> _assets;
+        private IReadOnlyList<AssetSchema> _assets;
         private IReadOnlyList<string> _tags;
         private IReadOnlyList<string> _assetTypes;
 

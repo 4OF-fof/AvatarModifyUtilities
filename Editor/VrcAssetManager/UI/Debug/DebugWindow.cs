@@ -335,13 +335,10 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                 if (assets != null && assets.Count > 0)
                 {
                     LogMessage("アセット一覧:");
-                    int count = 0;
-                    foreach (var kvp in assets)
+                    for (int i = 0; i < Math.Min(assets.Count, 10); i++) // 最大10件まで表示
                     {
-                        if (count >= 10) break; // 最大10件まで表示
-                        var asset = kvp.Value;
-                        LogMessage($"  {count + 1}. {asset.AssetId} (タイプ: {asset.Metadata.AssetType})");
-                        count++;
+                        var asset = assets[i];
+                        LogMessage($"  {i + 1}. {asset.AssetId} (タイプ: {asset.Metadata.AssetType})");
                     }
                     if (assets.Count > 10)
                     {

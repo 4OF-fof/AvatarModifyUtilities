@@ -253,16 +253,16 @@ namespace AMU.Editor.VrcAssetManager.Controller
             return library.GetAsset(assetId);
         }
 
-        public IReadOnlyDictionary<Guid, AssetSchema> GetAllAssets()
+        public IReadOnlyList<AssetSchema> GetAllAssets()
         {
             if (library == null)
             {
                 Debug.LogWarning("Asset library is not initialized. Cannot get all assets.");
-                return new Dictionary<Guid, AssetSchema>();
+                return new List<AssetSchema>();
             }
 
             SyncAssetLibrary();
-            return library.Assets;
+            return library.Assets.Values.ToList();
         }
 
         public void ClearAssets()
