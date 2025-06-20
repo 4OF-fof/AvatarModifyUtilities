@@ -22,20 +22,13 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
         public void InitializeLibrary()
         {
-            if (library != null)
-            {
-                Debug.LogWarning("Asset library is already initialized.");
+            ForceLoadAssetLibrary();
+            if (library != null){
                 return;
             }
-
             library = new AssetLibrarySchema();
             lastUpdated = DateTime.Now;
-        }
-
-        public void ForceInitializeLibrary()
-        {
-            library = new AssetLibrarySchema();
-            lastUpdated = DateTime.Now;
+            SaveAssetLibrary();
         }
 
         public void LoadAssetLibrary()
