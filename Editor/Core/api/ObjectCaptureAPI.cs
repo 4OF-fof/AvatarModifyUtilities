@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 using UnityEngine;
@@ -116,7 +117,7 @@ namespace AMU.Editor.Core.API
             }
             catch (System.Exception e)
             {
-                throw new System.Exception(LocalizationController.GetText("message_error_save_image_failed"), e);
+                throw new Exception(LocalizationController.GetText("message_error_save_image_failed"), e);
             }
         }
     }
