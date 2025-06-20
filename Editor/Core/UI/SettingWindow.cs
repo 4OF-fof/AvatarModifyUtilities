@@ -11,9 +11,6 @@ using AMU.Editor.Core.UI.Components;
 
 namespace AMU.Editor.Core.UI
 {
-    /// <summary>
-    /// 設定ウィンドウのUI管理クラス
-    /// </summary>
     public class SettingWindow : EditorWindow
     {
         private Dictionary<string, AMU.Editor.Core.Schema.SettingItem[]> settingItems;
@@ -34,7 +31,6 @@ namespace AMU.Editor.Core.UI
         {
             settingItems = SettingsController.GetAllSettingItems();
 
-            // コンポーネントの初期化
             if (menuComponent == null)
                 menuComponent = new MenuComponent();
             if (settingPanelComponent == null)
@@ -50,7 +46,6 @@ namespace AMU.Editor.Core.UI
             menuComponent.Initialize(settingItems);
             settingPanelComponent.Initialize(settingItems);
 
-            // 設定の初期化はSettingsControllerに委譲
             SettingsController.InitializeEditorPrefs();
         }
 
