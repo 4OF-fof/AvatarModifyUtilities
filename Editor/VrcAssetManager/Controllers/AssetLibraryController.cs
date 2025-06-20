@@ -141,6 +141,17 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 ForceLoadAssetLibrary();
             }
         }
+
+        public void OptimizeAssetLibrary()
+        {
+            if (library == null)
+            {
+                Debug.LogError("Asset library is not initialized. Cannot optimize.");
+                return;
+            }
+            OptimizeTags();
+            OptimizeAssetTypes();
+        }
         #endregion
 
         #region Asset Management
@@ -356,6 +367,26 @@ namespace AMU.Editor.VrcAssetManager.Controller
             lastUpdated = DateTime.Now;
             SaveAssetLibrary();
         }
+
+        public void OptimizeTags()
+        {
+            if (library == null)
+            {
+                Debug.LogError("Asset library is not initialized. Cannot optimize tags.");
+                return;
+            }
+
+            SyncAssetLibrary();
+
+            var unusedTags = library.Tags.Where(tag => !library.Assets.Values.Any(asset => asset.Metadata.Tags.Contains(tag))).ToList();
+            foreach (var tag in unusedTags)
+            {
+                library.RemoveTag(tag);
+            }
+
+            lastUpdated = DateTime.Now;
+            SaveAssetLibrary();
+        }
         #endregion
 
         #region AssetType Management
@@ -446,6 +477,26 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             SyncAssetLibrary();
             library.ClearAssetTypes();
+            lastUpdated = DateTime.Now;
+            SaveAssetLibrary();
+        }
+
+        public void OptimizeAssetTypes()
+        {
+            if (library == null)
+            {
+                Debug.LogError("Asset library is not initialized. Cannot optimize asset types.");
+                return;
+            }
+
+            SyncAssetLibrary();
+
+            var unusedAssetTypes = library.AssetTypes.Where(type => !library.Assets.Values.Any(asset => asset.Metadata.AssetType == type)).ToList();
+            foreach (var type in unusedAssetTypes)
+            {
+                library.RemoveAssetType(type);
+            }
+
             lastUpdated = DateTime.Now;
             SaveAssetLibrary();
         }
