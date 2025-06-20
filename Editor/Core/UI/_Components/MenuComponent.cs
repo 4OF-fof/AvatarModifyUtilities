@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using AMU.Editor.Core.Controller;
+using AMU.Editor.Core.Schema;
 
 namespace AMU.Editor.Core.UI.Components
 {
@@ -15,13 +16,13 @@ namespace AMU.Editor.Core.UI.Components
         private string[] menuItems;
         private int selectedMenu = 0;
         private string menuSearch = "";
-        private Dictionary<string, AMU.Editor.Core.Schema.SettingItem[]> settingItems;
+        private Dictionary<string, SettingItem[]> settingItems;
         private Vector2 windowPosition;
 
         public int SelectedMenu => selectedMenu;
         public string[] MenuItems => menuItems;
 
-        public void Initialize(Dictionary<string, AMU.Editor.Core.Schema.SettingItem[]> settingItems)
+        public void Initialize(Dictionary<string, SettingItem[]> settingItems)
         {
             this.settingItems = settingItems;
             var keys = settingItems.Keys.ToList();

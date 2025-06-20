@@ -60,7 +60,6 @@ namespace AMU.Editor.Core.UI.Components
             {
                 if (string.IsNullOrEmpty(menuSearch) || LocalizationController.GetText(item.Name).Contains(menuSearch))
                 {
-                    // 言語変更の検出
                     bool wasLanguageItem = item.Name == "Core_language";
                     string previousLanguage = wasLanguageItem
                         ? SettingsController.GetSetting<string>("Core_language")
