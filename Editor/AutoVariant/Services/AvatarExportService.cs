@@ -86,7 +86,7 @@ namespace AMU.Editor.AutoVariant.Services
                 }
                 else
                 {
-                    Debug.LogWarning($"[AvatarExportService] Failed to capture avatar image for {avatar.name}");
+                    Debug.LogError($"[AvatarExportService] Failed to capture avatar image for {avatar.name}");
                 }
             }
             catch (Exception e)

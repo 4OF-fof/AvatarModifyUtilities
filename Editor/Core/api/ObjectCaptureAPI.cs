@@ -56,7 +56,16 @@ namespace AMU.Editor.Core.API
                 capturedTexture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
                 capturedTexture.Apply();
 
-                SaveTexture(capturedTexture, savePath);
+                try
+                {
+                    SaveTexture(capturedTexture, savePath);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(string.Format(LocalizationController.GetText("message_error_save_image_failed"), e.Message));
+                    UnityEngine.Object.DestroyImmediate(capturedTexture);
+                    return null;
+                }
 
                 RenderTexture.active = null;
                 captureCamera.targetTexture = null;
