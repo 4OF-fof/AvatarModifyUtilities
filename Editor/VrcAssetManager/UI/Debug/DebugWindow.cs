@@ -117,7 +117,7 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
             {
                 try
                 {
-                    _assetLibraryController.LoadAssetLibrary(_testFilePath);
+                    _assetLibraryController.LoadAssetLibrary();
                     LogMessage($"ライブラリ読み込み ({Path.GetFileName(_testFilePath)}): 成功");
                     ShowLibraryInfo();
                 }
@@ -131,7 +131,7 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
             {
                 try
                 {
-                    _assetLibraryController.ForceLoadAssetLibrary(_testFilePath);
+                    _assetLibraryController.ForceLoadAssetLibrary();
                     LogMessage($"ライブラリ強制読み込み ({Path.GetFileName(_testFilePath)}): 成功");
                     ShowLibraryInfo();
                 }
@@ -144,7 +144,7 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
             {
                 try
                 {
-                    _assetLibraryController.SyncAssetLibrary(_testFilePath);
+                    _assetLibraryController.SyncAssetLibrary();
                     LogMessage($"データ同期 ({Path.GetFileName(_testFilePath)}): 成功");
                     ShowLibraryInfo();
                 }
@@ -160,7 +160,7 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
             {
                 try
                 {
-                    _assetLibraryController.SaveAssetLibrary(_testFilePath);
+                    _assetLibraryController.SaveAssetLibrary();
                     LogMessage($"ライブラリ保存 ({Path.GetFileName(_testFilePath)}): 成功");
                 }
                 catch (Exception ex)
@@ -173,7 +173,7 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
             {
                 try
                 {
-                    _assetLibraryController.ForceSaveAssetLibrary(_testFilePath);
+                    _assetLibraryController.ForceSaveAssetLibrary();
                     LogMessage($"ライブラリ強制保存 ({Path.GetFileName(_testFilePath)}): 成功");
                 }
                 catch (Exception ex)
@@ -320,7 +320,7 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
         {
             try
             {
-                _assetLibraryController.LoadAssetLibrary(_testFilePath);
+                _assetLibraryController.LoadAssetLibrary();
                 var assets = _assetLibraryController.GetAllAssets();
                 var tags = _assetLibraryController.GetAllTags();
                 var assetTypes = _assetLibraryController.GetAllAssetTypes();

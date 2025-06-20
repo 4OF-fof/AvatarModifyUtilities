@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using AMU.Editor.VrcAssetManager.Schema;
 using Newtonsoft.Json;
+using AMU.Editor.Core.Api;
 
 namespace AMU.Editor.VrcAssetManager.Controller
 {
@@ -13,8 +14,9 @@ namespace AMU.Editor.VrcAssetManager.Controller
         #region Library Management
 
         private DateTime lastUpdated;
-        //TODO use Core_DirPath
-        private string DefaultLibraryPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities", "VrcAssetManager", "AssetLibrary.json");
+
+        private string libraryDir => Path.Combine(SettingsAPI.GetSetting<string>("Core_dirPath"), "VrcAssetManager");
+        private string libraryPath => Path.Combine(libraryDir, "AssetLibrary.json");
 
         public AssetLibrarySchema library { get; private set; }
 
@@ -38,67 +40,43 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
         public void LoadAssetLibrary()
         {
-            LoadAssetLibrary(DefaultLibraryPath);
-        }
+            if (!File.Exists(libraryPath))
+                throw new FileNotFoundException($"Asset library file not found at {libraryPath}");
 
-        public void LoadAssetLibrary(string path)
-        {
-            if (string.IsNullOrEmpty(path))
-                throw new ArgumentException("Asset library path cannot be null or empty.");
-            if (!System.IO.File.Exists(path))
-                throw new FileNotFoundException($"Asset library file not found at {path}");
+            if (File.GetLastWriteTime(libraryPath) < lastUpdated) return;
 
-            if (File.GetLastWriteTime(path) < lastUpdated) return;
-
-            ForceLoadAssetLibrary(path);
+            ForceLoadAssetLibrary();
         }
 
         public void ForceLoadAssetLibrary()
         {
-            ForceLoadAssetLibrary(DefaultLibraryPath);
-        }
-
-        public void ForceLoadAssetLibrary(string path)
-        {
-            if (string.IsNullOrEmpty(path))
-                throw new ArgumentException("Asset library path cannot be null or empty.");
-            if (!System.IO.File.Exists(path))
-                throw new FileNotFoundException($"Asset library file not found at {path}");
+            if (!File.Exists(libraryPath))
+                throw new FileNotFoundException($"Asset library file not found at {libraryPath}");
 
             try
             {
-                var json = System.IO.File.ReadAllText(path);
+                var json = File.ReadAllText(libraryPath);
                 library = JsonConvert.DeserializeObject<AssetLibrarySchema>(json);
-                lastUpdated = File.GetLastWriteTime(path);
+                lastUpdated = File.GetLastWriteTime(libraryPath);
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to load asset library from {path}: {ex.Message}", ex);
+                throw new InvalidOperationException($"Failed to load asset library from {libraryPath}: {ex.Message}", ex);
             }
         }
 
         public void SaveAssetLibrary()
         {
-            SaveAssetLibrary(DefaultLibraryPath);
-        }
-
-        public void SaveAssetLibrary(string path)
-        {
-            if (File.GetLastWriteTime(path) > lastUpdated)
+            if (File.GetLastWriteTime(libraryPath) > lastUpdated)
             {
-                Debug.LogWarning($"Asset library file at {path} is newer than the current library. Skipping save.");
+                Debug.LogWarning($"Asset library file at {libraryPath} is newer than the current library. Skipping save.");
                 return;
             }
 
-            ForceSaveAssetLibrary(path);
+            ForceSaveAssetLibrary();
         }
 
         public void ForceSaveAssetLibrary()
-        {
-            ForceSaveAssetLibrary(DefaultLibraryPath);
-        }
-
-        public void ForceSaveAssetLibrary(string path)
         {
             if (library == null)
                 throw new InvalidOperationException("Asset library is not initialized.");
@@ -106,40 +84,32 @@ namespace AMU.Editor.VrcAssetManager.Controller
             try
             {
                 var json = JsonConvert.SerializeObject(library, Formatting.Indented);
-                System.IO.File.WriteAllText(path, json);
+                File.WriteAllText(libraryPath, json);
                 lastUpdated = DateTime.Now;
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to save asset library to {path}: {ex.Message}", ex);
+                throw new InvalidOperationException($"Failed to save asset library to {libraryPath}: {ex.Message}", ex);
             }
         }
 
         public void SyncAssetLibrary()
         {
-            SyncAssetLibrary(DefaultLibraryPath);
-        }
-
-        public void SyncAssetLibrary(string path)
-        {
             if (library == null)
                 throw new InvalidOperationException("Asset library is not initialized.");
 
-            if (string.IsNullOrEmpty(path))
-                throw new ArgumentException("Asset library path cannot be null or empty.");
+            if (!File.Exists(libraryPath))
+                throw new FileNotFoundException($"Asset library file not found at {libraryPath}");
 
-            if (!System.IO.File.Exists(path))
-                throw new FileNotFoundException($"Asset library file not found at {path}");
-
-            var lastWriteTime = File.GetLastWriteTime(path);
+            var lastWriteTime = File.GetLastWriteTime(libraryPath);
             Debug.Log($"Last write time of asset library: {lastWriteTime}, Last updated time: {lastUpdated}");
             if (lastWriteTime < lastUpdated)
             {
-                ForceSaveAssetLibrary(path);
+                ForceSaveAssetLibrary();
             }
             else
             {
-                ForceLoadAssetLibrary(path);
+                ForceLoadAssetLibrary();
             }
         }
         #endregion
