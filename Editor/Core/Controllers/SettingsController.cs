@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 using UnityEditor;
@@ -8,19 +9,12 @@ using AMU.Editor.Core.Schema;
 
 namespace AMU.Editor.Core.Controller
 {
-    /// <summary>
-    /// 設定データの永続化を管理するコントローラ
-    /// </summary>
     public static class SettingsController
     {
-        /// <summary>
-        /// 全ての設定項目のEditorPrefsを初期化します
-        /// </summary>
         public static void InitializeEditorPrefs()
         {
             try
             {
-                // 全ての設定項目を取得
                 var allSettingItems = GetAllSettingItems();
 
                 foreach (var category in allSettingItems)
@@ -29,7 +23,6 @@ namespace AMU.Editor.Core.Controller
                     {
                         string key = $"Setting.{item.Name}";
 
-                        // EditorPrefsに値が存在しない場合のみ初期値を設定
                         if (!EditorPrefs.HasKey(key))
                         {
                             SetDefaultValue(item, key);
@@ -38,18 +31,12 @@ namespace AMU.Editor.Core.Controller
                 }
                 Debug.Log(LocalizationController.GetText("message_success_settings_initialized"));
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                Debug.LogError(string.Format(LocalizationController.GetText("message_error_settings_failed"), ex.Message));
+                throw new Exception(LocalizationController.GetText("message_error_settings_failed"), ex);
             }
         }
 
-        /// <summary>
-        /// 指定された設定項目の値をEditorPrefsから取得します
-        /// </summary>
-        /// <param name="settingName">設定名</param>
-        /// <param name="defaultValue">デフォルト値</param>
-        /// <returns>設定値</returns>
         public static T GetSetting<T>(string settingName, T defaultValue = default(T))
         {
             string key = $"Setting.{settingName}";
@@ -66,11 +53,6 @@ namespace AMU.Editor.Core.Controller
             return defaultValue;
         }
 
-        /// <summary>
-        /// 指定された設定項目の値をEditorPrefsに保存します
-        /// </summary>
-        /// <param name="settingName">設定名</param>
-        /// <param name="value">保存する値</param>
         public static void SetSetting<T>(string settingName, T value)
         {
             string key = $"Setting.{settingName}";
@@ -85,30 +67,18 @@ namespace AMU.Editor.Core.Controller
                 EditorPrefs.SetFloat(key, value is float ? (float)(object)value : 0f);
         }
 
-        /// <summary>
-        /// 指定された設定項目がEditorPrefsに存在するかどうかを確認します
-        /// </summary>
-        /// <param name="settingName">設定名</param>
-        /// <returns>存在する場合true</returns>
         public static bool HasSetting(string settingName)
         {
             string key = $"Setting.{settingName}";
             return EditorPrefs.HasKey(key);
         }
 
-        /// <summary>
-        /// 指定された設定項目をEditorPrefsから削除します
-        /// </summary>
-        /// <param name="settingName">設定名</param>
         public static void DeleteSetting(string settingName)
         {
             string key = $"Setting.{settingName}";
             EditorPrefs.DeleteKey(key);
         }
 
-        /// <summary>
-        /// 全ての設定項目を取得します
-        /// </summary>
         public static System.Collections.Generic.Dictionary<string, SettingItem[]> GetAllSettingItems()
         {
             var dictList = new System.Collections.Generic.List<System.Collections.Generic.Dictionary<string, SettingItem[]>>();
@@ -128,9 +98,6 @@ namespace AMU.Editor.Core.Controller
             return dictList.SelectMany(d => d).ToDictionary(x => x.Key, x => x.Value);
         }
 
-        /// <summary>
-        /// 指定された設定項目の初期値をEditorPrefsに設定します
-        /// </summary>
         private static void SetDefaultValue(SettingItem item, string key)
         {
             switch (item.Type)
