@@ -27,6 +27,15 @@ namespace AMU.Editor.VrcAssetManager.UI
             window.Show();
         }
 
+        private void RefreshLibrary()
+        {
+            _controller.SyncAssetLibrary();
+            _assets = _controller.GetAllAssets();
+            _tags = _controller.GetAllTags();
+            _assetTypes = _controller.GetAllAssetTypes();
+            Repaint();
+        }
+
         void OnEnable()
         {
             string lang = SettingsAPI.GetSetting<string>("Core_language");
@@ -42,6 +51,10 @@ namespace AMU.Editor.VrcAssetManager.UI
             GUILayout.Label($"Total Assets: {_assets.Count}", EditorStyles.boldLabel);
             GUILayout.Label($"Total Tags: {_tags.Count}", EditorStyles.boldLabel);
             GUILayout.Label($"Total Asset Types: {_assetTypes.Count}", EditorStyles.boldLabel);
+            if (GUILayout.Button("Refresh Library"))
+            {
+                RefreshLibrary();
+            }
         }
     }
 }
