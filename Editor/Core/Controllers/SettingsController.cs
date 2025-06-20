@@ -33,7 +33,7 @@ namespace AMU.Editor.Core.Controller
             }
             catch (Exception ex)
             {
-                throw new Exception(LocalizationController.GetText("message_error_settings_failed"), ex);
+                Debug.LogError(string.Format(LocalizationController.GetText("message_error_settings_failed"), ex.Message));
             }
         }
 
