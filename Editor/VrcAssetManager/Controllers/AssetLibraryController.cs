@@ -90,6 +90,20 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 return;
             }
 
+            if (!Directory.Exists(libraryDir))
+            {
+                try
+                {
+                    Directory.CreateDirectory(libraryDir);
+                    Debug.Log($"Created library directory: {libraryDir}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Failed to create library directory {libraryDir}: {ex.Message}");
+                    return;
+                }
+            }
+
             try
             {
                 var json = JsonConvert.SerializeObject(library, Formatting.Indented);
