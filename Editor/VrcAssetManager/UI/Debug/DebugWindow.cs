@@ -29,16 +29,10 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
             // デフォルトのテストファイルパスを設定
             _testFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities", "VrcAssetManager", "AssetLibrary.json");
 
-            // ライブラリの初期状態を確認
-            try
-            {
-                ShowLibraryInfo();
-            }
-            catch (Exception ex)
-            {
-                LogMessage($"初期ライブラリ状態確認: 失敗 - {ex.Message}");
-            }
+            // ウィンドウを開いたときに自動でライブラリを読み込み
+            _assetLibraryController.LoadAssetLibrary();
 
+            ShowLibraryInfo();
             LogMessage("AssetLibraryController テストウィンドウが初期化されました。");
         }
 
@@ -82,33 +76,41 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("ライブラリを初期化"))
             {
-                try
-                {
-                    _assetLibraryController.InitializeLibrary();
-                    LogMessage("ライブラリ初期化: 成功");
-                }
-                catch (Exception ex)
-                {
-                    LogMessage($"ライブラリ初期化: 失敗 - {ex.Message}");
-                }
+                _assetLibraryController.InitializeLibrary();
+                LogMessage("ライブラリ初期化: 成功");
             }
 
             if (GUILayout.Button("強制初期化"))
             {
-                try
-                {
-                    _assetLibraryController.ForceInitializeLibrary();
-                    LogMessage("ライブラリ強制初期化: 成功");
-                }
-                catch (Exception ex)
-                {
-                    LogMessage($"ライブラリ強制初期化: 失敗 - {ex.Message}");
-                }
+                _assetLibraryController.ForceInitializeLibrary();
+                LogMessage("ライブラリ強制初期化: 成功");
             }
 
             if (GUILayout.Button("ライブラリ情報を表示"))
             {
                 ShowLibraryInfo();
+            }
+            EditorGUILayout.EndHorizontal();
+
+            // Optimize関連ボタン追加
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("タグ最適化"))
+            {
+                _assetLibraryController.OptimizeTags();
+                ShowLibraryInfo();
+                LogMessage(_assetLibraryController.GetAllTags().Count == 0 ? "タグ最適化: 変更なしまたは全削除" : "タグ最適化: 完了");
+            }
+            if (GUILayout.Button("アセットタイプ最適化"))
+            {
+                _assetLibraryController.OptimizeAssetTypes();
+                ShowLibraryInfo();
+                LogMessage(_assetLibraryController.GetAllAssetTypes().Count == 0 ? "アセットタイプ最適化: 変更なしまたは全削除" : "アセットタイプ最適化: 完了");
+            }
+            if (GUILayout.Button("ライブラリ全体最適化"))
+            {
+                _assetLibraryController.OptimizeAssetLibrary();
+                ShowLibraryInfo();
+                LogMessage((_assetLibraryController.GetAllTags().Count == 0 && _assetLibraryController.GetAllAssetTypes().Count == 0) ? "ライブラリ全体最適化: 変更なしまたは全削除" : "ライブラリ全体最適化: 完了");
             }
             EditorGUILayout.EndHorizontal();
 
@@ -320,17 +322,16 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
         {
             try
             {
-                _assetLibraryController.LoadAssetLibrary();
                 var assets = _assetLibraryController.GetAllAssets();
                 var tags = _assetLibraryController.GetAllTags();
                 var assetTypes = _assetLibraryController.GetAllAssetTypes();
 
                 LogMessage($"=== ライブラリ情報 ===");
-                LogMessage($"アセット数: {assets.Count}");
-                LogMessage($"タグ数: {tags.Count}");
-                LogMessage($"アセットタイプ数: {assetTypes.Count}");
+                LogMessage($"アセット数: {assets?.Count ?? 0}");
+                LogMessage($"タグ数: {tags?.Count ?? 0}");
+                LogMessage($"アセットタイプ数: {assetTypes?.Count ?? 0}");
 
-                if (assets.Count > 0)
+                if (assets != null && assets.Count > 0)
                 {
                     LogMessage("アセット一覧:");
                     for (int i = 0; i < Math.Min(assets.Count, 10); i++) // 最大10件まで表示
@@ -344,19 +345,19 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                     }
                 }
 
-                if (tags.Count > 0)
+                if (tags != null && tags.Count > 0)
                 {
                     LogMessage($"タグ一覧: {string.Join(", ", tags)}");
                 }
 
-                if (assetTypes.Count > 0)
+                if (assetTypes != null && assetTypes.Count > 0)
                 {
                     LogMessage($"アセットタイプ一覧: {string.Join(", ", assetTypes)}");
                 }
             }
             catch (Exception ex)
             {
-                LogMessage($"ライブラリ情報取得: 失敗 - {ex.Message}");
+                LogMessage($"ライブラリ情報取得: 失敗 - {ex}");
             }
         }
 
