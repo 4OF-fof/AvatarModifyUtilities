@@ -6,19 +6,8 @@ using AMU.Editor.Core.Controller;
 
 namespace AMU.Editor.Core.API
 {
-    /// <summary>
-    /// オブジェクトキャプチャ機能を提供するAPI
-    /// </summary>
     public static class ObjectCaptureAPI
     {
-        /// <summary>
-        /// 指定されたオブジェクトをキャプチャしてテクスチャとして保存します
-        /// </summary>
-        /// <param name="targetObject">キャプチャ対象のオブジェクト</param>
-        /// <param name="savePath">保存先パス</param>
-        /// <param name="width">キャプチャ幅</param>
-        /// <param name="height">キャプチャ高さ</param>
-        /// <returns>キャプチャされたテクスチャ</returns>
         public static Texture2D CaptureObject(GameObject targetObject, string savePath, int width = 512, int height = 512)
         {
             if (targetObject == null)
@@ -127,7 +116,7 @@ namespace AMU.Editor.Core.API
             }
             catch (System.Exception e)
             {
-                Debug.LogError(string.Format(LocalizationController.GetText("message_error_save_image_failed"), e.Message));
+                throw new System.Exception(LocalizationController.GetText("message_error_save_image_failed"), e);
             }
         }
     }
