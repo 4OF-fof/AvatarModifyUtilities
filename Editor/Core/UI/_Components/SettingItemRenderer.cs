@@ -50,7 +50,7 @@ namespace AMU.Editor.Core.UI.Components
 
         private static void DrawStringItem(StringSettingItem stringItem, GUIStyle labelStyle)
         {
-            string value = SettingsController.GetSetting(stringItem.Name, stringItem.DefaultValue);
+            string value = SettingsController.GetSetting<string>(stringItem.Name);
             GUILayout.BeginHorizontal();
             GUILayout.Label(LocalizationController.GetText(stringItem.Name), labelStyle, GUILayout.Width(EditorGUIUtility.labelWidth));
 
@@ -70,7 +70,7 @@ namespace AMU.Editor.Core.UI.Components
 
         private static void DrawIntItem(IntSettingItem intItem, GUIStyle labelStyle)
         {
-            int value = SettingsController.GetSetting(intItem.Name, intItem.DefaultValue);
+            int value = SettingsController.GetSetting<int>(intItem.Name);
             EditorGUI.BeginChangeCheck();
             GUILayout.BeginHorizontal();
             GUILayout.Label(LocalizationController.GetText(intItem.Name), labelStyle, GUILayout.Width(EditorGUIUtility.labelWidth));
@@ -82,7 +82,7 @@ namespace AMU.Editor.Core.UI.Components
 
         private static void DrawBoolItem(BoolSettingItem boolItem, GUIStyle labelStyle)
         {
-            bool value = SettingsController.GetSetting(boolItem.Name, boolItem.DefaultValue);
+            bool value = SettingsController.GetSetting<bool>(boolItem.Name);
             EditorGUI.BeginChangeCheck();
             GUILayout.BeginHorizontal();
             GUILayout.Label(LocalizationController.GetText(boolItem.Name), labelStyle, GUILayout.Width(EditorGUIUtility.labelWidth));
@@ -94,7 +94,7 @@ namespace AMU.Editor.Core.UI.Components
 
         private static void DrawFloatItem(FloatSettingItem floatItem, GUIStyle labelStyle)
         {
-            float value = SettingsController.GetSetting(floatItem.Name, floatItem.DefaultValue);
+            float value = SettingsController.GetSetting<float>(floatItem.Name);
             EditorGUI.BeginChangeCheck();
             GUILayout.BeginHorizontal();
             GUILayout.Label(LocalizationController.GetText(floatItem.Name), labelStyle, GUILayout.Width(EditorGUIUtility.labelWidth));
@@ -106,7 +106,7 @@ namespace AMU.Editor.Core.UI.Components
 
         private static void DrawChoiceItem(ChoiceSettingItem choiceItem, GUIStyle labelStyle)
         {
-            string value = SettingsController.GetSetting(choiceItem.Name, choiceItem.DefaultValue);
+            string value = SettingsController.GetSetting<string>(choiceItem.Name);
             var displayNames = choiceItem.Choices.Values.ToArray();
             var values = choiceItem.Choices.Keys.ToArray();
             int selectedIndex = System.Array.IndexOf(values, value);
@@ -131,7 +131,7 @@ namespace AMU.Editor.Core.UI.Components
 
         private static void DrawFilePathItem(FilePathSettingItem fileItem, GUIStyle labelStyle)
         {
-            string value = SettingsController.GetSetting(fileItem.Name, fileItem.DefaultValue);
+            string value = SettingsController.GetSetting<string>(fileItem.Name);
             string extension = fileItem.ExtensionFilter;
 
             GUILayout.BeginHorizontal();
@@ -157,7 +157,7 @@ namespace AMU.Editor.Core.UI.Components
 
         private static void DrawTextAreaItem(TextAreaSettingItem textAreaItem, GUIStyle labelStyle)
         {
-            string value = SettingsController.GetSetting(textAreaItem.Name, textAreaItem.DefaultValue);
+            string value = SettingsController.GetSetting<string>(textAreaItem.Name);
             EditorGUI.BeginChangeCheck();
             GUILayout.BeginVertical();
             GUILayout.Label(LocalizationController.GetText(textAreaItem.Name), labelStyle);

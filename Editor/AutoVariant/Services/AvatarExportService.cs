@@ -106,8 +106,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static string CreateExportDirectory(string blueprintId)
         {
-            var basePath = SettingsController.GetSetting<string>("Core_dirPath",
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
+            var basePath = SettingsController.GetSetting<string>("Core_dirPath");
 
             EnsureDirectoryExists(basePath);
 
@@ -156,7 +155,7 @@ namespace AMU.Editor.AutoVariant.Services
         private static List<string> CollectAvatarAssets(GameObject avatar)
         {
             var assetPaths = new List<string>();
-            var includeAllAssets = SettingsController.GetSetting<bool>("AutoVariant_includeAllAssets", true);
+            var includeAllAssets = SettingsController.GetSetting<bool>("AutoVariant_includeAllAssets");
 
             var avatarPrefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(avatar);
             if (string.IsNullOrEmpty(avatarPrefabPath))

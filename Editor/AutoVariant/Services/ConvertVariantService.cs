@@ -31,7 +31,7 @@ namespace AMU.Editor.AutoVariant.Services
         /// </summary>
         public static void Initialize()
         {
-            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false))
+            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant"))
                 return;
 
             EditorApplication.hierarchyChanged += OnHierarchyChanged;
@@ -58,7 +58,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static void OnHierarchyChanged()
         {
-            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false))
+            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant"))
                 return;
             if (isProcessing)
                 return;
@@ -88,7 +88,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static System.Collections.Generic.List<GameObject> FindAddedPrefabRoots()
         {
-            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false))
+            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant"))
                 return new System.Collections.Generic.List<GameObject>();
 
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
@@ -123,7 +123,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static void HandlePrefabAddition(GameObject go)
         {
-            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false))
+            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant"))
                 return;
 
             var blueprintId = VRChatAPI.GetBlueprintId(go);
@@ -171,7 +171,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static void EnsureVariantDirectoryExists(string variantDir)
         {
-            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false))
+            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant"))
                 return;
             if (!AssetDatabase.IsValidFolder(variantDir))
             {
@@ -235,7 +235,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static void ReplaceWithVariant(GameObject original, string variantPath)
         {
-            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant", false))
+            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant"))
                 return;
             var variantPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(variantPath);
             if (variantPrefab == null)

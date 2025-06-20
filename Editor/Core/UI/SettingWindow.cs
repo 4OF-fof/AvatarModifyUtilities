@@ -23,7 +23,7 @@ namespace AMU.Editor.Core.UI
         [MenuItem("AMU/Setting", priority = 1000)]
         public static void ShowWindow()
         {
-            string lang = SettingsController.GetSetting("Core_language", "en_us");
+            string lang = SettingsController.GetSetting<string>("Core_language");
             LocalizationController.LoadLanguage(lang);
             var window = GetWindow<SettingWindow>(LocalizationController.GetText("Core_setting"));
             window.minSize = window.maxSize = new Vector2(960, 540);
@@ -56,7 +56,7 @@ namespace AMU.Editor.Core.UI
 
         void OnEnable()
         {
-            string lang = SettingsController.GetSetting("Core_language", "en_us");
+            string lang = SettingsController.GetSetting<string>("Core_language");
             LocalizationController.LoadLanguage(lang);
             InitializeSettings();
         }

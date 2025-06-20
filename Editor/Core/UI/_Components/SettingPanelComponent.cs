@@ -66,7 +66,7 @@ namespace AMU.Editor.Core.UI.Components
                     // 言語変更の検出
                     bool wasLanguageItem = item.Name == "Core_language";
                     string previousLanguage = wasLanguageItem
-                        ? SettingsController.GetSetting("Core_language", "en_us")
+                        ? SettingsController.GetSetting<string>("Core_language")
                         : null;
 
                     SettingItemRenderer.DrawSettingItem(item, menuSearch);
@@ -74,7 +74,7 @@ namespace AMU.Editor.Core.UI.Components
                     // 言語が変更された場合の処理
                     if (wasLanguageItem)
                     {
-                        string currentLanguage = SettingsController.GetSetting("Core_language", "en_us");
+                        string currentLanguage = SettingsController.GetSetting<string>("Core_language");
                         if (previousLanguage != currentLanguage)
                         {
                             LocalizationController.LoadLanguage(currentLanguage);

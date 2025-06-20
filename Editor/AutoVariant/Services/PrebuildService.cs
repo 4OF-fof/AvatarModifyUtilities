@@ -26,7 +26,7 @@ namespace AMU.Editor.AutoVariant.Services
             }
 
             // 最適化処理の実行
-            if (SettingsController.GetSetting<bool>("AutoVariant_enablePrebuild", true))
+            if (SettingsController.GetSetting<bool>("AutoVariant_enablePrebuild"))
             {
                 MaterialOptimizationService.OptimizeActiveAvatars();
             }
