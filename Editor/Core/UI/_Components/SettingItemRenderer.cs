@@ -7,9 +7,6 @@ using AMU.Editor.Core.Controller;
 
 namespace AMU.Editor.Core.UI.Components
 {
-    /// <summary>
-    /// 各設定項目の描画を担当するレンダラー
-    /// </summary>
     public static class SettingItemRenderer
     {
         private const float MenuPadding = 8f;
@@ -124,7 +121,6 @@ namespace AMU.Editor.Core.UI.Components
                 if (choiceItem.Name == "Core_language")
                 {
                     LocalizationController.LoadLanguage(values[newIndex]);
-                    // 言語変更時の処理は呼び出し元で処理
                 }
             }
         }

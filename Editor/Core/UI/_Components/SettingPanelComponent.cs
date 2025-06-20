@@ -7,9 +7,6 @@ using AMU.Editor.Core.Controller;
 
 namespace AMU.Editor.Core.UI.Components
 {
-    /// <summary>
-    /// 設定パネルの描画を管理するコンポーネント
-    /// </summary>
     public class SettingPanelComponent
     {
         private const float MenuWidth = 240f;
@@ -71,14 +68,12 @@ namespace AMU.Editor.Core.UI.Components
 
                     SettingItemRenderer.DrawSettingItem(item, menuSearch);
 
-                    // 言語が変更された場合の処理
                     if (wasLanguageItem)
                     {
                         string currentLanguage = SettingsController.GetSetting<string>("Core_language");
                         if (previousLanguage != currentLanguage)
                         {
                             LocalizationController.LoadLanguage(currentLanguage);
-                            // 設定の再初期化をリクエスト（イベント的に）
                             OnLanguageChanged?.Invoke();
                         }
                     }

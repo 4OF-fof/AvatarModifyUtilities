@@ -6,9 +6,6 @@ using AMU.Editor.Core.Controller;
 
 namespace AMU.Editor.Core.UI.Components
 {
-    /// <summary>
-    /// 設定ウィンドウのメニュー部分を管理するコンポーネント
-    /// </summary>
     public class MenuComponent
     {
         private const float MenuWidth = 240f;
