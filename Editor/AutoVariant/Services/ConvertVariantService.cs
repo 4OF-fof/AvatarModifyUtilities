@@ -4,8 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 
-using AMU.Editor.Core.API;
-using AMU.Editor.Core.Controller;
+using AMU.Editor.Core.Api;
 
 namespace AMU.Editor.AutoVariant.Services
 {
@@ -24,7 +23,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         public static void Initialize()
         {
-            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant"))
+            if (!SettingsAPI.GetSetting<bool>("AutoVariant_enableAutoVariant"))
                 return;
 
             EditorApplication.hierarchyChanged += OnHierarchyChanged;
@@ -48,7 +47,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static void OnHierarchyChanged()
         {
-            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant"))
+            if (!SettingsAPI.GetSetting<bool>("AutoVariant_enableAutoVariant"))
                 return;
             if (isProcessing)
                 return;
@@ -78,7 +77,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static System.Collections.Generic.List<GameObject> FindAddedPrefabRoots()
         {
-            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant"))
+            if (!SettingsAPI.GetSetting<bool>("AutoVariant_enableAutoVariant"))
                 return new System.Collections.Generic.List<GameObject>();
 
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
@@ -113,7 +112,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static void HandlePrefabAddition(GameObject go)
         {
-            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant"))
+            if (!SettingsAPI.GetSetting<bool>("AutoVariant_enableAutoVariant"))
                 return;
 
             var blueprintId = VRChatAPI.GetBlueprintId(go);
@@ -123,7 +122,7 @@ namespace AMU.Editor.AutoVariant.Services
             var prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(go);
             var prefabPath = AssetDatabase.GetAssetPath(prefabAsset);
 
-            Debug.Log($"[ConvertVariantService] {string.Format(LocalizationController.GetText("message_info_prefab_added"), go.name)}");
+            Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("message_info_prefab_added"), go.name)}");
 
             if (string.IsNullOrEmpty(prefabPath))
                 return;
@@ -140,7 +139,7 @@ namespace AMU.Editor.AutoVariant.Services
             if (isPrefabChild)
             {
                 CopyAndReplaceMaterials(go, materialDir);
-                Debug.Log($"[ConvertVariantService] {string.Format(LocalizationController.GetText("message_info_materials_processed"), go.name)}");
+                Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("message_info_materials_processed"), go.name)}");
             }
             else
             {
@@ -152,7 +151,7 @@ namespace AMU.Editor.AutoVariant.Services
                 if (!File.Exists(variantPath))
                 {
                     PrefabUtility.SaveAsPrefabAssetAndConnect(go, variantPath, InteractionMode.UserAction);
-                    Debug.Log($"[ConvertVariantService] {string.Format(LocalizationController.GetText("message_info_variant_created"), variantPath)}");
+                    Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("message_info_variant_created"), variantPath)}");
                 }
 
                 ReplaceWithVariant(go, variantPath);
@@ -161,7 +160,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static void EnsureVariantDirectoryExists(string variantDir)
         {
-            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant"))
+            if (!SettingsAPI.GetSetting<bool>("AutoVariant_enableAutoVariant"))
                 return;
             if (!AssetDatabase.IsValidFolder(variantDir))
             {
@@ -195,14 +194,14 @@ namespace AMU.Editor.AutoVariant.Services
                     if (!File.Exists(matCopyPath))
                     {
                         AssetDatabase.CopyAsset(matPath, matCopyPath);
-                        Debug.Log($"[ConvertVariantService] {string.Format(LocalizationController.GetText("message_info_material_copied"), matPath, matCopyPath)}");
+                        Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("message_info_material_copied"), matPath, matCopyPath)}");
                     }
                     var matCopy = AssetDatabase.LoadAssetAtPath<Material>(matCopyPath);
                     if (matCopy != null)
                     {
                         materials[i] = matCopy;
                         changed = true;
-                        Debug.Log($"[ConvertVariantService] {string.Format(LocalizationController.GetText("message_info_material_replaced"), renderer.name, mat.name, matCopy.name)}");
+                        Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("message_info_material_replaced"), renderer.name, mat.name, matCopy.name)}");
                     }
                 }
                 if (changed)
@@ -225,7 +224,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static void ReplaceWithVariant(GameObject original, string variantPath)
         {
-            if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant"))
+            if (!SettingsAPI.GetSetting<bool>("AutoVariant_enableAutoVariant"))
                 return;
             var variantPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(variantPath);
             if (variantPrefab == null)
@@ -245,7 +244,7 @@ namespace AMU.Editor.AutoVariant.Services
             newInstance.transform.localScale = scale;
             newInstance.transform.SetSiblingIndex(siblingIndex);
 
-            Debug.Log($"[ConvertVariantService] {string.Format(LocalizationController.GetText("message_info_scene_object_replaced"), variantPrefab.name)}");
+            Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("message_info_scene_object_replaced"), variantPrefab.name)}");
         }
     }
 }

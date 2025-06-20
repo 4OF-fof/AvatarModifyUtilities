@@ -37,7 +37,7 @@ namespace AMU.Editor.Core.Controller
                 Debug.LogError(string.Format(LocalizationController.GetText("message_error_settings_failed"), ex.Message));
             }
         }
-        
+
         public static T GetSetting<T>(string settingName)
         {
 

@@ -2,7 +2,7 @@ using System.Reflection;
 
 using UnityEngine;
 
-namespace AMU.Editor.Core.API
+namespace AMU.Editor.Core.Api
 {
     public static class VRChatAPI
     {

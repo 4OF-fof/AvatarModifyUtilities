@@ -1,4 +1,4 @@
-using AMU.Editor.Core.API;
+using AMU.Editor.Core.Api;
 
 namespace AMU.Editor.Core.Helper
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-using AMU.Editor.Core.Controller;
+using AMU.Editor.Core.Api;
 
 namespace AMU.Editor.AutoVariant.Services
 {
@@ -50,7 +50,7 @@ namespace AMU.Editor.AutoVariant.Services
         {
             if (avatar == null)
             {
-                Debug.LogError($"[MaterialOptimizationService] {LocalizationController.GetText("message_error_avatar_null")}");
+                Debug.LogError($"[MaterialOptimizationService] {LocalizationAPI.GetText("message_error_avatar_null")}");
                 return;
             }
 
@@ -64,7 +64,7 @@ namespace AMU.Editor.AutoVariant.Services
             SaveMaterialStates(avatar);
             MaterialVariantService.OptimizeMaterials(avatar);
 
-            Debug.Log($"[MaterialOptimizationService] {string.Format(LocalizationController.GetText("message_info_optimization_completed"), avatar.name)}");
+            Debug.Log($"[MaterialOptimizationService] {string.Format(LocalizationAPI.GetText("message_info_optimization_completed"), avatar.name)}");
 
             OptimizeNestedPrefabs(avatar);
             AvatarExportService.ExportOptimizedAvatar(avatar);
@@ -142,7 +142,7 @@ namespace AMU.Editor.AutoVariant.Services
                 }
             }
 
-            Debug.Log($"[MaterialOptimizationService] {string.Format(LocalizationController.GetText("message_info_material_states_saved"), avatar.name, renderers.Length)}");
+            Debug.Log($"[MaterialOptimizationService] {string.Format(LocalizationAPI.GetText("message_info_material_states_saved"), avatar.name, renderers.Length)}");
         }
 
         private static void RestoreMaterialStates()
@@ -158,7 +158,7 @@ namespace AMU.Editor.AutoVariant.Services
                 }
             }
 
-            Debug.Log($"[MaterialOptimizationService] {string.Format(LocalizationController.GetText("message_info_materials_restored"), restoredCount)}");
+            Debug.Log($"[MaterialOptimizationService] {string.Format(LocalizationAPI.GetText("message_info_materials_restored"), restoredCount)}");
         }
 
         private static void ClearMaterialStates()

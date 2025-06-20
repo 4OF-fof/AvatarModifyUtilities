@@ -4,7 +4,7 @@
 
 #### namespace
 ```csharp
-using AMU.Editor.Core.API;
+using AMU.Editor.Core.Api;
 ```
 
 ### ObjectCaptureAPI

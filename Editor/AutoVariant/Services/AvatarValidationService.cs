@@ -1,8 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 
-using AMU.Editor.Core.API;
-using AMU.Editor.Core.Controller;
+using AMU.Editor.Core.Api;
 
 namespace AMU.Editor.AutoVariant.Services
 {
@@ -41,13 +40,13 @@ namespace AMU.Editor.AutoVariant.Services
 
             if (avatars.Length == 0)
             {
-                Debug.LogWarning($"[AvatarValidationService] {LocalizationController.GetText("message_warning_no_active_avatars")}");
+                Debug.LogWarning($"[AvatarValidationService] {LocalizationAPI.GetText("message_warning_no_active_avatars")}");
                 return null;
             }
 
             if (avatars.Length > 1)
             {
-                Debug.LogWarning($"[AvatarValidationService] {LocalizationController.GetText("message_warning_multiple_avatars")}");
+                Debug.LogWarning($"[AvatarValidationService] {LocalizationAPI.GetText("message_warning_multiple_avatars")}");
                 return null;
             }
 
@@ -64,16 +63,16 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static void ShowMultipleAvatarsError()
         {
-            var title = LocalizationController.GetText("message_error_build_cancelled_title");
-            var message = LocalizationController.GetText("message_error_multiple_avatars_detected");
+            var title = LocalizationAPI.GetText("message_error_build_cancelled_title");
+            var message = LocalizationAPI.GetText("message_error_multiple_avatars_detected");
 
             EditorUtility.DisplayDialog(title, message, "OK");
         }
-        
+
         private static (string title, string message) GetLocalizedErrorMessage(string language)
         {
-            var title = LocalizationController.GetText("message_error_build_cancelled_title");
-            var message = LocalizationController.GetText("message_error_multiple_avatars_detected");
+            var title = LocalizationAPI.GetText("message_error_build_cancelled_title");
+            var message = LocalizationAPI.GetText("message_error_multiple_avatars_detected");
             return (title, message);
         }
     }

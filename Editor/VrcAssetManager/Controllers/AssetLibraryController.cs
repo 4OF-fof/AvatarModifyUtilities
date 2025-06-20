@@ -5,7 +5,6 @@ using System.Linq;
 using UnityEngine;
 using AMU.Editor.VrcAssetManager.Schema;
 using Newtonsoft.Json;
-using AMU.Editor.Core.Controller;
 
 namespace AMU.Editor.VrcAssetManager.Controller
 {

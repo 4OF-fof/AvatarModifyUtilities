@@ -5,8 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-using AMU.Editor.Core.API;
-using AMU.Editor.Core.Controller;
+using AMU.Editor.Core.Api;
 
 namespace AMU.Editor.AutoVariant.Services
 {
@@ -16,7 +15,7 @@ namespace AMU.Editor.AutoVariant.Services
         {
             if (avatar == null)
             {
-                Debug.LogError($"[AvatarExportService] {LocalizationController.GetText("message_error_avatar_null")}");
+                Debug.LogError($"[AvatarExportService] {LocalizationAPI.GetText("message_error_avatar_null")}");
                 return false;
             }
 
@@ -89,7 +88,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static string CreateExportDirectory(string blueprintId)
         {
-            var basePath = SettingsController.GetSetting<string>("Core_dirPath");
+            var basePath = SettingsAPI.GetSetting<string>("Core_dirPath");
 
             EnsureDirectoryExists(basePath);
 
@@ -102,7 +101,7 @@ namespace AMU.Editor.AutoVariant.Services
 
             if (string.IsNullOrEmpty(blueprintId))
             {
-                Debug.Log($"[AvatarExportService] {LocalizationController.GetText("message_info_export_no_blueprint")}");
+                Debug.Log($"[AvatarExportService] {LocalizationAPI.GetText("message_info_export_no_blueprint")}");
             }
 
             return avatarDir;
@@ -138,7 +137,7 @@ namespace AMU.Editor.AutoVariant.Services
         private static List<string> CollectAvatarAssets(GameObject avatar)
         {
             var assetPaths = new List<string>();
-            var includeAllAssets = SettingsController.GetSetting<bool>("AutoVariant_includeAllAssets");
+            var includeAllAssets = SettingsAPI.GetSetting<bool>("AutoVariant_includeAllAssets");
 
             var avatarPrefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(avatar);
             if (string.IsNullOrEmpty(avatarPrefabPath))

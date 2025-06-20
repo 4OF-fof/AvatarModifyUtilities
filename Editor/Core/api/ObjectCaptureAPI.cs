@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEditor;
 using AMU.Editor.Core.Controller;
 
-namespace AMU.Editor.Core.API
+namespace AMU.Editor.Core.Api
 {
     public static class ObjectCaptureAPI
     {
