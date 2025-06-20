@@ -13,7 +13,7 @@ namespace AMU.Editor.Core.UI
 {
     public class SettingWindow : EditorWindow
     {
-        private Dictionary<string, AMU.Editor.Core.Schema.SettingItem[]> settingItems;
+        private Dictionary<string, SettingItem[]> settingItems;
         private MenuComponent menuComponent;
         private SettingPanelComponent settingPanelComponent;
 
