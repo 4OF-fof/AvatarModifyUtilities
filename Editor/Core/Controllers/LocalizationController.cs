@@ -36,7 +36,7 @@ namespace AMU.Editor.Core.Controller
                         }
                     }
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
                     throw new Exception($"Failed to load language file: {path}. Error: {ex.Message}");
                 }
@@ -82,7 +82,7 @@ namespace AMU.Editor.Core.Controller
                         }
                     }
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
                     throw new Exception($"Failed to load fallback language file: {path}. Error: {ex.Message}");
                 }

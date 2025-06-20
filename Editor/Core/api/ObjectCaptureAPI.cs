@@ -115,7 +115,7 @@ namespace AMU.Editor.Core.API
 
                 Debug.Log(string.Format(LocalizationController.GetText("message_success_image_saved"), path));
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 throw new Exception(LocalizationController.GetText("message_error_save_image_failed"), e);
             }
