@@ -71,3 +71,41 @@ public static List<string> ScanDirectory(string directoryPath, bool recursive = 
 
 **Return Value:**
 - `List<string>`: List of file paths found in the directory
+
+### SettingsAPI
+
+#### Methods
+
+##### GetSetting
+```csharp
+public static T GetSetting<T>(string settingName)
+```
+
+**Parameters:**
+- `settingName`: Setting name
+
+**Return Value:**
+- `T`: Setting value
+
+### LocalizationAPI
+
+#### Methods
+
+##### GetText
+```csharp
+public static string GetText(string key)
+```
+
+**Parameters:**
+- `key`: Text key
+
+**Return Value:**
+- `string`: Corresponding text
+
+##### CurrentLanguage
+```csharp
+public static string CurrentLanguage { get; }
+```
+
+**Return Value:**
+- `string`: Current language code
