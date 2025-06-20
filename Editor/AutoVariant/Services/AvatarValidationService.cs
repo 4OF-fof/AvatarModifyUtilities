@@ -6,16 +6,8 @@ using AMU.Editor.Core.Controller;
 
 namespace AMU.Editor.AutoVariant.Services
 {
-    /// <summary>
-    /// アバター検証サービス
-    /// アバターの状態確認と検証を行う
-    /// </summary>
     public static class AvatarValidationService
     {
-        /// <summary>
-        /// アバター数を検証する
-        /// </summary>
-        /// <returns>検証が成功したかどうか</returns>
         public static bool ValidateAvatarCount()
         {
             var avatars = FindActiveAvatars();
@@ -27,10 +19,6 @@ namespace AMU.Editor.AutoVariant.Services
             return false;
         }
 
-        /// <summary>
-        /// アクティブなアバターを検索する
-        /// </summary>
-        /// <returns>アクティブなアバターの配列</returns>
         public static GameObject[] FindActiveAvatars()
         {
             var allObjects = Object.FindObjectsOfType<GameObject>();
@@ -47,10 +35,6 @@ namespace AMU.Editor.AutoVariant.Services
             return avatars.ToArray();
         }
 
-        /// <summary>
-        /// 単一のアクティブアバターを取得する
-        /// </summary>
-        /// <returns>アクティブなアバター（複数ある場合はnull）</returns>
         public static GameObject GetSingleActiveAvatar()
         {
             var avatars = FindActiveAvatars();
@@ -70,11 +54,6 @@ namespace AMU.Editor.AutoVariant.Services
             return avatars[0];
         }
 
-        /// <summary>
-        /// 指定されたGameObjectがVRCアバターかどうかを判定する
-        /// </summary>
-        /// <param name="obj">判定対象のGameObject</param>
-        /// <returns>VRCアバターかどうか</returns>
         public static bool IsVRCAvatar(GameObject obj)
         {
             if (obj == null)
@@ -82,6 +61,7 @@ namespace AMU.Editor.AutoVariant.Services
 
             return VRChatAPI.IsVRCAvatar(obj);
         }
+
         private static void ShowMultipleAvatarsError()
         {
             var title = LocalizationController.GetText("message_error_build_cancelled_title");
@@ -89,6 +69,7 @@ namespace AMU.Editor.AutoVariant.Services
 
             EditorUtility.DisplayDialog(title, message, "OK");
         }
+        
         private static (string title, string message) GetLocalizedErrorMessage(string language)
         {
             var title = LocalizationController.GetText("message_error_build_cancelled_title");

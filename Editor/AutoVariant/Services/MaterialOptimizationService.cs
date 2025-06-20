@@ -7,9 +7,6 @@ using AMU.Editor.Core.Controller;
 
 namespace AMU.Editor.AutoVariant.Services
 {
-    /// <summary>
-    /// Rendererのマテリアル状態を保存するクラス
-    /// </summary>
     [System.Serializable]
     public class RendererMaterialState
     {
@@ -31,17 +28,10 @@ namespace AMU.Editor.AutoVariant.Services
         }
     }
 
-    /// <summary>
-    /// マテリアル最適化管理サービス
-    /// アクティブなアバターのマテリアル最適化処理を管理
-    /// </summary>
     public static class MaterialOptimizationService
     {
         private static readonly List<RendererMaterialState> _materialStates = new List<RendererMaterialState>();
 
-        /// <summary>
-        /// アクティブなアバターのマテリアルを最適化する
-        /// </summary>
         public static void OptimizeActiveAvatars()
         {
             var avatars = AvatarValidationService.FindActiveAvatars();
@@ -56,10 +46,6 @@ namespace AMU.Editor.AutoVariant.Services
             RestoreMaterialStates();
         }
 
-        /// <summary>
-        /// 指定されたアバターのマテリアルを最適化する
-        /// </summary>
-        /// <param name="avatar">最適化対象のアバター</param>
         public static void OptimizeAvatar(GameObject avatar)
         {
             if (avatar == null)

@@ -10,17 +10,8 @@ using AMU.Editor.Core.Controller;
 
 namespace AMU.Editor.AutoVariant.Services
 {
-    /// <summary>
-    /// アバターエクスポートサービス
-    /// 最適化されたアバターのエクスポート処理を提供
-    /// </summary>
     public static class AvatarExportService
     {
-        /// <summary>
-        /// 最適化されたアバターをエクスポートする
-        /// </summary>
-        /// <param name="avatar">エクスポート対象のアバター</param>
-        /// <returns>エクスポートが成功したかどうか</returns>
         public static bool ExportOptimizedAvatar(GameObject avatar)
         {
             if (avatar == null)
@@ -40,11 +31,9 @@ namespace AMU.Editor.AutoVariant.Services
 
             try
             {
-                // UnityPackageとしてエクスポート
                 AssetDatabase.ExportPackage(assetPaths.ToArray(), exportPath, ExportPackageOptions.Recurse);
                 Debug.Log($"[AvatarExportService] Exported optimized avatar to: {exportPath}");
 
-                // 画像キャプチャと保存
                 CaptureAvatarImage(avatar, exportPath);
                 return true;
             }
@@ -55,11 +44,6 @@ namespace AMU.Editor.AutoVariant.Services
             }
         }
 
-        /// <summary>
-        /// アバターのアセット情報を収集する
-        /// </summary>
-        /// <param name="avatar">対象のアバター</param>
-        /// <returns>アセットパスのリスト</returns>
         public static List<string> GetAvatarAssets(GameObject avatar)
         {
             if (avatar == null)
@@ -75,7 +59,6 @@ namespace AMU.Editor.AutoVariant.Services
         {
             try
             {
-                // UnityPackageと同じ場所に同じ名前でpngファイルを保存
                 var imagePath = Path.ChangeExtension(unityPackagePath, ".png");
                 var capturedTexture = ObjectCaptureAPI.CaptureObject(avatar, imagePath, 512, 512);
 

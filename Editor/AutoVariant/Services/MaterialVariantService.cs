@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
@@ -10,17 +11,8 @@ using AMU.Editor.Core.Controller;
 
 namespace AMU.Editor.AutoVariant.Services
 {
-    /// <summary>
-    /// Material Variant最適化サービス
-    /// マテリアルの最適化処理を提供
-    /// </summary>
     public static class MaterialVariantService
     {
-        /// <summary>
-        /// 指定されたGameObjectのマテリアルを最適化する
-        /// </summary>
-        /// <param name="targetObject">最適化対象のGameObject</param>
-        /// <returns>最適化が実行されたかどうか</returns>
         public static bool OptimizeMaterials(GameObject targetObject)
         {
             if (!ValidateInput(targetObject, out var parentPrefab))
@@ -64,7 +56,6 @@ namespace AMU.Editor.AutoVariant.Services
         {
             bool hasChanges = false;
 
-            // 現在のオブジェクトのRendererを処理
             var variantRenderer = variant.GetComponent<Renderer>();
             var parentRenderer = parent.GetComponent<Renderer>();
 
@@ -76,7 +67,6 @@ namespace AMU.Editor.AutoVariant.Services
                 }
             }
 
-            // 子オブジェクトを再帰的に処理
             int childCount = Mathf.Min(variant.transform.childCount, parent.transform.childCount);
             for (int i = 0; i < childCount; i++)
             {
@@ -173,15 +163,12 @@ namespace AMU.Editor.AutoVariant.Services
                     Debug.Log($"[MaterialVariantService] {string.Format(LocalizationController.GetText("message_info_override_applied"), objectName)}");
                 }
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 Debug.LogError($"[MaterialVariantService] {string.Format(LocalizationController.GetText("message_error_override_failed"), objectName, e.Message)}");
             }
         }
 
-        /// <summary>
-        /// マテリアルのハッシュ値計算ユーティリティ
-        /// </summary>
         public static class MaterialHashCalculator
         {
             public static string Calculate(Material material)
@@ -220,9 +207,8 @@ namespace AMU.Editor.AutoVariant.Services
                     {
                         AppendPropertyValue(material, propName, propType, hashBuilder);
                     }
-                    catch (System.Exception)
+                    catch (Exception)
                     {
-                        // プロパティが存在しない場合はスキップ
                         continue;
                     }
                 }

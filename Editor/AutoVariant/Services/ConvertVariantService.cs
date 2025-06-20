@@ -9,10 +9,6 @@ using AMU.Editor.Core.Controller;
 
 namespace AMU.Editor.AutoVariant.Services
 {
-    /// <summary>
-    /// プレハブ変換監視サービス
-    /// プレハブが追加された際の自動変換処理を管理
-    /// </summary>
     [InitializeOnLoad]
     public static class ConvertVariantService
     {
@@ -26,9 +22,6 @@ namespace AMU.Editor.AutoVariant.Services
             Initialize();
         }
 
-        /// <summary>
-        /// サービスを初期化する
-        /// </summary>
         public static void Initialize()
         {
             if (!SettingsController.GetSetting<bool>("AutoVariant_enableAutoVariant"))
@@ -38,9 +31,6 @@ namespace AMU.Editor.AutoVariant.Services
             EditorApplication.update += ClearProcessedIds;
         }
 
-        /// <summary>
-        /// サービスを停止する
-        /// </summary>
         public static void Shutdown()
         {
             EditorApplication.hierarchyChanged -= OnHierarchyChanged;
