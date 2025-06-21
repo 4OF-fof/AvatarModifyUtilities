@@ -82,12 +82,18 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     if (GUILayout.Toggle(_currentFilter == AssetFilterType.Favorites, LocalizationAPI.GetText("AssetManager_filterFavorite"), EditorStyles.toolbarButton))
                     {
                         _currentFilter = AssetFilterType.Favorites;
+                        var _assetType = controller.filterOptions.assetType;
+                        controller.filterOptions.ClearFilter();
+                        controller.filterOptions.assetType = _assetType;
                         controller.filterOptions.isFavorite = true;
                     }
 
                     if (GUILayout.Toggle(_currentFilter == AssetFilterType.ArchivedOnly, LocalizationAPI.GetText("AssetManager_filterArchived"), EditorStyles.toolbarButton))
                     {
                         _currentFilter = AssetFilterType.ArchivedOnly;
+                        var _assetType = controller.filterOptions.assetType;
+                        controller.filterOptions.ClearFilter();
+                        controller.filterOptions.assetType = _assetType;
                         controller.filterOptions.isArchived = true;
                     }
 

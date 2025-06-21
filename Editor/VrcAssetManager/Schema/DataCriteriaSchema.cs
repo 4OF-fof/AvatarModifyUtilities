@@ -25,7 +25,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             tags = new List<string>();
             tagsAnd = false;
             isFavorite = null;
-            isArchived = false;
+            isArchived = null;
         }
 
         public void ClearFilter()
@@ -38,7 +38,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             tags = new List<string>();
             tagsAnd = false;
             isFavorite = null;
-            isArchived = false;
+            isArchived = null;
         }
     }
     #endregion
