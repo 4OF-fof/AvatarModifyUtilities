@@ -94,27 +94,27 @@ namespace AMU.Editor.VrcAssetManager.Schema
     #region AssetMetadata
     public class AssetMetadata
     {
-        private string _name;
-        private string _description;
+        private string name;
+        private string description;
         private string authorName;
-        private string _thumbnailPath;
-        private string _assetType;
-        private List<string> _tags;
-        private List<string> _dependencies;
-        private DateTime _createdDate;
-        private DateTime _modifiedDate;
+        private string thumbnailPath;
+        private string assetType;
+        private List<string> tags;
+        private List<string> dependencies;
+        private DateTime createdDate;
+        private DateTime modifiedDate;
 
         public AssetMetadata()
         {
-            _name = string.Empty;
-            _description = string.Empty;
+            name = string.Empty;
+            description = string.Empty;
             authorName = string.Empty;
-            _thumbnailPath = string.Empty;
-            _assetType = string.Empty;
-            _tags = new List<string>();
-            _dependencies = new List<string>();
-            _createdDate = DateTime.Now;
-            _modifiedDate = DateTime.Now;
+            thumbnailPath = string.Empty;
+            assetType = string.Empty;
+            tags = new List<string>();
+            dependencies = new List<string>();
+            createdDate = DateTime.Now;
+            modifiedDate = DateTime.Now;
         }
 
         [JsonConstructor]
@@ -122,28 +122,28 @@ namespace AMU.Editor.VrcAssetManager.Schema
                              string assetType, List<string> tags, List<string> dependencies,
                              DateTime createdDate, DateTime modifiedDate)
         {
-            Name = name;
-            Description = description;
-            AuthorName = authorName;
-            ThumbnailPath = thumbnailPath;
-            AssetType = assetType;
-            _tags = tags ?? new List<string>();
-            _dependencies = dependencies ?? new List<string>();
-            CreatedDate = createdDate;
-            ModifiedDate = modifiedDate;
+            this.name = name;
+            this.description = description;
+            this.authorName = authorName;
+            this.thumbnailPath = thumbnailPath;
+            this.assetType = assetType;
+            this.tags = tags ?? new List<string>();
+            this.dependencies = dependencies ?? new List<string>();
+            this.createdDate = createdDate;
+            this.modifiedDate = modifiedDate;
         }
 
         #region Properties
         public string Name
         {
-            get => _name ?? string.Empty;
-            private set => _name = value?.Trim() ?? string.Empty;
+            get => name ?? string.Empty;
+            private set => name = value?.Trim() ?? string.Empty;
         }
 
         public string Description
         {
-            get => _description ?? string.Empty;
-            private set => _description = value?.Trim() ?? string.Empty;
+            get => description ?? string.Empty;
+            private set => description = value?.Trim() ?? string.Empty;
         }
 
         public string AuthorName
@@ -154,30 +154,30 @@ namespace AMU.Editor.VrcAssetManager.Schema
 
         public string ThumbnailPath
         {
-            get => _thumbnailPath ?? string.Empty;
-            private set => _thumbnailPath = value?.Trim() ?? string.Empty;
+            get => thumbnailPath ?? string.Empty;
+            private set => thumbnailPath = value?.Trim() ?? string.Empty;
         }
 
         public string AssetType
         {
-            get => _assetType;
-            private set => _assetType = value;
+            get => assetType;
+            private set => assetType = value;
         }
 
-        public IReadOnlyList<string> Tags => _tags ?? new List<string>();
+        public IReadOnlyList<string> Tags => tags ?? new List<string>();
 
-        public IReadOnlyList<string> Dependencies => _dependencies ?? new List<string>();
+        public IReadOnlyList<string> Dependencies => dependencies ?? new List<string>();
 
         public DateTime CreatedDate
         {
-            get => _createdDate == default ? DateTime.Now : _createdDate;
-            private set => _createdDate = value;
+            get => createdDate == default ? DateTime.Now : createdDate;
+            private set => createdDate = value;
         }
 
         public DateTime ModifiedDate
         {
-            get => _modifiedDate == default ? DateTime.Now : _modifiedDate;
-            private set => _modifiedDate = value;
+            get => modifiedDate == default ? DateTime.Now : modifiedDate;
+            private set => modifiedDate = value;
         }
         #endregion
     }
@@ -198,7 +198,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         [JsonConstructor]
         public AssetFileInfo(string filePath, List<string> importFiles)
         {
-            FilePath = filePath;
+            this.filePath = filePath;
             this.importFiles = importFiles ?? new List<string>();
         }
 
@@ -231,9 +231,9 @@ namespace AMU.Editor.VrcAssetManager.Schema
         [JsonConstructor]
         public AssetState(bool isFavorite, bool isGroup, bool isArchived)
         {
-            IsFavorite = isFavorite;
-            IsGroup = isGroup;
-            IsArchived = isArchived;
+            this.isFavorite = isFavorite;
+            this.isGroup = isGroup;
+            this.isArchived = isArchived;
         }
 
         #region Properties
@@ -282,12 +282,12 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public BoothItemSchema(string itemName, string authorName, string itemUrl, 
                                string imageUrl, string fileName, string downloadUrl)
         {
-            ItemName = itemName;
-            AuthorName = authorName;
-            ItemUrl = itemUrl;
-            ImageUrl = imageUrl;
-            FileName = fileName;
-            DownloadUrl = downloadUrl;
+            this.itemName = itemName;
+            this.authorName = authorName;
+            this.itemUrl = itemUrl;
+            this.imageUrl = imageUrl;
+            this.fileName = fileName;
+            this.downloadUrl = downloadUrl;
         }
 
         #region Properties
