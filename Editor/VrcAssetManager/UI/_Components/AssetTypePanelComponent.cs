@@ -16,15 +16,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         private static float _panelWidth = 240f;
         private static bool _showDeleteButtons = false;
 
-        // Cached styles
-        private static GUIStyle _typeButtonStyle;
-        private static GUIStyle _selectedTypeButtonStyle;
-        private static GUIStyle _typeHeaderStyle;
-        private static bool _stylesInitialized = false;
-
         public static void Draw(AssetLibraryController controller)
         {
-            InitializeStyles();
 
             using (new GUILayout.VerticalScope(GUILayout.Width(_panelWidth)))
             {
@@ -32,7 +25,14 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.FlexibleSpace();
-                    GUILayout.Label("Asset Types", _typeHeaderStyle);
+                    var typeHeaderStyle = new GUIStyle(EditorStyles.boldLabel)
+                    {
+                        fontSize = 16,
+                        fontStyle = FontStyle.Bold,
+                        alignment = TextAnchor.MiddleCenter,
+                        padding = new RectOffset(8, 8, 8, 8)
+                    };
+                    GUILayout.Label("Asset Types", typeHeaderStyle);
                     GUILayout.FlexibleSpace();
                 }
                 GUILayout.Space(5);
@@ -43,9 +43,40 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     _scrollPosition = scrollView.scrollPosition;
 
                     // All types button with improved style
+                    var typeButtonStyle = new GUIStyle(GUI.skin.button)
+                    {
+                        fontSize = 14,
+                        fontStyle = FontStyle.Normal,
+                        alignment = TextAnchor.MiddleCenter,
+                        padding = new RectOffset(12, 12, 8, 8),
+                        margin = new RectOffset(2, 2, 1, 1),
+                        fixedHeight = 36,
+                        normal = {
+                            background = null,
+                            textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black
+                        },
+                        hover = {
+                            background = CreateColorTexture(new Color(0.3f, 0.3f, 0.3f, 0.5f)),
+                            textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black
+                        }
+                    };
+
+                    var selectedTypeButtonStyle = new GUIStyle(typeButtonStyle)
+                    {
+                        fontStyle = FontStyle.Bold,
+                        normal = {
+                            background = CreateColorTexture(EditorGUIUtility.isProSkin ? new Color(0.24f, 0.48f, 0.90f, 0.8f) : new Color(0.24f, 0.48f, 0.90f, 0.6f)),
+                            textColor = EditorGUIUtility.isProSkin ? Color.white : Color.white
+                        },
+                        hover = {
+                            background = CreateColorTexture(EditorGUIUtility.isProSkin ? new Color(0.24f, 0.48f, 0.90f, 0.9f) : new Color(0.24f, 0.48f, 0.90f, 0.7f)),
+                            textColor = EditorGUIUtility.isProSkin ? Color.white : Color.white
+                        }
+                    };
+
                     bool isAllSelected = string.IsNullOrEmpty(_selectedAssetType);
                     bool allPressed = GUILayout.Toggle(isAllSelected, LocalizationAPI.GetText("AssetType_all"), 
-                        isAllSelected ? _selectedTypeButtonStyle : _typeButtonStyle, 
+                        isAllSelected ? selectedTypeButtonStyle : typeButtonStyle, 
                         GUILayout.ExpandWidth(true), GUILayout.Height(36));
 
                     if (allPressed && !isAllSelected)
@@ -53,7 +84,17 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         _selectedAssetType = "";
                     }
 
-                    GUILayout.Space(8);
+                    // Only show separator line if there are asset types
+                    if (controller.GetAllAssetTypes().Any())
+                    {
+                        GUILayout.Space(13);
+
+                        // Separator line after "All" button
+                        var allButtonRect = GUILayoutUtility.GetRect(1, 2, GUILayout.ExpandWidth(true));
+                        EditorGUI.DrawRect(allButtonRect, new Color(0.5f, 0.5f, 0.5f, 0.7f));
+
+                        GUILayout.Space(8);
+                    }
 
                     // Individual type buttons with improved styles
                     foreach (var assetType in controller.GetAllAssetTypes())
@@ -63,7 +104,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         using (new GUILayout.HorizontalScope())
                         {
                             bool pressed = GUILayout.Toggle(isSelected, assetType, 
-                                isSelected ? _selectedTypeButtonStyle : _typeButtonStyle, 
+                                isSelected ? selectedTypeButtonStyle : typeButtonStyle, 
                                 GUILayout.ExpandWidth(true), GUILayout.Height(36));
 
                             if (pressed && !isSelected)
@@ -206,55 +247,6 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 }
                 GUILayout.FlexibleSpace();
             }
-        }
-
-        private static void InitializeStyles()
-        {
-            if (_stylesInitialized) return;
-
-            // Type header style
-            _typeHeaderStyle = new GUIStyle(EditorStyles.boldLabel)
-            {
-                fontSize = 16,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleCenter,
-                padding = new RectOffset(8, 8, 8, 8)
-            };
-
-            // Type button style (unselected)
-            _typeButtonStyle = new GUIStyle(GUI.skin.button)
-            {
-                fontSize = 14,
-                fontStyle = FontStyle.Normal,
-                alignment = TextAnchor.MiddleCenter,
-                padding = new RectOffset(12, 12, 8, 8),
-                margin = new RectOffset(2, 2, 1, 1),
-                fixedHeight = 36,
-                normal = {
-                    background = null,
-                    textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black
-                },
-                hover = {
-                    background = CreateColorTexture(new Color(0.3f, 0.3f, 0.3f, 0.5f)),
-                    textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black
-                }
-            };
-
-            // Type button style (selected)
-            _selectedTypeButtonStyle = new GUIStyle(_typeButtonStyle)
-            {
-                fontStyle = FontStyle.Bold,
-                normal = {
-                    background = CreateColorTexture(EditorGUIUtility.isProSkin ? new Color(0.24f, 0.48f, 0.90f, 0.8f) : new Color(0.24f, 0.48f, 0.90f, 0.6f)),
-                    textColor = EditorGUIUtility.isProSkin ? Color.white : Color.white
-                },
-                hover = {
-                    background = CreateColorTexture(EditorGUIUtility.isProSkin ? new Color(0.24f, 0.48f, 0.90f, 0.9f) : new Color(0.24f, 0.48f, 0.90f, 0.7f)),
-                    textColor = EditorGUIUtility.isProSkin ? Color.white : Color.white
-                }
-            };
-
-            _stylesInitialized = true;
         }
 
         /// <summary>
