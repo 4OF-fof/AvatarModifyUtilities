@@ -111,14 +111,14 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                                 var asset = assets[i + j];
                                 bool isSelected = _selectedAsset == asset;
                                 bool isMultiSelected = _selectedAssets.Contains(asset);
-
                                 _assetItemComponent.Draw(
                                     asset,
                                     _thumbnailSize,
                                     isSelected,
                                     isMultiSelected && _selectedAssets.Count > 1,
                                     HandleAssetLeftClick,
-                                    HandleAssetRightClick
+                                    HandleAssetRightClick,
+                                    HandleAssetDoubleClick
                                 );
                             }
                             GUILayout.FlexibleSpace();
@@ -153,10 +153,25 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 _selectedAssets.Add(asset);
             }
         }
-
+        
         private static void HandleAssetRightClick(AssetSchema asset)
         {
-            Debug.Log($"Right clicked on asset: {asset.Metadata.Name}");
+            if (_selectedAssets.Count > 1)
+            {
+                Debug.LogWarning("Right-clicking on multiple selected.");
+            }
+            else
+            {
+                var menu = new GenericMenu();
+                menu.AddItem(new GUIContent("Open Asset"), false, () => Debug.Log($"Opening asset: {asset.Metadata.Name}"));
+                menu.AddItem(new GUIContent("Delete Asset"), false, () => Debug.Log($"Deleting asset: {asset.Metadata.Name}"));
+                menu.ShowAsContext();
+            }
+        }
+
+        private static void HandleAssetDoubleClick(AssetSchema asset)
+        {
+            Debug.Log($"Double clicked on asset: {asset.Metadata.Name}");
         }
     }
 }

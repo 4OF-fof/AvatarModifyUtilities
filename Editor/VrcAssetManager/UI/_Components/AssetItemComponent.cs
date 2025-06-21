@@ -7,7 +7,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 {
     public class AssetItemComponent
     {
-        public void Draw(AssetSchema asset, float thumbnailSize, bool isSelected, bool isMultiSelected, Action<AssetSchema> onLeftClick, Action<AssetSchema> onRightClick)
+        public void Draw(AssetSchema asset, float thumbnailSize, bool isSelected, bool isMultiSelected, Action<AssetSchema> onLeftClick, Action<AssetSchema> onRightClick, Action<AssetSchema> onDoubleClick)
         {
 
             using (new GUILayout.VerticalScope(GUILayout.Width(thumbnailSize + 10)))
@@ -63,7 +63,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                 GUI.Label(rect, content, nameStyle);
 
-                HandleAssetItemEvents(asset, thumbnailRect, onLeftClick, onRightClick);
+                HandleAssetItemEvents(asset, thumbnailRect, onLeftClick, onRightClick, onDoubleClick);
             }
         }
 
@@ -171,16 +171,24 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
             return result;
         }
-
-        private void HandleAssetItemEvents(AssetSchema asset, Rect thumbnailRect, System.Action<AssetSchema> onLeftClick, System.Action<AssetSchema> onRightClick)
+        
+        private void HandleAssetItemEvents(AssetSchema asset, Rect thumbnailRect, Action<AssetSchema> onLeftClick, Action<AssetSchema> onRightClick, Action<AssetSchema> onDoubleClick)
         {
             if (Event.current.type == EventType.MouseDown && thumbnailRect.Contains(Event.current.mousePosition))
             {
                 if (Event.current.button == 0)
                 {
-                    onLeftClick?.Invoke(asset);
-                    Event.current.Use();
-                    GUI.changed = true;
+                    if (Event.current.clickCount == 2)
+                    {
+                        onDoubleClick?.Invoke(asset);
+                        Event.current.Use();
+                    }
+                    else
+                    {
+                        onLeftClick?.Invoke(asset);
+                        Event.current.Use();
+                        GUI.changed = true;
+                    }
                 }
                 else if (Event.current.button == 1)
                 {
