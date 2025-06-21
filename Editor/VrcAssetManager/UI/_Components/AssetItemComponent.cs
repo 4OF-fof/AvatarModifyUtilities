@@ -35,15 +35,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     GUI.DrawTexture(thumbnailRect, prefabIcon, ScaleMode.ScaleToFit);
                 }
 
-                if (asset.HasChildAssets)
-                {
-                    DrawGroupIndicator(thumbnailRect);
-                }
-
-                if (asset.State.IsFavorite)
-                {
-                    DrawFavoriteIndicator(thumbnailRect);
-                }
+                DrawIndicator(thumbnailRect, asset);
 
                 var baseFontSize = 10f;
                 var baseThumbnailSize = 110f;
@@ -76,58 +68,64 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             }
         }
 
-        private void DrawFavoriteIndicator(Rect thumbnailRect)
+        private void DrawIndicator(Rect thumbnailRect, AssetSchema asset)
         {
-            var starSize = 25f * (_thumbnailSize / 110f);
-            var starRect = new Rect(thumbnailRect.x + thumbnailRect.width - starSize - 3, thumbnailRect.y + 3, starSize, starSize);
-
-            var originalColor = GUI.color;
-            var starStyle = new GUIStyle(GUI.skin.label)
+            if (asset.HasChildAssets)
             {
-                fontSize = Mathf.RoundToInt(starSize * 0.8f),
-                alignment = TextAnchor.MiddleCenter
-            };
+                var iconSize = 20f * (_thumbnailSize / 110f);
+                var indicatorRect = new Rect(thumbnailRect.x + 4, thumbnailRect.y + 4, iconSize, iconSize);
 
-            GUI.color = Color.black;
-            for (int x = -1; x <= 1; x++)
-            {
-                for (int y = -1; y <= 1; y++)
+                var folderIcon = EditorGUIUtility.IconContent("Folder Icon").image as Texture2D;
+                if (folderIcon != null)
                 {
-                    if (x == 0 && y == 0) continue;
-                    var outlineRect = new Rect(starRect.x + x, starRect.y + y, starRect.width, starRect.height);
-                    GUI.Label(outlineRect, "★", starStyle);
+                    var originalColor = GUI.color;
+                    
+                    GUI.color = Color.black;
+                    for (int x = -1; x <= 1; x++)
+                    {
+                        for (int y = -1; y <= 1; y++)
+                        {
+                            if (x == 0 && y == 0) continue;
+                            var outlineRect = new Rect(indicatorRect.x + x, indicatorRect.y + y, indicatorRect.width, indicatorRect.height);
+                            GUI.DrawTexture(outlineRect, folderIcon, ScaleMode.ScaleToFit);
+                        }
+                    }
+
+                    GUI.color = originalColor;
+                    GUI.DrawTexture(indicatorRect, folderIcon, ScaleMode.ScaleToFit);
                 }
             }
 
-            GUI.color = Color.yellow;
-            GUI.Label(starRect, "★", starStyle);
-
-            GUI.color = originalColor;
-        }
-
-        private void DrawGroupIndicator(Rect thumbnailRect)
-        {
-            var iconSize = 20f * (_thumbnailSize / 110f);
-            var indicatorRect = new Rect(thumbnailRect.x + 2, thumbnailRect.y + 2, iconSize, iconSize);
-
-            var folderIcon = EditorGUIUtility.IconContent("Folder Icon").image as Texture2D;
-            if (folderIcon != null)
+            if (asset.State.IsFavorite)
             {
+                var starSize = 25f * (_thumbnailSize / 110f);
+                var iconSize = 20f * (_thumbnailSize / 110f);
+
+                var yOffset = asset.HasChildAssets ? 2 + iconSize + 2 : 2;
+                var starRect = new Rect(thumbnailRect.x + 2, thumbnailRect.y + yOffset, starSize, starSize);
+
                 var originalColor = GUI.color;
-                
+                var starStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = Mathf.RoundToInt(starSize * 0.8f),
+                    alignment = TextAnchor.MiddleCenter
+                };
+
                 GUI.color = Color.black;
                 for (int x = -1; x <= 1; x++)
                 {
                     for (int y = -1; y <= 1; y++)
                     {
                         if (x == 0 && y == 0) continue;
-                        var outlineRect = new Rect(indicatorRect.x + x, indicatorRect.y + y, indicatorRect.width, indicatorRect.height);
-                        GUI.DrawTexture(outlineRect, folderIcon, ScaleMode.ScaleToFit);
+                        var outlineRect = new Rect(starRect.x + x, starRect.y + y, starRect.width, starRect.height);
+                        GUI.Label(outlineRect, "★", starStyle);
                     }
                 }
 
+                GUI.color = Color.yellow;
+                GUI.Label(starRect, "★", starStyle);
+
                 GUI.color = originalColor;
-                GUI.DrawTexture(indicatorRect, folderIcon, ScaleMode.ScaleToFit);
             }
         }
 
