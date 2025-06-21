@@ -10,6 +10,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 {
     public static class MainGridComponent
     {
+        private static int _columnsPerRow = 7; // 4 ~ 13
         private static Vector2 _scrollPosition = Vector2.zero;
         private static AssetSchema _selectedAsset;
         private static List<AssetSchema> _selectedAssets = new List<AssetSchema>();
@@ -55,14 +56,14 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 }
                 GUILayout.FlexibleSpace();
                 return;
-            }
-
-            using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition))
+            }            using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition))
             {
                 _scrollPosition = scrollView.scrollPosition;
 
-                float availableWidth = 960;
-                int columnsPerRow = Mathf.Max(1, Mathf.FloorToInt(availableWidth / (_thumbnailSize + 10)));
+                float availableWidth = 960 - 40; // スクロールバーの幅を考慮
+                int columnsPerRow = _columnsPerRow;
+                float calculatedThumbnailSize = (availableWidth - (columnsPerRow - 1) * 10) / columnsPerRow;
+                _thumbnailSize = Mathf.Max(60f, calculatedThumbnailSize); // 最小サイズを60に設定
 
                 _assetItemComponent.SetThumbnailSize(_thumbnailSize);
 
