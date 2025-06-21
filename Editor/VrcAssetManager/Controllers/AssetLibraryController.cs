@@ -13,13 +13,14 @@ namespace AMU.Editor.VrcAssetManager.Controller
     {
         public AssetLibrarySchema library { get; private set; }
         public FilterOptions filterOptions { get; set; } = new FilterOptions();
+        public SortOptions sortOptions { get; set; } = new SortOptions();
 
         #region Library Management
 
-        private DateTime lastUpdated;
+        private DateTime _lastUpdated;
 
-        private string libraryDir => Path.Combine(SettingsAPI.GetSetting<string>("Core_dirPath"), "VrcAssetManager");
-        private string libraryPath => Path.Combine(libraryDir, "AssetLibrary.json");
+        private string _libraryDir => Path.Combine(SettingsAPI.GetSetting<string>("Core_dirPath"), "VrcAssetManager");
+        private string _libraryPath => Path.Combine(_libraryDir, "AssetLibrary.json");
 
         public void InitializeLibrary()
         {
@@ -28,7 +29,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 return;
             }
             library = new AssetLibrarySchema();
-            lastUpdated = DateTime.Now;
+            _lastUpdated = DateTime.Now;
             SaveAssetLibrary();
         }
 
@@ -39,48 +40,48 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 Debug.LogWarning("Asset library is already initialized. Forcing re-initialization.");
             }
             library = new AssetLibrarySchema();
-            lastUpdated = DateTime.Now;
+            _lastUpdated = DateTime.Now;
             ForceSaveAssetLibrary();
         }
 
         public void LoadAssetLibrary()
         {
-            if (!File.Exists(libraryPath))
+            if (!File.Exists(_libraryPath))
             {
-                Debug.LogError($"Asset library file not found at {libraryPath}.");
+                Debug.LogError($"Asset library file not found at {_libraryPath}.");
                 return;
             }
 
-            if (File.GetLastWriteTime(libraryPath) < lastUpdated) return;
+            if (File.GetLastWriteTime(_libraryPath) < _lastUpdated) return;
 
             ForceLoadAssetLibrary();
         }
 
         public void ForceLoadAssetLibrary()
         {
-            if (!File.Exists(libraryPath))
+            if (!File.Exists(_libraryPath))
             {
-                Debug.LogError($"Asset library file not found at {libraryPath}.");
+                Debug.LogError($"Asset library file not found at {_libraryPath}.");
                 return;
             }
 
             try
             {
-                var json = File.ReadAllText(libraryPath);
+                var json = File.ReadAllText(_libraryPath);
                 library = JsonConvert.DeserializeObject<AssetLibrarySchema>(json);
-                lastUpdated = File.GetLastWriteTime(libraryPath);
+                _lastUpdated = File.GetLastWriteTime(_libraryPath);
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Failed to load asset library from {libraryPath}: {ex.Message}");
+                Debug.LogError($"Failed to load asset library from {_libraryPath}: {ex.Message}");
             }
         }
 
         public void SaveAssetLibrary()
         {
-            if (File.GetLastWriteTime(libraryPath) > lastUpdated)
+            if (File.GetLastWriteTime(_libraryPath) > _lastUpdated)
             {
-                Debug.LogWarning($"Asset library file at {libraryPath} is newer than the current library. Skipping save.");
+                Debug.LogWarning($"Asset library file at {_libraryPath} is newer than the current library. Skipping save.");
                 return;
             }
 
@@ -95,16 +96,16 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 return;
             }
 
-            if (!Directory.Exists(libraryDir))
+            if (!Directory.Exists(_libraryDir))
             {
                 try
                 {
-                    Directory.CreateDirectory(libraryDir);
-                    Debug.Log($"Created library directory: {libraryDir}");
+                    Directory.CreateDirectory(_libraryDir);
+                    Debug.Log($"Created library directory: {_libraryDir}");
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Failed to create library directory {libraryDir}: {ex.Message}");
+                    Debug.LogError($"Failed to create library directory {_libraryDir}: {ex.Message}");
                     return;
                 }
             }
@@ -112,12 +113,12 @@ namespace AMU.Editor.VrcAssetManager.Controller
             try
             {
                 var json = JsonConvert.SerializeObject(library, Formatting.Indented);
-                File.WriteAllText(libraryPath, json);
-                lastUpdated = DateTime.Now;
+                File.WriteAllText(_libraryPath, json);
+                _lastUpdated = DateTime.Now;
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Failed to save asset library to {libraryPath}: {ex.Message}");
+                Debug.LogError($"Failed to save asset library to {_libraryPath}: {ex.Message}");
             }
         }
 
@@ -129,21 +130,21 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 return;
             }
 
-            if (!File.Exists(libraryPath))
+            if (!File.Exists(_libraryPath))
             {
-                Debug.LogError($"Asset library file not found at {libraryPath}.");
+                Debug.LogError($"Asset library file not found at {_libraryPath}.");
                 return;
             }
 
-            var lastWriteTime = File.GetLastWriteTime(libraryPath);
-            if (lastWriteTime > lastUpdated)
+            var lastWriteTime = File.GetLastWriteTime(_libraryPath);
+            if (lastWriteTime > _lastUpdated)
             {
-                Debug.Log($"Last write time of asset library: {lastWriteTime}, Last updated time: {lastUpdated}");
+                Debug.Log($"Last write time of asset library: {lastWriteTime}, Last updated time: {_lastUpdated}");
                 ForceLoadAssetLibrary();
             }
-            else if (lastWriteTime < lastUpdated)
+            else if (lastWriteTime < _lastUpdated)
             {
-                Debug.Log($"Last write time of asset library: {lastWriteTime}, Last updated time: {lastUpdated}");
+                Debug.Log($"Last write time of asset library: {lastWriteTime}, Last updated time: {_lastUpdated}");
                 ForceSaveAssetLibrary();
             }
         }
@@ -181,7 +182,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             SyncAssetLibrary();
             library.AddAsset(asset);
-            lastUpdated = DateTime.Now;
+            _lastUpdated = DateTime.Now;
             SaveAssetLibrary();
         }
 
@@ -205,7 +206,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             SyncAssetLibrary();
             library.UpdateAsset(asset);
-            lastUpdated = DateTime.Now;
+            _lastUpdated = DateTime.Now;
             SaveAssetLibrary();
         }
 
@@ -229,7 +230,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             SyncAssetLibrary();
             library.RemoveAsset(assetId);
-            lastUpdated = DateTime.Now;
+            _lastUpdated = DateTime.Now;
             SaveAssetLibrary();
         }
 
@@ -284,34 +285,34 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             var results = new List<List<AssetSchema>>();
 
-            if (!string.IsNullOrEmpty(options.Name))
+            if (!string.IsNullOrEmpty(options.name))
             {
-                results.Add(library.GetAssetsByName(options.Name));
+                results.Add(library.GetAssetsByName(options.name));
             }
 
-            if (!string.IsNullOrEmpty(options.AuthorName))
+            if (!string.IsNullOrEmpty(options.authorName))
             {
-                results.Add(library.GetAssetsByAuthorName(options.AuthorName));
+                results.Add(library.GetAssetsByAuthorName(options.authorName));
             }
 
-            if (!string.IsNullOrEmpty(options.Description))
+            if (!string.IsNullOrEmpty(options.description))
             {
-                results.Add(library.GetAssetsByDescription(options.Description));
+                results.Add(library.GetAssetsByDescription(options.description));
             }
 
-            if (options.Tags != null && options.Tags.Count > 0)
+            if (options.tags != null && options.tags.Count > 0)
             {
                 var tagResults = new List<AssetSchema>();
-                if (options.TagsAnd)
+                if (options.tagsAnd)
                 {
                     // AND logic: asset must have all specified tags
                     tagResults = library.Assets.Values
-                        .Where(asset => options.Tags.All(tag => asset.Metadata.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase)))
+                        .Where(asset => options.tags.All(tag => asset.Metadata.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase)))
                         .ToList();
                 }
                 else
                 {
-                    foreach (var tag in options.Tags)
+                    foreach (var tag in options.tags)
                     {
                         tagResults.AddRange(library.GetAssetsByTag(tag));
                     }
@@ -319,19 +320,19 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 results.Add(tagResults.Distinct().ToList());
             }
 
-            if (options.AssetTypes != null && options.AssetTypes.Count > 0)
+            if (options.assetTypes != null && options.assetTypes.Count > 0)
             {
                 var assetTypeResults = new List<AssetSchema>();
-                if (options.AssetTypesAnd)
+                if (options.assetTypesAnd)
                 {
-                    foreach (var assetType in options.AssetTypes)
+                    foreach (var assetType in options.assetTypes)
                     {
                         assetTypeResults.AddRange(library.GetAssetsByAssetType(assetType));
                     }
                 }
                 else
                 {
-                    foreach (var assetType in options.AssetTypes)
+                    foreach (var assetType in options.assetTypes)
                     {
                         assetTypeResults.AddRange(library.GetAssetsByAssetType(assetType));
                     }
@@ -339,14 +340,14 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 results.Add(assetTypeResults.Distinct().ToList());
             }
 
-            if (options.Favorite.HasValue)
+            if (options.isFavorite.HasValue)
             {
-                results.Add(library.GetAssetsByStateFavorite(options.Favorite.Value));
+                results.Add(library.GetAssetsByStateFavorite(options.isFavorite.Value));
             }
 
-            if (options.Archived.HasValue)
+            if (options.isArchived.HasValue)
             {
-                results.Add(library.GetAssetsByStateArchived(options.Archived.Value));
+                results.Add(library.GetAssetsByStateArchived(options.isArchived.Value));
             }
 
             if (results.Count == 0)
@@ -356,7 +357,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             var filteredAssets = results[0];
 
-            if (options.FilterAnd)
+            if (options.filterAnd)
             {
                 for (int i = 1; i < results.Count; i++)
                 {
@@ -384,7 +385,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             SyncAssetLibrary();
             library.ClearAssets();
-            lastUpdated = DateTime.Now;
+            _lastUpdated = DateTime.Now;
             SaveAssetLibrary();
         }
 
@@ -422,7 +423,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             SyncAssetLibrary();
             library.AddTag(tag.Trim());
-            lastUpdated = DateTime.Now;
+            _lastUpdated = DateTime.Now;
             SaveAssetLibrary();
         }
 
@@ -446,7 +447,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             SyncAssetLibrary();
             library.RemoveTag(tag.Trim());
-            lastUpdated = DateTime.Now;
+            _lastUpdated = DateTime.Now;
             SaveAssetLibrary();
         }
 
@@ -489,7 +490,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             SyncAssetLibrary();
             library.ClearTags();
-            lastUpdated = DateTime.Now;
+            _lastUpdated = DateTime.Now;
             SaveAssetLibrary();
         }
 
@@ -521,7 +522,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 library.RemoveTag(tag);
             }
 
-            lastUpdated = DateTime.Now;
+            _lastUpdated = DateTime.Now;
             SaveAssetLibrary();
         }
         #endregion
@@ -547,7 +548,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             SyncAssetLibrary();
             library.AddAssetType(assetType.Trim());
-            lastUpdated = DateTime.Now;
+            _lastUpdated = DateTime.Now;
             SaveAssetLibrary();
         }
 
@@ -571,7 +572,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             SyncAssetLibrary();
             library.RemoveAssetType(assetType.Trim());
-            lastUpdated = DateTime.Now;
+            _lastUpdated = DateTime.Now;
             SaveAssetLibrary();
         }
 
@@ -614,7 +615,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             SyncAssetLibrary();
             library.ClearAssetTypes();
-            lastUpdated = DateTime.Now;
+            _lastUpdated = DateTime.Now;
             SaveAssetLibrary();
         }
 
@@ -646,37 +647,9 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 library.RemoveAssetType(type);
             }
 
-            lastUpdated = DateTime.Now;
+            _lastUpdated = DateTime.Now;
             SaveAssetLibrary();
         }
         #endregion
-    }
-
-    public class FilterOptions
-    {
-        public bool FilterAnd { get; set; }
-        public string Name { get; set; }
-        public string AuthorName { get; set; }
-        public string Description { get; set; }
-        public List<string> Tags { get; set; }
-        public bool TagsAnd { get; set; }
-        public List<string> AssetTypes { get; set; }
-        public bool AssetTypesAnd { get; set; }
-        public bool? Favorite { get; set; }
-        public bool? Archived { get; set; }
-
-        public FilterOptions()
-        {
-            FilterAnd = false;
-            Name = string.Empty;
-            AuthorName = string.Empty;
-            Description = string.Empty;
-            Tags = new List<string>();
-            TagsAnd = false;
-            AssetTypes = new List<string>();
-            AssetTypesAnd = false;
-            Favorite = null;
-            Archived = false;
-        }
     }
 }

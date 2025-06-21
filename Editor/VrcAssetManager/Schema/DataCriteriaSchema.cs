@@ -1,0 +1,68 @@
+using System.Collections.Generic;
+
+namespace AMU.Editor.VrcAssetManager.Schema
+{
+    #region FilterOptions
+    public class FilterOptions
+    {
+        public bool filterAnd { get; set; }
+        public string name { get; set; }
+        public string authorName { get; set; }
+        public string description { get; set; }
+        public List<string> tags { get; set; }
+        public bool tagsAnd { get; set; }
+        public List<string> assetTypes { get; set; }
+        public bool assetTypesAnd { get; set; }
+        public bool? isFavorite { get; set; }
+        public bool? isArchived { get; set; }
+
+        public FilterOptions()
+        {
+            filterAnd = false;
+            name = string.Empty;
+            authorName = string.Empty;
+            description = string.Empty;
+            tags = new List<string>();
+            tagsAnd = false;
+            assetTypes = new List<string>();
+            assetTypesAnd = false;
+            isFavorite = null;
+            isArchived = false;
+        }
+
+        public void ClearFilter()
+        {
+            filterAnd = false;
+            name = string.Empty;
+            authorName = string.Empty;
+            description = string.Empty;
+            tags = new List<string>();
+            tagsAnd = false;
+            assetTypes = new List<string>();
+            assetTypesAnd = false;
+            isFavorite = null;
+            isArchived = false;
+        }
+    }
+    #endregion
+
+    #region SortOptions
+    public class SortOptions
+    {
+        public SortOptionsEnum sortBy { get; set; }
+        public bool isDescending { get; set; }
+
+        public SortOptions()
+        {
+            sortBy = SortOptionsEnum.Name;
+            isDescending = true;
+        }
+    }
+
+    public enum SortOptionsEnum
+    {
+        Name,
+        Date
+    }
+    #endregion
+}

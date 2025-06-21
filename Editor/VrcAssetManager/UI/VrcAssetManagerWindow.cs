@@ -34,9 +34,6 @@ namespace AMU.Editor.VrcAssetManager.UI
         private void OnGUI()
         {
             ToolbarComponent.Draw(_controller);
-            AssetTypePanelComponent.Draw(_controller);
-            var MainGrid = new MainGridComponent();
-            MainGrid.Draw(_controller);
         }
 
     }
