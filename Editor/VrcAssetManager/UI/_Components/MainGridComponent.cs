@@ -13,8 +13,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         private static Vector2 _scrollPosition = Vector2.zero;
         private static AssetSchema _selectedAsset;
         private static List<AssetSchema> _selectedAssets = new List<AssetSchema>();
-        private static float _thumbnailSize = 110f;
-        private static float _leftPanelWidth = 240f;
+        private static float _thumbnailSize = 120f;
         private static AssetItemComponent _assetItemComponent = new AssetItemComponent();
 
         public static void Draw(AssetLibraryController controller)
@@ -62,14 +61,11 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             {
                 _scrollPosition = scrollView.scrollPosition;
 
-                // Calculate grid layout
-                float availableWidth = Screen.width - _leftPanelWidth - 40; // Approximate available width
+                float availableWidth = 960;
                 int columnsPerRow = Mathf.Max(1, Mathf.FloorToInt(availableWidth / (_thumbnailSize + 10)));
 
-                // Update asset item component thumbnail size
                 _assetItemComponent.SetThumbnailSize(_thumbnailSize);
 
-                // Draw assets in grid
                 for (int i = 0; i < assets.Count; i += columnsPerRow)
                 {
                     using (new GUILayout.HorizontalScope())
@@ -94,14 +90,10 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             }
         }
 
-        /// <summary>
-        /// Handle left click on asset item
-        /// </summary>
         private static void HandleAssetLeftClick(AssetSchema asset)
         {
             if (Event.current.control || Event.current.command)
             {
-                // Multi-select toggle
                 if (_selectedAssets.Contains(asset))
                 {
                     _selectedAssets.Remove(asset);
@@ -118,26 +110,15 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             }
             else
             {
-                // Single select
                 _selectedAsset = asset;
                 _selectedAssets.Clear();
                 _selectedAssets.Add(asset);
             }
         }
 
-        /// <summary>
-        /// Handle right click on asset item
-        /// </summary>
         private static void HandleAssetRightClick(AssetSchema asset)
         {
-            // Context menu
             Debug.Log($"Right clicked on asset: {asset.Metadata.Name}");
         }
-
-        // Public accessors for state
-        public static AssetSchema SelectedAsset => _selectedAsset;
-        public static List<AssetSchema> SelectedAssets => new List<AssetSchema>(_selectedAssets);
-        public static void SetThumbnailSize(float size) => _thumbnailSize = size;
-        public static void SetLeftPanelWidth(float width) => _leftPanelWidth = width;
     }
 }
