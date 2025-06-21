@@ -12,7 +12,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
     public class AssetLibraryController
     {
         public AssetLibrarySchema library { get; private set; }
-        public FilterOptions filterOptions { get; set; }
+        public FilterOptions filterOptions { get; set; } = new FilterOptions();
 
         #region Library Management
 
@@ -265,6 +265,113 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             SyncAssetLibrary();
             return library.Assets.Values.ToList();
+        }
+
+        public IReadOnlyList<AssetSchema> GetFilteredAssets(FilterOptions options)
+        {
+            if (library == null)
+            {
+                Debug.LogWarning("Asset library is not initialized. Cannot get filtered assets.");
+                return new List<AssetSchema>();
+            }
+
+            SyncAssetLibrary();
+
+            if (options == null)
+            {
+                return library.GetAllAssets();
+            }
+
+            var results = new List<List<AssetSchema>>();
+
+            if (!string.IsNullOrEmpty(options.Name))
+            {
+                results.Add(library.GetAssetsByName(options.Name));
+            }
+
+            if (!string.IsNullOrEmpty(options.AuthorName))
+            {
+                results.Add(library.GetAssetsByAuthorName(options.AuthorName));
+            }
+
+            if (!string.IsNullOrEmpty(options.Description))
+            {
+                results.Add(library.GetAssetsByDescription(options.Description));
+            }
+
+            if (options.Tags != null && options.Tags.Count > 0)
+            {
+                var tagResults = new List<AssetSchema>();
+                if (options.TagsAnd)
+                {
+                    // AND logic: asset must have all specified tags
+                    tagResults = library.Assets.Values
+                        .Where(asset => options.Tags.All(tag => asset.Metadata.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase)))
+                        .ToList();
+                }
+                else
+                {
+                    foreach (var tag in options.Tags)
+                    {
+                        tagResults.AddRange(library.GetAssetsByTag(tag));
+                    }
+                }
+                results.Add(tagResults.Distinct().ToList());
+            }
+
+            if (options.AssetTypes != null && options.AssetTypes.Count > 0)
+            {
+                var assetTypeResults = new List<AssetSchema>();
+                if (options.AssetTypesAnd)
+                {
+                    foreach (var assetType in options.AssetTypes)
+                    {
+                        assetTypeResults.AddRange(library.GetAssetsByAssetType(assetType));
+                    }
+                }
+                else
+                {
+                    foreach (var assetType in options.AssetTypes)
+                    {
+                        assetTypeResults.AddRange(library.GetAssetsByAssetType(assetType));
+                    }
+                }
+                results.Add(assetTypeResults.Distinct().ToList());
+            }
+
+            if (options.Favorite.HasValue)
+            {
+                results.Add(library.GetAssetsByStateFavorite(options.Favorite.Value));
+            }
+
+            if (options.Archived.HasValue)
+            {
+                results.Add(library.GetAssetsByStateArchived(options.Archived.Value));
+            }
+
+            if (results.Count == 0)
+            {
+                return library.GetAllAssets();
+            }
+
+            var filteredAssets = results[0];
+
+            if (options.FilterAnd)
+            {
+                for (int i = 1; i < results.Count; i++)
+                {
+                    filteredAssets = filteredAssets.Intersect(results[i]).ToList();
+                }
+            }
+            else
+            {
+                for (int i = 1; i < results.Count; i++)
+                {
+                    filteredAssets = filteredAssets.Union(results[i]).ToList();
+                }
+            }
+
+            return filteredAssets;
         }
 
         public void ClearAssets()
