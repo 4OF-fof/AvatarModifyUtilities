@@ -7,7 +7,7 @@ using AMU.Editor.VrcAssetManager.Controller;
 
 namespace AMU.Editor.VrcAssetManager.UI.Components
 {
-    public class MainGridComponent
+    public static class MainGridComponent
     {
         // Mock data for display purposes only
         private static List<MockAssetInfo> _mockAssets = new List<MockAssetInfo>
@@ -27,14 +27,14 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             new MockAssetInfo("Body Parts", "Body"),
         };
 
-        private Vector2 _scrollPosition = Vector2.zero;
-        private MockAssetInfo _selectedAsset;
-        private List<MockAssetInfo> _selectedAssets = new List<MockAssetInfo>();
-        private float _thumbnailSize = 110f;
-        private float _leftPanelWidth = 240f;
-        private AssetItemComponent _assetItemComponent = new AssetItemComponent();
+        private static Vector2 _scrollPosition = Vector2.zero;
+        private static MockAssetInfo _selectedAsset;
+        private static List<MockAssetInfo> _selectedAssets = new List<MockAssetInfo>();
+        private static float _thumbnailSize = 110f;
+        private static float _leftPanelWidth = 240f;
+        private static AssetItemComponent _assetItemComponent = new AssetItemComponent();
 
-        public void Draw(AssetLibraryController controller)
+        public static void Draw(AssetLibraryController controller)
         {
             var originalColor = GUI.backgroundColor;
             GUI.backgroundColor = new Color(0.9f, 0.9f, 0.9f, 1f);
@@ -46,7 +46,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             }
         }
 
-        private void DrawAssetGrid()
+        private static void DrawAssetGrid()
         {
             if (_mockAssets == null || _mockAssets.Count == 0)
             {
@@ -100,7 +100,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         /// <summary>
         /// Handle left click on asset item
         /// </summary>
-        private void HandleAssetLeftClick(MockAssetInfo asset)
+        private static void HandleAssetLeftClick(MockAssetInfo asset)
         {
             if (Event.current.control || Event.current.command)
             {
@@ -131,16 +131,16 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         /// <summary>
         /// Handle right click on asset item
         /// </summary>
-        private void HandleAssetRightClick(MockAssetInfo asset)
+        private static void HandleAssetRightClick(MockAssetInfo asset)
         {
             // Mock context menu
             Debug.Log($"Right clicked on asset: {asset.name}");
         }
 
         // Public accessors for state
-        public MockAssetInfo SelectedAsset => _selectedAsset;
-        public List<MockAssetInfo> SelectedAssets => new List<MockAssetInfo>(_selectedAssets);
-        public void SetThumbnailSize(float size) => _thumbnailSize = size;
-        public void SetLeftPanelWidth(float width) => _leftPanelWidth = width;
+        public static MockAssetInfo SelectedAsset => _selectedAsset;
+        public static List<MockAssetInfo> SelectedAssets => new List<MockAssetInfo>(_selectedAssets);
+        public static void SetThumbnailSize(float size) => _thumbnailSize = size;
+        public static void SetLeftPanelWidth(float width) => _leftPanelWidth = width;
     }
 }
