@@ -13,13 +13,13 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         private static string _selectedAssetType = "";
         private static string _newTypeName = "";
         private static Vector2 _scrollPosition = Vector2.zero;
-        private static float _panelWidth = 240f;
+        private static float _panelWidth = 236f;
         private static bool _showDeleteButtons = false;
 
         public static void Draw(AssetLibraryController controller)
         {
-
-            using (new GUILayout.VerticalScope(GUILayout.Width(_panelWidth)))
+            // Create visual boundary using HelpBox style
+            using (new GUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Width(_panelWidth)))
             {
                 // Header with improved style
                 using (new GUILayout.HorizontalScope())
