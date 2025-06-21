@@ -61,8 +61,6 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     float calculatedThumbnailSize = (availableWidth - (columnsPerRow - 1) * 10) / columnsPerRow;
                     _thumbnailSize = Mathf.Max(60f, calculatedThumbnailSize);
 
-                    _assetItemComponent.SetThumbnailSize(_thumbnailSize);
-
                     for (int i = 0; i < assets.Count; i += columnsPerRow)
                     {
                         using (new GUILayout.HorizontalScope())
@@ -74,8 +72,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                                 bool isMultiSelected = _selectedAssets.Contains(asset);
 
                                 _assetItemComponent.Draw(
-                                    asset, 
-                                    isSelected, 
+                                    asset,
+                                    _thumbnailSize,
+                                    isSelected,
                                     isMultiSelected && _selectedAssets.Count > 1,
                                     HandleAssetLeftClick,
                                     HandleAssetRightClick

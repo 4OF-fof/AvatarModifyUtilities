@@ -7,13 +7,12 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 {
     public class AssetItemComponent
     {
-        private float _thumbnailSize;
-
-        public void Draw(AssetSchema asset, bool isSelected, bool isMultiSelected, System.Action<AssetSchema> onLeftClick, System.Action<AssetSchema> onRightClick)
+        public void Draw(AssetSchema asset, float thumbnailSize, bool isSelected, bool isMultiSelected, Action<AssetSchema> onLeftClick, Action<AssetSchema> onRightClick)
         {
-            using (new GUILayout.VerticalScope(GUILayout.Width(_thumbnailSize + 10)))
+
+            using (new GUILayout.VerticalScope(GUILayout.Width(thumbnailSize + 10)))
             {
-                var thumbnailRect = GUILayoutUtility.GetRect(_thumbnailSize, _thumbnailSize);
+                var thumbnailRect = GUILayoutUtility.GetRect(thumbnailSize, thumbnailSize);
 
                 if (isSelected && isMultiSelected)
                 {
@@ -35,11 +34,11 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     GUI.DrawTexture(thumbnailRect, prefabIcon, ScaleMode.ScaleToFit);
                 }
 
-                DrawIndicator(thumbnailRect, asset);
+                DrawIndicator(thumbnailRect, thumbnailSize, asset);
 
                 var baseFontSize = 10f;
                 var baseThumbnailSize = 110f;
-                var scaledFontSize = Mathf.RoundToInt(baseFontSize * (_thumbnailSize / baseThumbnailSize));
+                var scaledFontSize = Mathf.RoundToInt(baseFontSize * (thumbnailSize / baseThumbnailSize));
                 scaledFontSize = Mathf.Clamp(scaledFontSize, 8, 16);
                 
                 var nameStyle = new GUIStyle(EditorStyles.label)
@@ -49,7 +48,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     fontSize = scaledFontSize,
                     richText = true
                 };
-                var availableWidth = _thumbnailSize + 10;
+                var availableWidth = thumbnailSize + 10;
 
                 var fixedHeight = nameStyle.lineHeight * 2 + 5;
                 var rect = GUILayoutUtility.GetRect(availableWidth, fixedHeight);
@@ -68,11 +67,11 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             }
         }
 
-        private void DrawIndicator(Rect thumbnailRect, AssetSchema asset)
+        private void DrawIndicator(Rect thumbnailRect, float thumbnailSize, AssetSchema asset)
         {
             if (asset.HasChildAssets)
             {
-                var iconSize = 20f * (_thumbnailSize / 110f);
+                var iconSize = 20f * (thumbnailSize / 110f);
                 var indicatorRect = new Rect(thumbnailRect.x + 4, thumbnailRect.y + 4, iconSize, iconSize);
 
                 var folderIcon = EditorGUIUtility.IconContent("Folder Icon").image as Texture2D;
@@ -98,8 +97,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
             if (asset.State.IsFavorite)
             {
-                var starSize = 25f * (_thumbnailSize / 110f);
-                var iconSize = 20f * (_thumbnailSize / 110f);
+                var starSize = 25f * (thumbnailSize / 110f);
+                var iconSize = 20f * (thumbnailSize / 110f);
 
                 var yOffset = asset.HasChildAssets ? 2 + iconSize + 2 : 2;
                 var starRect = new Rect(thumbnailRect.x + 2, thumbnailRect.y + yOffset, starSize, starSize);
@@ -190,7 +189,5 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 }
             }
         }
-
-        public void SetThumbnailSize(float size) => _thumbnailSize = size;
     }
 }
