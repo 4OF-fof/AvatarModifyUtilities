@@ -218,13 +218,11 @@ namespace AMU.Editor.VrcAssetManager.Schema
     public class AssetState
     {
         private bool isFavorite;
-        private bool isGroup;
         private bool isArchived;
 
         public AssetState()
         {
             isFavorite = false;
-            isGroup = false;
             isArchived = false;
         }
 
@@ -232,7 +230,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public AssetState(bool isFavorite, bool isGroup, bool isArchived)
         {
             this.isFavorite = isFavorite;
-            this.isGroup = isGroup;
             this.isArchived = isArchived;
         }
 
@@ -241,12 +238,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             get => isFavorite;
             private set => isFavorite = value;
-        }
-
-        public bool IsGroup
-        {
-            get => isGroup;
-            private set => isGroup = value;
         }
 
         public bool IsArchived
