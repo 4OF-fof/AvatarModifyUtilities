@@ -7,15 +7,13 @@ using UnityEngine;
 using AMU.Editor.Core.Api;
 using AMU.Editor.VrcAssetManager.Schema;
 using AMU.Editor.VrcAssetManager.Controller;
+using AMU.Editor.VrcAssetManager.UI.Components;
 
 namespace AMU.Editor.VrcAssetManager.UI
 {
     public class VrcAssetManagerWindow : EditorWindow
     {
         private AssetLibraryController _controller = new AssetLibraryController();
-        private IReadOnlyList<AssetSchema> _assets;
-        private IReadOnlyList<string> _tags;
-        private IReadOnlyList<string> _assetTypes;
 
         [MenuItem("AMU/VRC Asset Manager", priority = 10000)]
         public static void ShowWindow()
@@ -27,34 +25,31 @@ namespace AMU.Editor.VrcAssetManager.UI
             window.Show();
         }
 
-        private void RefreshLibrary()
-        {
-            _controller.SyncAssetLibrary();
-            _assets = _controller.GetAllAssets();
-            _tags = _controller.GetAllTags();
-            _assetTypes = _controller.GetAllAssetTypes();
-            Repaint();
-        }
-
         void OnEnable()
         {
             string lang = SettingsAPI.GetSetting<string>("Core_language");
             LocalizationAPI.LoadLanguage(lang);
             _controller.InitializeLibrary();
-            _assets = _controller.GetAllAssets();
-            _tags = _controller.GetAllTags();
-            _assetTypes = _controller.GetAllAssetTypes();
         }
 
         private void OnGUI()
         {
+            var _assets = _controller.GetAllAssets();
+            var _tags = _controller.GetAllTags();
+            var _assetTypes = _controller.GetAllAssetTypes();
             GUILayout.Label($"Total Assets: {_assets.Count}", EditorStyles.boldLabel);
             GUILayout.Label($"Total Tags: {_tags.Count}", EditorStyles.boldLabel);
             GUILayout.Label($"Total Asset Types: {_assetTypes.Count}", EditorStyles.boldLabel);
-            if (GUILayout.Button("Refresh Library"))
+            foreach (var asset in _assets)
             {
-                RefreshLibrary();
+                GUILayout.Label($"Asset ID: {asset.AssetId}", EditorStyles.label);
+                GUILayout.Label($"Name: {asset.Metadata.Name}", EditorStyles.label);
+                GUILayout.Space(10);
             }
+            GUILayout.Space(10);
+            ToolbarComponent toolbar = new ToolbarComponent();
+            toolbar.Draw(_controller);
         }
+
     }
 }
