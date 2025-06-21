@@ -73,10 +73,29 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 if (allPressed && !isAllSelected)
                 {
                     _selectedAssetType = controller.filterOptions.assetType = "";
+                    controller.filterOptions.isUnCategorized = false;
                     
                 }
 
-                GUILayout.Space(13);
+                GUILayout.Space(5);
+
+                var unCategorizedAssets = controller.GetUnCategorizedAssets();
+                if (unCategorizedAssets.Any())
+                {
+                    bool isUnCategorizedSelected = _selectedAssetType == "__uncategorized__";
+                    bool unCategorizedPressed = GUILayout.Toggle(isUnCategorizedSelected, 
+                        LocalizationAPI.GetText("AssetType_uncategorized"), 
+                        isUnCategorizedSelected ? selectedTypeButtonStyle : typeButtonStyle, 
+                        GUILayout.ExpandWidth(true), GUILayout.Height(36));
+
+                    if (unCategorizedPressed && !isUnCategorizedSelected)
+                    {
+                        _selectedAssetType = controller.filterOptions.assetType = "__uncategorized__";
+                        controller.filterOptions.isUnCategorized = true;
+                    }
+                }
+
+                GUILayout.Space(8);
 
                 var allButtonRect = GUILayoutUtility.GetRect(1, 2, GUILayout.ExpandWidth(true));
                 EditorGUI.DrawRect(allButtonRect, new Color(0.5f, 0.5f, 0.5f, 0.7f));
@@ -100,6 +119,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                             if (pressed && !isSelected)
                             {
                                 _selectedAssetType = controller.filterOptions.assetType = assetType;
+                                controller.filterOptions.isUnCategorized = false;
                             }
 
                             if (_showDeleteButtons)

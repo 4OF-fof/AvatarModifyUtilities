@@ -47,9 +47,11 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         if (GUILayout.Button("×", EditorStyles.toolbarButton, GUILayout.Width(20)))
                         {
                             _isUsingAdvancedSearch = false;
-                            var _assetType = controller.filterOptions.assetType;
-                            controller.filterOptions.ClearFilter();
-                            controller.filterOptions.assetType = _assetType;
+                        var _assetType = controller.filterOptions.assetType;
+                        var _isUnCategorized = controller.filterOptions.isUnCategorized;
+                        controller.filterOptions.ClearFilter();
+                        controller.filterOptions.assetType = _assetType;
+                        controller.filterOptions.isUnCategorized = _isUnCategorized;
                         }
                     }
                     else
@@ -75,16 +77,20 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     {
                         _currentFilter = AssetFilterType.All;
                         var _assetType = controller.filterOptions.assetType;
+                        var _isUnCategorized = controller.filterOptions.isUnCategorized;
                         controller.filterOptions.ClearFilter();
                         controller.filterOptions.assetType = _assetType;
+                        controller.filterOptions.isUnCategorized = _isUnCategorized;
                     }
 
                     if (GUILayout.Toggle(_currentFilter == AssetFilterType.Favorites, LocalizationAPI.GetText("AssetManager_filterFavorite"), EditorStyles.toolbarButton))
                     {
                         _currentFilter = AssetFilterType.Favorites;
                         var _assetType = controller.filterOptions.assetType;
+                        var _isUnCategorized = controller.filterOptions.isUnCategorized;
                         controller.filterOptions.ClearFilter();
                         controller.filterOptions.assetType = _assetType;
+                        controller.filterOptions.isUnCategorized = _isUnCategorized;
                         controller.filterOptions.isFavorite = true;
                     }
 
@@ -92,8 +98,10 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     {
                         _currentFilter = AssetFilterType.ArchivedOnly;
                         var _assetType = controller.filterOptions.assetType;
+                        var _isUnCategorized = controller.filterOptions.isUnCategorized;
                         controller.filterOptions.ClearFilter();
                         controller.filterOptions.assetType = _assetType;
+                        controller.filterOptions.isUnCategorized = _isUnCategorized;
                         controller.filterOptions.isArchived = true;
                     }
 

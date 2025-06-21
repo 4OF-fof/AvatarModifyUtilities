@@ -275,6 +275,20 @@ namespace AMU.Editor.VrcAssetManager.Controller
             return library.Assets.Values.ToList();
         }
 
+        public IReadOnlyList<AssetSchema> GetUnCategorizedAssets()
+        {
+            if (library == null)
+            {
+                Debug.LogWarning("Asset library is not initialized. Cannot get assets by name.");
+                return new List<AssetSchema>();
+            }
+
+            SyncAssetLibrary();
+            return library.Assets.Values
+                .Where(asset => string.IsNullOrEmpty(asset.Metadata.AssetType))
+                .ToList();
+        }
+
         public IReadOnlyList<AssetSchema> GetFilteredAssets()
         {
             if (library == null)
@@ -288,6 +302,11 @@ namespace AMU.Editor.VrcAssetManager.Controller
             if (filterOptions == null)
             {
                 return library.GetAllAssets();
+            }
+
+            if (filterOptions.isUnCategorized)
+            {
+                return GetUnCategorizedAssets();
             }
 
             var results = new List<List<AssetSchema>>();
