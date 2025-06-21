@@ -135,14 +135,15 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
 
             var lastWriteTime = File.GetLastWriteTime(libraryPath);
-            Debug.Log($"Last write time of asset library: {lastWriteTime}, Last updated time: {lastUpdated}");
-            if (lastWriteTime < lastUpdated)
+            if (lastWriteTime > lastUpdated)
             {
-                ForceSaveAssetLibrary();
-            }
-            else
-            {
+                Debug.Log($"Last write time of asset library: {lastWriteTime}, Last updated time: {lastUpdated}");
                 ForceLoadAssetLibrary();
+            }
+            else if (lastWriteTime < lastUpdated)
+            {
+                Debug.Log($"Last write time of asset library: {lastWriteTime}, Last updated time: {lastUpdated}");
+                ForceSaveAssetLibrary();
             }
         }
 

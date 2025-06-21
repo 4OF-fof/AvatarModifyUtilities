@@ -12,8 +12,12 @@ namespace AMU.Editor.Core.Controller
 {
     public static class SettingsController
     {
+        private static bool _isInitialized = false;
+        
         public static void InitializeEditorPrefs()
         {
+            if (_isInitialized) return;
+
             try
             {
                 var allSettingItems = GetAllSettingItems();
@@ -31,6 +35,7 @@ namespace AMU.Editor.Core.Controller
                     }
                 }
                 Debug.Log(LocalizationController.GetText("message_success_settings_initialized"));
+                _isInitialized = true;
             }
             catch (Exception ex)
             {
@@ -40,8 +45,10 @@ namespace AMU.Editor.Core.Controller
 
         public static T GetSetting<T>(string settingName)
         {
-
-            InitializeEditorPrefs();
+            if (!_isInitialized)
+            {
+                InitializeEditorPrefs();
+            }
 
             string key = $"Setting.{settingName}";
 
