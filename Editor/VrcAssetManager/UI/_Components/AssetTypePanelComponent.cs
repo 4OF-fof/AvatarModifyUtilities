@@ -72,7 +72,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                 if (allPressed && !isAllSelected)
                 {
-                    _selectedAssetType = "";
+                    _selectedAssetType = controller.filterOptions.assetType = "";
+                    
                 }
 
                 GUILayout.Space(13);
@@ -98,7 +99,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                             if (pressed && !isSelected)
                             {
-                                _selectedAssetType = assetType;
+                                _selectedAssetType = controller.filterOptions.assetType = assetType;
                             }
 
                             if (_showDeleteButtons)
@@ -123,7 +124,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                                         controller.RemoveAssetType(assetType);
                                         if (_selectedAssetType == assetType)
                                         {
-                                            _selectedAssetType = "";
+                                            _selectedAssetType = controller.filterOptions.assetType = "";
                                         }
                                     }
                                 }
@@ -238,8 +239,5 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             texture.Apply();
             return texture;
         }
-
-        public static string SelectedAssetType => _selectedAssetType;
-        public static void SetSelectedAssetType(string type) => _selectedAssetType = type;
     }
 }

@@ -47,6 +47,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         if (GUILayout.Button("×", EditorStyles.toolbarButton, GUILayout.Width(20)))
                         {
                             _isUsingAdvancedSearch = false;
+                            var _assetType = controller.filterOptions.assetType;
+                            controller.filterOptions.ClearFilter();
+                            controller.filterOptions.assetType = _assetType;
                         }
                     }
                     else
@@ -71,7 +74,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     if (GUILayout.Toggle(_currentFilter == AssetFilterType.All, LocalizationAPI.GetText("AssetManager_filterAll"), EditorStyles.toolbarButton))
                     {
                         _currentFilter = AssetFilterType.All;
+                        var _assetType = controller.filterOptions.assetType;
                         controller.filterOptions.ClearFilter();
+                        controller.filterOptions.assetType = _assetType;
                     }
 
                     if (GUILayout.Toggle(_currentFilter == AssetFilterType.Favorites, LocalizationAPI.GetText("AssetManager_filterFavorite"), EditorStyles.toolbarButton))
@@ -135,19 +140,5 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 }
             }
         }
-
-        // Public accessors for state (to be used by the main window)
-        public static string SearchText => _searchText;
-        public static AssetFilterType CurrentFilter => _currentFilter;
-        public static int SelectedSortOption => _selectedSortOption;
-        public static bool SortDescending => _sortDescending;
-        public static bool IsUsingAdvancedSearch => _isUsingAdvancedSearch;
-
-        // Public setters for external state management
-        public static void SetSearchText(string text) => _searchText = text;
-        public static void SetFilter(AssetFilterType filter) => _currentFilter = filter;
-        public static void SetSortOption(int option) => _selectedSortOption = option;
-        public static void SetSortDescending(bool descending) => _sortDescending = descending;
-        public static void SetAdvancedSearch(bool active) => _isUsingAdvancedSearch = active;
     }
 }
