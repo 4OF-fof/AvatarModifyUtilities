@@ -300,12 +300,16 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 results.Add(library.GetAssetsByDescription(options.description));
             }
 
+            if (!string.IsNullOrEmpty(options.assetType))
+            {
+                results.Add(library.GetAssetsByAssetType(options.assetType));
+            }
+
             if (options.tags != null && options.tags.Count > 0)
             {
                 var tagResults = new List<AssetSchema>();
                 if (options.tagsAnd)
                 {
-                    // AND logic: asset must have all specified tags
                     tagResults = library.Assets.Values
                         .Where(asset => options.tags.All(tag => asset.Metadata.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase)))
                         .ToList();
@@ -318,26 +322,6 @@ namespace AMU.Editor.VrcAssetManager.Controller
                     }
                 }
                 results.Add(tagResults.Distinct().ToList());
-            }
-
-            if (options.assetTypes != null && options.assetTypes.Count > 0)
-            {
-                var assetTypeResults = new List<AssetSchema>();
-                if (options.assetTypesAnd)
-                {
-                    foreach (var assetType in options.assetTypes)
-                    {
-                        assetTypeResults.AddRange(library.GetAssetsByAssetType(assetType));
-                    }
-                }
-                else
-                {
-                    foreach (var assetType in options.assetTypes)
-                    {
-                        assetTypeResults.AddRange(library.GetAssetsByAssetType(assetType));
-                    }
-                }
-                results.Add(assetTypeResults.Distinct().ToList());
             }
 
             if (options.isFavorite.HasValue)

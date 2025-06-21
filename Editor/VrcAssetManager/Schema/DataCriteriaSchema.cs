@@ -9,10 +9,9 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public string name { get; set; }
         public string authorName { get; set; }
         public string description { get; set; }
+        public string assetType { get; set; }
         public List<string> tags { get; set; }
         public bool tagsAnd { get; set; }
-        public List<string> assetTypes { get; set; }
-        public bool assetTypesAnd { get; set; }
         public bool? isFavorite { get; set; }
         public bool? isArchived { get; set; }
 
@@ -22,10 +21,9 @@ namespace AMU.Editor.VrcAssetManager.Schema
             name = string.Empty;
             authorName = string.Empty;
             description = string.Empty;
+            assetType = string.Empty;
             tags = new List<string>();
             tagsAnd = false;
-            assetTypes = new List<string>();
-            assetTypesAnd = false;
             isFavorite = null;
             isArchived = false;
         }
@@ -36,10 +34,9 @@ namespace AMU.Editor.VrcAssetManager.Schema
             name = string.Empty;
             authorName = string.Empty;
             description = string.Empty;
+            assetType = string.Empty;
             tags = new List<string>();
             tagsAnd = false;
-            assetTypes = new List<string>();
-            assetTypesAnd = false;
             isFavorite = null;
             isArchived = false;
         }
