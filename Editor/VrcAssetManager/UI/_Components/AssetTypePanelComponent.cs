@@ -13,13 +13,12 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         private static string _selectedAssetType = "";
         private static string _newTypeName = "";
         private static Vector2 _scrollPosition = Vector2.zero;
-        private static float _panelWidth = 236f;
         private static bool _showDeleteButtons = false;
 
         public static void Draw(AssetLibraryController controller)
         {
             // Create visual boundary using HelpBox style
-            using (new GUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Width(_panelWidth)))
+            using (new GUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Width(236f)))
             {
                 // Header with improved style
                 using (new GUILayout.HorizontalScope())
@@ -37,64 +36,61 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 }
                 GUILayout.Space(5);
 
-                // Asset types list with scroll view
-                using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition, GUILayout.ExpandHeight(true)))
+                // Button styles (moved outside scroll view)
+                var typeButtonStyle = new GUIStyle(GUI.skin.button)
+                {
+                    fontSize = 14,
+                    fontStyle = FontStyle.Normal,
+                    alignment = TextAnchor.MiddleCenter,
+                    padding = new RectOffset(12, 12, 8, 8),
+                    margin = new RectOffset(2, 2, 1, 1),
+                    fixedHeight = 36,
+                    normal = {
+                        background = null,
+                        textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black
+                    },
+                    hover = {
+                        background = CreateColorTexture(new Color(0.3f, 0.3f, 0.3f, 0.5f)),
+                        textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black
+                    }
+                };
+
+                var selectedTypeButtonStyle = new GUIStyle(typeButtonStyle)
+                {
+                    fontStyle = FontStyle.Bold,
+                    normal = {
+                        background = CreateColorTexture(EditorGUIUtility.isProSkin ? new Color(0.24f, 0.48f, 0.90f, 0.8f) : new Color(0.24f, 0.48f, 0.90f, 0.6f)),
+                        textColor = EditorGUIUtility.isProSkin ? Color.white : Color.white
+                    },
+                    hover = {
+                        background = CreateColorTexture(EditorGUIUtility.isProSkin ? new Color(0.24f, 0.48f, 0.90f, 0.9f) : new Color(0.24f, 0.48f, 0.90f, 0.7f)),
+                        textColor = EditorGUIUtility.isProSkin ? Color.white : Color.white
+                    }
+                };
+
+                // All types button (always visible)
+                bool isAllSelected = string.IsNullOrEmpty(_selectedAssetType);
+                bool allPressed = GUILayout.Toggle(isAllSelected, LocalizationAPI.GetText("AssetType_all"), 
+                    isAllSelected ? selectedTypeButtonStyle : typeButtonStyle, 
+                    GUILayout.ExpandWidth(true), GUILayout.Height(36));
+
+                if (allPressed && !isAllSelected)
+                {
+                    _selectedAssetType = "";
+                }
+
+                GUILayout.Space(13);
+
+                // Separator line after "All" button
+                var allButtonRect = GUILayoutUtility.GetRect(1, 2, GUILayout.ExpandWidth(true));
+                EditorGUI.DrawRect(allButtonRect, new Color(0.5f, 0.5f, 0.5f, 0.7f));
+
+                GUILayout.Space(8);
+
+                // Asset types list with scroll view (only the individual type buttons scroll)
+                using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition, GUILayout.Height(572), GUILayout.ExpandWidth(true)))
                 {
                     _scrollPosition = scrollView.scrollPosition;
-
-                    // All types button with improved style
-                    var typeButtonStyle = new GUIStyle(GUI.skin.button)
-                    {
-                        fontSize = 14,
-                        fontStyle = FontStyle.Normal,
-                        alignment = TextAnchor.MiddleCenter,
-                        padding = new RectOffset(12, 12, 8, 8),
-                        margin = new RectOffset(2, 2, 1, 1),
-                        fixedHeight = 36,
-                        normal = {
-                            background = null,
-                            textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black
-                        },
-                        hover = {
-                            background = CreateColorTexture(new Color(0.3f, 0.3f, 0.3f, 0.5f)),
-                            textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black
-                        }
-                    };
-
-                    var selectedTypeButtonStyle = new GUIStyle(typeButtonStyle)
-                    {
-                        fontStyle = FontStyle.Bold,
-                        normal = {
-                            background = CreateColorTexture(EditorGUIUtility.isProSkin ? new Color(0.24f, 0.48f, 0.90f, 0.8f) : new Color(0.24f, 0.48f, 0.90f, 0.6f)),
-                            textColor = EditorGUIUtility.isProSkin ? Color.white : Color.white
-                        },
-                        hover = {
-                            background = CreateColorTexture(EditorGUIUtility.isProSkin ? new Color(0.24f, 0.48f, 0.90f, 0.9f) : new Color(0.24f, 0.48f, 0.90f, 0.7f)),
-                            textColor = EditorGUIUtility.isProSkin ? Color.white : Color.white
-                        }
-                    };
-
-                    bool isAllSelected = string.IsNullOrEmpty(_selectedAssetType);
-                    bool allPressed = GUILayout.Toggle(isAllSelected, LocalizationAPI.GetText("AssetType_all"), 
-                        isAllSelected ? selectedTypeButtonStyle : typeButtonStyle, 
-                        GUILayout.ExpandWidth(true), GUILayout.Height(36));
-
-                    if (allPressed && !isAllSelected)
-                    {
-                        _selectedAssetType = "";
-                    }
-
-                    // Only show separator line if there are asset types
-                    if (controller.GetAllAssetTypes().Any())
-                    {
-                        GUILayout.Space(13);
-
-                        // Separator line after "All" button
-                        var allButtonRect = GUILayoutUtility.GetRect(1, 2, GUILayout.ExpandWidth(true));
-                        EditorGUI.DrawRect(allButtonRect, new Color(0.5f, 0.5f, 0.5f, 0.7f));
-
-                        GUILayout.Space(8);
-                    }
 
                     // Individual type buttons with improved styles
                     foreach (var assetType in controller.GetAllAssetTypes())
@@ -144,11 +140,12 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                         GUILayout.Space(2);
                     }
-                    GUILayout.Space(10);
-
-                    // Add new type form at the bottom
-                    DrawAddTypeForm(controller);
                 }
+
+                GUILayout.Space(8);
+
+                // Add new type form at the bottom (always visible)
+                DrawAddTypeForm(controller);
             }
         }
 
@@ -166,7 +163,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 var labelStyle = new GUIStyle(EditorStyles.miniLabel)
                 {
                     fontSize = 12,
-                    fontStyle = FontStyle.Bold
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.MiddleCenter
                 };
                 GUILayout.Label(LocalizationAPI.GetText("AssetType_addNewType"), labelStyle);
 
@@ -247,6 +245,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 }
                 GUILayout.FlexibleSpace();
             }
+            GUILayout.Space(5);
         }
 
         /// <summary>
@@ -263,6 +262,5 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         // Public accessors for state (to be used by the main window)
         public static string SelectedAssetType => _selectedAssetType;
         public static void SetSelectedAssetType(string type) => _selectedAssetType = type;
-        public static void SetPanelWidth(float width) => _panelWidth = width;
     }
 }
