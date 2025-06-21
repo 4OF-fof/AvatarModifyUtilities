@@ -14,6 +14,13 @@ namespace AMU.Editor.VrcAssetManager.Controller
         public AssetLibrarySchema library { get; private set; }
         public FilterOptions filterOptions { get; set; } = new FilterOptions();
         public SortOptions sortOptions { get; set; } = new SortOptions();
+        
+        private int _columnsPerRow = 7;
+        public int columnsPerRow 
+        { 
+            get => _columnsPerRow; 
+            set => _columnsPerRow = Mathf.Clamp(value, 4, 13); 
+        }
 
         #region Library Management
 

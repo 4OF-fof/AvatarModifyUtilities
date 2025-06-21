@@ -10,7 +10,6 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 {
     public static class MainGridComponent
     {
-        private static int _columnsPerRow = 7; // 4 ~ 13
         private static Vector2 _scrollPosition = Vector2.zero;
         private static AssetSchema _selectedAsset;
         private static List<AssetSchema> _selectedAssets = new List<AssetSchema>();
@@ -57,7 +56,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     _scrollPosition = scrollView.scrollPosition;
 
                     float availableWidth = 920;
-                    int columnsPerRow = _columnsPerRow;
+                    int columnsPerRow = controller.columnsPerRow;
                     float calculatedThumbnailSize = (availableWidth - (columnsPerRow - 1) * 10) / columnsPerRow;
                     _thumbnailSize = Mathf.Max(60f, calculatedThumbnailSize);
 

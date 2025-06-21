@@ -96,6 +96,14 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                     GUILayout.FlexibleSpace();
 
+                    var newColumnsPerRow = (int)GUILayout.HorizontalSlider(controller.columnsPerRow, 4, 13, GUILayout.Width(80));
+                    if (newColumnsPerRow != controller.columnsPerRow)
+                    {
+                        controller.columnsPerRow = newColumnsPerRow;
+                    }
+
+                    GUILayout.Space(5);
+
                     string[] sortOptions = Enum.GetNames(typeof(SortOptionsEnum))
                         .Select(name => 
                         {
