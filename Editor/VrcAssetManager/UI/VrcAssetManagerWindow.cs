@@ -5,7 +5,6 @@ using UnityEditor;
 using UnityEngine;
 
 using AMU.Editor.Core.Api;
-using AMU.Editor.VrcAssetManager.Schema;
 using AMU.Editor.VrcAssetManager.Controller;
 using AMU.Editor.VrcAssetManager.UI.Components;
 
