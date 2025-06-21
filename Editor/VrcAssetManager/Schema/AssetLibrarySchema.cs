@@ -92,6 +92,56 @@ namespace AMU.Editor.VrcAssetManager.Schema
             return assets.Values.ToList();
         }
 
+        public List<AssetSchema> GetAssetsByName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return new List<AssetSchema>();
+
+            return assets.Values.Where(a => a.Metadata.Name.Contains(name, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        public List<AssetSchema> GetAssetsByDescription(string description)
+        {
+            if (string.IsNullOrWhiteSpace(description))
+                return new List<AssetSchema>();
+
+            return assets.Values.Where(a => a.Metadata.Description.Contains(description, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        public List<AssetSchema> GetAssetsByAuthorName(string authorName)
+        {
+            if (string.IsNullOrWhiteSpace(authorName))
+                return new List<AssetSchema>();
+
+            return assets.Values.Where(a => a.Metadata.AuthorName.Contains(authorName, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        public List<AssetSchema> GetAssetsByTag(string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag))
+                return new List<AssetSchema>();
+
+            return assets.Values.Where(a => a.Metadata.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase)).ToList();
+        }
+
+        public List<AssetSchema> GetAssetsByAssetType(string assetType)
+        {
+            if (string.IsNullOrWhiteSpace(assetType))
+                return new List<AssetSchema>();
+
+            return assets.Values.Where(a => a.Metadata.AssetType.Equals(assetType, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        public List<AssetSchema> GetAssetsByStateFavorite(bool isFavorite)
+        {
+            return assets.Values.Where(a => a.State.IsFavorite == isFavorite).ToList();
+        }
+
+        public List<AssetSchema> GetAssetsByStateArchived(bool isArchived)
+        {
+            return assets.Values.Where(a => a.State.IsArchived == isArchived).ToList();
+        }
+
         public void ClearAssets()
         {
             assets.Clear();

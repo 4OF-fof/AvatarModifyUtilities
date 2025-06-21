@@ -11,14 +11,15 @@ namespace AMU.Editor.VrcAssetManager.Controller
 {
     public class AssetLibraryController
     {
+        public AssetLibrarySchema library { get; private set; }
+        public FilterOptions filterOptions { get; set; }
+
         #region Library Management
 
         private DateTime lastUpdated;
 
         private string libraryDir => Path.Combine(SettingsAPI.GetSetting<string>("Core_dirPath"), "VrcAssetManager");
         private string libraryPath => Path.Combine(libraryDir, "AssetLibrary.json");
-
-        public AssetLibrarySchema library { get; private set; }
 
         public void InitializeLibrary()
         {
@@ -542,5 +543,33 @@ namespace AMU.Editor.VrcAssetManager.Controller
             SaveAssetLibrary();
         }
         #endregion
+    }
+
+    public class FilterOptions
+    {
+        public bool FilterAnd { get; set; }
+        public string Name { get; set; }
+        public string AuthorName { get; set; }
+        public string Description { get; set; }
+        public List<string> Tags { get; set; }
+        public bool TagsAnd { get; set; }
+        public List<string> AssetTypes { get; set; }
+        public bool AssetTypesAnd { get; set; }
+        public bool? Favorite { get; set; }
+        public bool? Archived { get; set; }
+
+        public FilterOptions()
+        {
+            FilterAnd = false;
+            Name = string.Empty;
+            AuthorName = string.Empty;
+            Description = string.Empty;
+            Tags = new List<string>();
+            TagsAnd = false;
+            AssetTypes = new List<string>();
+            AssetTypesAnd = false;
+            Favorite = null;
+            Archived = false;
+        }
     }
 }
