@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using AMU.Editor.Core.Api;
@@ -36,8 +37,49 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     GUILayout.FlexibleSpace();
                     return;
                 }
-
+                
                 var assets = controller.GetFilteredAssets();
+                
+                if (controller.sortOptions != null)
+                {
+                    var sortedAssets = new List<AssetSchema>(assets);
+                    
+                    switch (controller.sortOptions.sortBy)
+                    {
+                        case SortOptionsEnum.Name:
+                            // Although the definition is the opposite, this is a better experience.
+                            if (controller.sortOptions.isDescending)
+                            {
+                                sortedAssets = sortedAssets
+                                    .OrderBy(asset => asset.Metadata.Name)
+                                    .ToList();
+                            }
+                            else
+                            {
+                                sortedAssets = sortedAssets
+                                    .OrderByDescending(asset => asset.Metadata.Name)
+                                    .ToList();
+                            }
+                            break;
+                        case SortOptionsEnum.Date:
+                            if (controller.sortOptions.isDescending)
+                            {
+                                sortedAssets = sortedAssets
+                                    .OrderByDescending(asset => asset.Metadata.ModifiedDate)
+                                    .ToList();
+                            }
+                            else
+                            {
+                                sortedAssets = sortedAssets
+                                    .OrderBy(asset => asset.Metadata.ModifiedDate)
+                                    .ToList();
+                            }
+                            break;
+                    }
+                    
+                    assets = sortedAssets;
+                }
+
                 if (assets == null || assets.Count == 0)
                 {
                     GUILayout.FlexibleSpace();
