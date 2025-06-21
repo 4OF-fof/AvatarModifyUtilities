@@ -275,18 +275,16 @@ namespace AMU.Editor.VrcAssetManager.Controller
             return library.Assets.Values.ToList();
         }
 
-        public IReadOnlyList<AssetSchema> GetUnCategorizedAssets()
+        public bool HasUnCategorizedAssets()
         {
             if (library == null)
             {
                 Debug.LogWarning("Asset library is not initialized. Cannot get assets by name.");
-                return new List<AssetSchema>();
+                return false;
             }
 
             SyncAssetLibrary();
-            return library.Assets.Values
-                .Where(asset => string.IsNullOrEmpty(asset.Metadata.AssetType))
-                .ToList();
+            return library.Assets.Values.Any(asset => string.IsNullOrEmpty(asset.Metadata.AssetType));
         }
 
         public IReadOnlyList<AssetSchema> GetFilteredAssets()
@@ -302,11 +300,6 @@ namespace AMU.Editor.VrcAssetManager.Controller
             if (filterOptions == null)
             {
                 return library.GetAllAssets();
-            }
-
-            if (filterOptions.isUnCategorized)
-            {
-                return GetUnCategorizedAssets();
             }
 
             var results = new List<List<AssetSchema>>();
@@ -354,9 +347,15 @@ namespace AMU.Editor.VrcAssetManager.Controller
             {
                 results.Add(library.GetAssetsByStateArchived(filterOptions.isArchived.Value));
             }
-
+            
             if (results.Count == 0)
             {
+                if (filterOptions.assetType == "UNCATEGORIZED")
+                {
+                    return library.Assets.Values
+                        .Where(asset => string.IsNullOrEmpty(asset.Metadata.AssetType))
+                        .ToList();
+                }
                 return library.GetAllAssets();
             }
 
@@ -377,7 +376,14 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 }
             }
 
-            if (!string.IsNullOrEmpty(filterOptions.assetType))
+
+            if (filterOptions.assetType == "UNCATEGORIZED")
+            {
+                filteredAssets = filteredAssets
+                    .Where(asset => string.IsNullOrEmpty(asset.Metadata.AssetType))
+                    .ToList();
+            }
+            else if (!string.IsNullOrEmpty(filterOptions.assetType))
             {
                 filteredAssets = filteredAssets
                     .Where(asset => asset.Metadata.AssetType.Equals(filterOptions.assetType, StringComparison.OrdinalIgnoreCase))

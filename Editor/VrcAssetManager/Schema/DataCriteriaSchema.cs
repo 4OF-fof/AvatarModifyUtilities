@@ -14,7 +14,6 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public bool tagsAnd { get; set; }
         public bool? isFavorite { get; set; }
         public bool? isArchived { get; set; }
-        public bool isUnCategorized { get; set; }
 
         public FilterOptions()
         {
@@ -26,8 +25,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             tags = new List<string>();
             tagsAnd = false;
             isFavorite = null;
-            isArchived = null;
-            isUnCategorized = false;
+            isArchived = false;
         }
 
         public void ClearFilter()
@@ -40,8 +38,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             tags = new List<string>();
             tagsAnd = false;
             isFavorite = null;
-            isArchived = null;
-            isUnCategorized = false;
+            isArchived = false;
         }
     }
     #endregion

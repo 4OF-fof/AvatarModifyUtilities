@@ -73,16 +73,14 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 if (allPressed && !isAllSelected)
                 {
                     _selectedAssetType = controller.filterOptions.assetType = "";
-                    controller.filterOptions.isUnCategorized = false;
                     
                 }
 
                 GUILayout.Space(5);
 
-                var unCategorizedAssets = controller.GetUnCategorizedAssets();
-                if (unCategorizedAssets.Any())
+                if (controller.HasUnCategorizedAssets())
                 {
-                    bool isUnCategorizedSelected = _selectedAssetType == "__uncategorized__";
+                    bool isUnCategorizedSelected = _selectedAssetType == "UNCATEGORIZED";
                     bool unCategorizedPressed = GUILayout.Toggle(isUnCategorizedSelected, 
                         LocalizationAPI.GetText("AssetType_uncategorized"), 
                         isUnCategorizedSelected ? selectedTypeButtonStyle : typeButtonStyle, 
@@ -90,8 +88,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                     if (unCategorizedPressed && !isUnCategorizedSelected)
                     {
-                        _selectedAssetType = controller.filterOptions.assetType = "__uncategorized__";
-                        controller.filterOptions.isUnCategorized = true;
+                        _selectedAssetType = controller.filterOptions.assetType = "UNCATEGORIZED";
                     }
                 }
 
@@ -100,9 +97,12 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 var allButtonRect = GUILayoutUtility.GetRect(1, 2, GUILayout.ExpandWidth(true));
                 EditorGUI.DrawRect(allButtonRect, new Color(0.5f, 0.5f, 0.5f, 0.7f));
 
+                
                 GUILayout.Space(8);
 
-                using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition, GUILayout.Height(555), GUILayout.ExpandWidth(true)))
+                float scrollViewHeight = controller.HasUnCategorizedAssets() ? 519 : 555;
+                
+                using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition, GUILayout.Height(scrollViewHeight), GUILayout.ExpandWidth(true)))
                 {
                     _scrollPosition = scrollView.scrollPosition;
 
@@ -119,7 +119,6 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                             if (pressed && !isSelected)
                             {
                                 _selectedAssetType = controller.filterOptions.assetType = assetType;
-                                controller.filterOptions.isUnCategorized = false;
                             }
 
                             if (_showDeleteButtons)
