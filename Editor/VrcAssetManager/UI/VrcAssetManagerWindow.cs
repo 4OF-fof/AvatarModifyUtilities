@@ -34,6 +34,10 @@ namespace AMU.Editor.VrcAssetManager.UI
         private void OnGUI()
         {
             ToolbarComponent.Draw(_controller);
+            using (new EditorGUILayout.VerticalScope())
+            {
+                AssetTypePanelComponent.Draw(_controller);
+            }
         }
 
     }

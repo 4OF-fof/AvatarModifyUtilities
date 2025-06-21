@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using AMU.Editor.Core.Api;
@@ -9,27 +10,11 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 {
     public static class AssetTypePanelComponent
     {
-        // Mock data for display purposes only
-        private static List<string> _mockAssetTypes = new List<string>
-        {
-            "Avatar",
-            "Accessories", 
-            "Clothing",
-            "Hair",
-            "Eyes",
-            "Face",
-            "Body",
-            "Shader",
-            "Texture",
-            "Animation",
-            "VFX",
-            "Tools"
-        };
-
         private static string _selectedAssetType = "";
         private static string _newTypeName = "";
         private static Vector2 _scrollPosition = Vector2.zero;
         private static float _panelWidth = 240f;
+        private static bool _showDeleteButtons = false;
 
         // Cached styles
         private static GUIStyle _typeButtonStyle;
@@ -71,7 +56,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     GUILayout.Space(8);
 
                     // Individual type buttons with improved styles
-                    foreach (var assetType in _mockAssetTypes)
+                    foreach (var assetType in controller.GetAllAssetTypes())
                     {
                         bool isSelected = _selectedAssetType == assetType;
 
@@ -86,8 +71,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                                 _selectedAssetType = assetType;
                             }
 
-                            // Show delete button for custom types (mock - always show for demo)
-                            if (assetType != "Avatar" && assetType != "Accessories") // Simulate default types
+                            // Show delete button if enabled
+                            if (_showDeleteButtons)
                             {
                                 var deleteButtonStyle = new GUIStyle(GUI.skin.button)
                                 {
@@ -100,8 +85,18 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                                 if (GUILayout.Button("×", deleteButtonStyle))
                                 {
-                                    // Mock deletion confirmation
-                                    Debug.Log($"Delete type requested: {assetType}");
+                                    if (EditorUtility.DisplayDialog(
+                                        LocalizationAPI.GetText("AssetType_confirmDelete_title"),
+                                        LocalizationAPI.GetText("AssetType_confirmDelete_message"),
+                                        LocalizationAPI.GetText("Common_delete"),
+                                        LocalizationAPI.GetText("Common_cancel")))
+                                    {
+                                        controller.RemoveAssetType(assetType);
+                                        if (_selectedAssetType == assetType)
+                                        {
+                                            _selectedAssetType = "";
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -111,12 +106,12 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     GUILayout.Space(10);
 
                     // Add new type form at the bottom
-                    DrawAddTypeForm();
+                    DrawAddTypeForm(controller);
                 }
             }
         }
 
-        private static void DrawAddTypeForm()
+        private static void DrawAddTypeForm(AssetLibraryController controller)
         {
             // Separator line
             var rect = GUILayoutUtility.GetRect(1, 2, GUILayout.ExpandWidth(true));
@@ -146,7 +141,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     _newTypeName = EditorGUILayout.TextField(_newTypeName, textFieldStyle, GUILayout.ExpandWidth(true));
 
                     GUI.enabled = !string.IsNullOrWhiteSpace(_newTypeName) &&
-                                  !_mockAssetTypes.Contains(_newTypeName.Trim());
+                                  !controller.GetAllAssetTypes().Contains(_newTypeName.Trim());
 
                     var addButtonStyle = new GUIStyle(GUI.skin.button)
                     {
@@ -158,14 +153,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                     if (GUILayout.Button("+", addButtonStyle))
                     {
-                        // Mock add functionality
                         var trimmedName = _newTypeName.Trim();
-                        if (!_mockAssetTypes.Contains(trimmedName))
-                        {
-                            _mockAssetTypes.Add(trimmedName);
-                            _newTypeName = "";
-                            Debug.Log($"Added new type: {trimmedName}");
-                        }
+                        controller.AddAssetType(trimmedName);
+                        _newTypeName = "";
                     }
 
                     GUI.enabled = true;
@@ -181,7 +171,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         normal = { textColor = Color.red }
                     };
 
-                    if (_mockAssetTypes.Contains(trimmedName))
+                    if (controller.GetAllAssetTypes().Contains(trimmedName))
                     {
                         using (new GUILayout.HorizontalScope())
                         {
@@ -198,6 +188,23 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         }
                     }
                 }
+            }
+
+            GUILayout.Space(5);
+
+            // Toggle button for delete buttons
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.FlexibleSpace();
+                bool newShowDeleteButtons = GUILayout.Toggle(_showDeleteButtons, 
+                    LocalizationAPI.GetText("AssetType_showDeleteButtons"), 
+                    GUILayout.Width(150));
+                
+                if (newShowDeleteButtons != _showDeleteButtons)
+                {
+                    _showDeleteButtons = newShowDeleteButtons;
+                }
+                GUILayout.FlexibleSpace();
             }
         }
 
