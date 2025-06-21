@@ -38,7 +38,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     return;
                 }
 
-                var assets = controller.GetFilteredAssets(controller.filterOptions);
+                var assets = controller.GetFilteredAssets();
                 if (assets == null || assets.Count == 0)
                 {
                     GUILayout.FlexibleSpace();

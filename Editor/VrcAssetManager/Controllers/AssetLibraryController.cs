@@ -268,7 +268,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             return library.Assets.Values.ToList();
         }
 
-        public IReadOnlyList<AssetSchema> GetFilteredAssets(FilterOptions options)
+        public IReadOnlyList<AssetSchema> GetFilteredAssets()
         {
             if (library == null)
             {
@@ -278,45 +278,40 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             SyncAssetLibrary();
 
-            if (options == null)
+            if (filterOptions == null)
             {
                 return library.GetAllAssets();
             }
 
             var results = new List<List<AssetSchema>>();
 
-            if (!string.IsNullOrEmpty(options.name))
+            if (!string.IsNullOrEmpty(filterOptions.name))
             {
-                results.Add(library.GetAssetsByName(options.name));
+                results.Add(library.GetAssetsByName(filterOptions.name));
             }
 
-            if (!string.IsNullOrEmpty(options.authorName))
+            if (!string.IsNullOrEmpty(filterOptions.authorName))
             {
-                results.Add(library.GetAssetsByAuthorName(options.authorName));
+                results.Add(library.GetAssetsByAuthorName(filterOptions.authorName));
             }
 
-            if (!string.IsNullOrEmpty(options.description))
+            if (!string.IsNullOrEmpty(filterOptions.description))
             {
-                results.Add(library.GetAssetsByDescription(options.description));
+                results.Add(library.GetAssetsByDescription(filterOptions.description));
             }
 
-            if (!string.IsNullOrEmpty(options.assetType))
-            {
-                results.Add(library.GetAssetsByAssetType(options.assetType));
-            }
-
-            if (options.tags != null && options.tags.Count > 0)
+            if (filterOptions.tags != null && filterOptions.tags.Count > 0)
             {
                 var tagResults = new List<AssetSchema>();
-                if (options.tagsAnd)
+                if (filterOptions.tagsAnd)
                 {
                     tagResults = library.Assets.Values
-                        .Where(asset => options.tags.All(tag => asset.Metadata.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase)))
+                        .Where(asset => filterOptions.tags.All(tag => asset.Metadata.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase)))
                         .ToList();
                 }
                 else
                 {
-                    foreach (var tag in options.tags)
+                    foreach (var tag in filterOptions.tags)
                     {
                         tagResults.AddRange(library.GetAssetsByTag(tag));
                     }
@@ -324,14 +319,14 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 results.Add(tagResults.Distinct().ToList());
             }
 
-            if (options.isFavorite.HasValue)
+            if (filterOptions.isFavorite.HasValue)
             {
-                results.Add(library.GetAssetsByStateFavorite(options.isFavorite.Value));
+                results.Add(library.GetAssetsByStateFavorite(filterOptions.isFavorite.Value));
             }
 
-            if (options.isArchived.HasValue)
+            if (filterOptions.isArchived.HasValue)
             {
-                results.Add(library.GetAssetsByStateArchived(options.isArchived.Value));
+                results.Add(library.GetAssetsByStateArchived(filterOptions.isArchived.Value));
             }
 
             if (results.Count == 0)
@@ -341,7 +336,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             var filteredAssets = results[0];
 
-            if (options.filterAnd)
+            if (filterOptions.filterAnd)
             {
                 for (int i = 1; i < results.Count; i++)
                 {
@@ -354,6 +349,13 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 {
                     filteredAssets = filteredAssets.Union(results[i]).ToList();
                 }
+            }
+
+            if (!string.IsNullOrEmpty(filterOptions.assetType))
+            {
+                filteredAssets = filteredAssets
+                    .Where(asset => asset.Metadata.AssetType.Equals(filterOptions.assetType, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
             }
 
             return filteredAssets;
