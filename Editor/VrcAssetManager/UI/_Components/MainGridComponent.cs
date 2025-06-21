@@ -56,7 +56,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 }
                 GUILayout.FlexibleSpace();
                 return;
-            }            using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition))
+            }
+            
+            using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition))
             {
                 _scrollPosition = scrollView.scrollPosition;
 

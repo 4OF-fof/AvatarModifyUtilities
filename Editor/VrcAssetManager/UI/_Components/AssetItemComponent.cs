@@ -113,7 +113,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         /// </summary>
         private void DrawFavoriteIndicator(Rect thumbnailRect)
         {
-            var starSize = 25f;
+            var starSize = 25f * (_thumbnailSize / 110f); // Scale star size with thumbnail
             var starRect = new Rect(thumbnailRect.x + thumbnailRect.width - starSize - 3, thumbnailRect.y + 3, starSize, starSize);
 
             var originalColor = GUI.color;
@@ -154,7 +154,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             // Draw a simple "H" for hidden instead of emoji for compatibility
             var hiddenStyle = new GUIStyle(GUI.skin.label)
             {
-                fontSize = 10,
+                fontSize = Mathf.RoundToInt(10 * (_thumbnailSize / 110f)), // Scale font size with thumbnail
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = Color.red }
@@ -175,7 +175,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
             var labelStyle = new GUIStyle(EditorStyles.miniLabel)
             {
-                fontSize = 10,
+                fontSize = Mathf.RoundToInt(10 * (_thumbnailSize / 110f)), // Scale font size with thumbnail
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.white },
                 alignment = TextAnchor.MiddleCenter
@@ -189,11 +189,17 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         /// </summary>
         private void DrawAssetName(AssetSchema asset)
         {
+            // Calculate font size based on thumbnail size (scale from base size of 110)
+            var baseFontSize = 10f;
+            var baseThumbnailSize = 110f;
+            var scaledFontSize = Mathf.RoundToInt(baseFontSize * (_thumbnailSize / baseThumbnailSize));
+            scaledFontSize = Mathf.Clamp(scaledFontSize, 8, 16); // Limit font size range
+            
             var nameStyle = new GUIStyle(EditorStyles.label)
             {
                 wordWrap = true,
                 alignment = TextAnchor.UpperCenter,
-                fontSize = 10,
+                fontSize = scaledFontSize,
                 richText = true
             };
             var availableWidth = _thumbnailSize + 10;
