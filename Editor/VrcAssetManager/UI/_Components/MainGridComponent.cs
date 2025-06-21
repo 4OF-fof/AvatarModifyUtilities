@@ -56,10 +56,10 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 {
                     _scrollPosition = scrollView.scrollPosition;
 
-                    float availableWidth = 960 - 40; // スクロールバーの幅を考慮
+                    float availableWidth = 920;
                     int columnsPerRow = _columnsPerRow;
                     float calculatedThumbnailSize = (availableWidth - (columnsPerRow - 1) * 10) / columnsPerRow;
-                    _thumbnailSize = Mathf.Max(60f, calculatedThumbnailSize); // 最小サイズを60に設定
+                    _thumbnailSize = Mathf.Max(60f, calculatedThumbnailSize);
 
                     _assetItemComponent.SetThumbnailSize(_thumbnailSize);
 
