@@ -1,39 +1,15 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using AMU.Editor.VrcAssetManager.Schema;
 
 namespace AMU.Editor.VrcAssetManager.UI.Components
 {
-    [Serializable]
-    public class MockAssetInfo
-    {
-        public string uid;
-        public string name;
-        public string assetType;
-        public bool isFavorite;
-        public bool isHidden;
-        public bool isGroup;
-        public DateTime createdDate;
-        public long fileSize;
-
-        public MockAssetInfo(string name, string type, bool favorite = false, bool hidden = false, bool group = false)
-        {
-            this.uid = Guid.NewGuid().ToString();
-            this.name = name;
-            this.assetType = type;
-            this.isFavorite = favorite;
-            this.isHidden = hidden;
-            this.isGroup = group;
-            this.createdDate = DateTime.Now.AddDays(UnityEngine.Random.Range(-30, 0));
-            this.fileSize = UnityEngine.Random.Range(1024, 50 * 1024 * 1024);
-        }
-    }
-
     public class AssetItemComponent
     {
         private float _thumbnailSize = 110f;
 
-        public void Draw(MockAssetInfo asset, bool isSelected, bool isMultiSelected, System.Action<MockAssetInfo> onLeftClick, System.Action<MockAssetInfo> onRightClick)
+        public void Draw(AssetSchema asset, bool isSelected, bool isMultiSelected, System.Action<AssetSchema> onLeftClick, System.Action<AssetSchema> onRightClick)
         {
             using (new GUILayout.VerticalScope(GUILayout.Width(_thumbnailSize + 10)))
             {
@@ -82,14 +58,15 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         /// <summary>
         /// Get default icon based on asset type
         /// </summary>
-        private Texture2D GetDefaultIcon(MockAssetInfo asset)
+        private Texture2D GetDefaultIcon(AssetSchema asset)
         {
-            if (asset.isGroup)
+            // Check if asset has child assets (group)
+            if (asset.HasChildAssets)
             {
                 return EditorGUIUtility.IconContent("Folder Icon").image as Texture2D;
             }
 
-            switch (asset.assetType)
+            switch (asset.Metadata.AssetType)
             {
                 case "Avatar":
                 case "Prefab":
@@ -110,22 +87,22 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         /// <summary>
         /// Draw asset indicators (favorite, hidden, group)
         /// </summary>
-        private void DrawAssetIndicators(MockAssetInfo asset, Rect thumbnailRect)
+        private void DrawAssetIndicators(AssetSchema asset, Rect thumbnailRect)
         {
             // Group indicator
-            if (asset.isGroup)
+            if (asset.HasChildAssets)
             {
                 DrawGroupIndicator(thumbnailRect);
             }
 
             // Favorite indicator
-            if (asset.isFavorite)
+            if (asset.State.IsFavorite)
             {
                 DrawFavoriteIndicator(thumbnailRect);
             }
 
             // Archived/Hidden indicator
-            if (asset.isHidden)
+            if (asset.State.IsArchived)
             {
                 DrawArchivedIndicator(thumbnailRect);
             }
@@ -210,7 +187,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         /// <summary>
         /// Draw asset name with word wrapping and truncation
         /// </summary>
-        private void DrawAssetName(MockAssetInfo asset)
+        private void DrawAssetName(AssetSchema asset)
         {
             var nameStyle = new GUIStyle(EditorStyles.label)
             {
@@ -226,11 +203,11 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             var rect = GUILayoutUtility.GetRect(availableWidth, fixedHeight);
 
             // Truncate text to fit height
-            var displayText = TruncateTextToFitHeight(asset.name, nameStyle, availableWidth, fixedHeight);
+            var displayText = TruncateTextToFitHeight(asset.Metadata.Name, nameStyle, availableWidth, fixedHeight);
             var content = new GUIContent(displayText);
 
             // Highlight if text was truncated
-            if (displayText != asset.name)
+            if (displayText != asset.Metadata.Name)
             {
                 EditorGUI.DrawRect(rect, new Color(0.2f, 0.3f, 0.4f, 0.15f));
             }
@@ -290,7 +267,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         /// <summary>
         /// Handle mouse events for asset items
         /// </summary>
-        private void HandleAssetItemEvents(MockAssetInfo asset, Rect thumbnailRect, System.Action<MockAssetInfo> onLeftClick, System.Action<MockAssetInfo> onRightClick)
+        private void HandleAssetItemEvents(AssetSchema asset, Rect thumbnailRect, System.Action<AssetSchema> onLeftClick, System.Action<AssetSchema> onRightClick)
         {
             if (Event.current.type == EventType.MouseDown && thumbnailRect.Contains(Event.current.mousePosition))
             {
