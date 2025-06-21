@@ -34,21 +34,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private void OnGUI()
         {
-            var _assets = _controller.GetAllAssets();
-            var _tags = _controller.GetAllTags();
-            var _assetTypes = _controller.GetAllAssetTypes();
-            GUILayout.Label($"Total Assets: {_assets.Count}", EditorStyles.boldLabel);
-            GUILayout.Label($"Total Tags: {_tags.Count}", EditorStyles.boldLabel);
-            GUILayout.Label($"Total Asset Types: {_assetTypes.Count}", EditorStyles.boldLabel);
-            foreach (var asset in _assets)
-            {
-                GUILayout.Label($"Asset ID: {asset.AssetId}", EditorStyles.label);
-                GUILayout.Label($"Name: {asset.Metadata.Name}", EditorStyles.label);
-                GUILayout.Space(10);
-            }
-            GUILayout.Space(10);
-            ToolbarComponent toolbar = new ToolbarComponent();
-            toolbar.Draw(_controller);
+            ToolbarComponent.Draw(_controller);
         }
 
     }
