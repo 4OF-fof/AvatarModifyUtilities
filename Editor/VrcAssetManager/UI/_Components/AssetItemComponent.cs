@@ -7,33 +7,27 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 {
     public class AssetItemComponent
     {
-        private float _thumbnailSize = 110f;
+        private float _thumbnailSize;
 
         public void Draw(AssetSchema asset, bool isSelected, bool isMultiSelected, System.Action<AssetSchema> onLeftClick, System.Action<AssetSchema> onRightClick)
         {
             using (new GUILayout.VerticalScope(GUILayout.Width(_thumbnailSize + 10)))
             {
-                // Thumbnail
                 var thumbnailRect = GUILayoutUtility.GetRect(_thumbnailSize, _thumbnailSize);
 
-                // Selection background
                 if (isSelected && isMultiSelected)
                 {
-                    // Main selection in multi-select
                     EditorGUI.DrawRect(thumbnailRect, new Color(0.3f, 0.5f, 1f, 0.5f));
                 }
                 else if (isMultiSelected)
                 {
-                    // Sub selection in multi-select
                     EditorGUI.DrawRect(thumbnailRect, new Color(0.3f, 0.5f, 1f, 0.3f));
                 }
                 else if (isSelected)
                 {
-                    // Single selection
                     EditorGUI.DrawRect(thumbnailRect, new Color(0.3f, 0.5f, 1f, 0.3f));
                 }
 
-                // Draw thumbnail (default icon based on type)
                 var defaultIcon = GetDefaultIcon(asset);
                 if (defaultIcon != null)
                 {
@@ -44,23 +38,49 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     GUI.Box(thumbnailRect, "No Image");
                 }
 
-                // Draw indicators
-                DrawAssetIndicators(asset, thumbnailRect);
+                if (asset.HasChildAssets)
+                {
+                    DrawGroupIndicator(thumbnailRect);
+                }
 
-                // Asset name
-                DrawAssetName(asset);
+                if (asset.State.IsFavorite)
+                {
+                    DrawFavoriteIndicator(thumbnailRect);
+                }
 
-                // Handle click events
+                var baseFontSize = 10f;
+                var baseThumbnailSize = 110f;
+                var scaledFontSize = Mathf.RoundToInt(baseFontSize * (_thumbnailSize / baseThumbnailSize));
+                scaledFontSize = Mathf.Clamp(scaledFontSize, 8, 16);
+                
+                var nameStyle = new GUIStyle(EditorStyles.label)
+                {
+                    wordWrap = true,
+                    alignment = TextAnchor.UpperCenter,
+                    fontSize = scaledFontSize,
+                    richText = true
+                };
+                var availableWidth = _thumbnailSize + 10;
+
+                var fixedHeight = nameStyle.lineHeight * 2 + 5;
+                var rect = GUILayoutUtility.GetRect(availableWidth, fixedHeight);
+
+                var displayText = TruncateTextToFitHeight(asset.Metadata.Name, nameStyle, availableWidth, fixedHeight);
+                var content = new GUIContent(displayText);
+
+                if (displayText != asset.Metadata.Name)
+                {
+                    EditorGUI.DrawRect(rect, new Color(0.2f, 0.3f, 0.4f, 0.15f));
+                }
+
+                GUI.Label(rect, content, nameStyle);
+
                 HandleAssetItemEvents(asset, thumbnailRect, onLeftClick, onRightClick);
             }
         }
 
-        /// <summary>
-        /// Get default icon based on asset type
-        /// </summary>
         private Texture2D GetDefaultIcon(AssetSchema asset)
         {
-            // Check if asset has child assets (group)
             if (asset.HasChildAssets)
             {
                 return EditorGUIUtility.IconContent("Folder Icon").image as Texture2D;
@@ -84,36 +104,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             }
         }
 
-        /// <summary>
-        /// Draw asset indicators (favorite, hidden, group)
-        /// </summary>
-        private void DrawAssetIndicators(AssetSchema asset, Rect thumbnailRect)
-        {
-            // Group indicator
-            if (asset.HasChildAssets)
-            {
-                DrawGroupIndicator(thumbnailRect);
-            }
-
-            // Favorite indicator
-            if (asset.State.IsFavorite)
-            {
-                DrawFavoriteIndicator(thumbnailRect);
-            }
-
-            // Archived/Hidden indicator
-            if (asset.State.IsArchived)
-            {
-                DrawArchivedIndicator(thumbnailRect);
-            }
-        }
-
-        /// <summary>
-        /// Draw favorite star indicator
-        /// </summary>
         private void DrawFavoriteIndicator(Rect thumbnailRect)
         {
-            var starSize = 25f * (_thumbnailSize / 110f); // Scale star size with thumbnail
+            var starSize = 25f * (_thumbnailSize / 110f);
             var starRect = new Rect(thumbnailRect.x + thumbnailRect.width - starSize - 3, thumbnailRect.y + 3, starSize, starSize);
 
             var originalColor = GUI.color;
@@ -123,7 +116,6 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 alignment = TextAnchor.MiddleCenter
             };
 
-            // Draw black outline
             GUI.color = Color.black;
             for (int x = -1; x <= 1; x++)
             {
@@ -135,39 +127,12 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 }
             }
 
-            // Draw main star
             GUI.color = Color.yellow;
             GUI.Label(starRect, "★", starStyle);
 
             GUI.color = originalColor;
         }
 
-        /// <summary>
-        /// Draw archived/hidden indicator
-        /// </summary>
-        private void DrawArchivedIndicator(Rect thumbnailRect)
-        {
-            var hiddenRect = new Rect(thumbnailRect.x + 5, thumbnailRect.y + 5, 15, 15);
-            var oldColor = GUI.color;
-            GUI.color = Color.red;
-
-            // Draw a simple "H" for hidden instead of emoji for compatibility
-            var hiddenStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = Mathf.RoundToInt(10 * (_thumbnailSize / 110f)), // Scale font size with thumbnail
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleCenter,
-                normal = { textColor = Color.red }
-            };
-            
-            EditorGUI.DrawRect(hiddenRect, new Color(1f, 1f, 1f, 0.8f));
-            GUI.Label(hiddenRect, "H", hiddenStyle);
-            GUI.color = oldColor;
-        }
-
-        /// <summary>
-        /// Draw group indicator
-        /// </summary>
         private void DrawGroupIndicator(Rect thumbnailRect)
         {
             var indicatorRect = new Rect(thumbnailRect.x + 2, thumbnailRect.y + 2, 16, 16);
@@ -175,7 +140,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
             var labelStyle = new GUIStyle(EditorStyles.miniLabel)
             {
-                fontSize = Mathf.RoundToInt(10 * (_thumbnailSize / 110f)), // Scale font size with thumbnail
+                fontSize = Mathf.RoundToInt(10 * (_thumbnailSize / 110f)),
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.white },
                 alignment = TextAnchor.MiddleCenter
@@ -184,46 +149,6 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             GUI.Label(indicatorRect, "G", labelStyle);
         }
 
-        /// <summary>
-        /// Draw asset name with word wrapping and truncation
-        /// </summary>
-        private void DrawAssetName(AssetSchema asset)
-        {
-            // Calculate font size based on thumbnail size (scale from base size of 110)
-            var baseFontSize = 10f;
-            var baseThumbnailSize = 110f;
-            var scaledFontSize = Mathf.RoundToInt(baseFontSize * (_thumbnailSize / baseThumbnailSize));
-            scaledFontSize = Mathf.Clamp(scaledFontSize, 8, 16); // Limit font size range
-            
-            var nameStyle = new GUIStyle(EditorStyles.label)
-            {
-                wordWrap = true,
-                alignment = TextAnchor.UpperCenter,
-                fontSize = scaledFontSize,
-                richText = true
-            };
-            var availableWidth = _thumbnailSize + 10;
-
-            // Fixed height for 2 lines
-            var fixedHeight = nameStyle.lineHeight * 2 + 5;
-            var rect = GUILayoutUtility.GetRect(availableWidth, fixedHeight);
-
-            // Truncate text to fit height
-            var displayText = TruncateTextToFitHeight(asset.Metadata.Name, nameStyle, availableWidth, fixedHeight);
-            var content = new GUIContent(displayText);
-
-            // Highlight if text was truncated
-            if (displayText != asset.Metadata.Name)
-            {
-                EditorGUI.DrawRect(rect, new Color(0.2f, 0.3f, 0.4f, 0.15f));
-            }
-
-            GUI.Label(rect, content, nameStyle);
-        }
-
-        /// <summary>
-        /// Truncate text to fit within specified height
-        /// </summary>
         private string TruncateTextToFitHeight(string text, GUIStyle style, float width, float maxHeight)
         {
             var testContent = new GUIContent(text);
@@ -232,7 +157,6 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             if (textHeight <= maxHeight)
                 return text;
 
-            // Truncate by words
             var words = text.Split(' ');
             var result = "";
 
@@ -249,7 +173,6 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 result = testText;
             }
 
-            // If result is empty (first word too long), truncate by characters
             if (string.IsNullOrEmpty(result) && text.Length > 0)
             {
                 for (int i = 1; i <= text.Length; i++)
@@ -270,20 +193,17 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             return result;
         }
 
-        /// <summary>
-        /// Handle mouse events for asset items
-        /// </summary>
         private void HandleAssetItemEvents(AssetSchema asset, Rect thumbnailRect, System.Action<AssetSchema> onLeftClick, System.Action<AssetSchema> onRightClick)
         {
             if (Event.current.type == EventType.MouseDown && thumbnailRect.Contains(Event.current.mousePosition))
             {
-                if (Event.current.button == 0) // Left click
+                if (Event.current.button == 0)
                 {
                     onLeftClick?.Invoke(asset);
                     Event.current.Use();
                     GUI.changed = true;
                 }
-                else if (Event.current.button == 1) // Right click
+                else if (Event.current.button == 1)
                 {
                     onRightClick?.Invoke(asset);
                     Event.current.Use();
@@ -291,7 +211,6 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             }
         }
 
-        // Public setters
         public void SetThumbnailSize(float size) => _thumbnailSize = size;
     }
 }

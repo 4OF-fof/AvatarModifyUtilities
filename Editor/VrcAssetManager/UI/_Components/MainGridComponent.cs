@@ -25,69 +25,64 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             using (new GUILayout.VerticalScope(EditorStyles.helpBox))
             {
                 GUI.backgroundColor = originalColor;
-                DrawAssetGrid(controller);
-            }
-        }
-
-        private static void DrawAssetGrid(AssetLibraryController controller)
-        {
-            if (controller?.library == null)
-            {
-                GUILayout.FlexibleSpace();
-                using (new GUILayout.HorizontalScope())
+                if (controller?.library == null)
                 {
                     GUILayout.FlexibleSpace();
-                    GUILayout.Label(LocalizationAPI.GetText("AssetManager_libraryNotInitialized"), EditorStyles.largeLabel);
-                    GUILayout.FlexibleSpace();
-                }
-                GUILayout.FlexibleSpace();
-                return;
-            }
-
-            var assets = controller.GetFilteredAssets(controller.filterOptions);
-            if (assets == null || assets.Count == 0)
-            {
-                GUILayout.FlexibleSpace();
-                using (new GUILayout.HorizontalScope())
-                {
-                    GUILayout.FlexibleSpace();
-                    GUILayout.Label(LocalizationAPI.GetText("AssetManager_noAssets"), EditorStyles.largeLabel);
-                    GUILayout.FlexibleSpace();
-                }
-                GUILayout.FlexibleSpace();
-                return;
-            }
-            
-            using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition))
-            {
-                _scrollPosition = scrollView.scrollPosition;
-
-                float availableWidth = 960 - 40; // スクロールバーの幅を考慮
-                int columnsPerRow = _columnsPerRow;
-                float calculatedThumbnailSize = (availableWidth - (columnsPerRow - 1) * 10) / columnsPerRow;
-                _thumbnailSize = Mathf.Max(60f, calculatedThumbnailSize); // 最小サイズを60に設定
-
-                _assetItemComponent.SetThumbnailSize(_thumbnailSize);
-
-                for (int i = 0; i < assets.Count; i += columnsPerRow)
-                {
                     using (new GUILayout.HorizontalScope())
                     {
-                        for (int j = 0; j < columnsPerRow && i + j < assets.Count; j++)
-                        {
-                            var asset = assets[i + j];
-                            bool isSelected = _selectedAsset == asset;
-                            bool isMultiSelected = _selectedAssets.Contains(asset);
-
-                            _assetItemComponent.Draw(
-                                asset, 
-                                isSelected, 
-                                isMultiSelected && _selectedAssets.Count > 1,
-                                HandleAssetLeftClick,
-                                HandleAssetRightClick
-                            );
-                        }
                         GUILayout.FlexibleSpace();
+                        GUILayout.Label(LocalizationAPI.GetText("AssetManager_libraryNotInitialized"), EditorStyles.largeLabel);
+                        GUILayout.FlexibleSpace();
+                    }
+                    GUILayout.FlexibleSpace();
+                    return;
+                }
+
+                var assets = controller.GetFilteredAssets(controller.filterOptions);
+                if (assets == null || assets.Count == 0)
+                {
+                    GUILayout.FlexibleSpace();
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        GUILayout.FlexibleSpace();
+                        GUILayout.Label(LocalizationAPI.GetText("AssetManager_noAssets"), EditorStyles.largeLabel);
+                        GUILayout.FlexibleSpace();
+                    }
+                    GUILayout.FlexibleSpace();
+                    return;
+                }
+                
+                using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition))
+                {
+                    _scrollPosition = scrollView.scrollPosition;
+
+                    float availableWidth = 960 - 40; // スクロールバーの幅を考慮
+                    int columnsPerRow = _columnsPerRow;
+                    float calculatedThumbnailSize = (availableWidth - (columnsPerRow - 1) * 10) / columnsPerRow;
+                    _thumbnailSize = Mathf.Max(60f, calculatedThumbnailSize); // 最小サイズを60に設定
+
+                    _assetItemComponent.SetThumbnailSize(_thumbnailSize);
+
+                    for (int i = 0; i < assets.Count; i += columnsPerRow)
+                    {
+                        using (new GUILayout.HorizontalScope())
+                        {
+                            for (int j = 0; j < columnsPerRow && i + j < assets.Count; j++)
+                            {
+                                var asset = assets[i + j];
+                                bool isSelected = _selectedAsset == asset;
+                                bool isMultiSelected = _selectedAssets.Contains(asset);
+
+                                _assetItemComponent.Draw(
+                                    asset, 
+                                    isSelected, 
+                                    isMultiSelected && _selectedAssets.Count > 1,
+                                    HandleAssetLeftClick,
+                                    HandleAssetRightClick
+                                );
+                            }
+                            GUILayout.FlexibleSpace();
+                        }
                     }
                 }
             }
