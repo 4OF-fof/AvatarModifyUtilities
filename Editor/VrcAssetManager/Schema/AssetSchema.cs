@@ -180,6 +180,98 @@ namespace AMU.Editor.VrcAssetManager.Schema
             private set => modifiedDate = value;
         }
         #endregion
+
+        #region Methods
+        public void SetName(string newName)
+        {
+            name = newName?.Trim() ?? string.Empty;
+            modifiedDate = DateTime.Now;
+        }
+
+        public void SetDescription(string newDescription)
+        {
+            description = newDescription?.Trim() ?? string.Empty;
+            modifiedDate = DateTime.Now;
+        }
+
+        public void SetAuthorName(string newAuthorName)
+        {
+            authorName = newAuthorName?.Trim() ?? string.Empty;
+            modifiedDate = DateTime.Now;
+        }
+
+        public void SetThumbnailPath(string newThumbnailPath)
+        {
+            thumbnailPath = newThumbnailPath?.Trim() ?? string.Empty;
+            modifiedDate = DateTime.Now;
+        }
+
+        public void SetAssetType(string newAssetType)
+        {
+            assetType = newAssetType?.Trim() ?? string.Empty;
+            modifiedDate = DateTime.Now;
+        }
+
+        public void AddTag(string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag))
+            {
+                Debug.LogError("Cannot add an empty or whitespace tag.");
+            }
+            else if (tags.Contains(tag))
+            {
+                Debug.LogWarning($"Tag '{tag}' already exists in the list.");
+            }
+            else
+            {
+                tags.Add(tag.Trim());
+                modifiedDate = DateTime.Now;
+            }
+        }
+
+        public void RemoveTag(string tag)
+        {
+            if (tags.Contains(tag))
+            {
+                tags.Remove(tag);
+                modifiedDate = DateTime.Now;
+            }
+            else
+            {
+                Debug.LogWarning($"Tag '{tag}' does not exist in the list.");
+            }
+        }
+
+        public void AddDependency(string dependency)
+        {
+            if (string.IsNullOrWhiteSpace(dependency))
+            {
+                Debug.LogError("Cannot add an empty or whitespace dependency.");
+            }
+            else if (dependencies.Contains(dependency))
+            {
+                Debug.LogWarning($"Dependency '{dependency}' already exists in the list.");
+            }
+            else
+            {
+                dependencies.Add(dependency.Trim());
+                modifiedDate = DateTime.Now;
+            }
+        }
+
+        public void RemoveDependency(string dependency)
+        {
+            if (dependencies.Contains(dependency))
+            {
+                dependencies.Remove(dependency);
+                modifiedDate = DateTime.Now;
+            }
+            else
+            {
+                Debug.LogWarning($"Dependency '{dependency}' does not exist in the list.");
+            }
+        }
+        #endregion
     }
     #endregion
 

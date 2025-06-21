@@ -600,7 +600,18 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
 
             SyncAssetLibrary();
-            library.RemoveAssetType(assetType.Trim());
+            
+            var trimmedAssetType = assetType.Trim();
+            var assetsWithType = library.Assets.Values
+                .Where(asset => asset.Metadata.AssetType == trimmedAssetType)
+                .ToList();
+            
+            foreach (var asset in assetsWithType)
+            {
+                asset.Metadata.SetAssetType("");
+            }
+            
+            library.RemoveAssetType(trimmedAssetType);
             _lastUpdated = DateTime.Now;
             SaveAssetLibrary();
         }
