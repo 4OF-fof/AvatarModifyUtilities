@@ -13,7 +13,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public List<string> tags { get; set; }
         public bool tagsAnd { get; set; }
         public bool? isFavorite { get; set; }
-        public bool? isArchived { get; set; }
+        public bool isArchived { get; set; }
 
         public FilterOptions()
         {

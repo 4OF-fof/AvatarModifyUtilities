@@ -299,7 +299,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             if (filterOptions == null)
             {
-                return library.GetAllAssets();
+                return library.GetAllAssets().Intersect(library.GetAssetsByStateArchived(filterOptions.isArchived)).ToList();
             }
 
             var results = new List<List<AssetSchema>>();
@@ -342,11 +342,6 @@ namespace AMU.Editor.VrcAssetManager.Controller
             {
                 results.Add(library.GetAssetsByStateFavorite(filterOptions.isFavorite.Value));
             }
-
-            if (filterOptions.isArchived.HasValue)
-            {
-                results.Add(library.GetAssetsByStateArchived(filterOptions.isArchived.Value));
-            }
             
             if (results.Count == 0)
             {
@@ -354,9 +349,15 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 {
                     return library.Assets.Values
                         .Where(asset => string.IsNullOrEmpty(asset.Metadata.AssetType))
-                        .ToList();
+                        .Intersect(library.GetAssetsByStateArchived(filterOptions.isArchived)).ToList();;
                 }
-                return library.GetAllAssets();
+                else if (!string.IsNullOrEmpty(filterOptions.assetType))
+                {
+                    return library.Assets.Values
+                        .Where(asset => asset.Metadata.AssetType.Equals(filterOptions.assetType, StringComparison.OrdinalIgnoreCase))
+                        .Intersect(library.GetAssetsByStateArchived(filterOptions.isArchived)).ToList();;
+                }
+                return library.GetAllAssets().Intersect(library.GetAssetsByStateArchived(filterOptions.isArchived)).ToList();
             }
 
             var filteredAssets = results[0];
@@ -376,7 +377,6 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 }
             }
 
-
             if (filterOptions.assetType == "UNCATEGORIZED")
             {
                 filteredAssets = filteredAssets
@@ -390,7 +390,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
                     .ToList();
             }
 
-            return filteredAssets;
+            return filteredAssets.Intersect(library.GetAssetsByStateArchived(filterOptions.isArchived)).ToList();;
         }
 
         public void ClearAssets()

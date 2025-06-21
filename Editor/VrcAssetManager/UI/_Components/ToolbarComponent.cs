@@ -47,9 +47,6 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         if (GUILayout.Button("×", EditorStyles.toolbarButton, GUILayout.Width(20)))
                         {
                             _isUsingAdvancedSearch = false;
-                            var _assetType = controller.filterOptions.assetType;
-                            controller.filterOptions.ClearFilter();
-                            controller.filterOptions.assetType = _assetType;
                         }
                     }
                     else
@@ -74,26 +71,21 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     if (GUILayout.Toggle(_currentFilter == AssetFilterType.All, LocalizationAPI.GetText("AssetManager_filterAll"), EditorStyles.toolbarButton))
                     {
                         _currentFilter = AssetFilterType.All;
-                        var _assetType = controller.filterOptions.assetType;
-                        controller.filterOptions.ClearFilter();
-                        controller.filterOptions.assetType = _assetType;
+                        controller.filterOptions.isFavorite = null;
+                        controller.filterOptions.isArchived = false;
                     }
 
                     if (GUILayout.Toggle(_currentFilter == AssetFilterType.Favorites, LocalizationAPI.GetText("AssetManager_filterFavorite"), EditorStyles.toolbarButton))
                     {
                         _currentFilter = AssetFilterType.Favorites;
-                        var _assetType = controller.filterOptions.assetType;
-                        controller.filterOptions.ClearFilter();
-                        controller.filterOptions.assetType = _assetType;
                         controller.filterOptions.isFavorite = true;
+                        controller.filterOptions.isArchived = false;
                     }
 
                     if (GUILayout.Toggle(_currentFilter == AssetFilterType.ArchivedOnly, LocalizationAPI.GetText("AssetManager_filterArchived"), EditorStyles.toolbarButton))
                     {
                         _currentFilter = AssetFilterType.ArchivedOnly;
-                        var _assetType = controller.filterOptions.assetType;
-                        controller.filterOptions.ClearFilter();
-                        controller.filterOptions.assetType = _assetType;
+                        controller.filterOptions.isFavorite = null;
                         controller.filterOptions.isArchived = true;
                     }
 
