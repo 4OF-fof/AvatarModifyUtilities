@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using Newtonsoft.Json;
 using System.IO;
 using UnityEngine;
 
@@ -29,6 +30,21 @@ namespace AMU.Editor.VrcAssetManager.Schema
             childAssetIds = new List<string>();
             lastAccessed = DateTime.Now;
         }
+
+        [JsonConstructor]
+        public AssetSchema(Guid assetId, AssetMetadata metadata, AssetFileInfo fileInfo, 
+                           AssetState state, BoothItemSchema boothItem, string parentGroupId,
+                           List<string> childAssetIds, DateTime lastAccessed)
+        {
+        this.assetId = assetId;
+        this.metadata = metadata ?? new AssetMetadata();
+        this.fileInfo = fileInfo ?? new AssetFileInfo();
+        this.state = state ?? new AssetState();
+        this.boothItem = boothItem;
+        this.parentGroupId = parentGroupId ?? string.Empty;
+        this.childAssetIds = childAssetIds ?? new List<string>();
+        this.lastAccessed = lastAccessed;
+    }
 
         #region Properties
         public Guid AssetId => assetId;
@@ -101,6 +117,22 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _modifiedDate = DateTime.Now;
         }
 
+        [JsonConstructor]
+        public AssetMetadata(string name, string description, string authorName, string thumbnailPath,
+                             string assetType, List<string> tags, List<string> dependencies,
+                             DateTime createdDate, DateTime modifiedDate)
+        {
+            Name = name;
+            Description = description;
+            AuthorName = authorName;
+            ThumbnailPath = thumbnailPath;
+            AssetType = assetType;
+            _tags = tags ?? new List<string>();
+            _dependencies = dependencies ?? new List<string>();
+            CreatedDate = createdDate;
+            ModifiedDate = modifiedDate;
+        }
+
         #region Properties
         public string Name
         {
@@ -163,6 +195,13 @@ namespace AMU.Editor.VrcAssetManager.Schema
             importFiles = new List<string>();
         }
 
+        [JsonConstructor]
+        public AssetFileInfo(string filePath, List<string> importFiles)
+        {
+            FilePath = filePath;
+            this.importFiles = importFiles ?? new List<string>();
+        }
+
         #region Properties
         public string FilePath
         {
@@ -187,6 +226,14 @@ namespace AMU.Editor.VrcAssetManager.Schema
             isFavorite = false;
             isGroup = false;
             isArchived = false;
+        }
+
+        [JsonConstructor]
+        public AssetState(bool isFavorite, bool isGroup, bool isArchived)
+        {
+            IsFavorite = isFavorite;
+            IsGroup = isGroup;
+            IsArchived = isArchived;
         }
 
         #region Properties
@@ -229,6 +276,18 @@ namespace AMU.Editor.VrcAssetManager.Schema
             imageUrl = string.Empty;
             fileName = string.Empty;
             downloadUrl = string.Empty;
+        }
+
+        [JsonConstructor]
+        public BoothItemSchema(string itemName, string authorName, string itemUrl, 
+                               string imageUrl, string fileName, string downloadUrl)
+        {
+            ItemName = itemName;
+            AuthorName = authorName;
+            ItemUrl = itemUrl;
+            ImageUrl = imageUrl;
+            FileName = fileName;
+            DownloadUrl = downloadUrl;
         }
 
         #region Properties

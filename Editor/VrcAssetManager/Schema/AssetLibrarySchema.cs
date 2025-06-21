@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Newtonsoft.Json;
 
 namespace AMU.Editor.VrcAssetManager.Schema
 {
@@ -18,6 +19,16 @@ namespace AMU.Editor.VrcAssetManager.Schema
             assets = new Dictionary<Guid, AssetSchema>();
             tags = new List<string>();
             assetTypes = new List<string>();
+        }
+
+        [JsonConstructor]
+        public AssetLibrarySchema(DateTime lastUpdated, Dictionary<Guid, AssetSchema> assets,
+                                  List<string> tags, List<string> assetTypes)
+        {
+            this.lastUpdated = lastUpdated;
+            this.assets = assets ?? new Dictionary<Guid, AssetSchema>();
+            this.tags = tags ?? new List<string>();
+            this.assetTypes = assetTypes ?? new List<string>();
         }
 
         #region Properties
