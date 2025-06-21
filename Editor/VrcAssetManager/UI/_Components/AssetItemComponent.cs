@@ -27,15 +27,12 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 {
                     EditorGUI.DrawRect(thumbnailRect, new Color(0.3f, 0.5f, 1f, 0.3f));
                 }
+                
+                var prefabIcon = EditorGUIUtility.IconContent("Prefab Icon").image as Texture2D;
 
-                var defaultIcon = GetDefaultIcon(asset);
-                if (defaultIcon != null)
+                if (prefabIcon != null)
                 {
-                    GUI.DrawTexture(thumbnailRect, defaultIcon, ScaleMode.ScaleToFit);
-                }
-                else
-                {
-                    GUI.Box(thumbnailRect, "No Image");
+                    GUI.DrawTexture(thumbnailRect, prefabIcon, ScaleMode.ScaleToFit);
                 }
 
                 if (asset.HasChildAssets)
@@ -79,31 +76,6 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             }
         }
 
-        private Texture2D GetDefaultIcon(AssetSchema asset)
-        {
-            if (asset.HasChildAssets)
-            {
-                return EditorGUIUtility.IconContent("Folder Icon").image as Texture2D;
-            }
-
-            switch (asset.Metadata.AssetType)
-            {
-                case "Avatar":
-                case "Prefab":
-                    return EditorGUIUtility.IconContent("Prefab Icon").image as Texture2D;
-                case "Material":
-                    return EditorGUIUtility.IconContent("Material Icon").image as Texture2D;
-                case "Texture":
-                    return EditorGUIUtility.IconContent("Texture Icon").image as Texture2D;
-                case "Animation":
-                    return EditorGUIUtility.IconContent("AnimationClip Icon").image as Texture2D;
-                case "Shader":
-                    return EditorGUIUtility.IconContent("Shader Icon").image as Texture2D;
-                default:
-                    return EditorGUIUtility.IconContent("DefaultAsset Icon").image as Texture2D;
-            }
-        }
-
         private void DrawFavoriteIndicator(Rect thumbnailRect)
         {
             var starSize = 25f * (_thumbnailSize / 110f);
@@ -135,18 +107,28 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
         private void DrawGroupIndicator(Rect thumbnailRect)
         {
-            var indicatorRect = new Rect(thumbnailRect.x + 2, thumbnailRect.y + 2, 16, 16);
-            EditorGUI.DrawRect(indicatorRect, new Color(0.2f, 0.6f, 1f, 0.8f));
+            var iconSize = 20f * (_thumbnailSize / 110f);
+            var indicatorRect = new Rect(thumbnailRect.x + 2, thumbnailRect.y + 2, iconSize, iconSize);
 
-            var labelStyle = new GUIStyle(EditorStyles.miniLabel)
+            var folderIcon = EditorGUIUtility.IconContent("Folder Icon").image as Texture2D;
+            if (folderIcon != null)
             {
-                fontSize = Mathf.RoundToInt(10 * (_thumbnailSize / 110f)),
-                fontStyle = FontStyle.Bold,
-                normal = { textColor = Color.white },
-                alignment = TextAnchor.MiddleCenter
-            };
+                var originalColor = GUI.color;
+                
+                GUI.color = Color.black;
+                for (int x = -1; x <= 1; x++)
+                {
+                    for (int y = -1; y <= 1; y++)
+                    {
+                        if (x == 0 && y == 0) continue;
+                        var outlineRect = new Rect(indicatorRect.x + x, indicatorRect.y + y, indicatorRect.width, indicatorRect.height);
+                        GUI.DrawTexture(outlineRect, folderIcon, ScaleMode.ScaleToFit);
+                    }
+                }
 
-            GUI.Label(indicatorRect, "G", labelStyle);
+                GUI.color = originalColor;
+                GUI.DrawTexture(indicatorRect, folderIcon, ScaleMode.ScaleToFit);
+            }
         }
 
         private string TruncateTextToFitHeight(string text, GUIStyle style, float width, float maxHeight)
