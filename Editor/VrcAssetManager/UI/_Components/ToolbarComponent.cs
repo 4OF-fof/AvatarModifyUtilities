@@ -24,6 +24,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         private static int _selectedSortOption = 0; // 0: Name, 1: Date
         private static bool _sortDescending = true;
         private static bool _isUsingAdvancedSearch = false;
+        private static bool _isChildItem = false;
 
         public static void Draw(AssetLibraryController controller)
         {
@@ -98,6 +99,18 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     if (newColumnsPerRow != controller.columnsPerRow)
                     {
                         controller.columnsPerRow = newColumnsPerRow;
+                    }
+                    
+                    GUILayout.Space(5);
+                    
+                    var folderIcon = _isChildItem ? EditorGUIUtility.IconContent("FolderOpened Icon") : EditorGUIUtility.IconContent("Folder Icon");
+                    var folderContent = new GUIContent(folderIcon.image);
+                    
+                    var newIsChildItem = GUILayout.Toggle(_isChildItem, folderContent, EditorStyles.toolbarButton, GUILayout.Width(25));
+                    if (newIsChildItem != _isChildItem)
+                    {
+                        _isChildItem = newIsChildItem;
+                        controller.filterOptions.isChildItem = _isChildItem;
                     }
 
                     GUILayout.Space(5);

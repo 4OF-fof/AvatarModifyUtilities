@@ -14,7 +14,8 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public bool tagsAnd { get; set; }
         public bool? isFavorite { get; set; }
         public bool isArchived { get; set; }
-
+        public bool isChildItem { get; set; }
+        
         public FilterOptions()
         {
             filterAnd = false;
@@ -26,8 +27,9 @@ namespace AMU.Editor.VrcAssetManager.Schema
             tagsAnd = false;
             isFavorite = null;
             isArchived = false;
+            isChildItem = false;
         }
-
+        
         public void ClearFilter()
         {
             filterAnd = false;
@@ -39,6 +41,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             tagsAnd = false;
             isFavorite = null;
             isArchived = false;
+            isChildItem = false;
         }
     }
     #endregion
