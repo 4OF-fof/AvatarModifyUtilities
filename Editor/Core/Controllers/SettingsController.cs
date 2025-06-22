@@ -13,7 +13,7 @@ namespace AMU.Editor.Core.Controller
     public static class SettingsController
     {
         private static bool _isInitialized = false;
-        
+
         public static void InitializeEditorPrefs()
         {
             if (_isInitialized) return;

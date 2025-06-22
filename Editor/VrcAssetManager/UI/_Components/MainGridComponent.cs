@@ -37,13 +37,13 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     GUILayout.FlexibleSpace();
                     return;
                 }
-                
+
                 var assets = controller.GetFilteredAssets();
-                
+
                 if (controller.sortOptions != null)
                 {
                     var sortedAssets = new List<AssetSchema>(assets);
-                    
+
                     switch (controller.sortOptions.sortBy)
                     {
                         case SortOptionsEnum.Name:
@@ -76,7 +76,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                             }
                             break;
                     }
-                    
+
                     assets = sortedAssets;
                 }
 
@@ -92,7 +92,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     GUILayout.FlexibleSpace();
                     return;
                 }
-                
+
                 using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition))
                 {
                     _scrollPosition = scrollView.scrollPosition;
@@ -153,7 +153,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 _selectedAssets.Add(asset);
             }
         }
-        
+
         private static void HandleAssetRightClick(AssetSchema asset)
         {
             if (_selectedAssets.Count > 1)

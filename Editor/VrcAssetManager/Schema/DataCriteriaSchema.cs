@@ -15,7 +15,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public bool? isFavorite { get; set; }
         public bool isArchived { get; set; }
         public bool isChildItem { get; set; }
-        
+
         public FilterOptions()
         {
             filterAnd = false;
@@ -29,7 +29,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             isArchived = false;
             isChildItem = false;
         }
-        
+
         public void ClearFilter()
         {
             filterAnd = false;

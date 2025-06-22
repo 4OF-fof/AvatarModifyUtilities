@@ -14,12 +14,12 @@ namespace AMU.Editor.VrcAssetManager.Controller
         public AssetLibrarySchema library { get; private set; }
         public FilterOptions filterOptions { get; set; } = new FilterOptions();
         public SortOptions sortOptions { get; set; } = new SortOptions();
-        
+
         private int _columnsPerRow = 7;
-        public int columnsPerRow 
-        { 
-            get => _columnsPerRow; 
-            set => _columnsPerRow = Mathf.Clamp(value, 4, 13); 
+        public int columnsPerRow
+        {
+            get => _columnsPerRow;
+            set => _columnsPerRow = Mathf.Clamp(value, 4, 13);
         }
 
         #region Library Management
@@ -32,7 +32,8 @@ namespace AMU.Editor.VrcAssetManager.Controller
         public void InitializeLibrary()
         {
             ForceLoadAssetLibrary();
-            if (library != null){
+            if (library != null)
+            {
                 return;
             }
             library = new AssetLibrarySchema();
@@ -345,7 +346,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             {
                 results.Add(library.GetAssetsByStateFavorite(filterOptions.isFavorite.Value));
             }
-            
+
             if (results.Count == 0)
             {
                 if (filterOptions.assetType == "UNCATEGORIZED")
@@ -600,17 +601,17 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
 
             SyncAssetLibrary();
-            
+
             var trimmedAssetType = assetType.Trim();
             var assetsWithType = library.Assets.Values
                 .Where(asset => asset.Metadata.AssetType == trimmedAssetType)
                 .ToList();
-            
+
             foreach (var asset in assetsWithType)
             {
                 asset.Metadata.SetAssetType("");
             }
-            
+
             library.RemoveAssetType(trimmedAssetType);
             _lastUpdated = DateTime.Now;
             SaveAssetLibrary();

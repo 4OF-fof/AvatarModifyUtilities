@@ -32,19 +32,19 @@ namespace AMU.Editor.VrcAssetManager.Schema
         }
 
         [JsonConstructor]
-        public AssetSchema(Guid assetId, AssetMetadata metadata, AssetFileInfo fileInfo, 
+        public AssetSchema(Guid assetId, AssetMetadata metadata, AssetFileInfo fileInfo,
                            AssetState state, BoothItemSchema boothItem, string parentGroupId,
                            List<string> childAssetIds, DateTime lastAccessed)
         {
-        this.assetId = assetId;
-        this.metadata = metadata ?? new AssetMetadata();
-        this.fileInfo = fileInfo ?? new AssetFileInfo();
-        this.state = state ?? new AssetState();
-        this.boothItem = boothItem;
-        this.parentGroupId = parentGroupId ?? string.Empty;
-        this.childAssetIds = childAssetIds ?? new List<string>();
-        this.lastAccessed = lastAccessed;
-    }
+            this.assetId = assetId;
+            this.metadata = metadata ?? new AssetMetadata();
+            this.fileInfo = fileInfo ?? new AssetFileInfo();
+            this.state = state ?? new AssetState();
+            this.boothItem = boothItem;
+            this.parentGroupId = parentGroupId ?? string.Empty;
+            this.childAssetIds = childAssetIds ?? new List<string>();
+            this.lastAccessed = lastAccessed;
+        }
 
         #region Properties
         public Guid AssetId => assetId;
@@ -430,7 +430,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         }
 
         [JsonConstructor]
-        public BoothItemSchema(string itemName, string authorName, string itemUrl, 
+        public BoothItemSchema(string itemName, string authorName, string itemUrl,
                                string imageUrl, string fileName, string downloadUrl)
         {
             this.itemName = itemName;

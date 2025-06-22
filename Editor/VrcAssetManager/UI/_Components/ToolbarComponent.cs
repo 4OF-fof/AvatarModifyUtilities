@@ -63,7 +63,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         if (newSearchText != _searchText)
                         {
                             _searchText = newSearchText;
-                            _controller.filterOptions.name = _controller.filterOptions.authorName = _controller.filterOptions.description =  _searchText;
+                            _controller.filterOptions.name = _controller.filterOptions.authorName = _controller.filterOptions.description = _searchText;
                         }
                         var searchIcon = EditorGUIUtility.IconContent("Search Icon");
                         if (GUILayout.Button(searchIcon, EditorStyles.toolbarButton, GUILayout.Width(40)))
@@ -107,12 +107,12 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     {
                         _controller.columnsPerRow = newColumnsPerRow;
                     }
-                    
+
                     GUILayout.Space(5);
-                    
+
                     var folderIcon = _isChildItem ? EditorGUIUtility.IconContent("FolderOpened Icon") : EditorGUIUtility.IconContent("Folder Icon");
                     var folderContent = new GUIContent(folderIcon.image);
-                    
+
                     var newIsChildItem = GUILayout.Toggle(_isChildItem, folderContent, EditorStyles.toolbarButton, GUILayout.Width(25));
                     if (newIsChildItem != _isChildItem)
                     {
@@ -123,7 +123,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     GUILayout.Space(5);
 
                     string[] sortOptions = Enum.GetNames(typeof(SortOptionsEnum))
-                        .Select(name => 
+                        .Select(name =>
                         {
                             switch (name)
                             {
@@ -169,13 +169,13 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         {
             string downloadPath = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile),
                                                "Downloads");
-            
+
             string selectedFile = EditorUtility.OpenFilePanel("ファイルを選択", downloadPath, "json,unitypackage,zip,*");
-            
+
             if (!string.IsNullOrEmpty(selectedFile))
             {
                 string fileName = Path.GetFileName(selectedFile);
-                
+
                 if (fileName.Equals("AMU_BoothItem.json", StringComparison.OrdinalIgnoreCase))
                 {
                     //BoothItemImportWindow.ShowWindowWithFile(controller, selectedFile);
@@ -186,7 +186,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 }
             }
         }
-        
+
         public static void DestroyWindow()
         {
             _controller.filterOptions.ClearFilter();

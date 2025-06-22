@@ -26,7 +26,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 {
                     EditorGUI.DrawRect(thumbnailRect, new Color(0.3f, 0.5f, 1f, 0.3f));
                 }
-                
+
                 var prefabIcon = EditorGUIUtility.IconContent("Prefab Icon").image as Texture2D;
 
                 if (prefabIcon != null)
@@ -40,7 +40,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 var baseThumbnailSize = 110f;
                 var scaledFontSize = Mathf.RoundToInt(baseFontSize * (thumbnailSize / baseThumbnailSize));
                 scaledFontSize = Mathf.Clamp(scaledFontSize, 8, 16);
-                
+
                 var nameStyle = new GUIStyle(EditorStyles.label)
                 {
                     wordWrap = true,
@@ -78,7 +78,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 if (folderIcon != null)
                 {
                     var originalColor = GUI.color;
-                    
+
                     GUI.color = Color.black;
                     for (int x = -1; x <= 1; x++)
                     {
@@ -171,7 +171,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
             return result;
         }
-        
+
         private void HandleAssetItemEvents(AssetSchema asset, Rect thumbnailRect, Action<AssetSchema> onLeftClick, Action<AssetSchema> onRightClick, Action<AssetSchema> onDoubleClick)
         {
             if (Event.current.type == EventType.MouseDown && thumbnailRect.Contains(Event.current.mousePosition))

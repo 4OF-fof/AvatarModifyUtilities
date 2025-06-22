@@ -186,7 +186,7 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                 }
             }
             EditorGUILayout.EndHorizontal(); EditorGUILayout.BeginHorizontal();
-              if (GUILayout.Button("テストアセットを追加"))
+            if (GUILayout.Button("テストアセットを追加"))
             {
                 try
                 {
@@ -379,14 +379,15 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
             }
 
             Repaint();
-        }        private AssetSchema CreateRandomTestAsset()
+        }
+        private AssetSchema CreateRandomTestAsset()
         {
             var random = new System.Random();
             var assetId = Guid.NewGuid();
-            
+
             var assetTypes = new[] { "Avatar", "Accessory", "Cloth", "Animation", "World", "Prop" };
             var tags = new[] { "Test", "Debug", "Sample", "Development", "Experimental", "WIP" };
-            
+
             // ランダムなアセットタイプとタグを選択
             var selectedAssetType = assetTypes[random.Next(assetTypes.Length)];
             var selectedTags = new List<string>
@@ -394,13 +395,13 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                 tags[random.Next(tags.Length)],
                 tags[random.Next(tags.Length)]
             }.Distinct().ToList();
-            
+
             // アセットタイプをライブラリに追加（存在しない場合）
             if (!_assetLibraryController.AssetTypeExists(selectedAssetType))
             {
                 _assetLibraryController.AddAssetType(selectedAssetType);
             }
-            
+
             // タグをライブラリに追加（存在しない場合）
             foreach (var tag in selectedTags)
             {
@@ -409,7 +410,7 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                     _assetLibraryController.AddTag(tag);
                 }
             }
-            
+
             // AssetMetadataを作成
             var metadata = new AssetMetadata(
                 name: $"Test Asset {random.Next(1, 1000)}",
@@ -422,20 +423,20 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                 createdDate: DateTime.Now.AddDays(-random.Next(0, 365)),
                 modifiedDate: DateTime.Now.AddDays(-random.Next(0, 30))
             );
-            
+
             // AssetFileInfoを作成
             var fileInfo = new AssetFileInfo(
                 filePath: $"Assets/TestAssets/test_asset_{random.Next(1000, 9999)}.prefab",
                 importFiles: new List<string>()
             );
-            
+
             // AssetStateを作成
             var state = new AssetState(
                 isFavorite: random.Next(0, 2) == 1,
                 isGroup: false,
                 isArchived: random.Next(0, 10) == 1 // 10%の確率でアーカイブ
             );
-            
+
             // AssetSchemaを作成
             var testAsset = new AssetSchema(
                 assetId: assetId,
@@ -447,7 +448,7 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                 childAssetIds: new List<string>(),
                 lastAccessed: DateTime.Now.AddHours(-random.Next(0, 24))
             );
-            
+
             return testAsset;
         }
     }

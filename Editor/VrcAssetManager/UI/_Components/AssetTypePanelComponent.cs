@@ -66,14 +66,14 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 };
 
                 bool isAllSelected = string.IsNullOrEmpty(_selectedAssetType);
-                bool allPressed = GUILayout.Toggle(isAllSelected, LocalizationAPI.GetText("AssetType_all"), 
-                    isAllSelected ? selectedTypeButtonStyle : typeButtonStyle, 
+                bool allPressed = GUILayout.Toggle(isAllSelected, LocalizationAPI.GetText("AssetType_all"),
+                    isAllSelected ? selectedTypeButtonStyle : typeButtonStyle,
                     GUILayout.ExpandWidth(true), GUILayout.Height(36));
 
                 if (allPressed && !isAllSelected)
                 {
                     _selectedAssetType = controller.filterOptions.assetType = "";
-                    
+
                 }
 
                 GUILayout.Space(5);
@@ -81,9 +81,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 if (controller.HasUnCategorizedAssets())
                 {
                     bool isUnCategorizedSelected = _selectedAssetType == "UNCATEGORIZED";
-                    bool unCategorizedPressed = GUILayout.Toggle(isUnCategorizedSelected, 
-                        LocalizationAPI.GetText("AssetType_uncategorized"), 
-                        isUnCategorizedSelected ? selectedTypeButtonStyle : typeButtonStyle, 
+                    bool unCategorizedPressed = GUILayout.Toggle(isUnCategorizedSelected,
+                        LocalizationAPI.GetText("AssetType_uncategorized"),
+                        isUnCategorizedSelected ? selectedTypeButtonStyle : typeButtonStyle,
                         GUILayout.ExpandWidth(true), GUILayout.Height(36));
 
                     if (unCategorizedPressed && !isUnCategorizedSelected)
@@ -97,11 +97,11 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 var allButtonRect = GUILayoutUtility.GetRect(1, 2, GUILayout.ExpandWidth(true));
                 EditorGUI.DrawRect(allButtonRect, new Color(0.5f, 0.5f, 0.5f, 0.7f));
 
-                
+
                 GUILayout.Space(8);
 
                 float scrollViewHeight = controller.HasUnCategorizedAssets() ? 519 : 555;
-                
+
                 using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition, GUILayout.Height(scrollViewHeight), GUILayout.ExpandWidth(true)))
                 {
                     _scrollPosition = scrollView.scrollPosition;
@@ -112,8 +112,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                         using (new GUILayout.HorizontalScope())
                         {
-                            bool pressed = GUILayout.Toggle(isSelected, assetType, 
-                                isSelected ? selectedTypeButtonStyle : typeButtonStyle, 
+                            bool pressed = GUILayout.Toggle(isSelected, assetType,
+                                isSelected ? selectedTypeButtonStyle : typeButtonStyle,
                                 GUILayout.ExpandWidth(true), GUILayout.Height(36));
 
                             if (pressed && !isSelected)
@@ -204,7 +204,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     }
 
                     var messageAreaRect = GUILayoutUtility.GetRect(0, 16, GUILayout.ExpandWidth(true));
-                    
+
                     if (!string.IsNullOrWhiteSpace(_newTypeName))
                     {
                         var trimmedName = _newTypeName.Trim();
@@ -237,10 +237,10 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.FlexibleSpace();
-                    bool newShowDeleteButtons = GUILayout.Toggle(_showDeleteButtons, 
-                        LocalizationAPI.GetText("AssetType_showDeleteButtons"), 
+                    bool newShowDeleteButtons = GUILayout.Toggle(_showDeleteButtons,
+                        LocalizationAPI.GetText("AssetType_showDeleteButtons"),
                         GUILayout.Width(150));
-                    
+
                     if (newShowDeleteButtons != _showDeleteButtons)
                     {
                         _showDeleteButtons = newShowDeleteButtons;

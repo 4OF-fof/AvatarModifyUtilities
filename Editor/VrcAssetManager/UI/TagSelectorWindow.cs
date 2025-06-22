@@ -12,11 +12,11 @@ namespace AMU.Editor.VrcAssetManager.UI
     {
         private bool _allowMultipleSelection;
         private Action<List<string>> _onTagsSelected;
-        
+
         private List<string> _availableTags;
         private List<string> _filteredTags;
         private List<string> _selectedTags = new List<string>();
-        
+
         private Vector2 _scrollPosition = Vector2.zero;
         private string _searchText = "";
 
@@ -26,7 +26,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             window.minSize = window.maxSize = new Vector2(300, 400);
             window._allowMultipleSelection = allowMultipleSelection;
             window._onTagsSelected = onTagsSelected;
-            
+
             try
             {
                 var controller = new AssetLibraryController();
@@ -41,7 +41,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             }
 
             window._selectedTags.Clear();
-            
+
             if (initialSelectedTags != null && initialSelectedTags.Count > 0)
             {
                 foreach (var tag in initialSelectedTags)
@@ -75,11 +75,11 @@ namespace AMU.Editor.VrcAssetManager.UI
             using (new GUILayout.VerticalScope(GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
             {
                 GUILayout.Space(10);
-            
-                string headerText = _allowMultipleSelection 
+
+                string headerText = _allowMultipleSelection
                     ? LocalizationAPI.GetText("TagSelector_selectMultipleTags")
                     : LocalizationAPI.GetText("TagSelector_selectSingleTag");
-                    
+
                 GUILayout.Label(headerText, EditorStyles.boldLabel);
                 GUILayout.Space(5);
                 using (new GUILayout.HorizontalScope())
@@ -88,7 +88,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                     GUI.SetNextControlName("SearchField");
                     var newSearchText = GUILayout.TextField(_searchText);
-                    
+
                     if (newSearchText != _searchText)
                     {
                         _searchText = newSearchText;
@@ -97,7 +97,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                     GUILayout.Space(25);
                 }
-                
+
                 GUILayout.Space(10);
 
                 if (_filteredTags == null || _filteredTags.Count == 0)
@@ -105,7 +105,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     var message = string.IsNullOrEmpty(_searchText)
                         ? LocalizationAPI.GetText("TagSelector_noTags")
                         : LocalizationAPI.GetText("TagSelector_noSearchResults");
-                        
+
                     GUILayout.Label(message, EditorStyles.helpBox);
                     return;
                 }
@@ -120,12 +120,12 @@ namespace AMU.Editor.VrcAssetManager.UI
                             foreach (var tag in _filteredTags)
                             {
                                 bool isSelected = _selectedTags.Contains(tag);
-            
+
                                 if (isSelected)
                                 {
                                     var originalColor = GUI.backgroundColor;
                                     GUI.backgroundColor = new Color(0.3f, 0.6f, 1f, 1f);
-                                    
+
                                     if (GUILayout.Button(tag, GUI.skin.button, GUILayout.ExpandWidth(true), GUILayout.Height(30)))
                                     {
                                         if (_allowMultipleSelection)
@@ -143,11 +143,11 @@ namespace AMU.Editor.VrcAssetManager.UI
                                         {
                                             _selectedTags.Clear();
                                             _selectedTags.Add(tag);
-                                            
+
                                             CompleteSelection();
                                         }
                                     }
-                                    
+
                                     GUI.backgroundColor = originalColor;
                                 }
                                 else
@@ -169,7 +169,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                                         {
                                             _selectedTags.Clear();
                                             _selectedTags.Add(tag);
-                                            
+
                                             CompleteSelection();
                                         }
                                     }
@@ -181,15 +181,15 @@ namespace AMU.Editor.VrcAssetManager.UI
                 }
 
                 GUILayout.Space(10);
-                
+
                 if (_allowMultipleSelection)
                 {
-                    string selectionInfo = _allowMultipleSelection 
+                    string selectionInfo = _allowMultipleSelection
                     ? $"{LocalizationAPI.GetText("TagSelector_selectedCount")}: {_selectedTags.Count}"
-                    : _selectedTags.Count > 0 
+                    : _selectedTags.Count > 0
                         ? $"{LocalizationAPI.GetText("TagSelector_selected")}: {_selectedTags.First()}"
                         : LocalizationAPI.GetText("TagSelector_noSelection");
-                
+
                     GUILayout.Label(selectionInfo, EditorStyles.miniLabel);
 
                     GUILayout.Space(5);
@@ -203,20 +203,20 @@ namespace AMU.Editor.VrcAssetManager.UI
                     }
                     GUILayout.Space(3);
                 }
-                
+
                 using (new GUILayout.HorizontalScope())
                 {
                     if (GUILayout.Button(LocalizationAPI.GetText("Common_cancel")))
                     {
                         Close();
                     }
-                    
+
                     if (GUILayout.Button(LocalizationAPI.GetText("Common_ok")))
                     {
                         CompleteSelection();
                     }
                 }
-                
+
                 GUILayout.Space(10);
             }
         }
