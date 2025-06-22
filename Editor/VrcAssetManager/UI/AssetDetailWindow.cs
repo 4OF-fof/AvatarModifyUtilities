@@ -13,15 +13,27 @@ namespace AMU.Editor.VrcAssetManager.UI
         private AssetSchema _asset;
         private bool _isEditMode = false;
         private AssetLibraryController _controller;
+        private static List<Guid> _history = new List<Guid>();
+        private static AssetSchema _currentAsset = null;
 
-        public static void ShowWindow(AssetSchema asset, AssetLibraryController controller)
+        public static List<Guid> history { get => _history; set => _history = value; }
+
+        public static void ShowWindow(AssetSchema asset, AssetLibraryController controller, bool isBack = false)
         {
+            if (!isBack)
+            {
+                if (_currentAsset != null && asset != null && _currentAsset.AssetId != asset.AssetId)
+                {
+                    _history.Add(_currentAsset.AssetId);
+                }
+            }
             var window = GetWindow<AssetDetailWindow>(typeof(VrcAssetManagerWindow));
             window._asset = asset;
             window._controller = controller;
             window.titleContent = new GUIContent("Asset Detail: " + asset.Metadata.Name);
             window.minSize = window.maxSize = new Vector2(1200, 800);
             window.Show();
+            _currentAsset = asset;
         }
 
         private Texture2D MakeTex(int width, int height, Color col)
@@ -77,6 +89,23 @@ namespace AMU.Editor.VrcAssetManager.UI
             using (new GUILayout.HorizontalScope())
             {
                 GUILayout.FlexibleSpace();
+                if (_history.Count > 0)
+                {
+                    if (GUILayout.Button("戻る", GUILayout.Width(60), GUILayout.Height(32)))
+                    {
+                        if (_controller != null && _history.Count > 0)
+                        {
+                            var prevId = _history[_history.Count - 1];
+                            _history.RemoveAt(_history.Count - 1);
+                            var prevAsset = _controller.GetAsset(prevId);
+                            if (prevAsset != null)
+                            {
+                                ShowWindow(prevAsset, _controller, true);
+                                return;
+                            }
+                        }
+                    }
+                }
                 var editIcon = EditorGUIUtility.IconContent("d_editicon.sml");
                 if (!_isEditMode)
                 {

@@ -174,6 +174,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         private static void HandleAssetDoubleClick(AssetSchema asset, AssetLibraryController controller)
         {
             AssetDetailWindow.ShowWindow(asset, controller);
+            AssetDetailWindow.history.Clear();
         }
     }
 }
