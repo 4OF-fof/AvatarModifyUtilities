@@ -338,7 +338,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 using (new GUILayout.VerticalScope(sectionBoxStyle))
                 {
                     GUILayout.Label("Booth Item", labelStyle);
-                    
+
                     GUILayout.Label(_asset.boothItem.itemName, valueStyle);
                     GUILayout.Label(_asset.boothItem.authorName, labelStyle);
 
