@@ -92,7 +92,26 @@ namespace AMU.Editor.VrcAssetManager.UI
             {
                 var group = kv.Value;
                 if (group.Count == 0) continue;
-                // 親アセット作成（fileName, downloadUrl以外の情報のみ）
+                if (group.Count == 1)
+                {
+                    // グループが1件のみの場合は単独アセットとして登録
+                    var boothItem = group[0];
+                    var asset = new AssetSchema();
+                    asset.SetBoothItem(new BoothItemSchema(
+                        boothItem.itemName,
+                        boothItem.authorName,
+                        boothItem.itemUrl,
+                        boothItem.imageUrl,
+                        boothItem.fileName,
+                        boothItem.downloadUrl
+                    ));
+                    asset.metadata.SetName(boothItem.itemName);
+                    asset.metadata.SetAuthorName(boothItem.authorName);
+                    _controller.AddAsset(asset);
+                    parentCount++;
+                    continue;
+                }
+                // 2件以上の場合は親子アセット構造で登録
                 var parentAsset = new AssetSchema();
                 var first = group[0];
                 parentAsset.SetBoothItem(new BoothItemSchema(
