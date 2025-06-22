@@ -88,10 +88,10 @@ namespace AMU.Editor.VrcAssetManager.UI
 
             using (new GUILayout.HorizontalScope())
             {
-                GUILayout.FlexibleSpace();
+                var backIcon = EditorGUIUtility.IconContent("ArrowNavigationLeft");
                 if (_history.Count > 0)
                 {
-                    if (GUILayout.Button("戻る", GUILayout.Width(60), GUILayout.Height(32)))
+                    if (GUILayout.Button(backIcon, GUILayout.Width(32), GUILayout.Height(32)))
                     {
                         if (_controller != null && _history.Count > 0)
                         {
@@ -106,6 +106,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                         }
                     }
                 }
+                GUILayout.FlexibleSpace();
                 var editIcon = EditorGUIUtility.IconContent("d_editicon.sml");
                 if (!_isEditMode)
                 {
