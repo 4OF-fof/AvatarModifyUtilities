@@ -118,8 +118,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                                     _thumbnailSize,
                                     isSelected,
                                     isMultiSelected && _selectedAssets.Count > 1,
-                                    HandleAssetLeftClick,
-                                    HandleAssetRightClick,
+                                    a => HandleAssetLeftClick(a, controller),
+                                    a => HandleAssetRightClick(a, controller),
                                     a => HandleAssetDoubleClick(a, controller)
                                 );
                             }
@@ -130,7 +130,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             }
         }
 
-        private static void HandleAssetLeftClick(AssetSchema asset)
+        private static void HandleAssetLeftClick(AssetSchema asset, AssetLibraryController controller)
         {
             if (Event.current.control || Event.current.command)
             {
@@ -156,7 +156,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             }
         }
 
-        private static void HandleAssetRightClick(AssetSchema asset)
+        private static void HandleAssetRightClick(AssetSchema asset, AssetLibraryController controller)
         {
             if (_selectedAssets.Count > 1)
             {
@@ -165,8 +165,18 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             else
             {
                 var menu = new GenericMenu();
-                menu.AddItem(new GUIContent("Open Asset"), false, () => Debug.Log($"Opening asset: {asset.metadata.name}"));
-                menu.AddItem(new GUIContent("Delete Asset"), false, () => Debug.Log($"Deleting asset: {asset.metadata.name}"));
+                // TODO グループならメッセージ変える
+                menu.AddItem(new GUIContent("Delete Asset"), false, () => 
+                {
+                    if (EditorUtility.DisplayDialog(
+                        LocalizationAPI.GetText("AssetManager_deleteAssetTitle"),
+                        LocalizationAPI.GetText("AssetManager_deleteAssetMessage"),
+                        LocalizationAPI.GetText("Yes"),
+                        LocalizationAPI.GetText("No")))
+                    {
+                        controller.RemoveAsset(asset.assetId);
+                    }
+                });
                 menu.ShowAsContext();
             }
         }
