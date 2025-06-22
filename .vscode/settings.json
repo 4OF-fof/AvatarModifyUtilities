@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "editicon",
         "IVRCSDK",
         "Mathf",
         "Newtonsoft",
@@ -7,6 +8,7 @@
         "Prefs",
         "UNCATEGORIZED",
         "unitypackage",
-        "VRCSDK"
+        "VRCSDK",
+        "winbtn"
     ]
 }
