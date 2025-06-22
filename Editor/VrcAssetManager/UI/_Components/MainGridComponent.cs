@@ -17,7 +17,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         private static float _thumbnailSize = 120f;
         private static AssetItemComponent _assetItemComponent = new AssetItemComponent();
 
-        public static int SelectedAssetCount => _selectedAssets?.Count ?? 0;
+        public static int selectedAssetCount => _selectedAssets?.Count ?? 0;
 
         public static void Draw(AssetLibraryController controller)
         {

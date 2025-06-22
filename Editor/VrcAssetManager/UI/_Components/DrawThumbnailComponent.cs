@@ -11,6 +11,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
     public static class DrawThumbnailComponent
     {
         private static ThumbnailCacheController _thumbnailCache = new ThumbnailCacheController();
+        
         public static void Draw(Rect rect, AssetSchema asset)
         {
             Texture2D thumbnailTexture = null;

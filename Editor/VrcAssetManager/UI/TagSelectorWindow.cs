@@ -12,11 +12,9 @@ namespace AMU.Editor.VrcAssetManager.UI
     {
         private bool _allowMultipleSelection;
         private Action<List<string>> _onTagsSelected;
-
         private List<string> _availableTags;
         private List<string> _filteredTags;
         private List<string> _selectedTags = new List<string>();
-
         private Vector2 _scrollPosition = Vector2.zero;
         private string _searchText = "";
 

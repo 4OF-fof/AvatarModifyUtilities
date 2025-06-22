@@ -26,13 +26,14 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         private static int _selectedSortOption = 0; // 0: Name, 1: Date
         private static bool _sortDescending = true;
         private static bool _isUsingAdvancedSearch = false;
-        public static bool IsUsingAdvancedSearch
+        private static bool _isChildItem = false;
+        private static AssetLibraryController _controller;
+
+        public static bool isUsingAdvancedSearch
         {
             get => _isUsingAdvancedSearch;
             set => _isUsingAdvancedSearch = value;
         }
-        private static bool _isChildItem = false;
-        private static AssetLibraryController _controller;
 
         public static void Draw(AssetLibraryController controller)
         {
@@ -157,7 +158,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     
                     GUILayout.Space(10);
                     
-                    if (MainGridComponent.SelectedAssetCount > 1)
+                    if (MainGridComponent.selectedAssetCount > 1)
                     {
                         var selectedCountStyle = new GUIStyle(EditorStyles.toolbarButton)
                         {
@@ -165,7 +166,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                             fontStyle = FontStyle.Bold,
                             alignment = TextAnchor.MiddleCenter
                         };
-                        string selectedText = $"{MainGridComponent.SelectedAssetCount} 件選択中";
+                        string selectedText = $"{MainGridComponent.selectedAssetCount} 件選択中";
                         GUILayout.Label(selectedText, selectedCountStyle, GUILayout.MinWidth(80));
                     }
                     else

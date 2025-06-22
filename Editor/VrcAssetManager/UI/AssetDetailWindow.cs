@@ -195,7 +195,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                                     _controller.filterOptions.tags = new List<string> { tag };
                                     _controller.filterOptions.tagsAnd = false;
                                 }
-                                ToolbarComponent.IsUsingAdvancedSearch = true;
+                                ToolbarComponent.isUsingAdvancedSearch = true;
                                 VrcAssetManagerWindow.ShowWindow();
                             }
                         }
