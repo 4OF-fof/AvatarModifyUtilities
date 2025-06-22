@@ -211,12 +211,10 @@ namespace AMU.Editor.VrcAssetManager.UI
                         Close();
                     }
                     
-                    GUI.enabled = _selectedTags.Count > 0;
                     if (GUILayout.Button(LocalizationAPI.GetText("Common_ok")))
                     {
                         CompleteSelection();
                     }
-                    GUI.enabled = true;
                 }
                 
                 GUILayout.Space(10);
