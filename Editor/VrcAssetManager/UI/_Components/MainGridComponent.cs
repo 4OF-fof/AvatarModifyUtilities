@@ -160,17 +160,33 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         {
             if (_selectedAssets.Count > 1)
             {
-                Debug.LogWarning("Right-clicking on multiple selected.");
+                var menu = new GenericMenu();
+                menu.AddItem(new GUIContent("Delete Selected Assets"), false, () => 
+                {
+                    if (EditorUtility.DisplayDialog(
+                        LocalizationAPI.GetText("AssetManager_deleteAssetsTitle"),
+                        LocalizationAPI.GetText(asset.hasChildAssets ? "AssetManager_deleteGroupAssetMessage" : "AssetManager_deleteAssetMessage"),
+                        LocalizationAPI.GetText("Yes"),
+                        LocalizationAPI.GetText("No")))
+                    {
+                        foreach (var selectedAsset in _selectedAssets)
+                        {
+                            controller.RemoveAsset(selectedAsset.assetId);
+                        }
+                        _selectedAssets.Clear();
+                        _selectedAsset = null;
+                    }
+                });
+                menu.ShowAsContext();
             }
             else
             {
                 var menu = new GenericMenu();
-                // TODO グループならメッセージ変える
                 menu.AddItem(new GUIContent("Delete Asset"), false, () => 
                 {
                     if (EditorUtility.DisplayDialog(
                         LocalizationAPI.GetText("AssetManager_deleteAssetTitle"),
-                        LocalizationAPI.GetText("AssetManager_deleteAssetMessage"),
+                        LocalizationAPI.GetText(asset.hasChildAssets ? "AssetManager_deleteGroupAssetMessage" : "AssetManager_deleteAssetMessage"),
                         LocalizationAPI.GetText("Yes"),
                         LocalizationAPI.GetText("No")))
                     {
