@@ -4,11 +4,13 @@ using UnityEditor;
 using UnityEngine;
 using AMU.Editor.VrcAssetManager.Schema;
 using AMU.Editor.Core.Api;
+using AMU.Editor.VrcAssetManager.Controllers;
 
 namespace AMU.Editor.VrcAssetManager.UI.Components
 {
     public static class DrawThumbnailComponent
     {
+        private static ThumbnailCacheController _thumbnailCache = new ThumbnailCacheController();
         public static void Draw(Rect rect, AssetSchema asset)
         {
             Texture2D thumbnailTexture = null;
@@ -27,7 +29,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 }
                 if (File.Exists(resolvedPath))
                 {
-                    thumbnailTexture = LoadTextureFromFileSync(resolvedPath);
+                    thumbnailTexture = _thumbnailCache.Load(resolvedPath);
                 }
             }
             var prefabIcon = EditorGUIUtility.IconContent("Prefab Icon").image as Texture2D;
@@ -39,26 +41,6 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             else if (prefabIcon != null)
             {
                 GUI.DrawTexture(rect, prefabIcon, ScaleMode.ScaleToFit);
-            }
-        }
-
-        private static Texture2D LoadTextureFromFileSync(string filePath)
-        {
-            try
-            {
-                byte[] fileData = File.ReadAllBytes(filePath);
-                Texture2D texture = new Texture2D(2, 2);
-                if (texture.LoadImage(fileData))
-                {
-                    return texture;
-                }
-                UnityEngine.Object.DestroyImmediate(texture);
-                return null;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[DrawThumbnailComponent] Failed to load texture from {filePath}: {ex.Message}");
-                return null;
             }
         }
     }
