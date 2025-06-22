@@ -8,7 +8,7 @@ using AMU.Editor.VrcAssetManager.Controller;
 using AMU.Editor.VrcAssetManager.Schema;
 using System.Security.Cryptography;
 using System.Net;
-using AMU.Editor.Core.Api; // HashUtilityのusingを追加
+using AMU.Editor.Core.Api;
 
 namespace AMU.Editor.VrcAssetManager.UI
 {
@@ -95,7 +95,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             }
         }
 
-        private AssetSchema CreateAssetFromBoothItem(BoothItemSchema boothItem, string parentGroupId = null)
+        private AssetSchema CreateAssetFromBoothItem(BoothItemSchema boothItem, string parentGroupId = null, string thumbnailPath = null)
         {
             var asset = new AssetSchema();
             asset.SetBoothItem(new BoothItemSchema(
@@ -110,6 +110,10 @@ namespace AMU.Editor.VrcAssetManager.UI
             if (!string.IsNullOrEmpty(parentGroupId))
             {
                 asset.SetParentGroupId(parentGroupId);
+            }
+            if (!string.IsNullOrEmpty(thumbnailPath))
+            {
+                asset.metadata.SetThumbnailPath(thumbnailPath);
             }
             return asset;
         }
@@ -151,15 +155,18 @@ namespace AMU.Editor.VrcAssetManager.UI
             if (File.Exists(filePath)) return filePath;
             try
             {
+                EditorUtility.DisplayProgressBar("画像ダウンロード中", imageUrl, 0f);
                 System.Threading.Thread.Sleep(100);
                 using (var client = new WebClient())
                 {
                     client.DownloadFile(imageUrl, filePath);
                 }
+                EditorUtility.ClearProgressBar();
                 return filePath;
             }
             catch (Exception ex)
             {
+                EditorUtility.ClearProgressBar();
                 Debug.LogWarning($"画像ダウンロード失敗: {imageUrl}\n{ex.Message}");
                 return null;
             }
@@ -168,15 +175,21 @@ namespace AMU.Editor.VrcAssetManager.UI
         private void RegisterAllAsAssets()
         {
             if (_controller == null || _filteredBoothItems == null) return;
-            // 画像ダウンロード処理
-            foreach (var item in _filteredBoothItems)
+            int total = _filteredBoothItems.Count;
+            var imagePathDict = new Dictionary<BoothItemSchema, string>();
+            for (int i = 0; i < total; i++)
             {
+                var item = _filteredBoothItems[i];
+                string localPath = null;
                 if (!string.IsNullOrEmpty(item.imageUrl))
                 {
-                    var localPath = DownloadImageIfNeeded(item.imageUrl);
-                    // 必要ならitemにローカルパスをセットする処理を追加
+                    float progress = (float)i / total;
+                    EditorUtility.DisplayProgressBar("画像ダウンロード中", item.imageUrl, progress);
+                    localPath = DownloadImageIfNeeded(item.imageUrl);
                 }
+                imagePathDict[item] = localPath;
             }
+            EditorUtility.ClearProgressBar();
 
             int parentCount = 0;
             int childCount = 0;
@@ -211,7 +224,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     {
                         foreach (var boothItem in group)
                         {
-                            var childAsset = CreateAssetFromBoothItem(boothItem, parent.assetId.ToString());
+                            var childAsset = CreateAssetFromBoothItem(boothItem, parent.assetId.ToString(), imagePathDict.ContainsKey(boothItem) ? imagePathDict[boothItem] : null);
                             parent.AddChildAssetId(childAsset.assetId.ToString());
                             _controller.AddAsset(childAsset);
                             childCount++;
@@ -235,7 +248,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                         }
                         foreach (var boothItem in group)
                         {
-                            var childAsset = CreateAssetFromBoothItem(boothItem, newParent.assetId.ToString());
+                            var childAsset = CreateAssetFromBoothItem(boothItem, newParent.assetId.ToString(), imagePathDict.ContainsKey(boothItem) ? imagePathDict[boothItem] : null);
                             newParent.AddChildAssetId(childAsset.assetId.ToString());
                             _controller.AddAsset(childAsset);
                             childCount++;
@@ -248,7 +261,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 if (group.Count == 1)
                 {
                     var boothItem = group[0];
-                    var asset = CreateAssetFromBoothItem(boothItem);
+                    var asset = CreateAssetFromBoothItem(boothItem, null, imagePathDict.ContainsKey(boothItem) ? imagePathDict[boothItem] : null);
                     asset.metadata.SetName(boothItem.itemName);
                     asset.metadata.SetAuthorName(boothItem.authorName);
                     _controller.AddAsset(asset);
@@ -258,7 +271,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 var parentAsset = CreateParentAssetFromBoothItem(group[0]);
                 foreach (var boothItem in group)
                 {
-                    var childAsset = CreateAssetFromBoothItem(boothItem, parentAsset.assetId.ToString());
+                    var childAsset = CreateAssetFromBoothItem(boothItem, parentAsset.assetId.ToString(), imagePathDict.ContainsKey(boothItem) ? imagePathDict[boothItem] : null);
                     parentAsset.AddChildAssetId(childAsset.assetId.ToString());
                     _controller.AddAsset(childAsset);
                     childCount++;
