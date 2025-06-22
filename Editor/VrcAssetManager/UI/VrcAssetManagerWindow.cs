@@ -41,5 +41,9 @@ namespace AMU.Editor.VrcAssetManager.UI
             }
         }
 
+        private void OnDestroy()
+        {
+            ToolbarComponent.Destroy();
+        }
     }
 }

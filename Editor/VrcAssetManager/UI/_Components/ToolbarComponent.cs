@@ -27,9 +27,11 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         private static bool _sortDescending = true;
         private static bool _isUsingAdvancedSearch = false;
         private static bool _isChildItem = false;
+        private static AssetLibraryController _controller;
 
         public static void Draw(AssetLibraryController controller)
         {
+            _controller = controller;
             using (new GUILayout.HorizontalScope(EditorStyles.toolbar))
             {
                 using (new GUILayout.HorizontalScope(GUILayout.Width(240f)))
@@ -50,9 +52,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         if (GUILayout.Button("×", EditorStyles.toolbarButton, GUILayout.Width(20)))
                         {
                             _isUsingAdvancedSearch = false;
-                            var assetType = controller.filterOptions.assetType;
-                            controller.filterOptions.ClearFilter();
-                            controller.filterOptions.assetType = assetType;
+                            var assetType = _controller.filterOptions.assetType;
+                            _controller.filterOptions.ClearFilter();
+                            _controller.filterOptions.assetType = assetType;
                         }
                     }
                     else
@@ -61,11 +63,11 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         if (newSearchText != _searchText)
                         {
                             _searchText = newSearchText;
-                            controller.filterOptions.name = controller.filterOptions.authorName = controller.filterOptions.description =  _searchText;
+                            _controller.filterOptions.name = _controller.filterOptions.authorName = _controller.filterOptions.description =  _searchText;
                         }
                         if (GUILayout.Button("検索", EditorStyles.toolbarButton, GUILayout.Width(40)))
                         {
-                            AdvancedSearchWindow.ShowWindow(controller, (closedBySearch) => { _isUsingAdvancedSearch = closedBySearch; });
+                            AdvancedSearchWindow.ShowWindow(_controller, (closedBySearch) => { _isUsingAdvancedSearch = closedBySearch; });
                         }
                     }
                 }
@@ -76,22 +78,22 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     if (GUILayout.Toggle(_currentFilter == AssetFilterType.All, LocalizationAPI.GetText("AssetManager_filterAll"), EditorStyles.toolbarButton))
                     {
                         _currentFilter = AssetFilterType.All;
-                        controller.filterOptions.isFavorite = null;
-                        controller.filterOptions.isArchived = false;
+                        _controller.filterOptions.isFavorite = null;
+                        _controller.filterOptions.isArchived = false;
                     }
 
                     if (GUILayout.Toggle(_currentFilter == AssetFilterType.Favorites, LocalizationAPI.GetText("AssetManager_filterFavorite"), EditorStyles.toolbarButton))
                     {
                         _currentFilter = AssetFilterType.Favorites;
-                        controller.filterOptions.isFavorite = true;
-                        controller.filterOptions.isArchived = false;
+                        _controller.filterOptions.isFavorite = true;
+                        _controller.filterOptions.isArchived = false;
                     }
 
                     if (GUILayout.Toggle(_currentFilter == AssetFilterType.ArchivedOnly, LocalizationAPI.GetText("AssetManager_filterArchived"), EditorStyles.toolbarButton))
                     {
                         _currentFilter = AssetFilterType.ArchivedOnly;
-                        controller.filterOptions.isFavorite = null;
-                        controller.filterOptions.isArchived = true;
+                        _controller.filterOptions.isFavorite = null;
+                        _controller.filterOptions.isArchived = true;
                     }
 
                     GUI.enabled = true;
@@ -99,10 +101,10 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                     GUILayout.FlexibleSpace();
 
-                    var newColumnsPerRow = (int)GUILayout.HorizontalSlider(controller.columnsPerRow, 4, 13, GUILayout.Width(80));
-                    if (newColumnsPerRow != controller.columnsPerRow)
+                    var newColumnsPerRow = (int)GUILayout.HorizontalSlider(_controller.columnsPerRow, 4, 13, GUILayout.Width(80));
+                    if (newColumnsPerRow != _controller.columnsPerRow)
                     {
-                        controller.columnsPerRow = newColumnsPerRow;
+                        _controller.columnsPerRow = newColumnsPerRow;
                     }
                     
                     GUILayout.Space(5);
@@ -114,7 +116,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     if (newIsChildItem != _isChildItem)
                     {
                         _isChildItem = newIsChildItem;
-                        controller.filterOptions.isChildItem = _isChildItem;
+                        _controller.filterOptions.isChildItem = _isChildItem;
                     }
 
                     GUILayout.Space(5);
@@ -135,7 +137,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     if (newSortOption != _selectedSortOption)
                     {
                         _selectedSortOption = newSortOption;
-                        controller.sortOptions.sortBy = (SortOptionsEnum)_selectedSortOption;
+                        _controller.sortOptions.sortBy = (SortOptionsEnum)_selectedSortOption;
                     }
 
                     string sortArrow = _sortDescending ? "↓" : "↑";
@@ -143,26 +145,26 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     if (newSortDescending != _sortDescending)
                     {
                         _sortDescending = newSortDescending;
-                        controller.sortOptions.isDescending = _sortDescending;
+                        _controller.sortOptions.isDescending = _sortDescending;
                     }
 
                     GUILayout.Space(10);
                     // TODO: Select item counter
                     if (GUILayout.Button(LocalizationAPI.GetText("AssetManager_addAsset"), EditorStyles.toolbarButton))
                     {
-                        OpenDownloadFolderAndSelectFile(controller);
+                        OpenDownloadFolderAndSelectFile();
                     }
 
                     if (GUILayout.Button(LocalizationAPI.GetText("Common_refresh"), EditorStyles.toolbarButton))
                     {
-                        controller.SyncAssetLibrary();
+                        _controller.SyncAssetLibrary();
                         Debug.Log("Refresh requested");
                     }
                 }
             }
         }
 
-        private static void OpenDownloadFolderAndSelectFile(AssetLibraryController controller)
+        private static void OpenDownloadFolderAndSelectFile()
         {
             string downloadPath = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile),
                                                "Downloads");
@@ -180,6 +182,20 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 else
                 {
                     Debug.Log($"Selected file for asset import: {selectedFile}");
+                }
+            }
+        }
+        
+        public static void Destroy()
+        {
+            _controller.filterOptions.ClearFilter();
+            _isUsingAdvancedSearch = false;
+            var advWindows = Resources.FindObjectsOfTypeAll<AMU.Editor.VrcAssetManager.UI.AdvancedSearchWindow>();
+            if (advWindows != null && advWindows.Length > 0)
+            {
+                foreach (var win in advWindows)
+                {
+                    win.Close();
                 }
             }
         }
