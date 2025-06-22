@@ -26,6 +26,11 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         private static int _selectedSortOption = 0; // 0: Name, 1: Date
         private static bool _sortDescending = true;
         private static bool _isUsingAdvancedSearch = false;
+        public static bool IsUsingAdvancedSearch
+        {
+            get => _isUsingAdvancedSearch;
+            set => _isUsingAdvancedSearch = value;
+        }
         private static bool _isChildItem = false;
         private static AssetLibraryController _controller;
 
