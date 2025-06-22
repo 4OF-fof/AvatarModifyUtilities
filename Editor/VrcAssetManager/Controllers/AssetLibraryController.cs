@@ -182,7 +182,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 Debug.LogError("Asset is null. Cannot add asset.");
                 return;
             }
-            if (library.Assets.ContainsKey(asset.AssetId))
+            if (library.assets.ContainsKey(asset.AssetId))
             {
                 Debug.LogError($"Asset with ID {asset.AssetId} already exists in the library.");
                 return;
@@ -206,7 +206,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 Debug.LogError("Asset is null. Cannot update asset.");
                 return;
             }
-            if (!library.Assets.ContainsKey(asset.AssetId))
+            if (!library.assets.ContainsKey(asset.AssetId))
             {
                 Debug.LogError($"Asset with ID {asset.AssetId} does not exist in the library.");
                 return;
@@ -230,27 +230,27 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 Debug.LogError("Asset ID is invalid. Cannot remove asset.");
                 return;
             }
-            if (!library.Assets.ContainsKey(assetId))
+            if (!library.assets.ContainsKey(assetId))
             {
                 Debug.LogError($"Asset with ID {assetId} does not exist in the library.");
                 return;
             }
 
             var asset = library.GetAsset(assetId);
-            if (!string.IsNullOrEmpty(asset.ParentGroupId) && library.Assets.TryGetValue(Guid.Parse(asset.ParentGroupId), out var parentGroup))
+            if (!string.IsNullOrEmpty(asset.ParentGroupId) && library.assets.TryGetValue(Guid.Parse(asset.ParentGroupId), out var parentGroup))
             {
                 parentGroup.RemoveChildAssetId(assetId.ToString());
             }
 
             foreach (var childId in asset.ChildAssetIds)
             {
-                if (Guid.TryParse(childId, out var childGuid) && library.Assets.TryGetValue(childGuid, out var childAsset))
+                if (Guid.TryParse(childId, out var childGuid) && library.assets.TryGetValue(childGuid, out var childAsset))
                 {
                     childAsset.SetParentGroupId("");
                 }
             }
 
-            foreach (var other in library.Assets.Values)
+            foreach (var other in library.assets.Values)
             {
                 if (other.Metadata.Dependencies.Contains(assetId.ToString()))
                 {
@@ -276,7 +276,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 Debug.LogError("Asset ID is invalid. Cannot get asset.");
                 return null;
             }
-            if (!library.Assets.ContainsKey(assetId))
+            if (!library.assets.ContainsKey(assetId))
             {
                 Debug.LogError($"Asset with ID {assetId} does not exist in the library.");
                 return null;
@@ -295,7 +295,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
 
             SyncAssetLibrary();
-            return library.Assets.Values.ToList();
+            return library.assets.Values.ToList();
         }
 
         public bool HasUnCategorizedAssets()
@@ -307,7 +307,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
 
             SyncAssetLibrary();
-            return library.Assets.Values.Any(asset => string.IsNullOrEmpty(asset.Metadata.AssetType));
+            return library.assets.Values.Any(asset => string.IsNullOrEmpty(asset.Metadata.AssetType));
         }
 
         public IReadOnlyList<AssetSchema> GetFilteredAssets()
@@ -350,7 +350,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 var tagResults = new List<AssetSchema>();
                 if (filterOptions.tagsAnd)
                 {
-                    tagResults = library.Assets.Values
+                    tagResults = library.assets.Values
                         .Where(asset => filterOptions.tags.All(tag => asset.Metadata.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase)))
                         .ToList();
                 }
@@ -373,7 +373,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             {
                 if (filterOptions.assetType == "UNCATEGORIZED")
                 {
-                    return library.Assets.Values
+                    return library.assets.Values
                         .Where(asset => string.IsNullOrEmpty(asset.Metadata.AssetType))
                         .Intersect(library.GetAssetsByStateArchived(filterOptions.isArchived))
                         .Where(asset => filterOptions.isChildItem || !asset.HasParentGroup)
@@ -381,7 +381,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 }
                 else if (!string.IsNullOrEmpty(filterOptions.assetType))
                 {
-                    return library.Assets.Values
+                    return library.assets.Values
                         .Where(asset => asset.Metadata.AssetType.Equals(filterOptions.assetType, StringComparison.OrdinalIgnoreCase))
                         .Intersect(library.GetAssetsByStateArchived(filterOptions.isArchived))
                         .Where(asset => filterOptions.isChildItem || !asset.HasParentGroup)
@@ -450,7 +450,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
 
             SyncAssetLibrary();
-            return library.AssetCount;
+            return library.assetCount;
         }
         #endregion
 
@@ -467,7 +467,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 Debug.LogError("Tag is null or empty. Cannot add tag.");
                 return;
             }
-            if (library.Tags.Contains(tag.Trim()))
+            if (library.tags.Contains(tag.Trim()))
             {
                 Debug.LogError($"Tag '{tag}' already exists in the library.");
                 return;
@@ -491,7 +491,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 Debug.LogError("Tag is null or empty. Cannot remove tag.");
                 return;
             }
-            if (!library.Tags.Contains(tag.Trim()))
+            if (!library.tags.Contains(tag.Trim()))
             {
                 Debug.LogError($"Tag '{tag}' does not exist in the library.");
                 return;
@@ -529,7 +529,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
 
             SyncAssetLibrary();
-            return library.Tags.ToList();
+            return library.tags.ToList();
         }
 
         public void ClearTags()
@@ -555,7 +555,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
 
             SyncAssetLibrary();
-            return library.TagCount;
+            return library.tagCount;
         }
 
         public void OptimizeTags()
@@ -568,7 +568,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             SyncAssetLibrary();
 
-            var unusedTags = library.Tags.Where(tag => !library.Assets.Values.Any(asset => asset.Metadata.Tags.Contains(tag))).ToList();
+            var unusedTags = library.tags.Where(tag => !library.assets.Values.Any(asset => asset.Metadata.Tags.Contains(tag))).ToList();
             foreach (var tag in unusedTags)
             {
                 library.RemoveTag(tag);
@@ -592,7 +592,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 Debug.LogError("Asset type is null or empty. Cannot add asset type.");
                 return;
             }
-            if (library.AssetTypes.Contains(assetType.Trim()))
+            if (library.assetTypes.Contains(assetType.Trim()))
             {
                 Debug.LogError($"Asset type '{assetType}' already exists in the library.");
                 return;
@@ -616,7 +616,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 Debug.LogError("Asset type is null or empty. Cannot remove asset type.");
                 return;
             }
-            if (!library.AssetTypes.Contains(assetType.Trim()))
+            if (!library.assetTypes.Contains(assetType.Trim()))
             {
                 Debug.LogError($"Asset type '{assetType}' does not exist in the library.");
                 return;
@@ -625,7 +625,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             SyncAssetLibrary();
 
             var trimmedAssetType = assetType.Trim();
-            var assetsWithType = library.Assets.Values
+            var assetsWithType = library.assets.Values
                 .Where(asset => asset.Metadata.AssetType == trimmedAssetType)
                 .ToList();
 
@@ -665,7 +665,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
 
             SyncAssetLibrary();
-            return library.AssetTypes.ToList();
+            return library.assetTypes.ToList();
         }
 
         public void ClearAssetTypes()
@@ -691,7 +691,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
 
             SyncAssetLibrary();
-            return library.AssetTypeCount;
+            return library.assetTypeCount;
         }
 
         public void OptimizeAssetTypes()
@@ -704,7 +704,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             SyncAssetLibrary();
 
-            var unusedAssetTypes = library.AssetTypes.Where(type => !library.Assets.Values.Any(asset => asset.Metadata.AssetType == type)).ToList();
+            var unusedAssetTypes = library.assetTypes.Where(type => !library.assets.Values.Any(asset => asset.Metadata.AssetType == type)).ToList();
             foreach (var type in unusedAssetTypes)
             {
                 library.RemoveAssetType(type);
