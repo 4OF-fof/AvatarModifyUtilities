@@ -177,6 +177,46 @@ namespace AMU.Editor.VrcAssetManager.UI
                     GUILayout.Label("Archived:", labelStyle, GUILayout.Width(70));
                     GUILayout.Label(state.isArchived ? "Yes" : "No", valueStyle);
                 }
+                // 親アセット表示
+                if (!string.IsNullOrEmpty(_asset.parentGroupId) && _controller != null)
+                {
+                    var parentAsset = _controller.GetAsset(Guid.Parse(_asset.parentGroupId));
+                    if (parentAsset != null)
+                    {
+                        GUILayout.Space(4);
+                        using (new GUILayout.HorizontalScope())
+                        {
+                            GUILayout.Label("親アセット:", labelStyle, GUILayout.Width(70));
+                            if (GUILayout.Button(parentAsset.metadata.name, chipStyle))
+                            {
+                                ShowWindow(parentAsset, _controller);
+                            }
+                        }
+                    }
+                }
+                // 子アセット表示
+                if (_asset.childAssetIds != null && _asset.childAssetIds.Count > 0 && _controller != null)
+                {
+                    GUILayout.Space(4);
+                    GUILayout.Label("子アセット:", labelStyle);
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        foreach (var childId in _asset.childAssetIds)
+                        {
+                            if (Guid.TryParse(childId, out var childGuid))
+                            {
+                                var childAsset = _controller.GetAsset(childGuid);
+                                if (childAsset != null)
+                                {
+                                    if (GUILayout.Button(childAsset.metadata.name, chipStyle))
+                                    {
+                                        ShowWindow(childAsset, _controller);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             using (new GUILayout.HorizontalScope())
