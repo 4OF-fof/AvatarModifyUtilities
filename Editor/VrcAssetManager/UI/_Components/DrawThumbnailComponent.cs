@@ -15,7 +15,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         public static void Draw(Rect rect, AssetSchema asset)
         {
             Texture2D thumbnailTexture = null;
-            string thumbnailPath = asset.Metadata.ThumbnailPath;
+            string thumbnailPath = asset.metadata.thumbnailPath;
             if (!string.IsNullOrEmpty(thumbnailPath))
             {
                 string resolvedPath = thumbnailPath;

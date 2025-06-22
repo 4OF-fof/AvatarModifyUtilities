@@ -25,10 +25,10 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public AssetLibrarySchema(DateTime lastUpdated, Dictionary<Guid, AssetSchema> assets,
                                   List<string> tags, List<string> assetTypes)
         {
-            this._lastUpdated = lastUpdated;
-            this._assets = assets ?? new Dictionary<Guid, AssetSchema>();
-            this._tags = tags ?? new List<string>();
-            this._assetTypes = assetTypes ?? new List<string>();
+            _lastUpdated = lastUpdated;
+            _assets = assets ?? new Dictionary<Guid, AssetSchema>();
+            _tags = tags ?? new List<string>();
+            _assetTypes = assetTypes ?? new List<string>();
         }
 
         #region Properties
@@ -54,19 +54,19 @@ namespace AMU.Editor.VrcAssetManager.Schema
         #region Asset Methods
         public void AddAsset(AssetSchema asset)
         {
-            if (asset == null || _assets.ContainsKey(asset.AssetId))
+            if (asset == null || _assets.ContainsKey(asset.assetId))
                 throw new ArgumentException("Asset is null or already exists in the library.");
 
-            _assets[asset.AssetId] = asset;
+            _assets[asset.assetId] = asset;
             _lastUpdated = DateTime.Now;
         }
 
         public void UpdateAsset(AssetSchema asset)
         {
-            if (asset == null || !_assets.ContainsKey(asset.AssetId))
+            if (asset == null || !_assets.ContainsKey(asset.assetId))
                 throw new ArgumentException("Asset is null or does not exist in the library.");
 
-            _assets[asset.AssetId] = asset;
+            _assets[asset.assetId] = asset;
             _lastUpdated = DateTime.Now;
         }
 
@@ -97,7 +97,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             if (string.IsNullOrWhiteSpace(name))
                 return new List<AssetSchema>();
 
-            return _assets.Values.Where(a => a.Metadata.Name.Contains(name, StringComparison.OrdinalIgnoreCase)).ToList();
+            return _assets.Values.Where(a => a.metadata.name.Contains(name, StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
         public List<AssetSchema> GetAssetsByDescription(string description)
@@ -105,7 +105,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             if (string.IsNullOrWhiteSpace(description))
                 return new List<AssetSchema>();
 
-            return _assets.Values.Where(a => a.Metadata.Description.Contains(description, StringComparison.OrdinalIgnoreCase)).ToList();
+            return _assets.Values.Where(a => a.metadata.description.Contains(description, StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
         public List<AssetSchema> GetAssetsByAuthorName(string authorName)
@@ -113,7 +113,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             if (string.IsNullOrWhiteSpace(authorName))
                 return new List<AssetSchema>();
 
-            return _assets.Values.Where(a => a.Metadata.AuthorName.Contains(authorName, StringComparison.OrdinalIgnoreCase)).ToList();
+            return _assets.Values.Where(a => a.metadata.authorName.Contains(authorName, StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
         public List<AssetSchema> GetAssetsByTag(string tag)
@@ -121,7 +121,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             if (string.IsNullOrWhiteSpace(tag))
                 return new List<AssetSchema>();
 
-            return _assets.Values.Where(a => a.Metadata.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase)).ToList();
+            return _assets.Values.Where(a => a.metadata.tags.Contains(tag, StringComparer.OrdinalIgnoreCase)).ToList();
         }
 
         public List<AssetSchema> GetAssetsByAssetType(string assetType)
@@ -129,17 +129,17 @@ namespace AMU.Editor.VrcAssetManager.Schema
             if (string.IsNullOrWhiteSpace(assetType))
                 return new List<AssetSchema>();
 
-            return _assets.Values.Where(a => a.Metadata.AssetType.Equals(assetType, StringComparison.OrdinalIgnoreCase)).ToList();
+            return _assets.Values.Where(a => a.metadata.assetType.Equals(assetType, StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
         public List<AssetSchema> GetAssetsByStateFavorite(bool isFavorite)
         {
-            return _assets.Values.Where(a => a.State.IsFavorite == isFavorite).ToList();
+            return _assets.Values.Where(a => a.state.isFavorite == isFavorite).ToList();
         }
 
         public List<AssetSchema> GetAssetsByStateArchived(bool isArchived)
         {
-            return _assets.Values.Where(a => a.State.IsArchived == isArchived).ToList();
+            return _assets.Values.Where(a => a.state.isArchived == isArchived).ToList();
         }
 
         public void ClearAssets()

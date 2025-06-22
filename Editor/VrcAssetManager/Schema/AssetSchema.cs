@@ -10,25 +10,25 @@ namespace AMU.Editor.VrcAssetManager.Schema
     #region AssetSchema
     public class AssetSchema
     {
-        private Guid assetId;
-        private AssetMetadata metadata;
-        private AssetFileInfo fileInfo;
-        private AssetState state;
-        private BoothItemSchema boothItem;
-        private string parentGroupId;
-        private List<string> childAssetIds;
-        private DateTime lastAccessed;
+        private Guid _assetId;
+        private AssetMetadata _metadata;
+        private AssetFileInfo _fileInfo;
+        private AssetState _state;
+        private BoothItemSchema _boothItem;
+        private string _parentGroupId;
+        private List<string> _childAssetIds;
+        private DateTime _lastAccessed;
 
         public AssetSchema()
         {
-            assetId = Guid.NewGuid();
-            metadata = new AssetMetadata();
-            fileInfo = new AssetFileInfo();
-            state = new AssetState();
-            boothItem = null;
-            parentGroupId = string.Empty;
-            childAssetIds = new List<string>();
-            lastAccessed = DateTime.Now;
+            _assetId = Guid.NewGuid();
+            _metadata = new AssetMetadata();
+            _fileInfo = new AssetFileInfo();
+            _state = new AssetState();
+            _boothItem = null;
+            _parentGroupId = string.Empty;
+            _childAssetIds = new List<string>();
+            _lastAccessed = DateTime.Now;
         }
 
         [JsonConstructor]
@@ -36,82 +36,82 @@ namespace AMU.Editor.VrcAssetManager.Schema
                            AssetState state, BoothItemSchema boothItem, string parentGroupId,
                            List<string> childAssetIds, DateTime lastAccessed)
         {
-            this.assetId = assetId;
-            this.metadata = metadata ?? new AssetMetadata();
-            this.fileInfo = fileInfo ?? new AssetFileInfo();
-            this.state = state ?? new AssetState();
-            this.boothItem = boothItem;
-            this.parentGroupId = parentGroupId ?? string.Empty;
-            this.childAssetIds = childAssetIds ?? new List<string>();
-            this.lastAccessed = lastAccessed;
+            _assetId = assetId;
+            _metadata = metadata ?? new AssetMetadata();
+            _fileInfo = fileInfo ?? new AssetFileInfo();
+            _state = state ?? new AssetState();
+            _boothItem = boothItem;
+            _parentGroupId = parentGroupId ?? string.Empty;
+            _childAssetIds = childAssetIds ?? new List<string>();
+            _lastAccessed = lastAccessed;
         }
 
         #region Properties
-        public Guid AssetId => assetId;
+        public Guid assetId => _assetId;
 
-        public AssetMetadata Metadata => metadata ?? (metadata = new AssetMetadata());
+        public AssetMetadata metadata => _metadata ?? (_metadata = new AssetMetadata());
 
-        public AssetFileInfo FileInfo => fileInfo ?? (fileInfo = new AssetFileInfo());
+        public AssetFileInfo fileInfo => _fileInfo ?? (_fileInfo = new AssetFileInfo());
 
-        public AssetState State => state ?? (state = new AssetState());
+        public AssetState state => _state ?? (_state = new AssetState());
 
-        public BoothItemSchema BoothItem
+        public BoothItemSchema boothItem
         {
-            get => boothItem;
-            private set => boothItem = value;
+            get => _boothItem;
+            private set => _boothItem = value;
         }
 
-        public string ParentGroupId
+        public string parentGroupId
         {
-            get => parentGroupId ?? string.Empty;
-            private set => parentGroupId = value?.Trim() ?? string.Empty;
+            get => _parentGroupId ?? string.Empty;
+            private set => _parentGroupId = value?.Trim() ?? string.Empty;
         }
 
-        public IReadOnlyList<string> ChildAssetIds
+        public IReadOnlyList<string> childAssetIds
         {
-            get => childAssetIds ?? new List<string>();
-            private set => childAssetIds = value != null ? new List<string>(value) : new List<string>();
+            get => _childAssetIds ?? new List<string>();
+            private set => _childAssetIds = value != null ? new List<string>(value) : new List<string>();
         }
 
-        public DateTime LastAccessed
+        public DateTime lastAccessed
         {
-            get => lastAccessed == default ? DateTime.Now : lastAccessed;
-            private set => lastAccessed = value;
+            get => _lastAccessed == default ? DateTime.Now : _lastAccessed;
+            private set => _lastAccessed = value;
         }
 
-        public bool HasParentGroup => !string.IsNullOrWhiteSpace(parentGroupId);
+        public bool hasParentGroup => !string.IsNullOrWhiteSpace(_parentGroupId);
 
-        public bool HasChildAssets => childAssetIds != null && childAssetIds.Count > 0;
+        public bool hasChildAssets => _childAssetIds != null && _childAssetIds.Count > 0;
         #endregion
         #region Methods
         public void SetMetadata(AssetMetadata newMetadata)
         {
-            metadata = newMetadata ?? new AssetMetadata();
-            lastAccessed = DateTime.Now;
+            _metadata = newMetadata ?? new AssetMetadata();
+            _lastAccessed = DateTime.Now;
         }
 
         public void SetFileInfo(AssetFileInfo newFileInfo)
         {
-            fileInfo = newFileInfo ?? new AssetFileInfo();
-            lastAccessed = DateTime.Now;
+            _fileInfo = newFileInfo ?? new AssetFileInfo();
+            _lastAccessed = DateTime.Now;
         }
 
         public void SetState(AssetState newState)
         {
-            state = newState ?? new AssetState();
-            lastAccessed = DateTime.Now;
+            _state = newState ?? new AssetState();
+            _lastAccessed = DateTime.Now;
         }
 
         public void SetBoothItem(BoothItemSchema newBoothItem)
         {
-            boothItem = newBoothItem;
-            lastAccessed = DateTime.Now;
+            _boothItem = newBoothItem;
+            _lastAccessed = DateTime.Now;
         }
 
         public void SetParentGroupId(string newParentGroupId)
         {
-            parentGroupId = newParentGroupId?.Trim() ?? string.Empty;
-            lastAccessed = DateTime.Now;
+            _parentGroupId = newParentGroupId?.Trim() ?? string.Empty;
+            _lastAccessed = DateTime.Now;
         }
 
         public void AddChildAssetId(string childAssetId)
@@ -120,23 +120,23 @@ namespace AMU.Editor.VrcAssetManager.Schema
             {
                 Debug.LogError("Cannot add an empty or whitespace child asset ID.");
             }
-            else if (childAssetIds.Contains(childAssetId))
+            else if (_childAssetIds.Contains(childAssetId))
             {
                 Debug.LogWarning($"Child asset ID '{childAssetId}' already exists in the list.");
             }
             else
             {
-                childAssetIds.Add(childAssetId.Trim());
-                lastAccessed = DateTime.Now;
+                _childAssetIds.Add(childAssetId.Trim());
+                _lastAccessed = DateTime.Now;
             }
         }
 
         public void RemoveChildAssetId(string childAssetId)
         {
-            if (childAssetIds.Contains(childAssetId))
+            if (_childAssetIds.Contains(childAssetId))
             {
-                childAssetIds.Remove(childAssetId);
-                lastAccessed = DateTime.Now;
+                _childAssetIds.Remove(childAssetId);
+                _lastAccessed = DateTime.Now;
             }
             else
             {
@@ -146,14 +146,14 @@ namespace AMU.Editor.VrcAssetManager.Schema
 
         public void ClearChildAssetIds()
         {
-            childAssetIds.Clear();
-            lastAccessed = DateTime.Now;
+            _childAssetIds.Clear();
+            _lastAccessed = DateTime.Now;
         }
 
         public void ClearBoothItem()
         {
-            boothItem = null;
-            lastAccessed = DateTime.Now;
+            _boothItem = null;
+            _lastAccessed = DateTime.Now;
         }
         #endregion
     }
@@ -162,27 +162,27 @@ namespace AMU.Editor.VrcAssetManager.Schema
     #region AssetMetadata
     public class AssetMetadata
     {
-        private string name;
-        private string description;
-        private string authorName;
-        private string thumbnailPath;
-        private string assetType;
-        private List<string> tags;
-        private List<string> dependencies;
-        private DateTime createdDate;
-        private DateTime modifiedDate;
+        private string _name;
+        private string _description;
+        private string _authorName;
+        private string _thumbnailPath;
+        private string _assetType;
+        private List<string> _tags;
+        private List<string> _dependencies;
+        private DateTime _createdDate;
+        private DateTime _modifiedDate;
 
         public AssetMetadata()
         {
-            name = string.Empty;
-            description = string.Empty;
-            authorName = string.Empty;
-            thumbnailPath = string.Empty;
-            assetType = string.Empty;
-            tags = new List<string>();
-            dependencies = new List<string>();
-            createdDate = DateTime.Now;
-            modifiedDate = DateTime.Now;
+            _name = string.Empty;
+            _description = string.Empty;
+            _authorName = string.Empty;
+            _thumbnailPath = string.Empty;
+            _assetType = string.Empty;
+            _tags = new List<string>();
+            _dependencies = new List<string>();
+            _createdDate = DateTime.Now;
+            _modifiedDate = DateTime.Now;
         }
 
         [JsonConstructor]
@@ -190,94 +190,94 @@ namespace AMU.Editor.VrcAssetManager.Schema
                              string assetType, List<string> tags, List<string> dependencies,
                              DateTime createdDate, DateTime modifiedDate)
         {
-            this.name = name;
-            this.description = description;
-            this.authorName = authorName;
-            this.thumbnailPath = thumbnailPath;
-            this.assetType = assetType;
-            this.tags = tags ?? new List<string>();
-            this.dependencies = dependencies ?? new List<string>();
-            this.createdDate = createdDate;
-            this.modifiedDate = modifiedDate;
+            _name = name;
+            _description = description;
+            _authorName = authorName;
+            _thumbnailPath = thumbnailPath;
+            _assetType = assetType;
+            _tags = tags ?? new List<string>();
+            _dependencies = dependencies ?? new List<string>();
+            _createdDate = createdDate;
+            _modifiedDate = modifiedDate;
         }
 
         #region Properties
-        public string Name
+        public string name
         {
-            get => name ?? string.Empty;
-            private set => name = value?.Trim() ?? string.Empty;
+            get => _name ?? string.Empty;
+            private set => _name = value?.Trim() ?? string.Empty;
         }
 
-        public string Description
+        public string description
         {
-            get => description ?? string.Empty;
-            private set => description = value?.Trim() ?? string.Empty;
+            get => _description ?? string.Empty;
+            private set => _description = value?.Trim() ?? string.Empty;
         }
 
-        public string AuthorName
+        public string authorName
         {
-            get => authorName ?? string.Empty;
-            private set => authorName = value?.Trim() ?? string.Empty;
+            get => _authorName ?? string.Empty;
+            private set => _authorName = value?.Trim() ?? string.Empty;
         }
 
-        public string ThumbnailPath
+        public string thumbnailPath
         {
-            get => thumbnailPath ?? string.Empty;
-            private set => thumbnailPath = value?.Trim() ?? string.Empty;
+            get => _thumbnailPath ?? string.Empty;
+            private set => _thumbnailPath = value?.Trim() ?? string.Empty;
         }
 
-        public string AssetType
+        public string assetType
         {
-            get => assetType;
-            private set => assetType = value;
+            get => _assetType;
+            private set => _assetType = value;
         }
 
-        public IReadOnlyList<string> Tags => tags ?? new List<string>();
+        public IReadOnlyList<string> tags => _tags ?? new List<string>();
 
-        public IReadOnlyList<string> Dependencies => dependencies ?? new List<string>();
+        public IReadOnlyList<string> dependencies => _dependencies ?? new List<string>();
 
-        public DateTime CreatedDate
+        public DateTime createdDate
         {
-            get => createdDate == default ? DateTime.Now : createdDate;
-            private set => createdDate = value;
+            get => _createdDate == default ? DateTime.Now : _createdDate;
+            private set => _createdDate = value;
         }
 
-        public DateTime ModifiedDate
+        public DateTime modifiedDate
         {
-            get => modifiedDate == default ? DateTime.Now : modifiedDate;
-            private set => modifiedDate = value;
+            get => _modifiedDate == default ? DateTime.Now : _modifiedDate;
+            private set => _modifiedDate = value;
         }
         #endregion
 
         #region Methods
         public void SetName(string newName)
         {
-            name = newName?.Trim() ?? string.Empty;
-            modifiedDate = DateTime.Now;
+            _name = newName?.Trim() ?? string.Empty;
+            _modifiedDate = DateTime.Now;
         }
 
         public void SetDescription(string newDescription)
         {
-            description = newDescription?.Trim() ?? string.Empty;
-            modifiedDate = DateTime.Now;
+            _description = newDescription?.Trim() ?? string.Empty;
+            _modifiedDate = DateTime.Now;
         }
 
         public void SetAuthorName(string newAuthorName)
         {
-            authorName = newAuthorName?.Trim() ?? string.Empty;
-            modifiedDate = DateTime.Now;
+            _authorName = newAuthorName?.Trim() ?? string.Empty;
+            _modifiedDate = DateTime.Now;
         }
 
         public void SetThumbnailPath(string newThumbnailPath)
         {
-            thumbnailPath = newThumbnailPath?.Trim() ?? string.Empty;
-            modifiedDate = DateTime.Now;
+            _thumbnailPath = newThumbnailPath?.Trim() ?? string.Empty;
+            _modifiedDate = DateTime.Now;
         }
 
         public void SetAssetType(string newAssetType)
         {
-            assetType = newAssetType?.Trim() ?? string.Empty;
-            modifiedDate = DateTime.Now;
+            _assetType = newAssetType?.Trim() ?? string.Empty;
+            _modifiedDate = DateTime.Now;
         }
 
         public void AddTag(string tag)
@@ -286,23 +286,23 @@ namespace AMU.Editor.VrcAssetManager.Schema
             {
                 Debug.LogError("Cannot add an empty or whitespace tag.");
             }
-            else if (tags.Contains(tag))
+            else if (_tags.Contains(tag))
             {
                 Debug.LogWarning($"Tag '{tag}' already exists in the list.");
             }
             else
             {
-                tags.Add(tag.Trim());
-                modifiedDate = DateTime.Now;
+                _tags.Add(tag.Trim());
+                _modifiedDate = DateTime.Now;
             }
         }
 
         public void RemoveTag(string tag)
         {
-            if (tags.Contains(tag))
+            if (_tags.Contains(tag))
             {
-                tags.Remove(tag);
-                modifiedDate = DateTime.Now;
+                _tags.Remove(tag);
+                _modifiedDate = DateTime.Now;
             }
             else
             {
@@ -316,23 +316,23 @@ namespace AMU.Editor.VrcAssetManager.Schema
             {
                 Debug.LogError("Cannot add an empty or whitespace dependency.");
             }
-            else if (dependencies.Contains(dependency))
+            else if (_dependencies.Contains(dependency))
             {
                 Debug.LogWarning($"Dependency '{dependency}' already exists in the list.");
             }
             else
             {
-                dependencies.Add(dependency.Trim());
-                modifiedDate = DateTime.Now;
+                _dependencies.Add(dependency.Trim());
+                _modifiedDate = DateTime.Now;
             }
         }
 
         public void RemoveDependency(string dependency)
         {
-            if (dependencies.Contains(dependency))
+            if (_dependencies.Contains(dependency))
             {
-                dependencies.Remove(dependency);
-                modifiedDate = DateTime.Now;
+                _dependencies.Remove(dependency);
+                _modifiedDate = DateTime.Now;
             }
             else
             {
@@ -346,30 +346,30 @@ namespace AMU.Editor.VrcAssetManager.Schema
     #region AssetFileInfo
     public class AssetFileInfo
     {
-        private string filePath;
-        private List<string> importFiles;
+        private string _filePath;
+        private List<string> _importFiles;
 
         public AssetFileInfo()
         {
-            filePath = string.Empty;
-            importFiles = new List<string>();
+            _filePath = string.Empty;
+            _importFiles = new List<string>();
         }
 
         [JsonConstructor]
         public AssetFileInfo(string filePath, List<string> importFiles)
         {
-            this.filePath = filePath;
-            this.importFiles = importFiles ?? new List<string>();
+            _filePath = filePath;
+            _importFiles = importFiles ?? new List<string>();
         }
 
         #region Properties
-        public string FilePath
+        public string filePath
         {
-            get => filePath ?? string.Empty;
-            private set => filePath = value?.Trim() ?? string.Empty;
+            get => _filePath ?? string.Empty;
+            private set => _filePath = value?.Trim() ?? string.Empty;
         }
 
-        public IReadOnlyList<string> ImportFiles => importFiles ?? new List<string>();
+        public IReadOnlyList<string> importFiles => _importFiles ?? new List<string>();
         #endregion
     }
     #endregion
@@ -377,33 +377,33 @@ namespace AMU.Editor.VrcAssetManager.Schema
     #region AssetState
     public class AssetState
     {
-        private bool isFavorite;
-        private bool isArchived;
+        private bool _isFavorite;
+        private bool _isArchived;
 
         public AssetState()
         {
-            isFavorite = false;
-            isArchived = false;
+            _isFavorite = false;
+            _isArchived = false;
         }
 
         [JsonConstructor]
         public AssetState(bool isFavorite, bool isGroup, bool isArchived)
         {
-            this.isFavorite = isFavorite;
-            this.isArchived = isArchived;
+            _isFavorite = isFavorite;
+            _isArchived = isArchived;
         }
 
         #region Properties
-        public bool IsFavorite
+        public bool isFavorite
         {
-            get => isFavorite;
-            private set => isFavorite = value;
+            get => _isFavorite;
+            private set => _isFavorite = value;
         }
 
-        public bool IsArchived
+        public bool isArchived
         {
-            get => isArchived;
-            private set => isArchived = value;
+            get => _isArchived;
+            private set => _isArchived = value;
         }
         #endregion
     }
@@ -412,70 +412,70 @@ namespace AMU.Editor.VrcAssetManager.Schema
     #region BoothItemSchema
     public class BoothItemSchema
     {
-        private string itemName;
-        private string authorName;
-        private string itemUrl;
-        private string imageUrl;
-        private string fileName;
-        private string downloadUrl;
+        private string _itemName;
+        private string _authorName;
+        private string _itemUrl;
+        private string _imageUrl;
+        private string _fileName;
+        private string _downloadUrl;
 
         public BoothItemSchema()
         {
-            itemName = string.Empty;
-            authorName = string.Empty;
-            itemUrl = string.Empty;
-            imageUrl = string.Empty;
-            fileName = string.Empty;
-            downloadUrl = string.Empty;
+            _itemName = string.Empty;
+            _authorName = string.Empty;
+            _itemUrl = string.Empty;
+            _imageUrl = string.Empty;
+            _fileName = string.Empty;
+            _downloadUrl = string.Empty;
         }
 
         [JsonConstructor]
         public BoothItemSchema(string itemName, string authorName, string itemUrl,
                                string imageUrl, string fileName, string downloadUrl)
         {
-            this.itemName = itemName;
-            this.authorName = authorName;
-            this.itemUrl = itemUrl;
-            this.imageUrl = imageUrl;
-            this.fileName = fileName;
-            this.downloadUrl = downloadUrl;
+            _itemName = itemName;
+            _authorName = authorName;
+            _itemUrl = itemUrl;
+            _imageUrl = imageUrl;
+            _fileName = fileName;
+            _downloadUrl = downloadUrl;
         }
 
         #region Properties
-        public string ItemName
+        public string itemName
         {
-            get => itemName ?? string.Empty;
-            private set => itemName = value?.Trim() ?? string.Empty;
+            get => _itemName ?? string.Empty;
+            private set => _itemName = value?.Trim() ?? string.Empty;
         }
 
-        public string AuthorName
+        public string authorName
         {
-            get => authorName ?? string.Empty;
-            private set => authorName = value?.Trim() ?? string.Empty;
+            get => _authorName ?? string.Empty;
+            private set => _authorName = value?.Trim() ?? string.Empty;
         }
 
-        public string ItemUrl
+        public string itemUrl
         {
-            get => itemUrl ?? string.Empty;
-            private set => itemUrl = value?.Trim() ?? string.Empty;
+            get => _itemUrl ?? string.Empty;
+            private set => _itemUrl = value?.Trim() ?? string.Empty;
         }
 
-        public string ImageUrl
+        public string imageUrl
         {
-            get => imageUrl ?? string.Empty;
-            private set => imageUrl = value?.Trim() ?? string.Empty;
+            get => _imageUrl ?? string.Empty;
+            private set => _imageUrl = value?.Trim() ?? string.Empty;
         }
 
-        public string FileName
+        public string fileName
         {
-            get => fileName ?? string.Empty;
-            private set => fileName = value?.Trim() ?? string.Empty;
+            get => _fileName ?? string.Empty;
+            private set => _fileName = value?.Trim() ?? string.Empty;
         }
 
-        public string DownloadUrl
+        public string downloadUrl
         {
-            get => downloadUrl ?? string.Empty;
-            private set => downloadUrl = value?.Trim() ?? string.Empty;
+            get => _downloadUrl ?? string.Empty;
+            private set => _downloadUrl = value?.Trim() ?? string.Empty;
         }
         #endregion
     }

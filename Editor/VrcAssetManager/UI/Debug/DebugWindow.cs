@@ -192,7 +192,7 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                 {
                     var testAsset = CreateRandomTestAsset();
                     _assetLibraryController.AddAsset(testAsset);
-                    LogMessage($"テストアセット追加: 成功 (ID: {testAsset.AssetId})");
+                    LogMessage($"テストアセット追加: 成功 (ID: {testAsset.assetId})");
                     ShowLibraryInfo();
                 }
                 catch (Exception ex)
@@ -339,7 +339,7 @@ namespace AvatarModifyUtilities.Editor.VrcAssetManager.UI.Debug
                     for (int i = 0; i < Math.Min(assets.Count, 10); i++) // 最大10件まで表示
                     {
                         var asset = assets[i];
-                        LogMessage($"  {i + 1}. {asset.AssetId} (タイプ: {asset.Metadata.AssetType})");
+                        LogMessage($"  {i + 1}. {asset.assetId} (タイプ: {asset.metadata.assetType})");
                     }
                     if (assets.Count > 10)
                     {

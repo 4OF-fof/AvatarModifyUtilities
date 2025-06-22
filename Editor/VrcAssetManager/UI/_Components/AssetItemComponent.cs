@@ -49,10 +49,10 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 var fixedHeight = nameStyle.lineHeight * 2 + 5;
                 var rect = GUILayoutUtility.GetRect(availableWidth, fixedHeight);
 
-                var displayText = TruncateTextToFitHeight(asset.Metadata.Name, nameStyle, availableWidth, fixedHeight);
+                var displayText = TruncateTextToFitHeight(asset.metadata.name, nameStyle, availableWidth, fixedHeight);
                 var content = new GUIContent(displayText);
 
-                if (displayText != asset.Metadata.Name)
+                if (displayText != asset.metadata.name)
                 {
                     EditorGUI.DrawRect(rect, new Color(0.2f, 0.3f, 0.4f, 0.15f));
                 }
@@ -65,7 +65,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
         private void DrawIndicator(Rect thumbnailRect, float thumbnailSize, AssetSchema asset)
         {
-            if (asset.HasChildAssets)
+            if (asset.hasChildAssets)
             {
                 var iconSize = 20f * (thumbnailSize / 110f);
                 var indicatorRect = new Rect(thumbnailRect.x + 4, thumbnailRect.y + 4, iconSize, iconSize);
@@ -91,12 +91,12 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 }
             }
 
-            if (asset.State.IsFavorite)
+            if (asset.state.isFavorite)
             {
                 var starSize = 25f * (thumbnailSize / 110f);
                 var iconSize = 20f * (thumbnailSize / 110f);
 
-                var yOffset = asset.HasChildAssets ? 2 + iconSize + 2 : 2;
+                var yOffset = asset.hasChildAssets ? 2 + iconSize + 2 : 2;
                 var starRect = new Rect(thumbnailRect.x + 2, thumbnailRect.y + yOffset, starSize, starSize);
 
                 var originalColor = GUI.color;

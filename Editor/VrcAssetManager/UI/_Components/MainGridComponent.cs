@@ -53,13 +53,13 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                             if (controller.sortOptions.isDescending)
                             {
                                 sortedAssets = sortedAssets
-                                    .OrderBy(asset => asset.Metadata.Name)
+                                    .OrderBy(asset => asset.metadata.name)
                                     .ToList();
                             }
                             else
                             {
                                 sortedAssets = sortedAssets
-                                    .OrderByDescending(asset => asset.Metadata.Name)
+                                    .OrderByDescending(asset => asset.metadata.name)
                                     .ToList();
                             }
                             break;
@@ -67,13 +67,13 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                             if (controller.sortOptions.isDescending)
                             {
                                 sortedAssets = sortedAssets
-                                    .OrderByDescending(asset => asset.Metadata.ModifiedDate)
+                                    .OrderByDescending(asset => asset.metadata.modifiedDate)
                                     .ToList();
                             }
                             else
                             {
                                 sortedAssets = sortedAssets
-                                    .OrderBy(asset => asset.Metadata.ModifiedDate)
+                                    .OrderBy(asset => asset.metadata.modifiedDate)
                                     .ToList();
                             }
                             break;
@@ -165,8 +165,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             else
             {
                 var menu = new GenericMenu();
-                menu.AddItem(new GUIContent("Open Asset"), false, () => Debug.Log($"Opening asset: {asset.Metadata.Name}"));
-                menu.AddItem(new GUIContent("Delete Asset"), false, () => Debug.Log($"Deleting asset: {asset.Metadata.Name}"));
+                menu.AddItem(new GUIContent("Open Asset"), false, () => Debug.Log($"Opening asset: {asset.metadata.name}"));
+                menu.AddItem(new GUIContent("Delete Asset"), false, () => Debug.Log($"Deleting asset: {asset.metadata.name}"));
                 menu.ShowAsContext();
             }
         }
