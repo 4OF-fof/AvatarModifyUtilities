@@ -37,7 +37,6 @@ namespace AMU.Editor.VrcAssetManager.UI
             {
                 var json = File.ReadAllText(_filePath);
                 _boothItems = JsonConvert.DeserializeObject<List<BoothItemSchema>>(json);
-                // 既存アセットと重複するBoothItemを除外
                 var existing = new HashSet<string>();
                 if (_controller != null)
                 {
@@ -62,7 +61,6 @@ namespace AMU.Editor.VrcAssetManager.UI
             }
         }
 
-        // BoothItemSchemaの全プロパティで比較するためのキー生成
         private string GetBoothItemKey(BoothItemSchema b)
         {
             return $"{b.itemName}\0{b.authorName}\0{b.itemUrl}\0{b.imageUrl}\0{b.fileName}\0{b.downloadUrl}";
@@ -70,8 +68,6 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private void OnGUI()
         {
-            EditorGUILayout.LabelField("Boothアイテム一括登録", EditorStyles.boldLabel);
-            EditorGUILayout.Space();
             if (_filteredBoothItems == null || _filteredBoothItems.Count == 0)
             {
                 EditorGUILayout.HelpBox("Boothアイテムが見つかりません。", MessageType.Info);
@@ -85,11 +81,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                 EditorGUILayout.LabelField("作者", item.authorName);
                 EditorGUILayout.LabelField("URL", item.itemUrl);
                 EditorGUILayout.LabelField("ファイル名", item.fileName);
-                EditorGUILayout.LabelField("ダウンロードURL", item.downloadUrl);
-                if (!string.IsNullOrEmpty(item.imageUrl))
-                {
-                    GUILayout.Label(item.imageUrl, EditorStyles.miniLabel);
-                }
                 EditorGUILayout.EndVertical();
             }
             EditorGUILayout.EndScrollView();
@@ -105,7 +96,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             if (_controller == null || _filteredBoothItems == null) return;
             int parentCount = 0;
             int childCount = 0;
-            // itemUrlでグループ化
+
             var grouped = new Dictionary<string, List<BoothItemSchema>>();
             foreach (var item in _filteredBoothItems)
             {
@@ -121,7 +112,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                 var group = kv.Value;
                 if (group.Count == 0) continue;
                 string itemUrl = kv.Key;
-                // 既存アセットで同じitemUrlを持つものを取得
                 var existing = new List<AssetSchema>();
                 foreach (var asset in allAssets)
                 {
@@ -132,11 +122,9 @@ namespace AMU.Editor.VrcAssetManager.UI
                 }
                 if (existing.Count > 0)
                 {
-                    // 子アセットを持つ既存アセットを探す
                     var parent = existing.Find(a => a.hasChildAssets);
                     if (parent != null)
                     {
-                        // 子アセットとして登録
                         foreach (var boothItem in group)
                         {
                             var childAsset = new AssetSchema();
@@ -160,7 +148,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                     }
                     else
                     {
-                        // 新たに親グループを作成し、既存・新規両方を子として登録
                         var newParent = new AssetSchema();
                         var first = group[0];
                         newParent.SetBoothItem(new BoothItemSchema(
@@ -173,10 +160,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                         ));
                         newParent.metadata.SetName(first.itemName);
                         newParent.metadata.SetAuthorName(first.authorName);
-                        // 既存アセットを子に
                         foreach (var exist in existing)
                         {
-                            // 既存アセットの名前をファイル名にリネーム
                             if (exist.boothItem != null && !string.IsNullOrEmpty(exist.boothItem.fileName))
                             {
                                 exist.metadata.SetName(exist.boothItem.fileName);
@@ -185,7 +170,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                             newParent.AddChildAssetId(exist.assetId.ToString());
                             _controller.UpdateAsset(exist);
                         }
-                        // 新規アセットも子に
                         foreach (var boothItem in group)
                         {
                             var childAsset = new AssetSchema();
@@ -208,7 +192,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                         continue;
                     }
                 }
-                // 既存がなければ従来通り
                 if (group.Count == 1)
                 {
                     var boothItem = group[0];
@@ -227,7 +210,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                     parentCount++;
                     continue;
                 }
-                // 2件以上の場合は親子アセット構造で登録
                 var parentAsset = new AssetSchema();
                 var firstNew = group[0];
                 parentAsset.SetBoothItem(new BoothItemSchema(
