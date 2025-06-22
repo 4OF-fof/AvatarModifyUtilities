@@ -5,16 +5,16 @@ namespace AMU.Editor.VrcAssetManager.Schema
     #region FilterOptions
     public class FilterOptions
     {
-        public bool filterAnd { get; set; }
-        public string name { get; set; }
-        public string authorName { get; set; }
-        public string description { get; set; }
-        public string assetType { get; set; }
-        public List<string> tags { get; set; }
-        public bool tagsAnd { get; set; }
-        public bool? isFavorite { get; set; }
-        public bool isArchived { get; set; }
-        public bool isChildItem { get; set; }
+        public bool filterAnd;
+        public string name;
+        public string authorName;
+        public string description;
+        public string assetType;
+        public List<string> tags;
+        public bool tagsAnd;
+        public bool? isFavorite;
+        public bool isArchived;
+        public bool isChildItem;
 
         public FilterOptions()
         {
@@ -49,8 +49,8 @@ namespace AMU.Editor.VrcAssetManager.Schema
     #region SortOptions
     public class SortOptions
     {
-        public SortOptionsEnum sortBy { get; set; }
-        public bool isDescending { get; set; }
+        public SortOptionsEnum sortBy;
+        public bool isDescending;
 
         public SortOptions()
         {
