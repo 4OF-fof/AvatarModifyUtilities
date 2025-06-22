@@ -187,7 +187,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             }
         }
         
-        public static void Destroy()
+        public static void DestroyWindow()
         {
             _controller.filterOptions.ClearFilter();
             _isUsingAdvancedSearch = false;
