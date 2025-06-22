@@ -22,7 +22,6 @@ namespace AMU.Editor.VrcAssetManager.UI
         {
             var window = GetWindow<AdvancedSearchWindow>("詳細検索");
             window._controller = controller;
-            // 既存条件を初期値に
             if (controller != null && controller.filterOptions != null)
             {
                 window._name = controller.filterOptions.name ?? "";
@@ -46,7 +45,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                 EditorGUILayout.LabelField("検索条件", EditorStyles.boldLabel);
                 GUILayout.Space(4);
 
-                // 名前・作者・説明
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label("名前", GUILayout.Width(60));
@@ -144,6 +142,18 @@ namespace AMU.Editor.VrcAssetManager.UI
             opt.tagsAnd = _tagsAnd;
             opt.filterAnd = _filterAnd;
             _controller.filterOptions = opt;
+        }
+
+        protected void OnDestroy()
+        {
+            var tagSelector = Resources.FindObjectsOfTypeAll<TagSelectorWindow>();
+            if (tagSelector != null && tagSelector.Length > 0)
+            {
+                foreach (var win in tagSelector)
+                {
+                    win.Close();
+                }
+            }
         }
     }
 }
