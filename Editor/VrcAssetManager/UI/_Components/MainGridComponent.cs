@@ -150,9 +150,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             }
             else
             {
-                _selectedAsset = asset;
+                _selectedAsset = null;
                 _selectedAssets.Clear();
-                _selectedAssets.Add(asset);
             }
         }
 
