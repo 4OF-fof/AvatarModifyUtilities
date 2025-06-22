@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 
 using UnityEditor;
@@ -7,6 +8,7 @@ using UnityEngine;
 using AMU.Editor.Core.Api;
 using AMU.Editor.VrcAssetManager.Controller;
 using AMU.Editor.VrcAssetManager.Schema;
+using AMU.Editor.VrcAssetManager.UI;
 
 namespace AMU.Editor.VrcAssetManager.UI.Components
 {
@@ -143,12 +145,10 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     }
 
                     GUILayout.Space(10);
-
-
                     // TODO: Select item counter
                     if (GUILayout.Button(LocalizationAPI.GetText("AssetManager_addAsset"), EditorStyles.toolbarButton))
                     {
-                        Debug.Log("Add asset requested");
+                        OpenDownloadFolderAndSelectFile(controller);
                     }
 
                     if (GUILayout.Button(LocalizationAPI.GetText("Common_refresh"), EditorStyles.toolbarButton))
@@ -156,6 +156,28 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         controller.SyncAssetLibrary();
                         Debug.Log("Refresh requested");
                     }
+                }
+            }
+        }
+
+        private static void OpenDownloadFolderAndSelectFile(AssetLibraryController controller)
+        {
+            string downloadPath = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile),
+                                               "Downloads");
+            
+            string selectedFile = EditorUtility.OpenFilePanel("ファイルを選択", downloadPath, "json,unitypackage,zip,*");
+            
+            if (!string.IsNullOrEmpty(selectedFile))
+            {
+                string fileName = Path.GetFileName(selectedFile);
+                
+                if (fileName.Equals("AMU_BoothItem.json", StringComparison.OrdinalIgnoreCase))
+                {
+                    //BoothItemImportWindow.ShowWindowWithFile(controller, selectedFile);
+                }
+                else
+                {
+                    Debug.Log($"Selected file for asset import: {selectedFile}");
                 }
             }
         }
