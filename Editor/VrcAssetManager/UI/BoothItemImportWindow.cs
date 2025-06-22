@@ -92,6 +92,41 @@ namespace AMU.Editor.VrcAssetManager.UI
             }
         }
 
+        private AssetSchema CreateAssetFromBoothItem(BoothItemSchema boothItem, string parentGroupId = null)
+        {
+            var asset = new AssetSchema();
+            asset.SetBoothItem(new BoothItemSchema(
+                boothItem.itemName,
+                boothItem.authorName,
+                boothItem.itemUrl,
+                boothItem.imageUrl,
+                boothItem.fileName,
+                boothItem.downloadUrl
+            ));
+            asset.metadata.SetName(boothItem.fileName);
+            if (!string.IsNullOrEmpty(parentGroupId))
+            {
+                asset.SetParentGroupId(parentGroupId);
+            }
+            return asset;
+        }
+
+        private AssetSchema CreateParentAssetFromBoothItem(BoothItemSchema boothItem)
+        {
+            var asset = new AssetSchema();
+            asset.SetBoothItem(new BoothItemSchema(
+                boothItem.itemName,
+                boothItem.authorName,
+                boothItem.itemUrl,
+                boothItem.imageUrl,
+                string.Empty,
+                string.Empty
+            ));
+            asset.metadata.SetName(boothItem.itemName);
+            asset.metadata.SetAuthorName(boothItem.authorName);
+            return asset;
+        }
+
         private void RegisterAllAsAssets()
         {
             if (_controller == null || _filteredBoothItems == null) return;
@@ -128,17 +163,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     {
                         foreach (var boothItem in group)
                         {
-                            var childAsset = new AssetSchema();
-                            childAsset.SetBoothItem(new BoothItemSchema(
-                                boothItem.itemName,
-                                boothItem.authorName,
-                                boothItem.itemUrl,
-                                boothItem.imageUrl,
-                                boothItem.fileName,
-                                boothItem.downloadUrl
-                            ));
-                            childAsset.metadata.SetName(boothItem.fileName);
-                            childAsset.SetParentGroupId(parent.assetId.ToString());
+                            var childAsset = CreateAssetFromBoothItem(boothItem, parent.assetId.ToString());
                             parent.AddChildAssetId(childAsset.assetId.ToString());
                             _controller.AddAsset(childAsset);
                             childCount++;
@@ -149,18 +174,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     }
                     else
                     {
-                        var newParent = new AssetSchema();
-                        var first = group[0];
-                        newParent.SetBoothItem(new BoothItemSchema(
-                            first.itemName,
-                            first.authorName,
-                            first.itemUrl,
-                            first.imageUrl,
-                            string.Empty,
-                            string.Empty
-                        ));
-                        newParent.metadata.SetName(first.itemName);
-                        newParent.metadata.SetAuthorName(first.authorName);
+                        var newParent = CreateParentAssetFromBoothItem(group[0]);
                         foreach (var exist in existing)
                         {
                             if (exist.boothItem != null && !string.IsNullOrEmpty(exist.boothItem.fileName))
@@ -173,17 +187,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                         }
                         foreach (var boothItem in group)
                         {
-                            var childAsset = new AssetSchema();
-                            childAsset.SetBoothItem(new BoothItemSchema(
-                                boothItem.itemName,
-                                boothItem.authorName,
-                                boothItem.itemUrl,
-                                boothItem.imageUrl,
-                                boothItem.fileName,
-                                boothItem.downloadUrl
-                            ));
-                            childAsset.metadata.SetName(boothItem.fileName);
-                            childAsset.SetParentGroupId(newParent.assetId.ToString());
+                            var childAsset = CreateAssetFromBoothItem(boothItem, newParent.assetId.ToString());
                             newParent.AddChildAssetId(childAsset.assetId.ToString());
                             _controller.AddAsset(childAsset);
                             childCount++;
@@ -196,46 +200,17 @@ namespace AMU.Editor.VrcAssetManager.UI
                 if (group.Count == 1)
                 {
                     var boothItem = group[0];
-                    var asset = new AssetSchema();
-                    asset.SetBoothItem(new BoothItemSchema(
-                        boothItem.itemName,
-                        boothItem.authorName,
-                        boothItem.itemUrl,
-                        boothItem.imageUrl,
-                        boothItem.fileName,
-                        boothItem.downloadUrl
-                    ));
+                    var asset = CreateAssetFromBoothItem(boothItem);
                     asset.metadata.SetName(boothItem.itemName);
                     asset.metadata.SetAuthorName(boothItem.authorName);
                     _controller.AddAsset(asset);
                     parentCount++;
                     continue;
                 }
-                var parentAsset = new AssetSchema();
-                var firstNew = group[0];
-                parentAsset.SetBoothItem(new BoothItemSchema(
-                    firstNew.itemName,
-                    firstNew.authorName,
-                    firstNew.itemUrl,
-                    firstNew.imageUrl,
-                    string.Empty,
-                    string.Empty
-                ));
-                parentAsset.metadata.SetName(firstNew.itemName);
-                parentAsset.metadata.SetAuthorName(firstNew.authorName);
+                var parentAsset = CreateParentAssetFromBoothItem(group[0]);
                 foreach (var boothItem in group)
                 {
-                    var childAsset = new AssetSchema();
-                    childAsset.SetBoothItem(new BoothItemSchema(
-                        boothItem.itemName,
-                        boothItem.authorName,
-                        boothItem.itemUrl,
-                        boothItem.imageUrl,
-                        boothItem.fileName,
-                        boothItem.downloadUrl
-                    ));
-                    childAsset.metadata.SetName(boothItem.fileName);
-                    childAsset.SetParentGroupId(parentAsset.assetId.ToString());
+                    var childAsset = CreateAssetFromBoothItem(boothItem, parentAsset.assetId.ToString());
                     parentAsset.AddChildAssetId(childAsset.assetId.ToString());
                     _controller.AddAsset(childAsset);
                     childCount++;
