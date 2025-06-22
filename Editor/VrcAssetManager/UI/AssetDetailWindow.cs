@@ -14,7 +14,7 @@ namespace AMU.Editor.VrcAssetManager.UI
         private bool _isEditMode = false;
         private AssetLibraryController _controller;
 
-        public static void ShowWindow(AssetSchema asset, AssetLibraryController controller, Vector2 position)
+        public static void ShowWindow(AssetSchema asset, AssetLibraryController controller)
         {
             var window = GetWindow<AssetDetailWindow>(typeof(VrcAssetManagerWindow));
             window._asset = asset;
@@ -184,15 +184,26 @@ namespace AMU.Editor.VrcAssetManager.UI
                         foreach (var dep in metadata.Dependencies)
                         {
                             string depName = dep;
+                            AssetSchema depAsset = null;
                             if (_controller != null)
                             {
-                                var depAsset = _controller.GetAsset(new Guid(dep));
+                                depAsset = _controller.GetAsset(new Guid(dep));
                                 if (depAsset != null && depAsset.Metadata != null)
                                 {
                                     depName = depAsset.Metadata.Name;
                                 }
                             }
-                            GUILayout.Label(depName, chipStyle);
+                            if (depAsset != null)
+                            {
+                                if (GUILayout.Button(depName, chipStyle))
+                                {
+                                    AssetDetailWindow.ShowWindow(depAsset, _controller);
+                                }
+                            }
+                            else
+                            {
+                                GUILayout.Label(depName, chipStyle);
+                            }
                         }
                     }
                 }
