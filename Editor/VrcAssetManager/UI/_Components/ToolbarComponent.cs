@@ -49,7 +49,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         var rect = GUILayoutUtility.GetRect(GUIContent.none, statusStyle, GUILayout.ExpandWidth(true));
                         GUI.Label(rect, "詳細検索中", statusStyle);
 
-                        if (GUILayout.Button("×", EditorStyles.toolbarButton, GUILayout.Width(20)))
+                        var closeIcon = EditorGUIUtility.IconContent("winbtn_win_close");
+                        if (GUILayout.Button(closeIcon, EditorStyles.toolbarButton, GUILayout.Width(20)))
                         {
                             _isUsingAdvancedSearch = false;
                             var assetType = _controller.filterOptions.assetType;
@@ -141,8 +142,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         _controller.sortOptions.sortBy = (SortOptionsEnum)_selectedSortOption;
                     }
 
-                    string sortArrow = _sortDescending ? "↓" : "↑";
-                    var newSortDescending = GUILayout.Toggle(_sortDescending, sortArrow, EditorStyles.toolbarButton, GUILayout.Width(25));
+                    var sortArrowIcon = _sortDescending ? EditorGUIUtility.IconContent("d_scrolldown") : EditorGUIUtility.IconContent("d_scrollup");
+                    var newSortDescending = GUILayout.Toggle(_sortDescending, sortArrowIcon, EditorStyles.toolbarButton, GUILayout.Width(25));
                     if (newSortDescending != _sortDescending)
                     {
                         _sortDescending = newSortDescending;
@@ -159,19 +160,18 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                             fontStyle = FontStyle.Bold,
                             alignment = TextAnchor.MiddleCenter
                         };
-                        
                         string selectedText = $"{MainGridComponent.SelectedAssetCount} 件選択中";
-                        GUILayout.Label(selectedText, selectedCountStyle, GUILayout.MinWidth(130));
+                        GUILayout.Label(selectedText, selectedCountStyle, GUILayout.MinWidth(80));
                     }
                     else
                     {
-                        if (GUILayout.Button(LocalizationAPI.GetText("AssetManager_addAsset"), EditorStyles.toolbarButton, GUILayout.Width(100)))
+                        var addIcon = EditorGUIUtility.IconContent("Toolbar Plus");
+                        if (GUILayout.Button(addIcon, EditorStyles.toolbarButton, GUILayout.Width(40)))
                         {
                             OpenDownloadFolderAndSelectFile();
                         }
-
                         var refreshIcon = EditorGUIUtility.IconContent("d_Refresh");
-                        if (GUILayout.Button(refreshIcon, EditorStyles.toolbarButton, GUILayout.Width(30)))
+                        if (GUILayout.Button(refreshIcon, EditorStyles.toolbarButton, GUILayout.Width(40)))
                         {
                             _controller.SyncAssetLibrary();
                             Debug.Log("Refresh requested");
