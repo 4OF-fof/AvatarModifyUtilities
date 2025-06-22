@@ -33,6 +33,43 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private void OnGUI()
         {
+            var sectionBoxStyle = new GUIStyle(GUI.skin.box)
+            {
+                padding = new RectOffset(16, 16, 12, 12),
+                margin = new RectOffset(0, 0, 8, 8),
+                normal = { background = MakeTex(2, 2, new Color(0.18f, 0.18f, 0.18f, 0.7f)) }
+            };
+            var titleStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = 18,
+                normal = { textColor = new Color(0.9f, 0.7f, 1f) },
+                margin = new RectOffset(0, 0, 0, 8)
+            };
+            var chipStyle = new GUIStyle(GUI.skin.box)
+            {
+                fontSize = 12,
+                normal = { textColor = Color.white, background = MakeTex(2, 2, new Color(0.3f, 0.3f, 0.5f, 0.8f)) },
+                padding = new RectOffset(8, 8, 2, 2),
+                margin = new RectOffset(2, 2, 2, 2)
+            };
+            var labelStyle = new GUIStyle(EditorStyles.label)
+            {
+                fontSize = 12,
+                normal = { textColor = new Color(0.7f, 0.7f, 0.7f) }
+            };
+            var valueStyle = new GUIStyle(EditorStyles.label)
+            {
+                fontSize = 13,
+                fontStyle = FontStyle.Bold,
+                normal = { textColor = Color.white }
+            };
+            var dividerStyle = new GUIStyle(GUI.skin.box)
+            {
+                fixedHeight = 1,
+                margin = new RectOffset(0, 0, 8, 8),
+                normal = { background = MakeTex(2, 2, new Color(0.3f, 0.3f, 0.3f, 0.7f)) }
+            };
+
             using (new GUILayout.HorizontalScope())
             {
                 GUILayout.FlexibleSpace();
@@ -60,17 +97,10 @@ namespace AMU.Editor.VrcAssetManager.UI
             var fileInfo = _asset.FileInfo;
             var state = _asset.State;
 
-            var sectionBoxStyle = new GUIStyle(GUI.skin.box)
-            {
-                padding = new RectOffset(16, 16, 12, 12),
-                margin = new RectOffset(0, 0, 8, 8),
-                normal = { background = MakeTex(2, 2, new Color(0.18f, 0.18f, 0.18f, 0.7f)) }
-            };
             using (new GUILayout.VerticalScope(sectionBoxStyle))
             {
                 // サムネイル
-                var thumbHorizontalStyle = new GUIStyle(); // デフォルト
-                using (new GUILayout.HorizontalScope(thumbHorizontalStyle))
+                using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.FlexibleSpace();
                     Rect thumbRect = GUILayoutUtility.GetRect(128, 128, GUILayout.Width(128), GUILayout.Height(128));
@@ -78,26 +108,9 @@ namespace AMU.Editor.VrcAssetManager.UI
                     GUILayout.FlexibleSpace();
                 }
                 GUILayout.Space(8);
-                var titleStyle = new GUIStyle(EditorStyles.boldLabel)
-                {
-                    fontSize = 18,
-                    normal = { textColor = new Color(0.9f, 0.7f, 1f) },
-                    margin = new RectOffset(0, 0, 0, 8)
-                };
                 GUILayout.Label(metadata.Name, titleStyle);
                 GUILayout.Label(metadata.Description, EditorStyles.wordWrappedLabel);
                 GUILayout.Space(4);
-                var labelStyle = new GUIStyle(EditorStyles.label)
-                {
-                    fontSize = 12,
-                    normal = { textColor = new Color(0.7f, 0.7f, 0.7f) }
-                };
-                var valueStyle = new GUIStyle(EditorStyles.label)
-                {
-                    fontSize = 13,
-                    fontStyle = FontStyle.Bold,
-                    normal = { textColor = Color.white }
-                };
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label("Author:", labelStyle, GUILayout.Width(70));
@@ -136,27 +149,9 @@ namespace AMU.Editor.VrcAssetManager.UI
             // タグ
             if (metadata.Tags.Count > 0)
             {
-                var sectionBoxStyle2 = new GUIStyle(GUI.skin.box)
+                using (new GUILayout.VerticalScope(sectionBoxStyle))
                 {
-                    padding = new RectOffset(16, 16, 12, 12),
-                    margin = new RectOffset(0, 0, 8, 8),
-                    normal = { background = MakeTex(2, 2, new Color(0.18f, 0.18f, 0.18f, 0.7f)) }
-                };
-                using (new GUILayout.VerticalScope(sectionBoxStyle2))
-                {
-                    var labelStyle = new GUIStyle(EditorStyles.label)
-                    {
-                        fontSize = 12,
-                        normal = { textColor = new Color(0.7f, 0.7f, 0.7f) }
-                    };
                     GUILayout.Label("Tags", labelStyle);
-                    var chipStyle = new GUIStyle(GUI.skin.box)
-                    {
-                        fontSize = 12,
-                        normal = { textColor = Color.white, background = MakeTex(2, 2, new Color(0.3f, 0.3f, 0.5f, 0.8f)) },
-                        padding = new RectOffset(8, 8, 2, 2),
-                        margin = new RectOffset(2, 2, 2, 2)
-                    };
                     using (new GUILayout.HorizontalScope())
                     {
                         foreach (var tag in metadata.Tags)
@@ -170,27 +165,9 @@ namespace AMU.Editor.VrcAssetManager.UI
             // 依存関係
             if (metadata.Dependencies.Count > 0)
             {
-                var sectionBoxStyle3 = new GUIStyle(GUI.skin.box)
+                using (new GUILayout.VerticalScope(sectionBoxStyle))
                 {
-                    padding = new RectOffset(16, 16, 12, 12),
-                    margin = new RectOffset(0, 0, 8, 8),
-                    normal = { background = MakeTex(2, 2, new Color(0.18f, 0.18f, 0.18f, 0.7f)) }
-                };
-                using (new GUILayout.VerticalScope(sectionBoxStyle3))
-                {
-                    var labelStyle = new GUIStyle(EditorStyles.label)
-                    {
-                        fontSize = 12,
-                        normal = { textColor = new Color(0.7f, 0.7f, 0.7f) }
-                    };
                     GUILayout.Label("Dependencies", labelStyle);
-                    var chipStyle = new GUIStyle(GUI.skin.box)
-                    {
-                        fontSize = 12,
-                        normal = { textColor = Color.white, background = MakeTex(2, 2, new Color(0.3f, 0.3f, 0.5f, 0.8f)) },
-                        padding = new RectOffset(8, 8, 2, 2),
-                        margin = new RectOffset(2, 2, 2, 2)
-                    };
                     using (new GUILayout.HorizontalScope())
                     {
                         foreach (var dep in metadata.Dependencies)
@@ -204,25 +181,8 @@ namespace AMU.Editor.VrcAssetManager.UI
             // Booth情報
             if (_asset.BoothItem != null)
             {
-                var sectionBoxStyle4 = new GUIStyle(GUI.skin.box)
+                using (new GUILayout.VerticalScope(sectionBoxStyle))
                 {
-                    padding = new RectOffset(16, 16, 12, 12),
-                    margin = new RectOffset(0, 0, 8, 8),
-                    normal = { background = MakeTex(2, 2, new Color(0.18f, 0.18f, 0.18f, 0.7f)) }
-                };
-                using (new GUILayout.VerticalScope(sectionBoxStyle4))
-                {
-                    var labelStyle = new GUIStyle(EditorStyles.label)
-                    {
-                        fontSize = 12,
-                        normal = { textColor = new Color(0.7f, 0.7f, 0.7f) }
-                    };
-                    var valueStyle = new GUIStyle(EditorStyles.label)
-                    {
-                        fontSize = 13,
-                        fontStyle = FontStyle.Bold,
-                        normal = { textColor = Color.white }
-                    };
                     GUILayout.Label("Booth Item", labelStyle);
                     GUILayout.Label(_asset.BoothItem.ItemName, valueStyle);
                     GUILayout.Label(_asset.BoothItem.AuthorName, labelStyle);
