@@ -160,6 +160,51 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             if (_selectedAssets.Count > 1)
             {
                 var menu = new GenericMenu();
+
+                bool allFavorite = _selectedAssets.All(a => a.state.isFavorite);
+                bool noneFavorite = _selectedAssets.All(a => !a.state.isFavorite);
+                if (!allFavorite) {
+                    menu.AddItem(new GUIContent("お気に入り登録"), false, () => {
+                        foreach (var selectedAsset in _selectedAssets.Where(a => !a.state.isFavorite))
+                        {
+                            selectedAsset.state.SetFavorite(true);
+                            controller.UpdateAsset(selectedAsset);
+                        }
+                    });
+                }
+                if (!noneFavorite) {
+                    menu.AddItem(new GUIContent("お気に入り解除"), false, () => {
+                        foreach (var selectedAsset in _selectedAssets.Where(a => a.state.isFavorite))
+                        {
+                            selectedAsset.state.SetFavorite(false);
+                            controller.UpdateAsset(selectedAsset);
+                        }
+                    });
+                }
+
+                bool allArchived = _selectedAssets.All(a => a.state.isArchived);
+                bool noneArchived = _selectedAssets.All(a => !a.state.isArchived);
+                if (!allArchived) {
+                    menu.AddItem(new GUIContent("アーカイブ"), false, () => {
+                        foreach (var selectedAsset in _selectedAssets.Where(a => !a.state.isArchived))
+                        {
+                            selectedAsset.state.SetArchived(true);
+                            controller.UpdateAsset(selectedAsset);
+                        }
+                    });
+                }
+                if (!noneArchived) {
+                    menu.AddItem(new GUIContent("アーカイブ解除"), false, () => {
+                        foreach (var selectedAsset in _selectedAssets.Where(a => a.state.isArchived))
+                        {
+                            selectedAsset.state.SetArchived(false);
+                            controller.UpdateAsset(selectedAsset);
+                        }
+                    });
+                }
+
+                menu.AddSeparator("");
+
                 menu.AddItem(new GUIContent("Delete Selected Assets"), false, () => 
                 {
                     if (EditorUtility.DisplayDialog(
@@ -176,11 +221,43 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         _selectedAsset = null;
                     }
                 });
+
                 menu.ShowAsContext();
             }
             else
             {
                 var menu = new GenericMenu();
+
+                if (!asset.state.isFavorite) {
+                    menu.AddItem(new GUIContent("お気に入り登録"), false, () => {
+                        asset.state.SetFavorite(true);
+                        controller.UpdateAsset(asset);
+                    });
+                }
+                else
+                {
+                    menu.AddItem(new GUIContent("お気に入り解除"), false, () => {
+                        asset.state.SetFavorite(false);
+                        controller.UpdateAsset(asset);
+                    });
+                }
+
+                if (!asset.state.isArchived) {
+                    menu.AddItem(new GUIContent("アーカイブ"), false, () => {
+                        asset.state.SetArchived(true);
+                        controller.UpdateAsset(asset);
+                    });
+                }
+                else
+                {
+                    menu.AddItem(new GUIContent("アーカイブ解除"), false, () => {
+                        asset.state.SetArchived(false);
+                        controller.UpdateAsset(asset);
+                    });
+                }
+
+                menu.AddSeparator("");
+
                 menu.AddItem(new GUIContent("Delete Asset"), false, () => 
                 {
                     if (EditorUtility.DisplayDialog(
@@ -192,6 +269,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         controller.RemoveAsset(asset.assetId);
                     }
                 });
+                
                 menu.ShowAsContext();
             }
         }

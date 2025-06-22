@@ -406,6 +406,18 @@ namespace AMU.Editor.VrcAssetManager.Schema
             private set => _isArchived = value;
         }
         #endregion
+
+        #region Methods
+        public void SetFavorite(bool isFavorite)
+        {
+            _isFavorite = isFavorite;
+        }
+
+        public void SetArchived(bool isArchived)
+        {
+            _isArchived = isArchived;
+        }
+        #endregion
     }
     #endregion
 
