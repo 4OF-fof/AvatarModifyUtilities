@@ -17,12 +17,22 @@ namespace AMU.Editor.VrcAssetManager.UI
         private GUIStyle _valueStyle;
         private GUIStyle _dividerStyle;
 
-        public static void ShowWindow(AssetSchema asset)
+        public static void ShowWindow(AssetSchema asset, Vector2 position)
         {
-            var window = GetWindow<AssetDetailWindow>("Asset Detail");
+            foreach (var win in Resources.FindObjectsOfTypeAll<AssetDetailWindow>())
+            {
+                win.Focus();
+            }
+            var window = CreateInstance<AssetDetailWindow>();
             window._asset = asset;
+            window.titleContent = new GUIContent("Asset Detail: " + asset.Metadata.Name);
             window.minSize = new Vector2(400, 600);
+
             window.Show();
+            window.Focus();
+
+            var mouseScreenPos = GUIUtility.GUIToScreenPoint(position);
+            window.position = new Rect(mouseScreenPos.x, mouseScreenPos.y, window.minSize.x, window.minSize.y);
         }
 
         private void InitStyles()

@@ -173,7 +173,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
         private static void HandleAssetDoubleClick(AssetSchema asset)
         {
-            AssetDetailWindow.ShowWindow(asset);
+            AssetDetailWindow.ShowWindow(asset, Event.current.mousePosition);
         }
     }
 }
