@@ -99,7 +99,6 @@ namespace AMU.Editor.VrcAssetManager.UI
 
             using (new GUILayout.VerticalScope(sectionBoxStyle))
             {
-                // サムネイル
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.FlexibleSpace();
@@ -146,7 +145,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                 }
             }
 
-            // タグ
             if (metadata.Tags.Count > 0)
             {
                 using (new GUILayout.VerticalScope(sectionBoxStyle))
@@ -156,13 +154,34 @@ namespace AMU.Editor.VrcAssetManager.UI
                     {
                         foreach (var tag in metadata.Tags)
                         {
-                            GUILayout.Label(tag, chipStyle);
+                            if (GUILayout.Button(tag, chipStyle))
+                            {
+                                VrcAssetManagerWindow.ShowWindow();
+                                var window = EditorWindow.GetWindow<VrcAssetManagerWindow>();
+                                if (window != null)
+                                {
+                                    var controllerField = typeof(VrcAssetManagerWindow).GetField("_controller", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                                    var controller = controllerField?.GetValue(window) as AMU.Editor.VrcAssetManager.Controller.AssetLibraryController;
+                                    if (controller != null)
+                                    {
+                                        controller.filterOptions.ClearFilter();
+                                        controller.filterOptions.tags = new System.Collections.Generic.List<string> { tag };
+                                        controller.filterOptions.tagsAnd = false;
+                                    }
+                                    var toolbarType = typeof(AMU.Editor.VrcAssetManager.UI.Components.ToolbarComponent);
+                                    var advField = toolbarType.GetField("_isUsingAdvancedSearch", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                                    if (advField != null)
+                                    {
+                                        advField.SetValue(null, true);
+                                    }
+                                    window.Focus();
+                                }
+                            }
                         }
                     }
                 }
             }
 
-            // 依存関係
             if (metadata.Dependencies.Count > 0)
             {
                 using (new GUILayout.VerticalScope(sectionBoxStyle))
@@ -178,7 +197,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                 }
             }
 
-            // Booth情報
             if (_asset.BoothItem != null)
             {
                 using (new GUILayout.VerticalScope(sectionBoxStyle))
