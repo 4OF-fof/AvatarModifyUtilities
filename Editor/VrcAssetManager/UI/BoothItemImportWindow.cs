@@ -68,6 +68,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private void OnGUI()
         {
+            EditorGUILayout.HelpBox($"インポート対象: {_filteredBoothItems?.Count ?? 0} 件", MessageType.Info);
             if (_filteredBoothItems == null || _filteredBoothItems.Count == 0)
             {
                 EditorGUILayout.HelpBox("Boothアイテムが見つかりません。", MessageType.Info);
