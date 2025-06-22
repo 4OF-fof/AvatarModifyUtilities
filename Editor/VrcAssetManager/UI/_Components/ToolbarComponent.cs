@@ -65,7 +65,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                             _searchText = newSearchText;
                             _controller.filterOptions.name = _controller.filterOptions.authorName = _controller.filterOptions.description =  _searchText;
                         }
-                        if (GUILayout.Button("検索", EditorStyles.toolbarButton, GUILayout.Width(40)))
+                        var searchIcon = EditorGUIUtility.IconContent("Search Icon");
+                        if (GUILayout.Button(searchIcon, EditorStyles.toolbarButton, GUILayout.Width(40)))
                         {
                             AdvancedSearchWindow.ShowWindow(_controller, (closedBySearch) => { _isUsingAdvancedSearch = closedBySearch; });
                         }
