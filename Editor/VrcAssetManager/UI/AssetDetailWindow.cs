@@ -183,7 +183,16 @@ namespace AMU.Editor.VrcAssetManager.UI
                     {
                         foreach (var dep in metadata.Dependencies)
                         {
-                            GUILayout.Label(dep, chipStyle);
+                            string depName = dep;
+                            if (_controller != null)
+                            {
+                                var depAsset = _controller.GetAsset(new Guid(dep));
+                                if (depAsset != null && depAsset.Metadata != null)
+                                {
+                                    depName = depAsset.Metadata.Name;
+                                }
+                            }
+                            GUILayout.Label(depName, chipStyle);
                         }
                     }
                 }
