@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using AMU.Editor.VrcAssetManager.Schema;
 using AMU.Editor.VrcAssetManager.UI.Components;
+using AMU.Editor.VrcAssetManager.Controller;
 
 namespace AMU.Editor.VrcAssetManager.UI
 {
@@ -10,11 +12,13 @@ namespace AMU.Editor.VrcAssetManager.UI
     {
         private AssetSchema _asset;
         private bool _isEditMode = false;
+        private AssetLibraryController _controller;
 
-        public static void ShowWindow(AssetSchema asset, Vector2 position)
+        public static void ShowWindow(AssetSchema asset, AssetLibraryController controller, Vector2 position)
         {
             var window = GetWindow<AssetDetailWindow>(typeof(VrcAssetManagerWindow));
             window._asset = asset;
+            window._controller = controller;
             window.titleContent = new GUIContent("Asset Detail: " + asset.Metadata.Name);
             window.minSize = window.maxSize = new Vector2(1200, 800);
             window.Show();
@@ -156,26 +160,13 @@ namespace AMU.Editor.VrcAssetManager.UI
                         {
                             if (GUILayout.Button(tag, chipStyle))
                             {
-                                VrcAssetManagerWindow.ShowWindow();
-                                var window = EditorWindow.GetWindow<VrcAssetManagerWindow>();
-                                if (window != null)
+                                if (_controller != null)
                                 {
-                                    var controllerField = typeof(VrcAssetManagerWindow).GetField("_controller", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                                    var controller = controllerField?.GetValue(window) as AMU.Editor.VrcAssetManager.Controller.AssetLibraryController;
-                                    if (controller != null)
-                                    {
-                                        controller.filterOptions.ClearFilter();
-                                        controller.filterOptions.tags = new System.Collections.Generic.List<string> { tag };
-                                        controller.filterOptions.tagsAnd = false;
-                                    }
-                                    var toolbarType = typeof(AMU.Editor.VrcAssetManager.UI.Components.ToolbarComponent);
-                                    var advField = toolbarType.GetField("_isUsingAdvancedSearch", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-                                    if (advField != null)
-                                    {
-                                        advField.SetValue(null, true);
-                                    }
-                                    window.Focus();
+                                    _controller.filterOptions.ClearFilter();
+                                    _controller.filterOptions.tags = new List<string> { tag };
+                                    _controller.filterOptions.tagsAnd = false;
                                 }
+                                VrcAssetManagerWindow.ShowWindow();
                             }
                         }
                     }

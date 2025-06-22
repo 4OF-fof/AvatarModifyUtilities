@@ -120,7 +120,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                                     isMultiSelected && _selectedAssets.Count > 1,
                                     HandleAssetLeftClick,
                                     HandleAssetRightClick,
-                                    HandleAssetDoubleClick
+                                    a => HandleAssetDoubleClick(a, controller)
                                 );
                             }
                             GUILayout.FlexibleSpace();
@@ -171,9 +171,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             }
         }
 
-        private static void HandleAssetDoubleClick(AssetSchema asset)
+        private static void HandleAssetDoubleClick(AssetSchema asset, AssetLibraryController controller)
         {
-            AssetDetailWindow.ShowWindow(asset, Event.current.mousePosition);
+            AssetDetailWindow.ShowWindow(asset, controller, Event.current.mousePosition);
         }
     }
 }
