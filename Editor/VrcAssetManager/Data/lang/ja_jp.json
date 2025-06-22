@@ -93,6 +93,17 @@
   "VrcAssetManager_message_error_libraryDeserializeFailed": "ライブラリのデシリアライズに失敗しました: {0}",
   "VrcAssetManager_message_success_libraryLoaded": "ライブラリを読み込みました: {0} (アセット数: {1})",
   "VrcAssetManager_message_error_libraryLoadFailed": "ライブラリの読み込みに失敗しました {0}: {1}",
-  "VrcAssetManager_message_error_fileInfoFailed": "ファイル情報の取得に失敗しました {0}: {1}",
-  "VrcAssetManager_message_error_libraryValidationFailed": "ライブラリの検証に失敗しました {0}: {1}"
+  "VrcAssetManager_message_error_fileInfoFailed": "ファイル情報の取得に失敗しました {0}: {1}",  "VrcAssetManager_message_error_libraryValidationFailed": "ライブラリの検証に失敗しました {0}: {1}",
+
+  "TagSelector_selectMultipleTags": "タグを選択してください（複数選択可）",
+  "TagSelector_selectSingleTag": "タグを選択してください（単一選択）",
+  "TagSelector_search": "検索",
+  "TagSelector_noTags": "利用可能なタグがありません",
+  "TagSelector_noSearchResults": "検索結果が見つかりません",
+  "TagSelector_selectedCount": "選択済み",
+  "TagSelector_selected": "選択中",
+  "TagSelector_noSelection": "未選択",
+  "TagSelector_clearAll": "全て解除",
+  "Common_cancel": "キャンセル",
+  "Common_ok": "OK"
 }

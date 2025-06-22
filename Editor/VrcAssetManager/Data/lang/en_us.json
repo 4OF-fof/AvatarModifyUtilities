@@ -93,6 +93,17 @@
   "VrcAssetManager_message_error_libraryDeserializeFailed": "Failed to deserialize library from: {0}",
   "VrcAssetManager_message_success_libraryLoaded": "Library loaded successfully from: {0} (Assets: {1})",
   "VrcAssetManager_message_error_libraryLoadFailed": "Failed to load library from {0}: {1}",
-  "VrcAssetManager_message_error_fileInfoFailed": "Failed to get file info for {0}: {1}",
-  "VrcAssetManager_message_error_libraryValidationFailed": "Library validation failed for {0}: {1}"
+  "VrcAssetManager_message_error_fileInfoFailed": "Failed to get file info for {0}: {1}",  "VrcAssetManager_message_error_libraryValidationFailed": "Library validation failed for {0}: {1}",
+
+  "TagSelector_selectMultipleTags": "Please select tags (multiple selection allowed)",
+  "TagSelector_selectSingleTag": "Please select a tag (single selection)",
+  "TagSelector_search": "Search",
+  "TagSelector_noTags": "No tags available",
+  "TagSelector_noSearchResults": "No search results found",
+  "TagSelector_selectedCount": "Selected",
+  "TagSelector_selected": "Selected",
+  "TagSelector_noSelection": "No selection",
+  "TagSelector_clearAll": "Clear All",
+  "Common_cancel": "Cancel",
+  "Common_ok": "OK"
 }
