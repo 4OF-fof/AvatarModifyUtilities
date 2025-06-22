@@ -72,7 +72,7 @@ public static List<string> ScanDirectory(string directoryPath, bool recursive = 
 **Return Value:**
 - `List<string>`: List of file paths found in the directory
 
-### SettingsAPI
+### SettingAPI
 
 #### Methods
 

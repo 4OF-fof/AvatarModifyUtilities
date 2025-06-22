@@ -26,7 +26,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
         private DateTime _lastUpdated;
 
-        private string _libraryDir => Path.Combine(SettingsAPI.GetSetting<string>("Core_dirPath"), "VrcAssetManager");
+        private string _libraryDir => Path.Combine(SettingAPI.GetSetting<string>("Core_dirPath"), "VrcAssetManager");
         private string _libraryPath => Path.Combine(_libraryDir, "AssetLibrary.json");
 
         public void InitializeLibrary()

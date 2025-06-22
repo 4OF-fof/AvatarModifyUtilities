@@ -15,7 +15,7 @@ namespace AMU.Editor.AutoVariant.Services
                 return false;
             }
 
-            if (SettingsAPI.GetSetting<bool>("AutoVariant_enablePrebuild"))
+            if (SettingAPI.GetSetting<bool>("AutoVariant_enablePrebuild"))
             {
                 MaterialOptimizationService.OptimizeActiveAvatars();
             }

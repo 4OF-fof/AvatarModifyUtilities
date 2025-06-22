@@ -17,7 +17,7 @@ namespace AMU.Editor.VrcAssetManager.UI
         [MenuItem("AMU/VRC Asset Manager", priority = 10000)]
         public static void ShowWindow()
         {
-            string lang = SettingsAPI.GetSetting<string>("Core_language");
+            string lang = SettingAPI.GetSetting<string>("Core_language");
             LocalizationAPI.LoadLanguage(lang);
             var window = GetWindow<VrcAssetManagerWindow>(LocalizationAPI.GetText("VrcAssetManager_title"));
             window.minSize = window.maxSize = new Vector2(1200, 800);
@@ -26,7 +26,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         void OnEnable()
         {
-            string lang = SettingsAPI.GetSetting<string>("Core_language");
+            string lang = SettingAPI.GetSetting<string>("Core_language");
             LocalizationAPI.LoadLanguage(lang);
             _controller.InitializeLibrary();
         }

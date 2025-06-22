@@ -6,6 +6,9 @@ using UnityEditor;
 using UnityEngine;
 using AMU.Editor.VrcAssetManager.Controller;
 using AMU.Editor.VrcAssetManager.Schema;
+using System.Security.Cryptography;
+using System.Net;
+using AMU.Editor.Core.Api; // HashUtilityのusingを追加
 
 namespace AMU.Editor.VrcAssetManager.UI
 {
@@ -127,9 +130,54 @@ namespace AMU.Editor.VrcAssetManager.UI
             return asset;
         }
 
+        private string GetThumbnailDirPath()
+        {
+            if (_controller == null) return null;
+            var rootDir = SettingAPI.GetSetting<string>("Core_dirPath");
+            var dir = Path.Combine(rootDir, "VrcAssetManager", "BoothItem", "Thumbnail");
+            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            return dir;
+        }
+
+        private string DownloadImageIfNeeded(string imageUrl)
+        {
+            if (string.IsNullOrEmpty(imageUrl)) return null;
+            var hash = HashUtility.GetHash(imageUrl, false);
+            var dir = GetThumbnailDirPath();
+            if (string.IsNullOrEmpty(dir)) return null;
+            var ext = Path.GetExtension(new Uri(imageUrl).AbsolutePath);
+            if (string.IsNullOrEmpty(ext) || ext.Length > 5) ext = ".png";
+            var filePath = Path.Combine(dir, hash + ext);
+            if (File.Exists(filePath)) return filePath;
+            try
+            {
+                System.Threading.Thread.Sleep(100);
+                using (var client = new WebClient())
+                {
+                    client.DownloadFile(imageUrl, filePath);
+                }
+                return filePath;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"画像ダウンロード失敗: {imageUrl}\n{ex.Message}");
+                return null;
+            }
+        }
+
         private void RegisterAllAsAssets()
         {
             if (_controller == null || _filteredBoothItems == null) return;
+            // 画像ダウンロード処理
+            foreach (var item in _filteredBoothItems)
+            {
+                if (!string.IsNullOrEmpty(item.imageUrl))
+                {
+                    var localPath = DownloadImageIfNeeded(item.imageUrl);
+                    // 必要ならitemにローカルパスをセットする処理を追加
+                }
+            }
+
             int parentCount = 0;
             int childCount = 0;
 

@@ -21,7 +21,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 string resolvedPath = thumbnailPath;
                 if (!Path.IsPathRooted(thumbnailPath))
                 {
-                    string coreDir = SettingsAPI.GetSetting<string>("Core_dirPath");
+                    string coreDir = SettingAPI.GetSetting<string>("Core_dirPath");
                     string corePath = Path.Combine(coreDir, thumbnailPath.Replace('/', Path.DirectorySeparatorChar));
                     if (File.Exists(corePath))
                     {

@@ -64,7 +64,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private void OnEnable()
         {
-            var language = SettingsAPI.GetSetting<string>("Core_language");
+            var language = SettingAPI.GetSetting<string>("Core_language");
             LocalizationAPI.LoadLanguage(language);
         }
 
