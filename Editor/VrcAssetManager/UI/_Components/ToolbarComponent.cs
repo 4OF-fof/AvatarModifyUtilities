@@ -200,7 +200,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                 if (fileName.Equals("AMU_BoothItem.json", StringComparison.OrdinalIgnoreCase))
                 {
-                    //BoothItemImportWindow.ShowWindowWithFile(controller, selectedFile);
+                    BoothItemImportWindow.ShowWindowWithFile(_controller, selectedFile);
                 }
                 else
                 {
