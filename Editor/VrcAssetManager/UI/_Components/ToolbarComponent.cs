@@ -148,18 +148,34 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         _sortDescending = newSortDescending;
                         _controller.sortOptions.isDescending = _sortDescending;
                     }
-
+                    
                     GUILayout.Space(10);
-                    // TODO: Select item counter
-                    if (GUILayout.Button(LocalizationAPI.GetText("AssetManager_addAsset"), EditorStyles.toolbarButton))
+                    
+                    if (MainGridComponent.SelectedAssetCount > 1)
                     {
-                        OpenDownloadFolderAndSelectFile();
+                        var selectedCountStyle = new GUIStyle(EditorStyles.toolbarButton)
+                        {
+                            normal = { textColor = new Color(0.3f, 0.6f, 1f) },
+                            fontStyle = FontStyle.Bold,
+                            alignment = TextAnchor.MiddleCenter
+                        };
+                        
+                        string selectedText = $"{MainGridComponent.SelectedAssetCount} 件選択中";
+                        GUILayout.Label(selectedText, selectedCountStyle, GUILayout.MinWidth(130));
                     }
-
-                    if (GUILayout.Button(LocalizationAPI.GetText("Common_refresh"), EditorStyles.toolbarButton))
+                    else
                     {
-                        _controller.SyncAssetLibrary();
-                        Debug.Log("Refresh requested");
+                        if (GUILayout.Button(LocalizationAPI.GetText("AssetManager_addAsset"), EditorStyles.toolbarButton, GUILayout.Width(100)))
+                        {
+                            OpenDownloadFolderAndSelectFile();
+                        }
+
+                        var refreshIcon = EditorGUIUtility.IconContent("d_Refresh");
+                        if (GUILayout.Button(refreshIcon, EditorStyles.toolbarButton, GUILayout.Width(30)))
+                        {
+                            _controller.SyncAssetLibrary();
+                            Debug.Log("Refresh requested");
+                        }
                     }
                 }
             }
