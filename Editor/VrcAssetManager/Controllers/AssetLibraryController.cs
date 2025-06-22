@@ -236,6 +236,28 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 return;
             }
 
+            var asset = library.GetAsset(assetId);
+            if (!string.IsNullOrEmpty(asset.ParentGroupId) && library.Assets.TryGetValue(Guid.Parse(asset.ParentGroupId), out var parentGroup))
+            {
+                parentGroup.RemoveChildAssetId(assetId.ToString());
+            }
+
+            foreach (var childId in asset.ChildAssetIds)
+            {
+                if (Guid.TryParse(childId, out var childGuid) && library.Assets.TryGetValue(childGuid, out var childAsset))
+                {
+                    childAsset.SetParentGroupId("");
+                }
+            }
+
+            foreach (var other in library.Assets.Values)
+            {
+                if (other.Metadata.Dependencies.Contains(assetId.ToString()))
+                {
+                    other.Metadata.RemoveDependency(assetId.ToString());
+                }
+            }
+
             SyncAssetLibrary();
             library.RemoveAsset(assetId);
             _lastUpdated = DateTime.Now;
