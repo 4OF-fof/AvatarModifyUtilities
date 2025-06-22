@@ -47,18 +47,21 @@ namespace AMU.Editor.VrcAssetManager.UI
             GUILayout.Space(4);
 
             // 名前・作者・説明
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.Label("名前", GUILayout.Width(60));
-            _name = EditorGUILayout.TextField(_name, GUILayout.MinWidth(200));
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.Label("作者", GUILayout.Width(60));
-            _author = EditorGUILayout.TextField(_author, GUILayout.MinWidth(200));
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.Label("説明", GUILayout.Width(60));
-            _description = EditorGUILayout.TextField(_description, GUILayout.MinWidth(200));
-            EditorGUILayout.EndHorizontal();
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.Label("名前", GUILayout.Width(60));
+                _name = EditorGUILayout.TextField(_name, GUILayout.MinWidth(200));
+            }
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.Label("作者", GUILayout.Width(60));
+                _author = EditorGUILayout.TextField(_author, GUILayout.MinWidth(200));
+            }
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.Label("説明", GUILayout.Width(60));
+                _description = EditorGUILayout.TextField(_description, GUILayout.MinWidth(200));
+            }
             EditorGUILayout.EndVertical();
 
             GUILayout.Space(10);
@@ -67,18 +70,19 @@ namespace AMU.Editor.VrcAssetManager.UI
             GUILayout.Label("タグ", EditorStyles.boldLabel);
             if (_tags.Count > 0)
             {
-                EditorGUILayout.BeginVertical();
-                foreach (var tag in _tags)
+                using (new GUILayout.VerticalScope())
                 {
-                    GUIStyle tagBox = new GUIStyle(EditorStyles.helpBox);
-                    tagBox.fontSize = 12;
-                    tagBox.fixedHeight = 24;
-                    tagBox.alignment = TextAnchor.MiddleCenter;
-                    tagBox.padding = new RectOffset(6, 6, 2, 2);
-                    tagBox.margin = new RectOffset(2, 2, 2, 2);
-                    EditorGUILayout.LabelField(tag, tagBox, GUILayout.ExpandWidth(true));
+                    foreach (var tag in _tags)
+                    {
+                        GUIStyle tagBox = new GUIStyle(EditorStyles.helpBox);
+                        tagBox.fontSize = 12;
+                        tagBox.fixedHeight = 24;
+                        tagBox.alignment = TextAnchor.MiddleCenter;
+                        tagBox.padding = new RectOffset(6, 6, 2, 2);
+                        tagBox.margin = new RectOffset(2, 2, 2, 2);
+                        EditorGUILayout.LabelField(tag, tagBox, GUILayout.ExpandWidth(true));
+                    }
                 }
-                EditorGUILayout.EndVertical();
                 if (GUILayout.Button("タグ選択", GUILayout.ExpandWidth(true)))
                 {
                     TagSelectorWindow.ShowWindow(true, tags =>
