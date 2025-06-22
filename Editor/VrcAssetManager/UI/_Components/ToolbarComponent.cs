@@ -50,6 +50,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         if (GUILayout.Button("×", EditorStyles.toolbarButton, GUILayout.Width(20)))
                         {
                             _isUsingAdvancedSearch = false;
+                            var assetType = controller.filterOptions.assetType;
+                            controller.filterOptions.ClearFilter();
+                            controller.filterOptions.assetType = assetType;
                         }
                     }
                     else
@@ -62,8 +65,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         }
                         if (GUILayout.Button("検索", EditorStyles.toolbarButton, GUILayout.Width(40)))
                         {
-                            _isUsingAdvancedSearch = true;
-                            Debug.Log("Advanced search requested");
+                            AdvancedSearchWindow.ShowWindow(controller, (closedBySearch) => { _isUsingAdvancedSearch = closedBySearch; });
                         }
                     }
                 }

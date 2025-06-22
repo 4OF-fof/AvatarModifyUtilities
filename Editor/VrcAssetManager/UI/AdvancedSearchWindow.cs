@@ -17,11 +17,14 @@ namespace AMU.Editor.VrcAssetManager.UI
         private bool _tagsAnd = false;
         private bool _filterAnd = false;
         private Vector2 _scrollPosition = Vector2.zero;
+        private Action<bool> _onClose;
+        private bool _closedBySearch = false;
 
-        public static void ShowWindow(AssetLibraryController controller)
+        public static void ShowWindow(AssetLibraryController controller, Action<bool> onClose)
         {
             var window = GetWindow<AdvancedSearchWindow>("詳細検索");
             window._controller = controller;
+            window._onClose = onClose;
             if (controller != null && controller.filterOptions != null)
             {
                 window._name = controller.filterOptions.name ?? "";
@@ -126,6 +129,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 if (GUILayout.Button("検索", GUILayout.Width(150)))
                 {
                     ApplySearch();
+                    _closedBySearch = true;
                     Close();
                 }
             }
@@ -154,6 +158,16 @@ namespace AMU.Editor.VrcAssetManager.UI
                     win.Close();
                 }
             }
+        }
+
+        protected void OnDisable()
+        {
+            if (_onClose != null)
+            {
+                _onClose.Invoke(_closedBySearch);
+                _onClose = null;
+            }
+            _closedBySearch = false;
         }
     }
 }
