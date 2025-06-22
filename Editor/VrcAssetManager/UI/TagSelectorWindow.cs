@@ -22,8 +22,8 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         public static void ShowWindow(bool allowMultipleSelection, Action<List<string>> onTagsSelected, List<string> initialSelectedTags = null)
         {
-            var window = GetWindow<TagSelectorWindow>(true, "Tag Selector", true);
-            window.minSize = window.maxSize = new Vector2(300, 600);
+            var window = GetWindow<TagSelectorWindow>("Tag Selector");
+            window.minSize = window.maxSize = new Vector2(300, 400);
             window._allowMultipleSelection = allowMultipleSelection;
             window._onTagsSelected = onTagsSelected;
             
@@ -61,6 +61,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 }
             }
             window.FilterTags();
+            window.Show();
         }
 
         private void OnEnable()
@@ -83,8 +84,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                 GUILayout.Space(5);
                 using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Label(LocalizationAPI.GetText("TagSelector_search") ?? "検索:", GUILayout.Width(50));
-                    
+                    GUILayout.Label(LocalizationAPI.GetText("TagSelector_search"), GUILayout.Width(50));
+
                     GUI.SetNextControlName("SearchField");
                     var newSearchText = GUILayout.TextField(_searchText);
                     
@@ -93,13 +94,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                         _searchText = newSearchText;
                         FilterTags();
                     }
-                    
-                    if (GUILayout.Button("×", GUILayout.Width(25)))
-                    {
-                        _searchText = "";
-                        FilterTags();
-                        GUI.FocusControl(null);
-                    }
+
+                    GUILayout.Space(25);
                 }
                 
                 GUILayout.Space(10);
@@ -183,17 +179,21 @@ namespace AMU.Editor.VrcAssetManager.UI
                         }
                     }
                 }
-                
+
                 GUILayout.Space(10);
                 
-                string selectionInfo = _allowMultipleSelection 
+                if (_allowMultipleSelection)
+                {
+                    string selectionInfo = _allowMultipleSelection 
                     ? $"{LocalizationAPI.GetText("TagSelector_selectedCount")}: {_selectedTags.Count}"
                     : _selectedTags.Count > 0 
                         ? $"{LocalizationAPI.GetText("TagSelector_selected")}: {_selectedTags.First()}"
                         : LocalizationAPI.GetText("TagSelector_noSelection");
-                        
-                GUILayout.Label(selectionInfo, EditorStyles.miniLabel);
-                GUILayout.Space(5);
+                
+                    GUILayout.Label(selectionInfo, EditorStyles.miniLabel);
+
+                    GUILayout.Space(5);
+                }
 
                 if (_allowMultipleSelection)
                 {
