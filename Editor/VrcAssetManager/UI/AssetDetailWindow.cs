@@ -179,60 +179,66 @@ namespace AMU.Editor.VrcAssetManager.UI
                 }
             }
 
-            if (metadata.tags.Count > 0)
+            using (new GUILayout.HorizontalScope())
             {
-                using (new GUILayout.VerticalScope(sectionBoxStyle))
+                if (metadata.tags.Count > 0)
                 {
-                    GUILayout.Label("Tags", labelStyle);
-                    using (new GUILayout.HorizontalScope())
+                    using (new GUILayout.VerticalScope(sectionBoxStyle))
                     {
-                        foreach (var tag in metadata.tags)
+                        GUILayout.Label("Tags", labelStyle);
+                        using (new GUILayout.HorizontalScope())
                         {
-                            if (GUILayout.Button(tag, chipStyle))
+                            foreach (var tag in metadata.tags)
                             {
-                                if (_controller != null)
+                                if (GUILayout.Button(tag, chipStyle))
                                 {
-                                    _controller.filterOptions.ClearFilter();
-                                    _controller.filterOptions.tags = new List<string> { tag };
-                                    _controller.filterOptions.tagsAnd = false;
+                                    if (_controller != null)
+                                    {
+                                        _controller.filterOptions.ClearFilter();
+                                        _controller.filterOptions.tags = new List<string> { tag };
+                                        _controller.filterOptions.tagsAnd = false;
+                                    }
+                                    ToolbarComponent.isUsingAdvancedSearch = true;
+                                    VrcAssetManagerWindow.ShowWindow();
                                 }
-                                ToolbarComponent.isUsingAdvancedSearch = true;
-                                VrcAssetManagerWindow.ShowWindow();
                             }
                         }
                     }
                 }
-            }
 
-            if (metadata.dependencies.Count > 0)
-            {
-                using (new GUILayout.VerticalScope(sectionBoxStyle))
+                if (metadata.tags.Count > 0 && metadata.dependencies.Count > 0)
+                    GUILayout.Space(5);
+
+                if (metadata.dependencies.Count > 0)
                 {
-                    GUILayout.Label("Dependencies", labelStyle);
-                    using (new GUILayout.HorizontalScope())
+                    using (new GUILayout.VerticalScope(sectionBoxStyle))
                     {
-                        foreach (var dep in metadata.dependencies)
+                        GUILayout.Label("Dependencies", labelStyle);
+                        using (new GUILayout.HorizontalScope())
                         {
-                            string depName = dep;
-                            AssetSchema depAsset = null;
-                            if (_controller != null)
+                            foreach (var dep in metadata.dependencies)
                             {
-                                depAsset = _controller.GetAsset(new Guid(dep));
-                                if (depAsset != null && depAsset.metadata != null)
+                                string depName = dep;
+                                AssetSchema depAsset = null;
+                                if (_controller != null)
                                 {
-                                    depName = depAsset.metadata.name;
+                                    depAsset = _controller.GetAsset(new Guid(dep));
+                                    if (depAsset != null && depAsset.metadata != null)
+                                    {
+                                        depName = depAsset.metadata.name;
+                                    }
                                 }
-                            }
-                            if (depAsset != null)
-                            {
-                                if (GUILayout.Button(depName, chipStyle))
+                                if (depAsset != null)
                                 {
-                                    AssetDetailWindow.ShowWindow(depAsset, _controller);
+                                    if (GUILayout.Button(depName, chipStyle))
+                                    {
+                                        AssetDetailWindow.ShowWindow(depAsset, _controller);
+                                    }
                                 }
-                            }
-                            else
-                            {
-                                GUILayout.Label(depName, chipStyle);
+                                else
+                                {
+                                    GUILayout.Label(depName, chipStyle);
+                                }
                             }
                         }
                     }
