@@ -42,6 +42,19 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                 var rect = GUILayoutUtility.GetRect(125, 30);
 
+                if (isSelected && isMultiSelected)
+                {
+                    EditorGUI.DrawRect(rect, new Color(0.3f, 0.5f, 1f, 0.5f));
+                }
+                else if (isMultiSelected)
+                {
+                    EditorGUI.DrawRect(rect, new Color(0.3f, 0.5f, 1f, 0.3f));
+                }
+                else if (isSelected)
+                {
+                    EditorGUI.DrawRect(rect, new Color(0.3f, 0.5f, 1f, 0.3f));
+                }
+
                 var content = new GUIContent(asset.metadata.name);
 
                 GUI.Label(rect, content, nameStyle);
