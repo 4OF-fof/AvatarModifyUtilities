@@ -2,6 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 using AMU.Editor.VrcAssetManager.Schema;
+using AMU.Editor.VrcAssetManager.UI.Components;
 
 namespace AMU.Editor.VrcAssetManager.UI.Components
 {
@@ -27,12 +28,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     EditorGUI.DrawRect(thumbnailRect, new Color(0.3f, 0.5f, 1f, 0.3f));
                 }
 
-                var prefabIcon = EditorGUIUtility.IconContent("Prefab Icon").image as Texture2D;
-
-                if (prefabIcon != null)
-                {
-                    GUI.DrawTexture(thumbnailRect, prefabIcon, ScaleMode.ScaleToFit);
-                }
+                DrawThumbnailComponent.Draw(thumbnailRect, asset);
 
                 DrawIndicator(thumbnailRect, thumbnailSize, asset);
 
