@@ -118,7 +118,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             return asset;
         }
 
-        private AssetSchema CreateParentAssetFromBoothItem(BoothItemSchema boothItem)
+        private AssetSchema CreateParentAssetFromBoothItem(BoothItemSchema boothItem, string thumbnailPath = null)
         {
             var asset = new AssetSchema();
             asset.SetBoothItem(new BoothItemSchema(
@@ -131,6 +131,10 @@ namespace AMU.Editor.VrcAssetManager.UI
             ));
             asset.metadata.SetName(boothItem.itemName);
             asset.metadata.SetAuthorName(boothItem.authorName);
+            if (!string.IsNullOrEmpty(thumbnailPath))
+            {
+                asset.metadata.SetThumbnailPath(thumbnailPath);
+            }
             return asset;
         }
 
@@ -184,8 +188,22 @@ namespace AMU.Editor.VrcAssetManager.UI
                 if (!string.IsNullOrEmpty(item.imageUrl))
                 {
                     float progress = (float)i / total;
-                    EditorUtility.DisplayProgressBar("画像ダウンロード中", item.imageUrl, progress);
+                    EditorUtility.DisplayProgressBar("画像ダウンロード中", item.itemName, progress);
                     localPath = DownloadImageIfNeeded(item.imageUrl);
+                    if (!string.IsNullOrEmpty(localPath))
+                    {
+                        var rootDir = SettingAPI.GetSetting<string>("Core_dirPath");
+                        localPath = localPath.Replace("\\", "/");
+                        var rootDirNormalized = rootDir.Replace("\\", "/");
+                        if (localPath.StartsWith(rootDirNormalized))
+                        {
+                            localPath = localPath.Substring(rootDirNormalized.Length).TrimStart('/', '\\');
+                        }
+                        else
+                        {
+                            localPath = null;
+                        }
+                    }
                 }
                 imagePathDict[item] = localPath;
             }
@@ -235,7 +253,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     }
                     else
                     {
-                        var newParent = CreateParentAssetFromBoothItem(group[0]);
+                        var newParent = CreateParentAssetFromBoothItem(group[0], imagePathDict.ContainsKey(group[0]) ? imagePathDict[group[0]] : null);
                         foreach (var exist in existing)
                         {
                             if (exist.boothItem != null && !string.IsNullOrEmpty(exist.boothItem.fileName))
@@ -268,7 +286,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     parentCount++;
                     continue;
                 }
-                var parentAsset = CreateParentAssetFromBoothItem(group[0]);
+                var parentAsset = CreateParentAssetFromBoothItem(group[0], imagePathDict.ContainsKey(group[0]) ? imagePathDict[group[0]] : null);
                 foreach (var boothItem in group)
                 {
                     var childAsset = CreateAssetFromBoothItem(boothItem, parentAsset.assetId.ToString(), imagePathDict.ContainsKey(boothItem) ? imagePathDict[boothItem] : null);
