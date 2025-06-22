@@ -22,7 +22,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             var window = GetWindow<AssetDetailWindow>(typeof(VrcAssetManagerWindow));
             window._asset = asset;
             window.titleContent = new GUIContent("Asset Detail: " + asset.Metadata.Name);
-            window.minSize = new Vector2(400, 600);
+            window.minSize = window.maxSize = new Vector2(1200, 800);
             window.Show();
         }
 
