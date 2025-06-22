@@ -79,14 +79,82 @@ namespace AMU.Editor.VrcAssetManager.Schema
             private set => lastAccessed = value;
         }
 
-        public void UpdateLastAccessed()
-        {
-            lastAccessed = DateTime.Now;
-        }
-
         public bool HasParentGroup => !string.IsNullOrWhiteSpace(parentGroupId);
 
         public bool HasChildAssets => childAssetIds != null && childAssetIds.Count > 0;
+        #endregion
+        #region Methods
+        public void SetMetadata(AssetMetadata newMetadata)
+        {
+            metadata = newMetadata ?? new AssetMetadata();
+            lastAccessed = DateTime.Now;
+        }
+
+        public void SetFileInfo(AssetFileInfo newFileInfo)
+        {
+            fileInfo = newFileInfo ?? new AssetFileInfo();
+            lastAccessed = DateTime.Now;
+        }
+
+        public void SetState(AssetState newState)
+        {
+            state = newState ?? new AssetState();
+            lastAccessed = DateTime.Now;
+        }
+
+        public void SetBoothItem(BoothItemSchema newBoothItem)
+        {
+            boothItem = newBoothItem;
+            lastAccessed = DateTime.Now;
+        }
+
+        public void SetParentGroupId(string newParentGroupId)
+        {
+            parentGroupId = newParentGroupId?.Trim() ?? string.Empty;
+            lastAccessed = DateTime.Now;
+        }
+
+        public void AddChildAssetId(string childAssetId)
+        {
+            if (string.IsNullOrWhiteSpace(childAssetId))
+            {
+                Debug.LogError("Cannot add an empty or whitespace child asset ID.");
+            }
+            else if (childAssetIds.Contains(childAssetId))
+            {
+                Debug.LogWarning($"Child asset ID '{childAssetId}' already exists in the list.");
+            }
+            else
+            {
+                childAssetIds.Add(childAssetId.Trim());
+                lastAccessed = DateTime.Now;
+            }
+        }
+
+        public void RemoveChildAssetId(string childAssetId)
+        {
+            if (childAssetIds.Contains(childAssetId))
+            {
+                childAssetIds.Remove(childAssetId);
+                lastAccessed = DateTime.Now;
+            }
+            else
+            {
+                Debug.LogWarning($"Child asset ID '{childAssetId}' does not exist in the list.");
+            }
+        }
+
+        public void ClearChildAssetIds()
+        {
+            childAssetIds.Clear();
+            lastAccessed = DateTime.Now;
+        }
+
+        public void ClearBoothItem()
+        {
+            boothItem = null;
+            lastAccessed = DateTime.Now;
+        }
         #endregion
     }
     #endregion
