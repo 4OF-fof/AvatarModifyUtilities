@@ -106,7 +106,9 @@ namespace AMU.Editor.VrcAssetManager.UI
                         }
                     }
                 }
+
                 GUILayout.FlexibleSpace();
+
                 var editIcon = EditorGUIUtility.IconContent("d_editicon.sml");
                 if (!_isEditMode)
                 {
@@ -115,6 +117,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                         _isEditMode = true;
                     }
                 }
+
                 var closeIcon = EditorGUIUtility.IconContent("winbtn_win_close");
                 if (GUILayout.Button(closeIcon, GUILayout.Width(32), GUILayout.Height(32)))
                 {
@@ -127,6 +130,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 EditorGUILayout.LabelField("No asset selected.");
                 return;
             }
+
             var metadata = _asset.metadata;
             var fileInfo = _asset.fileInfo;
             var state = _asset.state;
@@ -140,36 +144,46 @@ namespace AMU.Editor.VrcAssetManager.UI
                     DrawThumbnailComponent.Draw(thumbRect, _asset);
                     GUILayout.FlexibleSpace();
                 }
+
                 GUILayout.Space(8);
+
                 GUILayout.Label(metadata.name, titleStyle);
                 GUILayout.Label(metadata.description, EditorStyles.wordWrappedLabel);
+
                 GUILayout.Space(4);
+
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label("Author:", labelStyle, GUILayout.Width(70));
                     GUILayout.Label(metadata.authorName, valueStyle);
                 }
+
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label("Asset Type:", labelStyle, GUILayout.Width(70));
                     GUILayout.Label(metadata.assetType, valueStyle);
                 }
+
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label("Created:", labelStyle, GUILayout.Width(70));
                     GUILayout.Label(metadata.createdDate.ToString("yyyy-MM-dd HH:mm"), valueStyle);
                 }
+
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label("Modified:", labelStyle, GUILayout.Width(70));
                     GUILayout.Label(metadata.modifiedDate.ToString("yyyy-MM-dd HH:mm"), valueStyle);
                 }
+
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label("File Path:", labelStyle, GUILayout.Width(70));
                     GUILayout.Label(fileInfo.filePath, valueStyle);
                 }
+
                 GUILayout.Space(4);
+
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label("Favorite:", labelStyle, GUILayout.Width(70));
@@ -177,28 +191,40 @@ namespace AMU.Editor.VrcAssetManager.UI
                     GUILayout.Label("Archived:", labelStyle, GUILayout.Width(70));
                     GUILayout.Label(state.isArchived ? "Yes" : "No", valueStyle);
                 }
-                // 親アセット表示
+
                 if (!string.IsNullOrEmpty(_asset.parentGroupId) && _controller != null)
                 {
                     var parentAsset = _controller.GetAsset(Guid.Parse(_asset.parentGroupId));
                     if (parentAsset != null)
                     {
                         GUILayout.Space(4);
+
                         using (new GUILayout.HorizontalScope())
                         {
                             GUILayout.Label("親アセット:", labelStyle, GUILayout.Width(70));
+
                             if (GUILayout.Button(parentAsset.metadata.name, chipStyle))
                             {
-                                ShowWindow(parentAsset, _controller);
+                                if (_history.Count > 0 && _history[_history.Count - 1] == parentAsset.assetId)
+                                {
+                                    _history.RemoveAt(_history.Count - 1);
+                                    ShowWindow(parentAsset, _controller, true);
+                                }
+                                else
+                                {
+                                    ShowWindow(parentAsset, _controller);
+                                }
                             }
                         }
                     }
                 }
-                // 子アセット表示
+
                 if (_asset.childAssetIds != null && _asset.childAssetIds.Count > 0 && _controller != null)
                 {
                     GUILayout.Space(4);
+
                     GUILayout.Label("子アセット:", labelStyle);
+
                     using (new GUILayout.HorizontalScope())
                     {
                         foreach (var childId in _asset.childAssetIds)
@@ -210,7 +236,16 @@ namespace AMU.Editor.VrcAssetManager.UI
                                 {
                                     if (GUILayout.Button(childAsset.metadata.name, chipStyle))
                                     {
-                                        ShowWindow(childAsset, _controller);
+                                        if (_history.Count > 0 && _history[_history.Count - 1] == childAsset.assetId)
+                                        {
+                                            _history.RemoveAt(_history.Count - 1);
+                                            ShowWindow(childAsset, _controller, true);
+
+                                        }
+                                        else
+                                        {
+                                            ShowWindow(childAsset, _controller);
+                                        }
                                     }
                                 }
                             }
@@ -226,6 +261,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     using (new GUILayout.VerticalScope(sectionBoxStyle))
                     {
                         GUILayout.Label("Tags", labelStyle);
+
                         using (new GUILayout.HorizontalScope())
                         {
                             foreach (var tag in metadata.tags)
@@ -238,6 +274,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                                         _controller.filterOptions.tags = new List<string> { tag };
                                         _controller.filterOptions.tagsAnd = false;
                                     }
+
                                     ToolbarComponent.isUsingAdvancedSearch = true;
                                     VrcAssetManagerWindow.ShowWindow();
                                 }
@@ -254,12 +291,14 @@ namespace AMU.Editor.VrcAssetManager.UI
                     using (new GUILayout.VerticalScope(sectionBoxStyle))
                     {
                         GUILayout.Label("Dependencies", labelStyle);
+
                         using (new GUILayout.HorizontalScope())
                         {
                             foreach (var dep in metadata.dependencies)
                             {
                                 string depName = dep;
                                 AssetSchema depAsset = null;
+
                                 if (_controller != null)
                                 {
                                     depAsset = _controller.GetAsset(new Guid(dep));
@@ -268,11 +307,20 @@ namespace AMU.Editor.VrcAssetManager.UI
                                         depName = depAsset.metadata.name;
                                     }
                                 }
+
                                 if (depAsset != null)
                                 {
                                     if (GUILayout.Button(depName, chipStyle))
                                     {
-                                        AssetDetailWindow.ShowWindow(depAsset, _controller);
+                                        if (_history.Count > 0 && _history[_history.Count - 1] == depAsset.assetId)
+                                        {
+                                            _history.RemoveAt(_history.Count - 1);
+                                            AssetDetailWindow.ShowWindow(depAsset, _controller, true);
+                                        }
+                                        else
+                                        {
+                                            AssetDetailWindow.ShowWindow(depAsset, _controller);
+                                        }
                                     }
                                 }
                                 else
@@ -290,8 +338,10 @@ namespace AMU.Editor.VrcAssetManager.UI
                 using (new GUILayout.VerticalScope(sectionBoxStyle))
                 {
                     GUILayout.Label("Booth Item", labelStyle);
+                    
                     GUILayout.Label(_asset.boothItem.itemName, valueStyle);
                     GUILayout.Label(_asset.boothItem.authorName, labelStyle);
+
                     if (!string.IsNullOrEmpty(_asset.boothItem.itemUrl))
                     {
                         if (GUILayout.Button("Open Booth Page"))
