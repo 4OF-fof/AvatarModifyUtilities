@@ -19,20 +19,11 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         public static void ShowWindow(AssetSchema asset, Vector2 position)
         {
-            foreach (var win in Resources.FindObjectsOfTypeAll<AssetDetailWindow>())
-            {
-                win.Focus();
-            }
-            var window = CreateInstance<AssetDetailWindow>();
+            var window = GetWindow<AssetDetailWindow>(typeof(VrcAssetManagerWindow));
             window._asset = asset;
             window.titleContent = new GUIContent("Asset Detail: " + asset.Metadata.Name);
             window.minSize = new Vector2(400, 600);
-
             window.Show();
-            window.Focus();
-
-            var mouseScreenPos = GUIUtility.GUIToScreenPoint(position);
-            window.position = new Rect(mouseScreenPos.x, mouseScreenPos.y, window.minSize.x, window.minSize.y);
         }
 
         private void InitStyles()
