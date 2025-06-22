@@ -155,9 +155,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         _sortDescending = newSortDescending;
                         _controller.sortOptions.isDescending = _sortDescending;
                     }
-                    
+
                     GUILayout.Space(10);
-                    
+
                     if (MainGridComponent.selectedAssetCount > 1)
                     {
                         var selectedCountStyle = new GUIStyle(EditorStyles.toolbarButton)
