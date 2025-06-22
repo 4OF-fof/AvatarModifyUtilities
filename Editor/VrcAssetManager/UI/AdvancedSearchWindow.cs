@@ -16,6 +16,7 @@ namespace AMU.Editor.VrcAssetManager.UI
         private List<string> _tags = new List<string>();
         private bool _tagsAnd = false;
         private bool _filterAnd = false;
+        private Vector2 _scrollPosition = Vector2.zero;
 
         public static void ShowWindow(AssetLibraryController controller)
         {
@@ -40,83 +41,91 @@ namespace AMU.Editor.VrcAssetManager.UI
             GUILayout.Label("詳細検索", EditorStyles.boldLabel);
             GUILayout.Space(8);
 
-            EditorGUILayout.BeginVertical(GUI.skin.box);
-            // 全体ANDトグル
-            _filterAnd = EditorGUILayout.ToggleLeft("全体をANDで絞り込む", _filterAnd);
-            EditorGUILayout.LabelField("検索条件", EditorStyles.boldLabel);
-            GUILayout.Space(4);
+            using (new GUILayout.VerticalScope(GUI.skin.box))
+            {
+                EditorGUILayout.LabelField("検索条件", EditorStyles.boldLabel);
+                GUILayout.Space(4);
 
-            // 名前・作者・説明
-            using (new GUILayout.HorizontalScope())
-            {
-                GUILayout.Label("名前", GUILayout.Width(60));
-                _name = EditorGUILayout.TextField(_name, GUILayout.MinWidth(200));
+                // 名前・作者・説明
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUILayout.Label("名前", GUILayout.Width(60));
+                    _name = EditorGUILayout.TextField(_name, GUILayout.MinWidth(200));
+                }
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUILayout.Label("作者", GUILayout.Width(60));
+                    _author = EditorGUILayout.TextField(_author, GUILayout.MinWidth(200));
+                }
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUILayout.Label("説明", GUILayout.Width(60));
+                    _description = EditorGUILayout.TextField(_description, GUILayout.MinWidth(200));
+                }
             }
-            using (new GUILayout.HorizontalScope())
-            {
-                GUILayout.Label("作者", GUILayout.Width(60));
-                _author = EditorGUILayout.TextField(_author, GUILayout.MinWidth(200));
-            }
-            using (new GUILayout.HorizontalScope())
-            {
-                GUILayout.Label("説明", GUILayout.Width(60));
-                _description = EditorGUILayout.TextField(_description, GUILayout.MinWidth(200));
-            }
-            EditorGUILayout.EndVertical();
 
             GUILayout.Space(10);
 
-            EditorGUILayout.BeginVertical(GUI.skin.box);
-            GUILayout.Label("タグ", EditorStyles.boldLabel);
-            if (_tags.Count > 0)
+            using (new GUILayout.VerticalScope(GUI.skin.box))
             {
-                using (new GUILayout.VerticalScope())
+                GUILayout.Label("タグ", EditorStyles.boldLabel);
+                if (_tags.Count > 0)
                 {
-                    foreach (var tag in _tags)
+                    using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition, GUILayout.Height(135)))
                     {
-                        GUIStyle tagBox = new GUIStyle(EditorStyles.helpBox);
-                        tagBox.fontSize = 12;
-                        tagBox.fixedHeight = 24;
-                        tagBox.alignment = TextAnchor.MiddleCenter;
-                        tagBox.padding = new RectOffset(6, 6, 2, 2);
-                        tagBox.margin = new RectOffset(2, 2, 2, 2);
-                        EditorGUILayout.LabelField(tag, tagBox, GUILayout.ExpandWidth(true));
+                        _scrollPosition = scrollView.scrollPosition;
+                        using (new GUILayout.VerticalScope())
+                        {
+                            foreach (var tag in _tags)
+                            {
+                                GUIStyle tagBox = new GUIStyle(EditorStyles.helpBox);
+                                tagBox.fontSize = 12;
+                                tagBox.fixedHeight = 24;
+                                tagBox.alignment = TextAnchor.MiddleCenter;
+                                tagBox.padding = new RectOffset(6, 6, 2, 2);
+                                tagBox.margin = new RectOffset(2, 2, 2, 2);
+                                EditorGUILayout.LabelField(tag, tagBox, GUILayout.ExpandWidth(true));
+                            }
+                        }
+                    }
+                    if (GUILayout.Button("タグ選択", GUILayout.ExpandWidth(true)))
+                    {
+                        TagSelectorWindow.ShowWindow(true, tags =>
+                        {
+                            _tags = tags ?? new List<string>();
+                            Repaint();
+                        }, _tags);
+                    }
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        GUILayout.FlexibleSpace();
+                        _tagsAnd = EditorGUILayout.ToggleLeft("タグをANDで絞り込む", _tagsAnd, GUILayout.Width(130));
+                        GUILayout.FlexibleSpace();
                     }
                 }
-                if (GUILayout.Button("タグ選択", GUILayout.ExpandWidth(true)))
+                else
                 {
-                    TagSelectorWindow.ShowWindow(true, tags =>
+                    if (GUILayout.Button("タグ選択", GUILayout.ExpandWidth(true)))
                     {
-                        _tags = tags ?? new List<string>();
-                        Repaint();
-                    }, _tags);
-                }
-                _tagsAnd = EditorGUILayout.ToggleLeft("タグをANDで絞り込む", _tagsAnd);
-            }
-            else
-            {
-                if (GUILayout.Button("タグ選択", GUILayout.ExpandWidth(true)))
-                {
-                    TagSelectorWindow.ShowWindow(true, tags =>
-                    {
-                        _tags = tags ?? new List<string>();
-                        Repaint();
-                    }, _tags);
+                        TagSelectorWindow.ShowWindow(true, tags =>
+                        {
+                            _tags = tags ?? new List<string>();
+                            Repaint();
+                        }, _tags);
+                    }
                 }
             }
-            EditorGUILayout.EndVertical();
 
-            GUILayout.FlexibleSpace();
-            GUILayout.Space(8);
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            _filterAnd = EditorGUILayout.ToggleLeft("全体をANDで絞り込む", _filterAnd, GUILayout.Width(160));
             using (new GUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("キャンセル", GUILayout.Width(100)))
+                if (GUILayout.Button("キャンセル", GUILayout.Width(80)))
                 {
                     Close();
                 }
                 GUILayout.FlexibleSpace();
-                if (GUILayout.Button("検索", GUILayout.Width(120)))
+                if (GUILayout.Button("検索", GUILayout.Width(150)))
                 {
                     ApplySearch();
                     Close();
