@@ -8,12 +8,12 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 {
     public class AssetItemComponent
     {
-        public void Draw(AssetSchema asset, float thumbnailSize, bool isSelected, bool isMultiSelected, Action<AssetSchema> onLeftClick, Action<AssetSchema> onRightClick, Action<AssetSchema> onDoubleClick)
+        public void Draw(AssetSchema asset, bool isSelected, bool isMultiSelected, Action<AssetSchema> onLeftClick, Action<AssetSchema> onRightClick, Action<AssetSchema> onDoubleClick)
         {
 
-            using (new GUILayout.VerticalScope(GUILayout.Width(thumbnailSize + 10)))
+            using (new GUILayout.VerticalScope(GUILayout.Width(125)))
             {
-                var thumbnailRect = GUILayoutUtility.GetRect(thumbnailSize, thumbnailSize);
+                var thumbnailRect = GUILayoutUtility.GetRect(115, 115);
 
                 if (isSelected && isMultiSelected)
                 {
@@ -30,32 +30,19 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                 DrawThumbnailComponent.Draw(thumbnailRect, asset);
 
-                DrawIndicator(thumbnailRect, thumbnailSize, asset);
-
-                var baseFontSize = 10f;
-                var baseThumbnailSize = 110f;
-                var scaledFontSize = Mathf.RoundToInt(baseFontSize * (thumbnailSize / baseThumbnailSize));
-                scaledFontSize = Mathf.Clamp(scaledFontSize, 8, 16);
+                DrawIndicator(thumbnailRect, 115, asset);
 
                 var nameStyle = new GUIStyle(EditorStyles.label)
                 {
                     wordWrap = true,
                     alignment = TextAnchor.UpperCenter,
-                    fontSize = scaledFontSize,
+                    fontSize = 12,
                     richText = true
                 };
-                var availableWidth = thumbnailSize + 10;
 
-                var fixedHeight = nameStyle.lineHeight * 2 + 5;
-                var rect = GUILayoutUtility.GetRect(availableWidth, fixedHeight);
+                var rect = GUILayoutUtility.GetRect(125, 30);
 
-                var displayText = TruncateTextToFitHeight(asset.metadata.name, nameStyle, availableWidth, fixedHeight);
-                var content = new GUIContent(displayText);
-
-                if (displayText != asset.metadata.name)
-                {
-                    EditorGUI.DrawRect(rect, new Color(0.2f, 0.3f, 0.4f, 0.15f));
-                }
+                var content = new GUIContent(asset.metadata.name);
 
                 GUI.Label(rect, content, nameStyle);
 
@@ -67,7 +54,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         {
             if (asset.hasChildAssets)
             {
-                var iconSize = 20f * (thumbnailSize / 110f);
+                var iconSize = 20;
                 var indicatorRect = new Rect(thumbnailRect.x + 4, thumbnailRect.y + 4, iconSize, iconSize);
 
                 var folderIcon = EditorGUIUtility.IconContent("Folder Icon").image as Texture2D;
@@ -93,8 +80,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
             if (asset.state.isFavorite)
             {
-                var starSize = 25f * (thumbnailSize / 110f);
-                var iconSize = 20f * (thumbnailSize / 110f);
+                var starSize = 25;
+                var iconSize = 20;
 
                 var yOffset = asset.hasChildAssets ? 2 + iconSize + 2 : 2;
                 var starRect = new Rect(thumbnailRect.x + 2, thumbnailRect.y + yOffset, starSize, starSize);
@@ -122,50 +109,6 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                 GUI.color = originalColor;
             }
-        }
-
-        private string TruncateTextToFitHeight(string text, GUIStyle style, float width, float maxHeight)
-        {
-            var testContent = new GUIContent(text);
-            var textHeight = style.CalcHeight(testContent, width);
-
-            if (textHeight <= maxHeight)
-                return text;
-
-            var words = text.Split(' ');
-            var result = "";
-
-            for (int i = 0; i < words.Length; i++)
-            {
-                var testText = string.IsNullOrEmpty(result) ? words[i] : result + " " + words[i];
-                var testContent2 = new GUIContent(testText);
-                var testHeight = style.CalcHeight(testContent2, width);
-
-                if (testHeight > maxHeight)
-                {
-                    break;
-                }
-                result = testText;
-            }
-
-            if (string.IsNullOrEmpty(result) && text.Length > 0)
-            {
-                for (int i = 1; i <= text.Length; i++)
-                {
-                    var testText = text.Substring(0, i);
-                    var testContent3 = new GUIContent(testText);
-                    var testHeight = style.CalcHeight(testContent3, width);
-
-                    if (testHeight > maxHeight)
-                    {
-                        result = i > 1 ? text.Substring(0, i - 1) : text.Substring(0, 1);
-                        break;
-                    }
-                    result = testText;
-                }
-            }
-
-            return result;
         }
 
         private void HandleAssetItemEvents(AssetSchema asset, Rect thumbnailRect, Action<AssetSchema> onLeftClick, Action<AssetSchema> onRightClick, Action<AssetSchema> onDoubleClick)

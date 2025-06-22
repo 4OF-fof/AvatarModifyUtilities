@@ -14,8 +14,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         private static Vector2 _scrollPosition = Vector2.zero;
         private static AssetSchema _selectedAsset;
         private static List<AssetSchema> _selectedAssets = new List<AssetSchema>();
-        private static float _thumbnailSize = 120f;
         private static AssetItemComponent _assetItemComponent = new AssetItemComponent();
+        private static int _currentPage = 1;
+        private static int _maxPage = 1;
 
         public static int selectedAssetCount => _selectedAssets?.Count ?? 0;
 
@@ -24,108 +25,151 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             var originalColor = GUI.backgroundColor;
             GUI.backgroundColor = new Color(0.9f, 0.9f, 0.9f, 1f);
 
-            using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+            var assets = controller.GetFilteredAssets();
+
+            if (controller.sortOptions != null)
             {
-                GUI.backgroundColor = originalColor;
-                if (controller?.library == null)
+                var sortedAssets = new List<AssetSchema>(assets);
+
+                switch (controller.sortOptions.sortBy)
                 {
-                    GUILayout.FlexibleSpace();
-                    using (new GUILayout.HorizontalScope())
-                    {
-                        GUILayout.FlexibleSpace();
-                        GUILayout.Label(LocalizationAPI.GetText("AssetManager_libraryNotInitialized"), EditorStyles.largeLabel);
-                        GUILayout.FlexibleSpace();
-                    }
-                    GUILayout.FlexibleSpace();
-                    return;
+                    case SortOptionsEnum.Name:
+                        // Although the definition is the opposite, this is a better experience.
+                        if (controller.sortOptions.isDescending)
+                        {
+                            sortedAssets = sortedAssets
+                                .OrderBy(asset => asset.metadata.name)
+                                .ToList();
+                        }
+                        else
+                        {
+                            sortedAssets = sortedAssets
+                                .OrderByDescending(asset => asset.metadata.name)
+                                .ToList();
+                        }
+                        break;
+                    case SortOptionsEnum.Date:
+                        if (controller.sortOptions.isDescending)
+                        {
+                            sortedAssets = sortedAssets
+                                .OrderByDescending(asset => asset.metadata.modifiedDate)
+                                .ToList();
+                        }
+                        else
+                        {
+                            sortedAssets = sortedAssets
+                                .OrderBy(asset => asset.metadata.modifiedDate)
+                                .ToList();
+                        }
+                        break;
                 }
 
-                var assets = controller.GetFilteredAssets();
-
-                if (controller.sortOptions != null)
+                assets = sortedAssets;
+            }
+            using (new GUILayout.VerticalScope())
+            {
+                using (new GUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Height(750)))
                 {
-                    var sortedAssets = new List<AssetSchema>(assets);
-
-                    switch (controller.sortOptions.sortBy)
-                    {
-                        case SortOptionsEnum.Name:
-                            // Although the definition is the opposite, this is a better experience.
-                            if (controller.sortOptions.isDescending)
-                            {
-                                sortedAssets = sortedAssets
-                                    .OrderBy(asset => asset.metadata.name)
-                                    .ToList();
-                            }
-                            else
-                            {
-                                sortedAssets = sortedAssets
-                                    .OrderByDescending(asset => asset.metadata.name)
-                                    .ToList();
-                            }
-                            break;
-                        case SortOptionsEnum.Date:
-                            if (controller.sortOptions.isDescending)
-                            {
-                                sortedAssets = sortedAssets
-                                    .OrderByDescending(asset => asset.metadata.modifiedDate)
-                                    .ToList();
-                            }
-                            else
-                            {
-                                sortedAssets = sortedAssets
-                                    .OrderBy(asset => asset.metadata.modifiedDate)
-                                    .ToList();
-                            }
-                            break;
-                    }
-
-                    assets = sortedAssets;
-                }
-
-                if (assets == null || assets.Count == 0)
-                {
-                    GUILayout.FlexibleSpace();
-                    using (new GUILayout.HorizontalScope())
+                    GUI.backgroundColor = originalColor;
+                    if (controller?.library == null)
                     {
                         GUILayout.FlexibleSpace();
-                        GUILayout.Label(LocalizationAPI.GetText("AssetManager_noAssets"), EditorStyles.largeLabel);
-                        GUILayout.FlexibleSpace();
-                    }
-                    GUILayout.FlexibleSpace();
-                    return;
-                }
-
-                using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition))
-                {
-                    _scrollPosition = scrollView.scrollPosition;
-
-                    float availableWidth = 920;
-                    int columnsPerRow = controller.columnsPerRow;
-                    float calculatedThumbnailSize = (availableWidth - (columnsPerRow - 1) * 10) / columnsPerRow;
-                    _thumbnailSize = Mathf.Max(60f, calculatedThumbnailSize);
-
-                    for (int i = 0; i < assets.Count; i += columnsPerRow)
-                    {
                         using (new GUILayout.HorizontalScope())
                         {
-                            for (int j = 0; j < columnsPerRow && i + j < assets.Count; j++)
-                            {
-                                var asset = assets[i + j];
-                                bool isSelected = _selectedAsset == asset;
-                                bool isMultiSelected = _selectedAssets.Contains(asset);
-                                _assetItemComponent.Draw(
-                                    asset,
-                                    _thumbnailSize,
-                                    isSelected,
-                                    isMultiSelected && _selectedAssets.Count > 1,
-                                    a => HandleAssetLeftClick(a, controller),
-                                    a => HandleAssetRightClick(a, controller),
-                                    a => HandleAssetDoubleClick(a, controller)
-                                );
-                            }
+                            GUILayout.FlexibleSpace();
+                            GUILayout.Label(LocalizationAPI.GetText("AssetManager_libraryNotInitialized"), EditorStyles.largeLabel);
                             GUILayout.FlexibleSpace();
                         }
+                        GUILayout.FlexibleSpace();
+                        return;
                     }
+
+                    if (assets == null || assets.Count == 0)
+                    {
+                        GUILayout.FlexibleSpace();
+                        using (new GUILayout.HorizontalScope())
+                        {
+                            GUILayout.FlexibleSpace();
+                            GUILayout.Label(LocalizationAPI.GetText("AssetManager_noAssets"), EditorStyles.largeLabel);
+                            GUILayout.FlexibleSpace();
+                        }
+                        GUILayout.FlexibleSpace();
+                        return;
+                    }
+
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        GUILayout.FlexibleSpace();
+                        using (new GUILayout.VerticalScope())
+                        {
+                            GUILayout.Space(5);
+                            _maxPage = Mathf.Max(1, Mathf.CeilToInt((float)assets.Count / 35));
+                            _currentPage = Mathf.Clamp(_currentPage, 1, _maxPage);
+                            int _startIndex = (_currentPage - 1) * 35;
+                            int _endIndex = Mathf.Min(_startIndex + 35, assets.Count);
+
+                            for (int i = _startIndex; i < _endIndex && i < assets.Count; i += 7)
+                            {
+                                using (new GUILayout.HorizontalScope())
+                                {
+                                    for (int j = 0; j < 7 && i+j < assets.Count; j++)
+                                    {
+                                        var asset = assets[i + j];
+                                        bool isSelected = _selectedAsset == asset;
+                                        bool isMultiSelected = _selectedAssets.Contains(asset);
+                                        _assetItemComponent.Draw(
+                                            asset,
+                                            isSelected,
+                                            isMultiSelected && _selectedAssets.Count > 1,
+                                            a => HandleAssetLeftClick(a, controller),
+                                            a => HandleAssetRightClick(a, controller),
+                                            a => HandleAssetDoubleClick(a, controller)
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                        GUILayout.FlexibleSpace();
+                    }
+                }
+                using (new GUILayout.HorizontalScope(GUILayout.Height(30)))
+                {
+                    GUILayout.FlexibleSpace();
+
+                    GUI.enabled = _currentPage != 1;
+                    if (GUILayout.Button("<<", GUILayout.Width(30)))
+                    {
+                        _currentPage = 1;
+                    }
+
+                    if (GUILayout.Button("<", GUILayout.Width(30)))
+                    {
+                        _currentPage = Mathf.Max(1, _currentPage - 1);
+                    }
+
+                    GUI.enabled = true;
+                    using (new GUILayout.VerticalScope())
+                    {
+                        GUILayout.FlexibleSpace();
+                        GUILayout.Label($"Page {_currentPage} / {_maxPage}", EditorStyles.label);
+                        GUILayout.Space(8);
+                        GUILayout.FlexibleSpace();
+                    }
+
+                    GUI.enabled = _currentPage != _maxPage;
+                    if (GUILayout.Button(">", GUILayout.Width(30)))
+                    {
+                        _currentPage = Mathf.Min(_maxPage, _currentPage + 1);
+                    }
+
+                    if (GUILayout.Button(">>", GUILayout.Width(30)))
+                    {
+                        _currentPage = _maxPage;
+                    }
+
+                    GUI.enabled = true;
+
+                    GUILayout.FlexibleSpace();
                 }
             }
         }

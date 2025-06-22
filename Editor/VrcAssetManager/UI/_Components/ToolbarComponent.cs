@@ -109,14 +109,6 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                     GUILayout.FlexibleSpace();
 
-                    var newColumnsPerRow = (int)GUILayout.HorizontalSlider(_controller.columnsPerRow, 4, 13, GUILayout.Width(80));
-                    if (newColumnsPerRow != _controller.columnsPerRow)
-                    {
-                        _controller.columnsPerRow = newColumnsPerRow;
-                    }
-
-                    GUILayout.Space(5);
-
                     var folderIcon = _isChildItem ? EditorGUIUtility.IconContent("FolderOpened Icon") : EditorGUIUtility.IconContent("Folder Icon");
                     var folderContent = new GUIContent(folderIcon.image);
 
