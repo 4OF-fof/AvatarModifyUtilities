@@ -111,41 +111,42 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     {
                         bool isSelected = _selectedAssetType == assetType;
 
-                        using (new GUILayout.HorizontalScope())
+                        var rowRect = GUILayoutUtility.GetRect(1, 36, GUILayout.ExpandWidth(true));
+                        float deleteButtonWidth = (_showDeleteButtons ? 24f : 0f); // 余白も考慮
+                        float spacing = (_showDeleteButtons ? 4f : 0f);
+                        var typeRect = new Rect(rowRect.x, rowRect.y, rowRect.width - deleteButtonWidth - spacing, rowRect.height);
+                        var deleteRect = new Rect(rowRect.x + rowRect.width - deleteButtonWidth, rowRect.y + (rowRect.height - 28) / 2, 20, 28);
+
+                        bool pressed = GUI.Toggle(typeRect, isSelected, assetType,
+                            isSelected ? selectedTypeButtonStyle : typeButtonStyle);
+
+                        if (pressed && !isSelected)
                         {
-                            bool pressed = GUILayout.Toggle(isSelected, assetType,
-                                isSelected ? selectedTypeButtonStyle : typeButtonStyle,
-                                GUILayout.ExpandWidth(true), GUILayout.Height(36));
+                            _selectedAssetType = controller.filterOptions.assetType = assetType;
+                        }
 
-                            if (pressed && !isSelected)
+                        if (_showDeleteButtons)
+                        {
+                            var deleteButtonStyle = new GUIStyle(GUI.skin.button)
                             {
-                                _selectedAssetType = controller.filterOptions.assetType = assetType;
-                            }
-
-                            if (_showDeleteButtons)
+                                fontSize = 12,
+                                fontStyle = FontStyle.Bold,
+                                fixedWidth = 20,
+                                fixedHeight = 28,
+                                normal = { textColor = Color.red }
+                            };
+                            if (GUI.Button(deleteRect, EditorGUIUtility.IconContent("d_winbtn_win_close"), deleteButtonStyle))
                             {
-                                var deleteButtonStyle = new GUIStyle(GUI.skin.button)
+                                if (EditorUtility.DisplayDialog(
+                                    LocalizationAPI.GetText("AssetType_confirmDelete_title"),
+                                    LocalizationAPI.GetText("AssetType_confirmDelete_message"),
+                                    LocalizationAPI.GetText("Common_delete"),
+                                    LocalizationAPI.GetText("Common_cancel")))
                                 {
-                                    fontSize = 12,
-                                    fontStyle = FontStyle.Bold,
-                                    fixedWidth = 24,
-                                    fixedHeight = 36,
-                                    normal = { textColor = Color.red }
-                                };
-
-                                if (GUILayout.Button(EditorGUIUtility.IconContent("d_winbtn_win_close"), deleteButtonStyle))
-                                {
-                                    if (EditorUtility.DisplayDialog(
-                                        LocalizationAPI.GetText("AssetType_confirmDelete_title"),
-                                        LocalizationAPI.GetText("AssetType_confirmDelete_message"),
-                                        LocalizationAPI.GetText("Common_delete"),
-                                        LocalizationAPI.GetText("Common_cancel")))
+                                    controller.RemoveAssetType(assetType);
+                                    if (_selectedAssetType == assetType)
                                     {
-                                        controller.RemoveAssetType(assetType);
-                                        if (_selectedAssetType == assetType)
-                                        {
-                                            _selectedAssetType = controller.filterOptions.assetType = "";
-                                        }
+                                        _selectedAssetType = controller.filterOptions.assetType = "";
                                     }
                                 }
                             }
