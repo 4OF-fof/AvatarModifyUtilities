@@ -5,6 +5,8 @@ using UnityEngine;
 using AMU.Editor.VrcAssetManager.Schema;
 using AMU.Editor.VrcAssetManager.UI.Components;
 using AMU.Editor.VrcAssetManager.Controller;
+using AMU.Editor.Core.Api;
+using System.IO;
 
 namespace AMU.Editor.VrcAssetManager.UI
 {
@@ -34,6 +36,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             window._asset = asset;
             window.titleContent = new GUIContent("Asset Detail: " + asset.metadata.name);
             window.minSize = window.maxSize = new Vector2(1200, 800);
+            window.maximized = false;
             window.Show();
             _currentAsset = asset;
         }
@@ -90,8 +93,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                 margin = new RectOffset(0, 0, 8, 8),
                 normal = { background = MakeTex(2, 2, new Color(0.3f, 0.3f, 0.3f, 0.7f)) }
             };
-
-            // スクロールバースキンの適用はVrcAssetManagerWindowで行うため、ここでは不要
 
             using (new GUILayout.HorizontalScope())
             {
@@ -369,6 +370,25 @@ namespace AMU.Editor.VrcAssetManager.UI
                                 }
                             }
                         }
+                    }
+                }
+            }
+            if (_asset != null && _asset.fileInfo != null && !string.IsNullOrEmpty(_asset.fileInfo.filePath))
+            {
+                var filePath = _asset.fileInfo.filePath;
+                var ext = Path.GetExtension(filePath).ToLowerInvariant();
+                var excludedExts = SettingAPI.GetSetting<string>("AssetManager_excludedImportExtensions");
+                if (excludedExts != null && !excludedExts.Contains(ext))
+                {
+                    GUILayout.FlexibleSpace();
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.Button("インポート", GUILayout.Width(120), GUILayout.Height(36)))
+                        {
+                            Debug.Log("Import clicked");
+                        }
+                        GUILayout.FlexibleSpace();
                     }
                 }
             }

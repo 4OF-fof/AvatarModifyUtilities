@@ -19,6 +19,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             LocalizationAPI.LoadLanguage(lang);
             var window = GetWindow<VrcAssetManagerWindow>(LocalizationAPI.GetText("VrcAssetManager_title"));
             window.minSize = window.maxSize = new Vector2(1200, 800);
+            window.maximized = false;
             window.Show();
         }
 
