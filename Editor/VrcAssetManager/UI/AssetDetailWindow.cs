@@ -147,7 +147,19 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 GUILayout.Space(8);
 
-                GUILayout.Label(metadata.name, titleStyle);
+                if (_asset.boothItem != null && !string.IsNullOrEmpty(_asset.boothItem.itemUrl))
+                {
+                    if (GUILayout.Button(metadata.name, titleStyle))
+                    {
+                        Application.OpenURL(_asset.boothItem.itemUrl);
+                    }
+                }
+                else
+                {
+                    var normalTitleStyle = new GUIStyle(titleStyle);
+                    normalTitleStyle.normal.textColor = EditorStyles.label.normal.textColor;
+                    GUILayout.Label(metadata.name, normalTitleStyle);
+                }
 
                 if (!string.IsNullOrEmpty(metadata.description))
                 {
@@ -337,25 +349,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                                     GUILayout.Label(depName, chipStyle);
                                 }
                             }
-                        }
-                    }
-                }
-            }
-
-            if (_asset.boothItem != null)
-            {
-                using (new GUILayout.VerticalScope(sectionBoxStyle))
-                {
-                    GUILayout.Label("Booth Item", labelStyle);
-
-                    GUILayout.Label(_asset.boothItem.itemName, valueStyle);
-                    GUILayout.Label(_asset.boothItem.authorName, labelStyle);
-
-                    if (!string.IsNullOrEmpty(_asset.boothItem.itemUrl))
-                    {
-                        if (GUILayout.Button("Open Booth Page"))
-                        {
-                            Application.OpenURL(_asset.boothItem.itemUrl);
                         }
                     }
                 }
