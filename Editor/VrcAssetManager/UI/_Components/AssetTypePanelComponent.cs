@@ -133,7 +133,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                                     normal = { textColor = Color.red }
                                 };
 
-                                if (GUILayout.Button("×", deleteButtonStyle))
+                                if (GUILayout.Button(EditorGUIUtility.IconContent("d_winbtn_win_close"), deleteButtonStyle))
                                 {
                                     if (EditorUtility.DisplayDialog(
                                         LocalizationAPI.GetText("AssetType_confirmDelete_title"),
@@ -194,7 +194,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                             fixedHeight = 24
                         };
 
-                        if (GUILayout.Button("+", addButtonStyle))
+                        if (GUILayout.Button(EditorGUIUtility.IconContent("Toolbar Plus"), addButtonStyle))
                         {
                             var trimmedName = _newTypeName.Trim();
                             controller.AddAssetType(trimmedName);
