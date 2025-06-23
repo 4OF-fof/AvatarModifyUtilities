@@ -14,6 +14,7 @@ namespace AMU.Editor.VrcAssetManager.UI
         private bool _isEditMode = false;
         private static List<Guid> _history = new List<Guid>();
         private static AssetSchema _currentAsset = null;
+        private Vector2 _descScroll = Vector2.zero;
 
         public static List<Guid> history { get => _history; set => _history = value; }
 
@@ -147,7 +148,16 @@ namespace AMU.Editor.VrcAssetManager.UI
                 GUILayout.Space(8);
 
                 GUILayout.Label(metadata.name, titleStyle);
-                GUILayout.Label(metadata.description, EditorStyles.wordWrappedLabel);
+
+                if (!string.IsNullOrEmpty(metadata.description))
+                {
+                    using (new GUILayout.VerticalScope(sectionBoxStyle))
+                    {
+                        _descScroll = GUILayout.BeginScrollView(_descScroll, GUILayout.Height(120));
+                        EditorGUILayout.LabelField(metadata.description, EditorStyles.wordWrappedLabel);
+                        GUILayout.EndScrollView();
+                    }
+                }
 
                 GUILayout.Space(4);
 
