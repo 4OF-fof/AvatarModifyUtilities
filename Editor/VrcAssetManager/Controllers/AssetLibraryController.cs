@@ -11,6 +11,10 @@ namespace AMU.Editor.VrcAssetManager.Controller
 {
     public class AssetLibraryController
     {
+        private static AssetLibraryController _instance;
+        public static AssetLibraryController Instance => _instance ??= new AssetLibraryController();
+        private AssetLibraryController() {}
+
         public AssetLibrarySchema library { get; private set; }
         public FilterOptions filterOptions { get; set; } = new FilterOptions();
         public SortOptions sortOptions { get; set; } = new SortOptions();

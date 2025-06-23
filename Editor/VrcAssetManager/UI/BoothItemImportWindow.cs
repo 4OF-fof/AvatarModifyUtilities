@@ -18,12 +18,10 @@ namespace AMU.Editor.VrcAssetManager.UI
         private List<BoothItemSchema> _boothItems = new List<BoothItemSchema>();
         private List<BoothItemSchema> _filteredBoothItems = new List<BoothItemSchema>();
         private Vector2 _scrollPosition;
-        private AssetLibraryController _controller;
 
-        public static void ShowWindowWithFile(AssetLibraryController controller, string filePath)
+        public static void ShowWindowWithFile(string filePath)
         {
             var window = GetWindow<BoothItemImportWindow>("Boothアイテム一括登録");
-            window._controller = controller;
             window._filePath = filePath;
             window.LoadBoothItems();
             window.minSize = new Vector2(600, 400);
@@ -41,14 +39,11 @@ namespace AMU.Editor.VrcAssetManager.UI
                 var json = File.ReadAllText(_filePath);
                 _boothItems = JsonConvert.DeserializeObject<List<BoothItemSchema>>(json);
                 var existing = new HashSet<string>();
-                if (_controller != null)
+                foreach (var asset in AssetLibraryController.Instance.GetAllAssets())
                 {
-                    foreach (var asset in _controller.GetAllAssets())
-                    {
-                        var b = asset.boothItem;
-                        if (b == null) continue;
-                        existing.Add(GetBoothItemKey(b));
-                    }
+                    var b = asset.boothItem;
+                    if (b == null) continue;
+                    existing.Add(GetBoothItemKey(b));
                 }
                 foreach (var item in _boothItems)
                 {
@@ -140,7 +135,6 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private string GetThumbnailDirPath()
         {
-            if (_controller == null) return null;
             var rootDir = SettingAPI.GetSetting<string>("Core_dirPath");
             var dir = Path.Combine(rootDir, "VrcAssetManager", "BoothItem", "Thumbnail");
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
@@ -178,6 +172,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private void RegisterAllAsAssets()
         {
+            var _controller = AssetLibraryController.Instance;
             if (_controller == null || _filteredBoothItems == null) return;
             int total = _filteredBoothItems.Count;
             var imagePathDict = new Dictionary<BoothItemSchema, string>();

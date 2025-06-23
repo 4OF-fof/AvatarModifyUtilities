@@ -12,8 +12,6 @@ namespace AMU.Editor.VrcAssetManager.UI
 {
     public class VrcAssetManagerWindow : EditorWindow
     {
-        private AssetLibraryController _controller = new AssetLibraryController();
-
         [MenuItem("AMU/VRC Asset Manager", priority = 10000)]
         public static void ShowWindow()
         {
@@ -28,16 +26,16 @@ namespace AMU.Editor.VrcAssetManager.UI
         {
             string lang = SettingAPI.GetSetting<string>("Core_language");
             LocalizationAPI.LoadLanguage(lang);
-            _controller.InitializeLibrary();
+            AssetLibraryController.Instance.InitializeLibrary();
         }
 
         private void OnGUI()
         {
-            ToolbarComponent.Draw(_controller);
+            ToolbarComponent.Draw();
             using (new EditorGUILayout.HorizontalScope())
             {
-                AssetTypePanelComponent.Draw(_controller);
-                MainGridComponent.Draw(_controller);
+                AssetTypePanelComponent.Draw();
+                MainGridComponent.Draw();
             }
         }
 

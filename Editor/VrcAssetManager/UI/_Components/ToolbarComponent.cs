@@ -27,7 +27,6 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         private static bool _sortDescending = true;
         private static bool _isUsingAdvancedSearch = false;
         private static bool _isChildItem = false;
-        private static AssetLibraryController _controller;
 
         public static bool isUsingAdvancedSearch
         {
@@ -35,9 +34,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             set => _isUsingAdvancedSearch = value;
         }
 
-        public static void Draw(AssetLibraryController controller)
+        public static void Draw()
         {
-            _controller = controller;
+            var controller = AssetLibraryController.Instance;
             using (new GUILayout.HorizontalScope(EditorStyles.toolbar))
             {
                 using (new GUILayout.HorizontalScope(GUILayout.Width(240f)))
@@ -59,9 +58,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         if (GUILayout.Button(closeIcon, EditorStyles.toolbarButton, GUILayout.Width(20)))
                         {
                             _isUsingAdvancedSearch = false;
-                            var assetType = _controller.filterOptions.assetType;
-                            _controller.filterOptions.ClearFilter();
-                            _controller.filterOptions.assetType = assetType;
+                            var assetType = controller.filterOptions.assetType;
+                            controller.filterOptions.ClearFilter();
+                            controller.filterOptions.assetType = assetType;
                         }
                     }
                     else
@@ -70,12 +69,12 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         if (newSearchText != _searchText)
                         {
                             _searchText = newSearchText;
-                            _controller.filterOptions.name = _controller.filterOptions.authorName = _controller.filterOptions.description = _searchText;
+                            controller.filterOptions.name = controller.filterOptions.authorName = controller.filterOptions.description = _searchText;
                         }
                         var searchIcon = EditorGUIUtility.IconContent("Search Icon");
                         if (GUILayout.Button(searchIcon, EditorStyles.toolbarButton, GUILayout.Width(40)))
                         {
-                            AdvancedSearchWindow.ShowWindow(_controller, (closedBySearch) => { _isUsingAdvancedSearch = closedBySearch; });
+                            AdvancedSearchWindow.ShowWindow((closedBySearch) => { _isUsingAdvancedSearch = closedBySearch; });
                         }
                     }
                 }
@@ -86,22 +85,22 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     if (GUILayout.Toggle(_currentFilter == AssetFilterType.All, LocalizationAPI.GetText("AssetManager_filterAll"), EditorStyles.toolbarButton))
                     {
                         _currentFilter = AssetFilterType.All;
-                        _controller.filterOptions.isFavorite = null;
-                        _controller.filterOptions.isArchived = false;
+                        controller.filterOptions.isFavorite = null;
+                        controller.filterOptions.isArchived = false;
                     }
 
                     if (GUILayout.Toggle(_currentFilter == AssetFilterType.Favorites, LocalizationAPI.GetText("AssetManager_filterFavorite"), EditorStyles.toolbarButton))
                     {
                         _currentFilter = AssetFilterType.Favorites;
-                        _controller.filterOptions.isFavorite = true;
-                        _controller.filterOptions.isArchived = false;
+                        controller.filterOptions.isFavorite = true;
+                        controller.filterOptions.isArchived = false;
                     }
 
                     if (GUILayout.Toggle(_currentFilter == AssetFilterType.ArchivedOnly, LocalizationAPI.GetText("AssetManager_filterArchived"), EditorStyles.toolbarButton))
                     {
                         _currentFilter = AssetFilterType.ArchivedOnly;
-                        _controller.filterOptions.isFavorite = null;
-                        _controller.filterOptions.isArchived = true;
+                        controller.filterOptions.isFavorite = null;
+                        controller.filterOptions.isArchived = true;
                     }
 
                     GUI.enabled = true;
@@ -116,7 +115,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     if (newIsChildItem != _isChildItem)
                     {
                         _isChildItem = newIsChildItem;
-                        _controller.filterOptions.isChildItem = _isChildItem;
+                        controller.filterOptions.isChildItem = _isChildItem;
                     }
 
                     GUILayout.Space(5);
@@ -137,7 +136,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     if (newSortOption != _selectedSortOption)
                     {
                         _selectedSortOption = newSortOption;
-                        _controller.sortOptions.sortBy = (SortOptionsEnum)_selectedSortOption;
+                        controller.sortOptions.sortBy = (SortOptionsEnum)_selectedSortOption;
                     }
 
                     var sortArrowIcon = _sortDescending ? EditorGUIUtility.IconContent("d_scrolldown") : EditorGUIUtility.IconContent("d_scrollup");
@@ -145,7 +144,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     if (newSortDescending != _sortDescending)
                     {
                         _sortDescending = newSortDescending;
-                        _controller.sortOptions.isDescending = _sortDescending;
+                        controller.sortOptions.isDescending = _sortDescending;
                     }
 
                     GUILayout.Space(10);
@@ -171,7 +170,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         var refreshIcon = EditorGUIUtility.IconContent("d_Refresh");
                         if (GUILayout.Button(refreshIcon, EditorStyles.toolbarButton, GUILayout.Width(40)))
                         {
-                            _controller.SyncAssetLibrary();
+                            controller.SyncAssetLibrary();
                             Debug.Log("Refresh requested");
                         }
                     }
@@ -192,7 +191,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                 if (fileName.Equals("AMU_BoothItem.json", StringComparison.OrdinalIgnoreCase))
                 {
-                    BoothItemImportWindow.ShowWindowWithFile(_controller, selectedFile);
+                    BoothItemImportWindow.ShowWindowWithFile(selectedFile);
                 }
                 else
                 {
@@ -203,7 +202,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
         public static void DestroyWindow()
         {
-            _controller.filterOptions.ClearFilter();
+            AssetLibraryController.Instance.filterOptions.ClearFilter();
             _isUsingAdvancedSearch = false;
             var advWindows = Resources.FindObjectsOfTypeAll<AMU.Editor.VrcAssetManager.UI.AdvancedSearchWindow>();
             if (advWindows != null && advWindows.Length > 0)

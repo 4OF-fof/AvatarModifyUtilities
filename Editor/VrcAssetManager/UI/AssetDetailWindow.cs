@@ -12,13 +12,12 @@ namespace AMU.Editor.VrcAssetManager.UI
     {
         private AssetSchema _asset;
         private bool _isEditMode = false;
-        private AssetLibraryController _controller;
         private static List<Guid> _history = new List<Guid>();
         private static AssetSchema _currentAsset = null;
 
         public static List<Guid> history { get => _history; set => _history = value; }
 
-        public static void ShowWindow(AssetSchema asset, AssetLibraryController controller, bool isBack = false)
+        public static void ShowWindow(AssetSchema asset, bool isBack = false)
         {
             if (!isBack)
             {
@@ -29,7 +28,6 @@ namespace AMU.Editor.VrcAssetManager.UI
             }
             var window = GetWindow<AssetDetailWindow>(typeof(VrcAssetManagerWindow));
             window._asset = asset;
-            window._controller = controller;
             window.titleContent = new GUIContent("Asset Detail: " + asset.metadata.name);
             window.minSize = window.maxSize = new Vector2(1200, 800);
             window.Show();
@@ -49,6 +47,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private void OnGUI()
         {
+            var controller = AssetLibraryController.Instance;
             var sectionBoxStyle = new GUIStyle(GUI.skin.box)
             {
                 padding = new RectOffset(16, 16, 12, 12),
@@ -93,14 +92,14 @@ namespace AMU.Editor.VrcAssetManager.UI
                 {
                     if (GUILayout.Button(backIcon, GUILayout.Width(32), GUILayout.Height(32)))
                     {
-                        if (_controller != null && _history.Count > 0)
+                        if (controller != null && _history.Count > 0)
                         {
                             var prevId = _history[_history.Count - 1];
                             _history.RemoveAt(_history.Count - 1);
-                            var prevAsset = _controller.GetAsset(prevId);
+                            var prevAsset = controller.GetAsset(prevId);
                             if (prevAsset != null)
                             {
-                                ShowWindow(prevAsset, _controller, true);
+                                ShowWindow(prevAsset, true);
                                 return;
                             }
                         }
@@ -192,9 +191,9 @@ namespace AMU.Editor.VrcAssetManager.UI
                     GUILayout.Label(state.isArchived ? "Yes" : "No", valueStyle);
                 }
 
-                if (!string.IsNullOrEmpty(_asset.parentGroupId) && _controller != null)
+                if (!string.IsNullOrEmpty(_asset.parentGroupId) && controller != null)
                 {
-                    var parentAsset = _controller.GetAsset(Guid.Parse(_asset.parentGroupId));
+                    var parentAsset = controller.GetAsset(Guid.Parse(_asset.parentGroupId));
                     if (parentAsset != null)
                     {
                         GUILayout.Space(4);
@@ -208,18 +207,18 @@ namespace AMU.Editor.VrcAssetManager.UI
                                 if (_history.Count > 0 && _history[_history.Count - 1] == parentAsset.assetId)
                                 {
                                     _history.RemoveAt(_history.Count - 1);
-                                    ShowWindow(parentAsset, _controller, true);
+                                    ShowWindow(parentAsset, true);
                                 }
                                 else
                                 {
-                                    ShowWindow(parentAsset, _controller);
+                                    ShowWindow(parentAsset);
                                 }
                             }
                         }
                     }
                 }
 
-                if (_asset.childAssetIds != null && _asset.childAssetIds.Count > 0 && _controller != null)
+                if (_asset.childAssetIds != null && _asset.childAssetIds.Count > 0 && controller != null)
                 {
                     GUILayout.Space(4);
 
@@ -231,7 +230,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                         {
                             if (Guid.TryParse(childId, out var childGuid))
                             {
-                                var childAsset = _controller.GetAsset(childGuid);
+                                var childAsset = controller.GetAsset(childGuid);
                                 if (childAsset != null)
                                 {
                                     if (GUILayout.Button(childAsset.metadata.name, chipStyle))
@@ -239,12 +238,12 @@ namespace AMU.Editor.VrcAssetManager.UI
                                         if (_history.Count > 0 && _history[_history.Count - 1] == childAsset.assetId)
                                         {
                                             _history.RemoveAt(_history.Count - 1);
-                                            ShowWindow(childAsset, _controller, true);
+                                            ShowWindow(childAsset, true);
 
                                         }
                                         else
                                         {
-                                            ShowWindow(childAsset, _controller);
+                                            ShowWindow(childAsset);
                                         }
                                     }
                                 }
@@ -268,11 +267,11 @@ namespace AMU.Editor.VrcAssetManager.UI
                             {
                                 if (GUILayout.Button(tag, chipStyle))
                                 {
-                                    if (_controller != null)
+                                    if (controller != null)
                                     {
-                                        _controller.filterOptions.ClearFilter();
-                                        _controller.filterOptions.tags = new List<string> { tag };
-                                        _controller.filterOptions.tagsAnd = false;
+                                        controller.filterOptions.ClearFilter();
+                                        controller.filterOptions.tags = new List<string> { tag };
+                                        controller.filterOptions.tagsAnd = false;
                                     }
 
                                     ToolbarComponent.isUsingAdvancedSearch = true;
@@ -299,9 +298,9 @@ namespace AMU.Editor.VrcAssetManager.UI
                                 string depName = dep;
                                 AssetSchema depAsset = null;
 
-                                if (_controller != null)
+                                if (controller != null)
                                 {
-                                    depAsset = _controller.GetAsset(new Guid(dep));
+                                    depAsset = controller.GetAsset(new Guid(dep));
                                     if (depAsset != null && depAsset.metadata != null)
                                     {
                                         depName = depAsset.metadata.name;
@@ -315,11 +314,11 @@ namespace AMU.Editor.VrcAssetManager.UI
                                         if (_history.Count > 0 && _history[_history.Count - 1] == depAsset.assetId)
                                         {
                                             _history.RemoveAt(_history.Count - 1);
-                                            AssetDetailWindow.ShowWindow(depAsset, _controller, true);
+                                            AssetDetailWindow.ShowWindow(depAsset, true);
                                         }
                                         else
                                         {
-                                            AssetDetailWindow.ShowWindow(depAsset, _controller);
+                                            AssetDetailWindow.ShowWindow(depAsset);
                                         }
                                     }
                                 }

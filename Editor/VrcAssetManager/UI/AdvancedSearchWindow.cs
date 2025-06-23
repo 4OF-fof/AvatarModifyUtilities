@@ -9,7 +9,6 @@ namespace AMU.Editor.VrcAssetManager.UI
 {
     public class AdvancedSearchWindow : EditorWindow
     {
-        private AssetLibraryController _controller;
         private string _name = "";
         private string _author = "";
         private string _description = "";
@@ -20,11 +19,11 @@ namespace AMU.Editor.VrcAssetManager.UI
         private Action<bool> _onClose;
         private bool _closedBySearch = false;
 
-        public static void ShowWindow(AssetLibraryController controller, Action<bool> onClose)
+        public static void ShowWindow(Action<bool> onClose)
         {
             var window = GetWindow<AdvancedSearchWindow>("詳細検索");
-            window._controller = controller;
             window._onClose = onClose;
+            var controller = AssetLibraryController.Instance;
             if (controller != null && controller.filterOptions != null)
             {
                 window._name = controller.filterOptions.name ?? "";
@@ -137,15 +136,16 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private void ApplySearch()
         {
-            if (_controller == null) return;
-            var opt = _controller.filterOptions ?? new FilterOptions();
+            var controller = AssetLibraryController.Instance;
+            if (controller == null) return;
+            var opt = controller.filterOptions ?? new FilterOptions();
             opt.name = _name;
             opt.authorName = _author;
             opt.description = _description;
             opt.tags = new List<string>(_tags);
             opt.tagsAnd = _tagsAnd;
             opt.filterAnd = _filterAnd;
-            _controller.filterOptions = opt;
+            controller.filterOptions = opt;
         }
 
         protected void OnDestroy()

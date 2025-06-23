@@ -6,6 +6,10 @@ namespace AMU.Editor.VrcAssetManager.Controllers
 {
     public class ThumbnailCacheController
     {
+        private static ThumbnailCacheController _instance;
+        public static ThumbnailCacheController Instance => _instance ??= new ThumbnailCacheController();
+        private ThumbnailCacheController() {}
+
         private readonly Dictionary<string, Texture2D> _cache = new();
 
         public Texture2D Load(string path)

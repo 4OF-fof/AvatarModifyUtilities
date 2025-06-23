@@ -20,8 +20,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
         public static int selectedAssetCount => _selectedAssets?.Count ?? 0;
 
-        public static void Draw(AssetLibraryController controller)
+        public static void Draw()
         {
+            var controller = AssetLibraryController.Instance;
             var originalColor = GUI.backgroundColor;
             GUI.backgroundColor = new Color(0.9f, 0.9f, 0.9f, 1f);
 
@@ -121,9 +122,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                                             asset,
                                             isSelected,
                                             isMultiSelected && _selectedAssets.Count > 1,
-                                            a => HandleAssetLeftClick(a, controller),
-                                            a => HandleAssetRightClick(a, controller),
-                                            a => HandleAssetDoubleClick(a, controller)
+                                            HandleAssetLeftClick,
+                                            HandleAssetRightClick,
+                                            HandleAssetDoubleClick
                                         );
                                     }
                                 }
@@ -174,7 +175,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             }
         }
 
-        private static void HandleAssetLeftClick(AssetSchema asset, AssetLibraryController controller)
+        private static void HandleAssetLeftClick(AssetSchema asset)
         {
             if (Event.current.control || Event.current.command)
             {
@@ -199,8 +200,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             }
         }
 
-        private static void HandleAssetRightClick(AssetSchema asset, AssetLibraryController controller)
+        private static void HandleAssetRightClick(AssetSchema asset)
         {
+            var controller = AssetLibraryController.Instance;
             if (_selectedAssets.Count > 1)
             {
                 var menu = new GenericMenu();
@@ -318,9 +320,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             }
         }
 
-        private static void HandleAssetDoubleClick(AssetSchema asset, AssetLibraryController controller)
+        private static void HandleAssetDoubleClick(AssetSchema asset)
         {
-            AssetDetailWindow.ShowWindow(asset, controller);
+            AssetDetailWindow.ShowWindow(asset);
             AssetDetailWindow.history.Clear();
         }
     }

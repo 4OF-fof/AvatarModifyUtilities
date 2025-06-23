@@ -15,8 +15,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         private static Vector2 _scrollPosition = Vector2.zero;
         private static bool _showDeleteButtons = false;
 
-        public static void Draw(AssetLibraryController controller)
+        public static void Draw()
         {
+            var controller = AssetLibraryController.Instance;
             using (new GUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Width(236f)))
             {
                 using (new GUILayout.HorizontalScope())

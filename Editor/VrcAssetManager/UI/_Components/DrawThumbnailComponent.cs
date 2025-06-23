@@ -10,8 +10,6 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 {
     public static class DrawThumbnailComponent
     {
-        private static ThumbnailCacheController _thumbnailCache = new ThumbnailCacheController();
-
         public static void Draw(Rect rect, AssetSchema asset)
         {
             Texture2D thumbnailTexture = null;
@@ -30,7 +28,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 }
                 if (File.Exists(resolvedPath))
                 {
-                    thumbnailTexture = _thumbnailCache.Load(resolvedPath);
+                    thumbnailTexture = ThumbnailCacheController.Instance.Load(resolvedPath);
                 }
             }
             var prefabIcon = EditorGUIUtility.IconContent("Prefab Icon").image as Texture2D;

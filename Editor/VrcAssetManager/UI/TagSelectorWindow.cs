@@ -27,9 +27,8 @@ namespace AMU.Editor.VrcAssetManager.UI
 
             try
             {
-                var controller = new AssetLibraryController();
-                controller.LoadAssetLibrary();
-                window._availableTags = controller.GetAllTags().ToList();
+                AssetLibraryController.Instance.LoadAssetLibrary();
+                window._availableTags = AssetLibraryController.Instance.GetAllTags().ToList();
                 window._availableTags.Sort();
             }
             catch (Exception ex)
