@@ -170,9 +170,11 @@ namespace AMU.Editor.VrcAssetManager.UI
                 {
                     using (new GUILayout.VerticalScope(sectionBoxStyle))
                     {
-                        _descScroll = GUILayout.BeginScrollView(_descScroll, GUILayout.Height(120));
-                        EditorGUILayout.LabelField(metadata.description, EditorStyles.wordWrappedLabel);
-                        GUILayout.EndScrollView();
+                        using (var _newDescScroll = new GUILayout.ScrollViewScope(_descScroll, GUILayout.Height(120)))
+                        {
+                            _descScroll = _newDescScroll.scrollPosition;
+                            EditorGUILayout.LabelField(metadata.description, EditorStyles.wordWrappedLabel);
+                        }
                     }
                 }
 
@@ -251,34 +253,36 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                     GUILayout.Label("子アセット:", labelStyle);
 
-                    _childrenScroll = GUILayout.BeginScrollView(_childrenScroll, GUILayout.Height(40));
-                    using (new GUILayout.HorizontalScope())
+                    using (var _newChildrenScroll = new GUILayout.ScrollViewScope(_childrenScroll, GUILayout.Height(40)))
                     {
-                        foreach (var childId in _asset.childAssetIds)
+                        _childrenScroll = _newChildrenScroll.scrollPosition;
+                        using (new GUILayout.HorizontalScope())
                         {
-                            if (Guid.TryParse(childId, out var childGuid))
+                            foreach (var childId in _asset.childAssetIds)
                             {
-                                var childAsset = controller.GetAsset(childGuid);
-                                if (childAsset != null)
+                                if (Guid.TryParse(childId, out var childGuid))
                                 {
-                                    if (GUILayout.Button(childAsset.metadata.name, chipStyle))
+                                    var childAsset = controller.GetAsset(childGuid);
+                                    if (childAsset != null)
                                     {
-                                        if (_history.Count > 0 && _history[_history.Count - 1] == childAsset.assetId)
+                                        if (GUILayout.Button(childAsset.metadata.name, chipStyle))
                                         {
-                                            _history.RemoveAt(_history.Count - 1);
-                                            ShowWindow(childAsset, true);
+                                            if (_history.Count > 0 && _history[_history.Count - 1] == childAsset.assetId)
+                                            {
+                                                _history.RemoveAt(_history.Count - 1);
+                                                ShowWindow(childAsset, true);
 
-                                        }
-                                        else
-                                        {
-                                            ShowWindow(childAsset);
+                                            }
+                                            else
+                                            {
+                                                ShowWindow(childAsset);
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                    GUILayout.EndScrollView();
                 }
             }
 
@@ -289,26 +293,28 @@ namespace AMU.Editor.VrcAssetManager.UI
                     using (new GUILayout.VerticalScope(sectionBoxStyle))
                     {
                         GUILayout.Label("Tags", labelStyle);
-                        _tagsScroll = GUILayout.BeginScrollView(_tagsScroll, GUILayout.Height(40));
-                        using (new GUILayout.HorizontalScope())
+                        using (var _newTagsScroll = new GUILayout.ScrollViewScope(_tagsScroll, GUILayout.Height(40)))
                         {
-                            foreach (var tag in metadata.tags)
+                            _tagsScroll = _newTagsScroll.scrollPosition;
+                            using (new GUILayout.HorizontalScope())
                             {
-                                if (GUILayout.Button(tag, chipStyle))
+                                foreach (var tag in metadata.tags)
                                 {
-                                    if (controller != null)
+                                    if (GUILayout.Button(tag, chipStyle))
                                     {
-                                        controller.filterOptions.ClearFilter();
-                                        controller.filterOptions.tags = new List<string> { tag };
-                                        controller.filterOptions.tagsAnd = false;
-                                    }
+                                        if (controller != null)
+                                        {
+                                            controller.filterOptions.ClearFilter();
+                                            controller.filterOptions.tags = new List<string> { tag };
+                                            controller.filterOptions.tagsAnd = false;
+                                        }
 
-                                    ToolbarComponent.isUsingAdvancedSearch = true;
-                                    VrcAssetManagerWindow.ShowWindow();
+                                        ToolbarComponent.isUsingAdvancedSearch = true;
+                                        VrcAssetManagerWindow.ShowWindow();
+                                    }
                                 }
                             }
                         }
-                        GUILayout.EndScrollView();
                     }
                 }
 
@@ -320,45 +326,47 @@ namespace AMU.Editor.VrcAssetManager.UI
                     using (new GUILayout.VerticalScope(sectionBoxStyle))
                     {
                         GUILayout.Label("Dependencies", labelStyle);
-                        _depsScroll = GUILayout.BeginScrollView(_depsScroll, GUILayout.Height(40));
-                        using (new GUILayout.HorizontalScope())
+                        using (var _newDepsScroll = new GUILayout.ScrollViewScope(_depsScroll, GUILayout.Height(40)))
                         {
-                            foreach (var dep in metadata.dependencies)
+                            _depsScroll = _newDepsScroll.scrollPosition;
+                            using (new GUILayout.HorizontalScope())
                             {
-                                string depName = dep;
-                                AssetSchema depAsset = null;
-
-                                if (controller != null)
+                                foreach (var dep in metadata.dependencies)
                                 {
-                                    depAsset = controller.GetAsset(new Guid(dep));
-                                    if (depAsset != null && depAsset.metadata != null)
-                                    {
-                                        depName = depAsset.metadata.name;
-                                    }
-                                }
+                                    string depName = dep;
+                                    AssetSchema depAsset = null;
 
-                                if (depAsset != null)
-                                {
-                                    if (GUILayout.Button(depName, chipStyle))
+                                    if (controller != null)
                                     {
-                                        if (_history.Count > 0 && _history[_history.Count - 1] == depAsset.assetId)
+                                        depAsset = controller.GetAsset(new Guid(dep));
+                                        if (depAsset != null && depAsset.metadata != null)
                                         {
-                                            _history.RemoveAt(_history.Count - 1);
-                                            AssetDetailWindow.ShowWindow(depAsset, true);
-                                        }
-                                        else
-                                        {
-                                            AssetDetailWindow.ShowWindow(depAsset);
+                                            depName = depAsset.metadata.name;
                                         }
                                     }
-                                }
-                                else
-                                {
-                                    GUILayout.Label(depName, chipStyle);
+
+                                    if (depAsset != null)
+                                    {
+                                        if (GUILayout.Button(depName, chipStyle))
+                                        {
+                                            if (_history.Count > 0 && _history[_history.Count - 1] == depAsset.assetId)
+                                            {
+                                                _history.RemoveAt(_history.Count - 1);
+                                                AssetDetailWindow.ShowWindow(depAsset, true);
+                                            }
+                                            else
+                                            {
+                                                AssetDetailWindow.ShowWindow(depAsset);
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        GUILayout.Label(depName, chipStyle);
+                                    }
                                 }
                             }
                         }
-                        GUILayout.EndScrollView();
                     }
                 }
             }
