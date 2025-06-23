@@ -15,6 +15,9 @@ namespace AMU.Editor.VrcAssetManager.UI
         private static List<Guid> _history = new List<Guid>();
         private static AssetSchema _currentAsset = null;
         private Vector2 _descScroll = Vector2.zero;
+        private Vector2 _tagsScroll = Vector2.zero;
+        private Vector2 _depsScroll = Vector2.zero;
+        private Vector2 _childrenScroll = Vector2.zero;
 
         public static List<Guid> history { get => _history; set => _history = value; }
 
@@ -66,7 +69,9 @@ namespace AMU.Editor.VrcAssetManager.UI
                 fontSize = 12,
                 normal = { textColor = Color.white, background = MakeTex(2, 2, new Color(0.3f, 0.3f, 0.5f, 0.8f)) },
                 padding = new RectOffset(8, 8, 2, 2),
-                margin = new RectOffset(2, 2, 2, 2)
+                margin = new RectOffset(2, 2, 2, 2),
+                wordWrap = false,
+                fixedHeight = 22
             };
             var labelStyle = new GUIStyle(EditorStyles.label)
             {
@@ -220,7 +225,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     {
                         GUILayout.Space(4);
 
-                        using (new GUILayout.HorizontalScope())
+                        using (new GUILayout.VerticalScope())
                         {
                             GUILayout.Label("親アセット:", labelStyle, GUILayout.Width(70));
 
@@ -246,6 +251,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                     GUILayout.Label("子アセット:", labelStyle);
 
+                    _childrenScroll = GUILayout.BeginScrollView(_childrenScroll, GUILayout.Height(40));
                     using (new GUILayout.HorizontalScope())
                     {
                         foreach (var childId in _asset.childAssetIds)
@@ -272,6 +278,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                             }
                         }
                     }
+                    GUILayout.EndScrollView();
                 }
             }
 
@@ -282,7 +289,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     using (new GUILayout.VerticalScope(sectionBoxStyle))
                     {
                         GUILayout.Label("Tags", labelStyle);
-
+                        _tagsScroll = GUILayout.BeginScrollView(_tagsScroll, GUILayout.Height(40));
                         using (new GUILayout.HorizontalScope())
                         {
                             foreach (var tag in metadata.tags)
@@ -301,6 +308,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                                 }
                             }
                         }
+                        GUILayout.EndScrollView();
                     }
                 }
 
@@ -312,7 +320,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     using (new GUILayout.VerticalScope(sectionBoxStyle))
                     {
                         GUILayout.Label("Dependencies", labelStyle);
-
+                        _depsScroll = GUILayout.BeginScrollView(_depsScroll, GUILayout.Height(40));
                         using (new GUILayout.HorizontalScope())
                         {
                             foreach (var dep in metadata.dependencies)
@@ -350,6 +358,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                                 }
                             }
                         }
+                        GUILayout.EndScrollView();
                     }
                 }
             }
