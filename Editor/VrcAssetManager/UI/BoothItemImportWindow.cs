@@ -96,12 +96,14 @@ namespace AMU.Editor.VrcAssetManager.UI
             asset.SetBoothItem(new BoothItemSchema(
                 boothItem.itemName,
                 boothItem.authorName,
+                boothItem.description,
                 boothItem.itemUrl,
                 boothItem.imageUrl,
                 boothItem.fileName,
                 boothItem.downloadUrl
             ));
             asset.metadata.SetName(boothItem.fileName);
+            asset.metadata.SetDescription(boothItem.description);
             if (!string.IsNullOrEmpty(parentGroupId))
             {
                 asset.SetParentGroupId(parentGroupId);
@@ -119,6 +121,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             asset.SetBoothItem(new BoothItemSchema(
                 boothItem.itemName,
                 boothItem.authorName,
+                boothItem.description,
                 boothItem.itemUrl,
                 boothItem.imageUrl,
                 string.Empty,
@@ -126,6 +129,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             ));
             asset.metadata.SetName(boothItem.itemName);
             asset.metadata.SetAuthorName(boothItem.authorName);
+            asset.metadata.SetDescription(boothItem.description);
             if (!string.IsNullOrEmpty(thumbnailPath))
             {
                 asset.metadata.SetThumbnailPath(thumbnailPath);
@@ -277,11 +281,13 @@ namespace AMU.Editor.VrcAssetManager.UI
                     var asset = CreateAssetFromBoothItem(boothItem, null, imagePathDict.ContainsKey(boothItem) ? imagePathDict[boothItem] : null);
                     asset.metadata.SetName(boothItem.itemName);
                     asset.metadata.SetAuthorName(boothItem.authorName);
+                    asset.metadata.SetDescription(boothItem.description);
                     _controller.AddAsset(asset);
                     parentCount++;
                     continue;
                 }
                 var parentAsset = CreateParentAssetFromBoothItem(group[0], imagePathDict.ContainsKey(group[0]) ? imagePathDict[group[0]] : null);
+                parentAsset.metadata.SetDescription(group[0].description);
                 foreach (var boothItem in group)
                 {
                     var childAsset = CreateAssetFromBoothItem(boothItem, parentAsset.assetId.ToString(), imagePathDict.ContainsKey(boothItem) ? imagePathDict[boothItem] : null);

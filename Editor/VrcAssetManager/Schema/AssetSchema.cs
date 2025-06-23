@@ -426,6 +426,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
     {
         private string _itemName;
         private string _authorName;
+        private string _description;
         private string _itemUrl;
         private string _imageUrl;
         private string _fileName;
@@ -435,6 +436,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             _itemName = string.Empty;
             _authorName = string.Empty;
+            _description = string.Empty;
             _itemUrl = string.Empty;
             _imageUrl = string.Empty;
             _fileName = string.Empty;
@@ -442,11 +444,12 @@ namespace AMU.Editor.VrcAssetManager.Schema
         }
 
         [JsonConstructor]
-        public BoothItemSchema(string itemName, string authorName, string itemUrl,
+        public BoothItemSchema(string itemName, string authorName, string description, string itemUrl,
                                string imageUrl, string fileName, string downloadUrl)
         {
             _itemName = itemName;
             _authorName = authorName;
+            _description = description;
             _itemUrl = itemUrl;
             _imageUrl = imageUrl;
             _fileName = fileName;
@@ -464,6 +467,12 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             get => _authorName ?? string.Empty;
             private set => _authorName = value?.Trim() ?? string.Empty;
+        }
+
+        public string description
+        {
+            get => _description ?? string.Empty;
+            private set => _description = value?.Trim() ?? string.Empty;
         }
 
         public string itemUrl
