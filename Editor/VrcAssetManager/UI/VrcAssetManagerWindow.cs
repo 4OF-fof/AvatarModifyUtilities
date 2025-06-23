@@ -31,6 +31,8 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private void OnGUI()
         {
+            SkinUtility.ApplySkin();
+
             ToolbarComponent.Draw();
             using (new EditorGUILayout.HorizontalScope())
             {
