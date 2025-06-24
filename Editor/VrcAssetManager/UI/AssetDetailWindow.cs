@@ -272,7 +272,9 @@ namespace AMU.Editor.VrcAssetManager.UI
                         newFilePath = EditorGUILayout.TextField(newFilePath, EditorStyles.textField);
                         if (GUILayout.Button("...", GUILayout.Width(28)))
                         {
-                            var selectedPath = EditorUtility.OpenFilePanel("ファイルを選択", string.IsNullOrEmpty(newFilePath) ? Application.dataPath : Path.GetDirectoryName(newFilePath), "");
+                            string defaultPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
+                            string downloads = Path.Combine(defaultPath, "Downloads");
+                            var selectedPath = EditorUtility.OpenFilePanel("ファイルを選択", downloads, "");
                             if (!string.IsNullOrEmpty(selectedPath))
                             {
                                 newFilePath = selectedPath;
