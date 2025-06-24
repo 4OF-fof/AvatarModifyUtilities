@@ -9,6 +9,7 @@ using AMU.Editor.VrcAssetManager.Schema;
 using System.Security.Cryptography;
 using System.Net;
 using AMU.Editor.Core.Api;
+using AMU.Editor.VrcAssetManager.Helper;
 
 namespace AMU.Editor.VrcAssetManager.UI
 {

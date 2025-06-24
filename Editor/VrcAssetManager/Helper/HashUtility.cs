@@ -3,7 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace AMU.Editor.Core.Api
+namespace AMU.Editor.VrcAssetManager.Helper
 {
     public static class HashUtility
     {
