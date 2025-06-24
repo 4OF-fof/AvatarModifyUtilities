@@ -161,10 +161,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                 return;
             }
 
-            var metadata = _asset.metadata;
-            var fileInfo = _asset.fileInfo;
-            var state = _asset.state;
-
             using (new GUILayout.VerticalScope(sectionBoxStyle))
             {
                 using (new GUILayout.HorizontalScope())
@@ -179,7 +175,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 if (_asset.boothItem != null && !string.IsNullOrEmpty(_asset.boothItem.itemUrl))
                 {
-                    if (GUILayout.Button(metadata.name, titleStyle))
+                    if (GUILayout.Button(_asset.metadata.name, titleStyle))
                     {
                         Application.OpenURL(_asset.boothItem.itemUrl);
                     }
@@ -188,17 +184,17 @@ namespace AMU.Editor.VrcAssetManager.UI
                 {
                     var normalTitleStyle = new GUIStyle(titleStyle);
                     normalTitleStyle.normal.textColor = EditorStyles.label.normal.textColor;
-                    GUILayout.Label(metadata.name, normalTitleStyle);
+                    GUILayout.Label(_asset.metadata.name, normalTitleStyle);
                 }
 
-                if (!string.IsNullOrEmpty(metadata.description))
+                if (!string.IsNullOrEmpty(_asset.metadata.description))
                 {
                     using (new GUILayout.VerticalScope(sectionBoxStyle))
                     {
                         using (var _newDescScroll = new GUILayout.ScrollViewScope(_descScroll, GUILayout.Height(120)))
                         {
                             _descScroll = _newDescScroll.scrollPosition;
-                            EditorGUILayout.LabelField(metadata.description, EditorStyles.wordWrappedLabel);
+                            EditorGUILayout.LabelField(_asset.metadata.description, EditorStyles.wordWrappedLabel);
                         }
                     }
                 }
@@ -210,7 +206,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     GUILayout.Label("Author:", labelStyle, GUILayout.Width(70));
                     if (!_isEditMode)
                     {
-                        GUILayout.Label(metadata.authorName, valueStyle);
+                        GUILayout.Label(_asset.metadata.authorName, valueStyle);
                     }
                     else
                     {
@@ -223,7 +219,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     GUILayout.Label("Asset Type:", labelStyle, GUILayout.Width(70));
                     if (!_isEditMode)
                     {
-                        GUILayout.Label(metadata.assetType, valueStyle);
+                        GUILayout.Label(_asset.metadata.assetType, valueStyle);
                     }
                     else
                     {
@@ -234,13 +230,13 @@ namespace AMU.Editor.VrcAssetManager.UI
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label("Created:", labelStyle, GUILayout.Width(70));
-                    GUILayout.Label(metadata.createdDate.ToString("yyyy-MM-dd HH:mm"), valueStyle);
+                    GUILayout.Label(_asset.metadata.createdDate.ToString("yyyy-MM-dd HH:mm"), valueStyle);
                 }
 
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label("Modified:", labelStyle, GUILayout.Width(70));
-                    GUILayout.Label(metadata.modifiedDate.ToString("yyyy-MM-dd HH:mm"), valueStyle);
+                    GUILayout.Label(_asset.metadata.modifiedDate.ToString("yyyy-MM-dd HH:mm"), valueStyle);
                 }
 
                 using (new GUILayout.HorizontalScope())
@@ -248,7 +244,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     GUILayout.Label("File Path:", labelStyle, GUILayout.Width(70));
                     if (!_isEditMode)
                     {
-                        GUILayout.Label(fileInfo.filePath, valueStyle);
+                        GUILayout.Label(_asset.fileInfo.filePath, valueStyle);
                     }
                     else
                     {
@@ -263,7 +259,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     GUILayout.Label("Favorite:", labelStyle, GUILayout.Width(70));
                     if (!_isEditMode)
                     {
-                        GUILayout.Label(state.isFavorite ? "Yes" : "No", valueStyle);
+                        GUILayout.Label(_asset.state.isFavorite ? "Yes" : "No", valueStyle);
                     }
                     else
                     {
@@ -273,7 +269,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     GUILayout.Label("Archived:", labelStyle, GUILayout.Width(70));
                     if (!_isEditMode)
                     {
-                        GUILayout.Label(state.isArchived ? "Yes" : "No", valueStyle);
+                        GUILayout.Label(_asset.state.isArchived ? "Yes" : "No", valueStyle);
                     }
                     else
                     {
@@ -350,7 +346,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
             using (new GUILayout.HorizontalScope())
             {
-                if (metadata.tags.Count > 0)
+                if (_asset.metadata.tags.Count > 0)
                 {
                     using (new GUILayout.VerticalScope(sectionBoxStyle))
                     {
@@ -360,7 +356,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                             _tagsScroll = _newTagsScroll.scrollPosition;
                             using (new GUILayout.HorizontalScope())
                             {
-                                foreach (var tag in metadata.tags)
+                                foreach (var tag in _asset.metadata.tags)
                                 {
                                     if (GUILayout.Button(tag, chipStyle))
                                     {
@@ -380,10 +376,10 @@ namespace AMU.Editor.VrcAssetManager.UI
                     }
                 }
 
-                if (metadata.tags.Count > 0 && metadata.dependencies.Count > 0)
+                if (_asset.metadata.tags.Count > 0 && _asset.metadata.dependencies.Count > 0)
                     GUILayout.Space(5);
 
-                if (metadata.dependencies.Count > 0)
+                if (_asset.metadata.dependencies.Count > 0)
                 {
                     using (new GUILayout.VerticalScope(sectionBoxStyle))
                     {
@@ -393,7 +389,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                             _depsScroll = _newDepsScroll.scrollPosition;
                             using (new GUILayout.HorizontalScope())
                             {
-                                foreach (var dep in metadata.dependencies)
+                                foreach (var dep in _asset.metadata.dependencies)
                                 {
                                     string depName = dep;
                                     AssetSchema depAsset = null;
