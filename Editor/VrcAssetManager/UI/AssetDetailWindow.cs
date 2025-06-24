@@ -46,6 +46,8 @@ namespace AMU.Editor.VrcAssetManager.UI
             }
             var window = GetWindow<AssetDetailWindow>();
             window._asset = asset;
+            window.newTags = asset.metadata.tags.ToList();
+            window.newDependencies = asset.metadata.dependencies.ToList();
             window.titleContent = new GUIContent("Asset Detail: " + asset.metadata.name);
             window.minSize = window.maxSize = new Vector2(800, 760);
             window.maximized = false;
@@ -432,7 +434,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
             using (new GUILayout.HorizontalScope())
             {
-                if (_asset.metadata.tags.Count > 0)
+                if (_asset.metadata.tags.Count > 0 || _isEditMode)
                 {
                     using (new GUILayout.VerticalScope(sectionBoxStyle))
                     {
@@ -442,7 +444,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                             _tagsScroll = _newTagsScroll.scrollPosition;
                             using (new GUILayout.HorizontalScope())
                             {
-                                foreach (var tag in _asset.metadata.tags)
+                                foreach (var tag in newTags)
                                 {
                                     if (GUILayout.Button(tag, chipStyle))
                                     {
@@ -457,6 +459,21 @@ namespace AMU.Editor.VrcAssetManager.UI
                                         VrcAssetManagerWindow.ShowWindow();
                                     }
                                 }
+                                if (_isEditMode)
+                                {
+                                    GUILayout.FlexibleSpace();
+                                    if (GUILayout.Button("+", GUILayout.Width(24), GUILayout.Height(24)))
+                                    {
+                                        TagSelectorWindow.ShowWindow(
+                                            true,
+                                            (selectedTags) =>
+                                            {
+                                                newTags = selectedTags.ToList();
+                                            },
+                                            newTags
+                                        );
+                                    }
+                                }
                             }
                         }
                     }
@@ -465,7 +482,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 if (_asset.metadata.tags.Count > 0 && _asset.metadata.dependencies.Count > 0)
                     GUILayout.Space(5);
 
-                if (_asset.metadata.dependencies.Count > 0)
+                if (_asset.metadata.dependencies.Count > 0 || _isEditMode)
                 {
                     using (new GUILayout.VerticalScope(sectionBoxStyle))
                     {
@@ -507,6 +524,13 @@ namespace AMU.Editor.VrcAssetManager.UI
                                     else
                                     {
                                         GUILayout.Label(depName, chipStyle);
+                                    }
+                                }
+                                if (_isEditMode)
+                                {
+                                    GUILayout.FlexibleSpace();
+                                    if (GUILayout.Button("+", GUILayout.Width(24), GUILayout.Height(24)))
+                                    {
                                     }
                                 }
                             }
