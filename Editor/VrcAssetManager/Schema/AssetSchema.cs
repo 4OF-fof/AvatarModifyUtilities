@@ -280,6 +280,19 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _modifiedDate = DateTime.Now;
         }
 
+        public void SetTags(List<string> newTags)
+        {
+            if (newTags == null || newTags.Count == 0)
+            {
+                _tags.Clear();
+            }
+            else
+            {
+                _tags = new List<string>(newTags);
+            }
+            _modifiedDate = DateTime.Now;
+        }
+
         public void AddTag(string tag)
         {
             if (string.IsNullOrWhiteSpace(tag))
@@ -310,6 +323,25 @@ namespace AMU.Editor.VrcAssetManager.Schema
             }
         }
 
+        public void ClearTags()
+        {
+            _tags.Clear();
+            _modifiedDate = DateTime.Now;
+        }
+
+        public void SetDependencies(List<string> newDependencies)
+        {
+            if (newDependencies == null || newDependencies.Count == 0)
+            {
+                _dependencies.Clear();
+            }
+            else
+            {
+                _dependencies = new List<string>(newDependencies);
+            }
+            _modifiedDate = DateTime.Now;
+        }
+
         public void AddDependency(string dependency)
         {
             if (string.IsNullOrWhiteSpace(dependency))
@@ -338,6 +370,12 @@ namespace AMU.Editor.VrcAssetManager.Schema
             {
                 Debug.LogWarning($"Dependency '{dependency}' does not exist in the list.");
             }
+        }
+
+        public void ClearDependencies()
+        {
+            _dependencies.Clear();
+            _modifiedDate = DateTime.Now;
         }
         #endregion
     }

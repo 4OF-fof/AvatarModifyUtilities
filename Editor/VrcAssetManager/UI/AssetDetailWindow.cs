@@ -30,6 +30,8 @@ namespace AMU.Editor.VrcAssetManager.UI
         private string newFilePath = string.Empty;
         private bool newIsFavorite = false;
         private bool newIsArchived = false;
+        private List<string> newTags = new List<string>();
+        private List<string> newDependencies = new List<string>();
 
         public static List<Guid> history { get => _history; set => _history = value; }
 
@@ -151,6 +153,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                         }
                         newIsFavorite = _asset.state != null ? _asset.state.isFavorite : false;
                         newIsArchived = _asset.state != null ? _asset.state.isArchived : false;
+                        newTags = _asset.metadata.tags.ToList();
+                        newDependencies = _asset.metadata.dependencies.ToList();
                         _isEditMode = true;
                     }
                 }
@@ -189,6 +193,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                         _asset.fileInfo.SetFilePath(newFilePath);
                         _asset.state.SetFavorite(newIsFavorite);
                         _asset.state.SetArchived(newIsArchived);
+                        _asset.metadata.SetTags(newTags);
+                        _asset.metadata.SetDependencies(newDependencies);
                         controller.UpdateAsset(_asset);
                         _isEditMode = false;
                     }
@@ -320,7 +326,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                     }
                     else
                     {
-                        // TextFieldの戻り値をnewFilePathに必ず代入する
                         newFilePath = EditorGUILayout.TextField(newFilePath, EditorStyles.textField);
                         if (GUILayout.Button("...", GUILayout.Width(28)))
                         {
