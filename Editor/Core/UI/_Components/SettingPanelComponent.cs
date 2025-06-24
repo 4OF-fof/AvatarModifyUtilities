@@ -3,13 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using AMU.Editor.Core.Schema;
-using AMU.Editor.Core.Controllers;
+using AMU.Editor.Core.Controller;
 
 namespace AMU.Editor.Core.UI.Components
 {
-    /// <summary>
-    /// 設定パネルの描画を管理するコンポーネント
-    /// </summary>
     public class SettingPanelComponent
     {
         private const float MenuWidth = 240f;
@@ -63,22 +60,19 @@ namespace AMU.Editor.Core.UI.Components
             {
                 if (string.IsNullOrEmpty(menuSearch) || LocalizationController.GetText(item.Name).Contains(menuSearch))
                 {
-                    // 言語変更の検出
                     bool wasLanguageItem = item.Name == "Core_language";
                     string previousLanguage = wasLanguageItem
-                        ? SettingsController.GetSetting("Core_language", "en_us")
+                        ? SettingsController.GetSetting<string>("Core_language")
                         : null;
 
                     SettingItemRenderer.DrawSettingItem(item, menuSearch);
 
-                    // 言語が変更された場合の処理
                     if (wasLanguageItem)
                     {
-                        string currentLanguage = SettingsController.GetSetting("Core_language", "en_us");
+                        string currentLanguage = SettingsController.GetSetting<string>("Core_language");
                         if (previousLanguage != currentLanguage)
                         {
                             LocalizationController.LoadLanguage(currentLanguage);
-                            // 設定の再初期化をリクエスト（イベント的に）
                             OnLanguageChanged?.Invoke();
                         }
                     }

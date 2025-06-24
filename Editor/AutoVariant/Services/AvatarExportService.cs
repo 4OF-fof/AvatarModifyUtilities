@@ -5,27 +5,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-using AMU.Editor.Core.API;
-using AMU.Editor.Core.Controllers;
+using AMU.Editor.Core.Api;
+using AMU.Editor.AutoVariant.Helper;
 
 namespace AMU.Editor.AutoVariant.Services
 {
-    /// <summary>
-    /// アバターエクスポートサービス
-    /// 最適化されたアバターのエクスポート処理を提供
-    /// </summary>
     public static class AvatarExportService
     {
-        /// <summary>
-        /// 最適化されたアバターをエクスポートする
-        /// </summary>
-        /// <param name="avatar">エクスポート対象のアバター</param>
-        /// <returns>エクスポートが成功したかどうか</returns>
         public static bool ExportOptimizedAvatar(GameObject avatar)
         {
             if (avatar == null)
             {
-                Debug.LogError($"[AvatarExportService] {LocalizationController.GetText("message_error_avatar_null")}");
+                Debug.LogError($"[AvatarExportService] {LocalizationAPI.GetText("message_error_avatar_null")}");
                 return false;
             }
 
@@ -40,11 +31,9 @@ namespace AMU.Editor.AutoVariant.Services
 
             try
             {
-                // UnityPackageとしてエクスポート
                 AssetDatabase.ExportPackage(assetPaths.ToArray(), exportPath, ExportPackageOptions.Recurse);
                 Debug.Log($"[AvatarExportService] Exported optimized avatar to: {exportPath}");
 
-                // 画像キャプチャと保存
                 CaptureAvatarImage(avatar, exportPath);
                 return true;
             }
@@ -55,11 +44,6 @@ namespace AMU.Editor.AutoVariant.Services
             }
         }
 
-        /// <summary>
-        /// アバターのアセット情報を収集する
-        /// </summary>
-        /// <param name="avatar">対象のアバター</param>
-        /// <returns>アセットパスのリスト</returns>
         public static List<string> GetAvatarAssets(GameObject avatar)
         {
             if (avatar == null)
@@ -75,9 +59,8 @@ namespace AMU.Editor.AutoVariant.Services
         {
             try
             {
-                // UnityPackageと同じ場所に同じ名前でpngファイルを保存
                 var imagePath = Path.ChangeExtension(unityPackagePath, ".png");
-                var capturedTexture = ObjectCaptureAPI.CaptureObject(avatar, imagePath, 512, 512);
+                var capturedTexture = ObjectCaptureHelper.CaptureObject(avatar, imagePath, 512, 512);
 
                 if (capturedTexture != null)
                 {
@@ -86,7 +69,7 @@ namespace AMU.Editor.AutoVariant.Services
                 }
                 else
                 {
-                    Debug.LogWarning($"[AvatarExportService] Failed to capture avatar image for {avatar.name}");
+                    Debug.LogError($"[AvatarExportService] Failed to capture avatar image for {avatar.name}");
                 }
             }
             catch (Exception e)
@@ -97,7 +80,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static string GenerateExportPath(GameObject avatar)
         {
-            var blueprintId = VRChatAPI.GetBlueprintId(avatar);
+            var blueprintId = VRCObjectHelper.GetBlueprintId(avatar);
             var exportDirectory = CreateExportDirectory(blueprintId);
             var fileName = GenerateUniqueFileName(exportDirectory, avatar.name, string.IsNullOrEmpty(blueprintId));
 
@@ -106,8 +89,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static string CreateExportDirectory(string blueprintId)
         {
-            var basePath = SettingsController.GetSetting<string>("Core_dirPath",
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"));
+            var basePath = SettingAPI.GetSetting<string>("Core_dirPath");
 
             EnsureDirectoryExists(basePath);
 
@@ -120,7 +102,7 @@ namespace AMU.Editor.AutoVariant.Services
 
             if (string.IsNullOrEmpty(blueprintId))
             {
-                Debug.Log($"[AvatarExportService] {LocalizationController.GetText("message_info_export_no_blueprint")}");
+                Debug.Log($"[AvatarExportService] {LocalizationAPI.GetText("message_info_export_no_blueprint")}");
             }
 
             return avatarDir;
@@ -156,7 +138,7 @@ namespace AMU.Editor.AutoVariant.Services
         private static List<string> CollectAvatarAssets(GameObject avatar)
         {
             var assetPaths = new List<string>();
-            var includeAllAssets = SettingsController.GetSetting<bool>("AutoVariant_includeAllAssets", true);
+            var includeAllAssets = SettingAPI.GetSetting<bool>("AutoVariant_includeAllAssets");
 
             var avatarPrefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(avatar);
             if (string.IsNullOrEmpty(avatarPrefabPath))

@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
@@ -6,21 +7,12 @@ using System.Security.Cryptography;
 using UnityEngine;
 using UnityEditor;
 
-using AMU.Editor.Core.Controllers;
+using AMU.Editor.Core.Api;
 
 namespace AMU.Editor.AutoVariant.Services
 {
-    /// <summary>
-    /// Material Variant最適化サービス
-    /// マテリアルの最適化処理を提供
-    /// </summary>
     public static class MaterialVariantService
     {
-        /// <summary>
-        /// 指定されたGameObjectのマテリアルを最適化する
-        /// </summary>
-        /// <param name="targetObject">最適化対象のGameObject</param>
-        /// <returns>最適化が実行されたかどうか</returns>
         public static bool OptimizeMaterials(GameObject targetObject)
         {
             if (!ValidateInput(targetObject, out var parentPrefab))
@@ -33,27 +25,27 @@ namespace AMU.Editor.AutoVariant.Services
         {
             parentPrefab = null; if (targetObject == null)
             {
-                Debug.LogError($"[MaterialVariantService] {LocalizationController.GetText("message_error_avatar_null")}");
+                Debug.LogError($"[MaterialVariantService] {LocalizationAPI.GetText("message_error_avatar_null")}");
                 return false;
             }
 
             if (PrefabUtility.GetPrefabInstanceStatus(targetObject) != PrefabInstanceStatus.Connected)
             {
-                Debug.LogError($"[MaterialVariantService] {LocalizationController.GetText("message_error_not_prefab_instance")}");
+                Debug.LogError($"[MaterialVariantService] {LocalizationAPI.GetText("message_error_not_prefab_instance")}");
                 return false;
             }
 
             var prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(targetObject);
             if (prefabAsset == null)
             {
-                Debug.LogError($"[MaterialVariantService] {LocalizationController.GetText("message_error_prefab_asset_not_found")}");
+                Debug.LogError($"[MaterialVariantService] {LocalizationAPI.GetText("message_error_prefab_asset_not_found")}");
                 return false;
             }
 
             parentPrefab = PrefabUtility.GetCorrespondingObjectFromSource(prefabAsset);
             if (parentPrefab == null)
             {
-                Debug.LogWarning($"[MaterialVariantService] {LocalizationController.GetText("message_warning_not_variant")}");
+                Debug.LogWarning($"[MaterialVariantService] {LocalizationAPI.GetText("message_warning_not_variant")}");
                 return false;
             }
 
@@ -64,7 +56,6 @@ namespace AMU.Editor.AutoVariant.Services
         {
             bool hasChanges = false;
 
-            // 現在のオブジェクトのRendererを処理
             var variantRenderer = variant.GetComponent<Renderer>();
             var parentRenderer = parent.GetComponent<Renderer>();
 
@@ -76,7 +67,6 @@ namespace AMU.Editor.AutoVariant.Services
                 }
             }
 
-            // 子オブジェクトを再帰的に処理
             int childCount = Mathf.Min(variant.transform.childCount, parent.transform.childCount);
             for (int i = 0; i < childCount; i++)
             {
@@ -97,7 +87,7 @@ namespace AMU.Editor.AutoVariant.Services
             var variantMaterials = variantRenderer.sharedMaterials;
             var parentMaterials = parentRenderer.sharedMaterials; if (variantMaterials.Length != parentMaterials.Length)
             {
-                Debug.LogWarning($"[MaterialVariantService] {string.Format(LocalizationController.GetText("message_warning_material_count_mismatch"), objectName)}");
+                Debug.LogWarning($"[MaterialVariantService] {string.Format(LocalizationAPI.GetText("message_warning_material_count_mismatch"), objectName)}");
                 return false;
             }
 
@@ -110,7 +100,7 @@ namespace AMU.Editor.AutoVariant.Services
                 {
                     optimizedMaterials[i] = optimizedMaterial;
                     hasOptimizations = true;
-                    Debug.Log($"[MaterialVariantService] {string.Format(LocalizationController.GetText("message_info_material_optimized"), objectName, i)}");
+                    Debug.Log($"[MaterialVariantService] {string.Format(LocalizationAPI.GetText("message_info_material_optimized"), objectName, i)}");
                 }
                 else
                 {
@@ -170,18 +160,15 @@ namespace AMU.Editor.AutoVariant.Services
                 if (!string.IsNullOrEmpty(prefabPath))
                 {
                     PrefabUtility.ApplyPrefabInstance(prefabRoot, InteractionMode.AutomatedAction);
-                    Debug.Log($"[MaterialVariantService] {string.Format(LocalizationController.GetText("message_info_override_applied"), objectName)}");
+                    Debug.Log($"[MaterialVariantService] {string.Format(LocalizationAPI.GetText("message_info_override_applied"), objectName)}");
                 }
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
-                Debug.LogError($"[MaterialVariantService] {string.Format(LocalizationController.GetText("message_error_override_failed"), objectName, e.Message)}");
+                Debug.LogError($"[MaterialVariantService] {string.Format(LocalizationAPI.GetText("message_error_override_failed"), objectName, e.Message)}");
             }
         }
 
-        /// <summary>
-        /// マテリアルのハッシュ値計算ユーティリティ
-        /// </summary>
         public static class MaterialHashCalculator
         {
             public static string Calculate(Material material)
@@ -220,9 +207,8 @@ namespace AMU.Editor.AutoVariant.Services
                     {
                         AppendPropertyValue(material, propName, propType, hashBuilder);
                     }
-                    catch (System.Exception)
+                    catch (Exception)
                     {
-                        // プロパティが存在しない場合はスキップ
                         continue;
                     }
                 }

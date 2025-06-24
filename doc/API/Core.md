@@ -1,17 +1,15 @@
-# 公開API一覧
+# API
 
 ## Core API
 
-### ObjectCaptureAPI
-
-GameObjectのスクリーンキャプチャ機能を提供します。
-
-#### 名前空間
+#### namespace
 ```csharp
-using AMU.Editor.Core.API;
+using AMU.Editor.Core.Api;
 ```
 
-#### メソッド
+### ObjectCaptureAPI
+
+#### Methods
 
 ##### CaptureObject
 ```csharp
@@ -23,82 +21,91 @@ public static Texture2D CaptureObject(
 )
 ```
 
-**パラメータ:**
-- `targetObject`: キャプチャ対象のGameObject
-- `savePath`: 保存先のファイルパス
-- `width`: キャプチャ画像の幅（デフォルト: 512）
-- `height`: キャプチャ画像の高さ（デフォルト: 512）
+**Parameters:**
+- `targetObject`: GameObject to capture
+- `savePath`: File path to save the captured image
+- `width`: Width of the captured image (default: 512)
+- `height`: Height of the captured image (default: 512)
 
-**戻り値:**
-- `Texture2D`: キャプチャされたテクスチャ。失敗時は`null`
-
-**使用例:**
-```csharp
-using AMU.Editor.Core.API;
-
-var avatar = GameObject.Find("MyAvatar");
-var savePath = "Assets/Thumbnails/avatar_thumbnail.png";
-var texture = ObjectCaptureAPI.CaptureObject(avatar, savePath, 1024, 1024);
-
-if (texture != null)
-{
-    Debug.Log("キャプチャ成功");
-}
-```
+**Return Value:**
+- `Texture2D`: Captured texture. Returns `null` on failure
 
 ### VRChatAPI
 
-VRChat関連の機能を提供します。
-
-#### 名前空間
-```csharp
-using AMU.Editor.Core.API;
-```
-
-#### メソッド
+#### Methods
 
 ##### GetBlueprintId
 ```csharp
 public static string GetBlueprintId(GameObject go)
 ```
 
-**パラメータ:**
-- `go`: PipelineManagerコンポーネントを持つGameObject
+**Parameters:**
+- `go`: GameObject with PipelineManager component
 
-**戻り値:**
-- `string`: Blueprint ID（"avtr_"で始まる場合のみ）。取得できない場合は`null`
-
-**使用例:**
-```csharp
-using AMU.Editor.Core.API;
-
-var avatar = Selection.activeGameObject;
-var blueprintId = VRChatAPI.GetBlueprintId(avatar);
-
-if (!string.IsNullOrEmpty(blueprintId))
-{
-    Debug.Log($"Blueprint ID: {blueprintId}");
-}
-```
+**Return Value:**
+- `string`: Blueprint ID (only if it starts with "avtr"). Returns `null` if not available
 
 ##### IsVRCAvatar
 ```csharp
 public static bool IsVRCAvatar(GameObject obj)
 ```
 
-**パラメータ:**
-- `obj`: 判定対象のGameObject
+**Parameters:**
+- `obj`: GameObject to check
 
-**戻り値:**
-- `bool`: VRCアバターの場合`true`、そうでなければ`false`
+**Return Value:**
+- `bool`: Returns `true` if it's a VRC avatar, `false` otherwise
 
-**使用例:**
+### LocalFileAPI
+
+#### Methods
+
+##### ScanDirectory
 ```csharp
-using AMU.Editor.Core.API;
-
-var selectedObject = Selection.activeGameObject;
-if (VRChatAPI.IsVRCAvatar(selectedObject))
-{
-    Debug.Log("これはVRCアバターです");
-}
+public static List<string> ScanDirectory(string directoryPath, bool recursive = true)
 ```
+
+**Parameters:**
+- `directoryPath`: Directory path to scan
+- `recursive`: Whether to scan subdirectories recursively (default: true)
+
+**Return Value:**
+- `List<string>`: List of file paths found in the directory
+
+### SettingAPI
+
+#### Methods
+
+##### GetSetting
+```csharp
+public static T GetSetting<T>(string settingName)
+```
+
+**Parameters:**
+- `settingName`: Setting name
+
+**Return Value:**
+- `T`: Setting value
+
+### LocalizationAPI
+
+#### Methods
+
+##### GetText
+```csharp
+public static string GetText(string key)
+```
+
+**Parameters:**
+- `key`: Text key
+
+**Return Value:**
+- `string`: Corresponding text
+
+##### CurrentLanguage
+```csharp
+public static string CurrentLanguage { get; }
+```
+
+**Return Value:**
+- `string`: Current language code

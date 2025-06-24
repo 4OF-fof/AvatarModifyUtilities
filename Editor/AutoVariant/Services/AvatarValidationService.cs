@@ -1,21 +1,13 @@
 using UnityEngine;
 using UnityEditor;
 
-using AMU.Editor.Core.API;
-using AMU.Editor.Core.Controllers;
+using AMU.Editor.Core.Api;
+using AMU.Editor.AutoVariant.Helper;
 
 namespace AMU.Editor.AutoVariant.Services
 {
-    /// <summary>
-    /// アバター検証サービス
-    /// アバターの状態確認と検証を行う
-    /// </summary>
     public static class AvatarValidationService
     {
-        /// <summary>
-        /// アバター数を検証する
-        /// </summary>
-        /// <returns>検証が成功したかどうか</returns>
         public static bool ValidateAvatarCount()
         {
             var avatars = FindActiveAvatars();
@@ -27,10 +19,6 @@ namespace AMU.Editor.AutoVariant.Services
             return false;
         }
 
-        /// <summary>
-        /// アクティブなアバターを検索する
-        /// </summary>
-        /// <returns>アクティブなアバターの配列</returns>
         public static GameObject[] FindActiveAvatars()
         {
             var allObjects = Object.FindObjectsOfType<GameObject>();
@@ -38,7 +26,7 @@ namespace AMU.Editor.AutoVariant.Services
 
             foreach (var obj in allObjects)
             {
-                if (obj.activeInHierarchy && VRChatAPI.IsVRCAvatar(obj))
+                if (obj.activeInHierarchy && VRCObjectHelper.IsVRCAvatar(obj))
                 {
                     avatars.Add(obj);
                 }
@@ -47,52 +35,45 @@ namespace AMU.Editor.AutoVariant.Services
             return avatars.ToArray();
         }
 
-        /// <summary>
-        /// 単一のアクティブアバターを取得する
-        /// </summary>
-        /// <returns>アクティブなアバター（複数ある場合はnull）</returns>
         public static GameObject GetSingleActiveAvatar()
         {
             var avatars = FindActiveAvatars();
 
             if (avatars.Length == 0)
             {
-                Debug.LogWarning($"[AvatarValidationService] {LocalizationController.GetText("message_warning_no_active_avatars")}");
+                Debug.LogWarning($"[AvatarValidationService] {LocalizationAPI.GetText("message_warning_no_active_avatars")}");
                 return null;
             }
 
             if (avatars.Length > 1)
             {
-                Debug.LogWarning($"[AvatarValidationService] {LocalizationController.GetText("message_warning_multiple_avatars")}");
+                Debug.LogWarning($"[AvatarValidationService] {LocalizationAPI.GetText("message_warning_multiple_avatars")}");
                 return null;
             }
 
             return avatars[0];
         }
 
-        /// <summary>
-        /// 指定されたGameObjectがVRCアバターかどうかを判定する
-        /// </summary>
-        /// <param name="obj">判定対象のGameObject</param>
-        /// <returns>VRCアバターかどうか</returns>
         public static bool IsVRCAvatar(GameObject obj)
         {
             if (obj == null)
                 return false;
 
-            return VRChatAPI.IsVRCAvatar(obj);
+            return VRCObjectHelper.IsVRCAvatar(obj);
         }
+
         private static void ShowMultipleAvatarsError()
         {
-            var title = LocalizationController.GetText("message_error_build_cancelled_title");
-            var message = LocalizationController.GetText("message_error_multiple_avatars_detected");
+            var title = LocalizationAPI.GetText("message_error_build_cancelled_title");
+            var message = LocalizationAPI.GetText("message_error_multiple_avatars_detected");
 
             EditorUtility.DisplayDialog(title, message, "OK");
         }
+
         private static (string title, string message) GetLocalizedErrorMessage(string language)
         {
-            var title = LocalizationController.GetText("message_error_build_cancelled_title");
-            var message = LocalizationController.GetText("message_error_multiple_avatars_detected");
+            var title = LocalizationAPI.GetText("message_error_build_cancelled_title");
+            var message = LocalizationAPI.GetText("message_error_multiple_avatars_detected");
             return (title, message);
         }
     }
