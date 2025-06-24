@@ -152,7 +152,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     using (new GUILayout.VerticalScope())
                     {
                         GUILayout.FlexibleSpace();
-                        GUILayout.Label($"Page {_currentPage} / {_maxPage}", EditorStyles.label);
+                        GUILayout.Label($"{_currentPage} / {_maxPage}", EditorStyles.label);
                         GUILayout.Space(8);
                         GUILayout.FlexibleSpace();
                     }
