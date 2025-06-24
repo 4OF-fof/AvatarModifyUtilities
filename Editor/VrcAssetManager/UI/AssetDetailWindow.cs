@@ -472,7 +472,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     }
                 }
             }
-            if (_asset != null && _asset.fileInfo != null && !string.IsNullOrEmpty(_asset.fileInfo.filePath))
+            if (_asset != null && _asset.fileInfo != null && !string.IsNullOrEmpty(_asset.fileInfo.filePath) && !_isEditMode)
             {
                 var filePath = _asset.fileInfo.filePath;
                 var ext = Path.GetExtension(filePath).ToLowerInvariant();
@@ -491,7 +491,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     }
                 }
             }
-            else if ((_asset.fileInfo == null || string.IsNullOrEmpty(_asset.fileInfo.filePath)) && _asset.boothItem != null && !string.IsNullOrEmpty(_asset.boothItem.downloadUrl))
+            else if ((_asset.fileInfo == null || string.IsNullOrEmpty(_asset.fileInfo.filePath)) && _asset.boothItem != null && !string.IsNullOrEmpty(_asset.boothItem.downloadUrl) && !_isEditMode)
             {
                 GUILayout.Space(3);
                 using (new GUILayout.HorizontalScope())
