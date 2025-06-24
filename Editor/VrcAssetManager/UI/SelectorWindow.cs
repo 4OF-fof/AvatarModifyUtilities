@@ -20,7 +20,7 @@ namespace AMU.Editor.VrcAssetManager.UI
         private string _searchText = "";
         private string _newTagInput = "";
 
-        public static void ShowWindow(bool allowMultipleSelection, Action<List<string>> onTagsSelected, List<string> initialSelectedTags = null, bool allowTagCreation = false)
+        public static void ShowWindow(Action<List<string>> onTagsSelected, List<string> initialSelectedTags = null, bool allowMultipleSelection = false, bool allowTagCreation = false)
         {
             var window = GetWindow<TagSelectorWindow>("Tag Selector");
             window.minSize = window.maxSize = new Vector2(300, 400);

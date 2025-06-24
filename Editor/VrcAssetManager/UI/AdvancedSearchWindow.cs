@@ -90,11 +90,11 @@ namespace AMU.Editor.VrcAssetManager.UI
                     }
                     if (GUILayout.Button("タグ選択", GUILayout.ExpandWidth(true)))
                     {
-                        TagSelectorWindow.ShowWindow(true, tags =>
+                        TagSelectorWindow.ShowWindow(tags =>
                         {
                             _tags = tags ?? new List<string>();
                             Repaint();
-                        }, _tags);
+                        }, _tags, true);
                     }
                     using (new GUILayout.HorizontalScope())
                     {
@@ -107,11 +107,11 @@ namespace AMU.Editor.VrcAssetManager.UI
                 {
                     if (GUILayout.Button("タグ選択", GUILayout.ExpandWidth(true)))
                     {
-                        TagSelectorWindow.ShowWindow(true, tags =>
+                        TagSelectorWindow.ShowWindow(tags =>
                         {
                             _tags = tags ?? new List<string>();
                             Repaint();
-                        }, _tags);
+                        }, _tags, true);
                     }
                 }
             }

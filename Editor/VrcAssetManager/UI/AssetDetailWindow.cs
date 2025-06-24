@@ -465,12 +465,12 @@ namespace AMU.Editor.VrcAssetManager.UI
                                     if (GUILayout.Button("+", GUILayout.Width(24), GUILayout.Height(24)))
                                     {
                                         TagSelectorWindow.ShowWindow(
-                                            true,
                                             (selectedTags) =>
                                             {
                                                 newTags = selectedTags.ToList();
                                             },
                                             newTags,
+                                            true,
                                             true
                                         );
                                     }
