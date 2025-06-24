@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections;
 using UnityEditor;
 using UnityEngine;
 using AMU.Editor.Core.Api;
@@ -12,6 +13,8 @@ namespace AMU.Editor.VrcAssetManager.Helper
 {
     public static class AssetImportUtility
     {
+        private static bool isImporting = false;
+        private static Queue<System.Action> importQueue = new Queue<System.Action>();
         public static bool ImportAsset(AssetSchema asset, bool showImportDialog = true)
         {
             if (asset == null)
@@ -110,7 +113,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
                     if (isUnityPackage)
                     {
                         Debug.Log($"[AssetImportUtility] Importing Unity Package: {fullPath}");
-                        AssetDatabase.ImportPackage(fullPath, showImportDialog);
+                        ImportPackageWithQueue(fullPath, showImportDialog);
                     }
                     else
                     {
@@ -193,6 +196,42 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 .ToArray();
 
             return !excludedList.Contains(extension);
+        }
+
+        private static void ImportPackageWithQueue(string packagePath, bool showImportDialog)
+        {
+            if (isImporting)
+            {
+                importQueue.Enqueue(() => ImportPackageWithQueue(packagePath, showImportDialog));
+                return;
+            }
+
+            isImporting = true;
+            
+            EditorApplication.CallbackFunction importCompleteCallback = null;
+            importCompleteCallback = () =>
+            {
+                if (!EditorApplication.isCompiling && !EditorApplication.isUpdating)
+                {
+                    EditorApplication.update -= importCompleteCallback;
+                    OnImportComplete();
+                }
+            };
+
+            AssetDatabase.ImportPackage(packagePath, showImportDialog);
+            
+            EditorApplication.update += importCompleteCallback;
+        }
+
+        private static void OnImportComplete()
+        {
+            isImporting = false;
+            
+            if (importQueue.Count > 0)
+            {
+                var nextImport = importQueue.Dequeue();
+                EditorApplication.delayCall += () => nextImport?.Invoke();
+            }
         }
     }
 }
