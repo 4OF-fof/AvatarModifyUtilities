@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using AMU.Editor.VrcAssetManager.Schema;
@@ -256,7 +257,17 @@ namespace AMU.Editor.VrcAssetManager.UI
                     }
                     else
                     {
-                        newAssetType = EditorGUILayout.TextField(newAssetType, EditorStyles.textField);
+                        var assetTypes = controller.GetAllAssetTypes().ToList();
+                        int selectedIndex = Mathf.Max(0, assetTypes.IndexOf(newAssetType));
+                        if (assetTypes.Count == 0)
+                        {
+                            GUILayout.Label(_asset.metadata.assetType, valueStyle);
+                        }
+                        else
+                        {
+                            selectedIndex = EditorGUILayout.Popup(selectedIndex, assetTypes.ToArray(), GUILayout.Width(180));
+                            newAssetType = assetTypes.Count > 0 ? assetTypes[selectedIndex] : string.Empty;
+                        }
                     }
                 }
 
@@ -300,7 +311,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Label("Favorite:", labelStyle, GUILayout.Width(70));
+                    GUILayout.Label("Favorite:", labelStyle, GUILayout.Width(60));
                     if (!_isEditMode)
                     {
                         GUILayout.Label(_asset.state.isFavorite ? "Yes" : "No", valueStyle);
@@ -308,9 +319,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                     else
                     {
                         newIsFavorite = EditorGUILayout.Toggle(newIsFavorite, GUILayout.Width(20));
-                        GUILayout.Label(newIsFavorite ? "Yes" : "No", valueStyle);
                     }
-                    GUILayout.Label("Archived:", labelStyle, GUILayout.Width(70));
+                    GUILayout.Label("Archived:", labelStyle, GUILayout.Width(60));
                     if (!_isEditMode)
                     {
                         GUILayout.Label(_asset.state.isArchived ? "Yes" : "No", valueStyle);
@@ -318,7 +328,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                     else
                     {
                         newIsArchived = EditorGUILayout.Toggle(newIsArchived, GUILayout.Width(20));
-                        GUILayout.Label(newIsArchived ? "Yes" : "No", valueStyle);
                     }
                 }
 
