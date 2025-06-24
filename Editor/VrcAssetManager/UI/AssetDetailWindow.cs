@@ -678,25 +678,25 @@ namespace AMU.Editor.VrcAssetManager.UI
                 return;
             }
 
-            ImportPathSelectorWindow.ShowWindow(_asset, (selectedPaths) =>
+            ImportPathSelectorWindow.ShowWindow((selectedPaths) =>
             {
                 if (selectedPaths != null && selectedPaths.Count > 0)
                 {
-                    // 既存のimportFilesをクリアして新しいパスを設定
                     _asset.fileInfo.ClearImportFiles();
                     foreach (var path in selectedPaths)
                     {
                         _asset.fileInfo.AddImportFile(path);
                     }
 
-                    // アセットを更新
                     var controller = AssetLibraryController.Instance;
                     controller?.UpdateAsset(_asset);
 
                     Debug.Log($"[AssetDetailWindow] Updated import paths for asset '{_asset.metadata.name}': {string.Join(", ", selectedPaths)}");
                     EditorUtility.DisplayDialog("成功", $"{selectedPaths.Count}個のファイルがImport Pathに設定されました。", "OK");
                 }
-            });
+            },
+            _asset
+            );
         }
     }
 }

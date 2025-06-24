@@ -28,7 +28,7 @@ namespace AMU.Editor.VrcAssetManager.UI
         private GUIStyle _statusStyle;
         private bool _stylesInitialized = false;
 
-        public static void ShowWindow(AssetSchema asset, Action<List<string>> onSelectionComplete)
+        public static void ShowWindow(Action<List<string>> onSelectionComplete, AssetSchema asset, List<string> initialSelectedFiles = null)
         {
             if (asset == null)
             {
@@ -63,6 +63,19 @@ namespace AMU.Editor.VrcAssetManager.UI
             window._zipFiles = zipFiles;
             window._onSelectionComplete = onSelectionComplete;
             window._selectedFiles.Clear();
+
+            if (initialSelectedFiles != null)
+            {
+                foreach (var selectedFile in initialSelectedFiles)
+                {
+                    var fileName = Path.GetFileName(selectedFile);
+                    var matchingFile = zipFiles.FirstOrDefault(f => Path.GetFileName(f) == fileName);
+                    if (!string.IsNullOrEmpty(matchingFile))
+                    {
+                        window._selectedFiles[matchingFile] = true;
+                    }
+                }
+            }
 
             window.Show();
         }
