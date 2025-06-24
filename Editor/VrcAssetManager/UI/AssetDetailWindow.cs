@@ -28,6 +28,7 @@ namespace AMU.Editor.VrcAssetManager.UI
         private string newAuthorName = string.Empty;
         private string newAssetType = string.Empty;
         private string newFilePath = string.Empty;
+        private List<string> newChildAssetIds= new List<string>();
         private bool newIsFavorite = false;
         private bool newIsArchived = false;
         private List<string> newTags = new List<string>();
@@ -46,6 +47,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             }
             var window = GetWindow<AssetDetailWindow>();
             window._asset = asset;
+            window.newChildAssetIds = asset.childAssetIds.ToList();
             window.newTags = asset.metadata.tags.ToList();
             window.newDependencies = asset.metadata.dependencies.ToList();
             window.titleContent = new GUIContent("Asset Detail: " + asset.metadata.name);
@@ -193,6 +195,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                         _asset.metadata.SetAuthorName(newAuthorName);
                         _asset.metadata.SetAssetType(newAssetType);
                         _asset.fileInfo.SetFilePath(newFilePath);
+                        _asset.SetChildAssetIds(newChildAssetIds);
                         _asset.state.SetFavorite(newIsFavorite);
                         _asset.state.SetArchived(newIsArchived);
                         _asset.metadata.SetTags(newTags);
@@ -404,7 +407,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                         _childrenScroll = _newChildrenScroll.scrollPosition;
                         using (new GUILayout.HorizontalScope())
                         {
-                            foreach (var childId in _asset.childAssetIds)
+                            foreach (var childId in newChildAssetIds)
                             {
                                 if (Guid.TryParse(childId, out var childGuid))
                                 {
@@ -425,6 +428,22 @@ namespace AMU.Editor.VrcAssetManager.UI
                                             }
                                         }
                                     }
+                                }
+                            }
+                            if (_isEditMode)
+                                {
+                                GUILayout.FlexibleSpace();
+                                if (GUILayout.Button("+", GUILayout.Width(24), GUILayout.Height(24)))
+                                {
+                                    AssetSelectorWindow.ShowWindow(
+                                        (selectedChildAssetIds) =>
+                                        {
+                                            newChildAssetIds = selectedChildAssetIds.ToList();
+                                        },
+                                        newChildAssetIds,
+                                        true,
+                                        true
+                                    );
                                 }
                             }
                         }

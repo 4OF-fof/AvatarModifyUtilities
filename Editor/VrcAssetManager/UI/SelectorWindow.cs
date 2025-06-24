@@ -276,6 +276,7 @@ namespace AMU.Editor.VrcAssetManager.UI
     public class AssetSelectorWindow : EditorWindow
     {
         private bool _allowMultipleSelection;
+        private bool _showOnlyRootAssets;
         private Action<List<string>> _onAssetsSelected;
         private List<AssetSchema> _availableAssets;
         private List<AssetSchema> _filteredAssets;
@@ -283,12 +284,13 @@ namespace AMU.Editor.VrcAssetManager.UI
         private Vector2 _scrollPosition = Vector2.zero;
         private string _searchText = "";
 
-        public static void ShowWindow(Action<List<string>> onAssetsSelected, List<string> initialSelectedAssets = null, bool allowMultipleSelection = false)
+        public static void ShowWindow(Action<List<string>> onAssetsSelected, List<string> initialSelectedAssets = null, bool allowMultipleSelection = false, bool showOnlyRootAssets = false)
         {
             var window = GetWindow<AssetSelectorWindow>("Asset Selector");
             window.minSize = window.maxSize = new Vector2(400, 500);
             window._allowMultipleSelection = allowMultipleSelection;
             window._onAssetsSelected = onAssetsSelected;
+            window._showOnlyRootAssets = showOnlyRootAssets;
 
             try
             {
@@ -303,7 +305,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                 window._availableAssets = new List<AssetSchema>();
             }
 
-            window._selectedAssets.Clear();            if (initialSelectedAssets != null && initialSelectedAssets.Count > 0)
+            window._selectedAssets.Clear();
+            if (initialSelectedAssets != null && initialSelectedAssets.Count > 0)
             {
                 foreach (var assetId in initialSelectedAssets)
                 {
@@ -491,13 +494,18 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private void FilterAssets()
         {
+            IEnumerable<AssetSchema> assets = _availableAssets;
+            if (_showOnlyRootAssets)
+            {
+                assets = assets.Where(asset => string.IsNullOrEmpty(asset.parentGroupId));
+            }
             if (string.IsNullOrEmpty(_searchText))
             {
-                _filteredAssets = new List<AssetSchema>(_availableAssets);
+                _filteredAssets = assets.ToList();
             }
             else
             {
-                _filteredAssets = _availableAssets
+                _filteredAssets = assets
                     .Where(asset => asset.metadata.name.IndexOf(_searchText, StringComparison.OrdinalIgnoreCase) >= 0)
                     .ToList();
             }

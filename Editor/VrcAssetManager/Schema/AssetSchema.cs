@@ -114,6 +114,19 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _lastAccessed = DateTime.Now;
         }
 
+        public void SetChildAssetIds(List<string> newChildAssetIds)
+        {
+            if (newChildAssetIds == null || newChildAssetIds.Count == 0)
+            {
+                _childAssetIds.Clear();
+            }
+            else
+            {
+                _childAssetIds = new List<string>(newChildAssetIds);
+            }
+            _lastAccessed = DateTime.Now;
+        }
+
         public void AddChildAssetId(string childAssetId)
         {
             if (string.IsNullOrWhiteSpace(childAssetId))
