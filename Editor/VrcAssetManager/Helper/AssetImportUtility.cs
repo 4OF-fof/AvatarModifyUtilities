@@ -208,19 +208,45 @@ namespace AMU.Editor.VrcAssetManager.Helper
 
             isImporting = true;
             
-            EditorApplication.CallbackFunction importCompleteCallback = null;
-            importCompleteCallback = () =>
+            AssetDatabase.ImportPackageCallback onImportCompleted = null;
+            AssetDatabase.ImportPackageCallback onImportCancelled = null;
+            AssetDatabase.ImportPackageFailedCallback onImportFailed = null;
+
+            onImportCompleted = (packageName) =>
             {
-                if (!EditorApplication.isCompiling && !EditorApplication.isUpdating)
-                {
-                    EditorApplication.update -= importCompleteCallback;
-                    OnImportComplete();
-                }
+                AssetDatabase.importPackageCompleted -= onImportCompleted;
+                AssetDatabase.importPackageCancelled -= onImportCancelled;
+                AssetDatabase.importPackageFailed -= onImportFailed;
+                
+                Debug.Log($"[AssetImportUtility] Package import completed: {packageName}");
+                OnImportComplete();
             };
 
+            onImportCancelled = (packageName) =>
+            {
+                AssetDatabase.importPackageCompleted -= onImportCompleted;
+                AssetDatabase.importPackageCancelled -= onImportCancelled;
+                AssetDatabase.importPackageFailed -= onImportFailed;
+                
+                Debug.Log($"[AssetImportUtility] Package import cancelled: {packageName}");
+                OnImportComplete();
+            };
+
+            onImportFailed = (packageName, errorMessage) =>
+            {
+                AssetDatabase.importPackageCompleted -= onImportCompleted;
+                AssetDatabase.importPackageCancelled -= onImportCancelled;
+                AssetDatabase.importPackageFailed -= onImportFailed;
+                
+                Debug.LogError($"[AssetImportUtility] Package import failed: {packageName}, Error: {errorMessage}");
+                OnImportComplete();
+            };
+
+            AssetDatabase.importPackageCompleted += onImportCompleted;
+            AssetDatabase.importPackageCancelled += onImportCancelled;
+            AssetDatabase.importPackageFailed += onImportFailed;
+
             AssetDatabase.ImportPackage(packagePath, showImportDialog);
-            
-            EditorApplication.update += importCompleteCallback;
         }
 
         private static void OnImportComplete()
