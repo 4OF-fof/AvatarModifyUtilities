@@ -162,7 +162,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                             {
                                 try
                                 {
-                                    string relPath = AssetFileUtility.MoveToCoreSubDirectory(absNewFilePath, coreDir, "VrcAssetManager/package");
+                                    string relPath = AssetFileUtility.MoveToCoreSubDirectory(absNewFilePath, "VrcAssetManager/package", Path.GetFileName(absNewFilePath));
                                     newFilePath = relPath;
                                 }
                                 catch (Exception ex)
@@ -281,6 +281,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     }
                     else
                     {
+                        // TextFieldの戻り値をnewFilePathに必ず代入する
                         newFilePath = EditorGUILayout.TextField(newFilePath, EditorStyles.textField);
                         if (GUILayout.Button("...", GUILayout.Width(28)))
                         {
