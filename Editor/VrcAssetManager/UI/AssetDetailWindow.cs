@@ -210,7 +210,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     }
                     else
                     {
-                        newAuthorName = EditorGUILayout.TextField(newAuthorName, valueStyle);
+                        newAuthorName = EditorGUILayout.TextField(newAuthorName, EditorStyles.textField);
                     }
                 }
 
@@ -223,7 +223,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     }
                     else
                     {
-                        newAssetType = EditorGUILayout.TextField(newAssetType, valueStyle);
+                        newAssetType = EditorGUILayout.TextField(newAssetType, EditorStyles.textField);
                     }
                 }
 
@@ -248,7 +248,15 @@ namespace AMU.Editor.VrcAssetManager.UI
                     }
                     else
                     {
-                        newFilePath = EditorGUILayout.TextField(newFilePath, valueStyle);
+                        newFilePath = EditorGUILayout.TextField(newFilePath, EditorStyles.textField);
+                        if (GUILayout.Button("...", GUILayout.Width(28)))
+                        {
+                            var selectedPath = EditorUtility.OpenFilePanel("ファイルを選択", string.IsNullOrEmpty(newFilePath) ? Application.dataPath : Path.GetDirectoryName(newFilePath), "");
+                            if (!string.IsNullOrEmpty(selectedPath))
+                            {
+                                newFilePath = selectedPath;
+                            }
+                        }
                     }
                 }
 
