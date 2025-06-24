@@ -583,7 +583,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                         GUILayout.FlexibleSpace();
                         if (GUILayout.Button("インポート", GUILayout.Width(240), GUILayout.Height(36)))
                         {
-                            Debug.Log("Import clicked");
+                            ImportAsset();
                         }
                         GUILayout.FlexibleSpace();
                     }
@@ -601,6 +601,48 @@ namespace AMU.Editor.VrcAssetManager.UI
                     }
                     GUILayout.FlexibleSpace();
                 }
+            }
+        }
+
+        private void ImportAsset()
+        {
+            try
+            {
+                List<string> pathsToImport = new List<string>();
+
+                if (_asset.fileInfo != null && _asset.fileInfo.importFiles != null && _asset.fileInfo.importFiles.Count > 0)
+                {
+                    pathsToImport.AddRange(_asset.fileInfo.importFiles);
+                    Debug.Log($"[AssetDetailWindow] Using importFiles for import: {string.Join(", ", _asset.fileInfo.importFiles)}");
+                }
+                else if (_asset.fileInfo != null && !string.IsNullOrEmpty(_asset.fileInfo.filePath))
+                {
+                    pathsToImport.Add(_asset.fileInfo.filePath);
+                    Debug.Log($"[AssetDetailWindow] Using filePath for import: {_asset.fileInfo.filePath}");
+                }
+                else
+                {
+                    Debug.LogWarning("[AssetDetailWindow] No valid file paths found for import");
+                    EditorUtility.DisplayDialog("エラー", "インポートするファイルが見つかりません。", "OK");
+                    return;
+                }
+
+                bool importSuccess = AssetImportUtility.ImportAssets(pathsToImport, true);
+
+                if (importSuccess)
+                {
+                    Debug.Log($"[AssetDetailWindow] Successfully imported {pathsToImport.Count} asset(s)");
+                }
+                else
+                {
+                    Debug.LogWarning($"[AssetDetailWindow] Some assets failed to import");
+                    EditorUtility.DisplayDialog("警告", "一部のアセットのインポートに失敗しました。詳細はコンソールを確認してください。", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[AssetDetailWindow] Failed to import asset: {ex.Message}");
+                EditorUtility.DisplayDialog("エラー", $"アセットのインポートに失敗しました: {ex.Message}", "OK");
             }
         }
     }

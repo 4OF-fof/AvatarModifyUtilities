@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using AMU.Editor.Core.Api;
@@ -9,7 +10,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
 {
     public static class AssetImportUtility
     {
-        public static bool ImportAssets(System.Collections.Generic.List<string> relativePaths, bool showImportDialog = true)
+        public static bool ImportAssets(List<string> relativePaths, bool showImportDialog = true)
         {
             if (relativePaths == null || relativePaths.Count == 0)
             {
