@@ -371,6 +371,46 @@ namespace AMU.Editor.VrcAssetManager.Schema
 
         public IReadOnlyList<string> importFiles => _importFiles ?? new List<string>();
         #endregion
+
+        #region Methods
+        public void SetFilePath(string newFilePath)
+        {
+            _filePath = newFilePath?.Trim() ?? string.Empty;
+        }
+
+        public void AddImportFile(string importFile)
+        {
+            if (string.IsNullOrWhiteSpace(importFile))
+            {
+                Debug.LogError("Cannot add an empty or whitespace import file.");
+            }
+            else if (_importFiles.Contains(importFile))
+            {
+                Debug.LogWarning($"Import file '{importFile}' already exists in the list.");
+            }
+            else
+            {
+                _importFiles.Add(importFile.Trim());
+            }
+        }
+
+        public void RemoveImportFile(string importFile)
+        {
+            if (_importFiles.Contains(importFile))
+            {
+                _importFiles.Remove(importFile);
+            }
+            else
+            {
+                Debug.LogWarning($"Import file '{importFile}' does not exist in the list.");
+            }
+        }
+
+        public void ClearImportFiles()
+        {
+            _importFiles.Clear();
+        }
+        #endregion
     }
     #endregion
 

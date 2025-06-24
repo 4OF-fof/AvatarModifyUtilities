@@ -21,6 +21,12 @@ namespace AMU.Editor.VrcAssetManager.UI
         private Vector2 _depsScroll = Vector2.zero;
         private Vector2 _childrenScroll = Vector2.zero;
 
+        private string newAuthorName = string.Empty;
+        private string newAssetType = string.Empty;
+        private string newFilePath = string.Empty;
+        private bool newIsFavorite = false;
+        private bool newIsArchived = false;
+
         public static List<Guid> history { get => _history; set => _history = value; }
 
         public static void ShowWindow(AssetSchema asset, bool isBack = false)
@@ -37,6 +43,11 @@ namespace AMU.Editor.VrcAssetManager.UI
             window.titleContent = new GUIContent("Asset Detail: " + asset.metadata.name);
             window.minSize = window.maxSize = new Vector2(800, 760);
             window.maximized = false;
+            window.newAuthorName = asset.metadata.authorName;
+            window.newAssetType = asset.metadata.assetType;
+            window.newFilePath = asset.fileInfo != null ? asset.fileInfo.filePath : string.Empty;
+            window.newIsFavorite = asset.state != null ? asset.state.isFavorite : false;
+            window.newIsArchived = asset.state != null ? asset.state.isArchived : false;
             window.Show();
             _currentAsset = asset;
         }
@@ -132,6 +143,12 @@ namespace AMU.Editor.VrcAssetManager.UI
                     var saveIcon = EditorGUIUtility.IconContent("SaveActive");
                     if (GUILayout.Button(saveIcon, GUILayout.Width(32), GUILayout.Height(32)))
                     {
+                        _asset.metadata.SetAuthorName(newAuthorName);
+                        _asset.metadata.SetAssetType(newAssetType);
+                        _asset.fileInfo.SetFilePath(newFilePath);
+                        _asset.state.SetFavorite(newIsFavorite);
+                        _asset.state.SetArchived(newIsArchived);
+                        controller.UpdateAsset(_asset);
                         _isEditMode = false;
                     }
 
@@ -191,13 +208,27 @@ namespace AMU.Editor.VrcAssetManager.UI
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label("Author:", labelStyle, GUILayout.Width(70));
-                    GUILayout.Label(metadata.authorName, valueStyle);
+                    if (!_isEditMode)
+                    {
+                        GUILayout.Label(metadata.authorName, valueStyle);
+                    }
+                    else
+                    {
+                        newAuthorName = EditorGUILayout.TextField(newAuthorName, valueStyle);
+                    }
                 }
 
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label("Asset Type:", labelStyle, GUILayout.Width(70));
-                    GUILayout.Label(metadata.assetType, valueStyle);
+                    if (!_isEditMode)
+                    {
+                        GUILayout.Label(metadata.assetType, valueStyle);
+                    }
+                    else
+                    {
+                        newAssetType = EditorGUILayout.TextField(newAssetType, valueStyle);
+                    }
                 }
 
                 using (new GUILayout.HorizontalScope())
@@ -215,7 +246,14 @@ namespace AMU.Editor.VrcAssetManager.UI
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label("File Path:", labelStyle, GUILayout.Width(70));
-                    GUILayout.Label(fileInfo.filePath, valueStyle);
+                    if (!_isEditMode)
+                    {
+                        GUILayout.Label(fileInfo.filePath, valueStyle);
+                    }
+                    else
+                    {
+                        newFilePath = EditorGUILayout.TextField(newFilePath, valueStyle);
+                    }
                 }
 
                 GUILayout.Space(4);
@@ -223,9 +261,25 @@ namespace AMU.Editor.VrcAssetManager.UI
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label("Favorite:", labelStyle, GUILayout.Width(70));
-                    GUILayout.Label(state.isFavorite ? "Yes" : "No", valueStyle);
+                    if (!_isEditMode)
+                    {
+                        GUILayout.Label(state.isFavorite ? "Yes" : "No", valueStyle);
+                    }
+                    else
+                    {
+                        newIsFavorite = EditorGUILayout.Toggle(newIsFavorite, GUILayout.Width(20));
+                        GUILayout.Label(newIsFavorite ? "Yes" : "No", valueStyle);
+                    }
                     GUILayout.Label("Archived:", labelStyle, GUILayout.Width(70));
-                    GUILayout.Label(state.isArchived ? "Yes" : "No", valueStyle);
+                    if (!_isEditMode)
+                    {
+                        GUILayout.Label(state.isArchived ? "Yes" : "No", valueStyle);
+                    }
+                    else
+                    {
+                        newIsArchived = EditorGUILayout.Toggle(newIsArchived, GUILayout.Width(20));
+                        GUILayout.Label(newIsArchived ? "Yes" : "No", valueStyle);
+                    }
                 }
 
                 if (!string.IsNullOrEmpty(_asset.parentGroupId) && controller != null)
