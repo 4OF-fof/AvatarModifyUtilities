@@ -452,31 +452,25 @@ namespace AMU.Editor.VrcAssetManager.UI
                         }
                     }
                 }
-                if ((_asset.fileInfo?.importFiles?.Count > 0) || (_isEditMode && ZipFileUtility.IsZipFile(_asset.fileInfo.filePath)))
+                if ((_asset.fileInfo.importFiles.Count > 0) || (_isEditMode && ZipFileUtility.IsZipFile(_asset.fileInfo.filePath)))
                 {
-                    GUILayout.Space(5);
-                    using (new GUILayout.VerticalScope(sectionBoxStyle))
+                    GUILayout.Space(4);
+                    GUILayout.Label("Import Files", labelStyle);
+                    using (var _newImportScroll = new GUILayout.ScrollViewScope(Vector2.zero, GUILayout.Height(40)))
                     {
-                        GUILayout.Label("Import Files", labelStyle);
-                        using (var _newImportScroll = new GUILayout.ScrollViewScope(Vector2.zero, GUILayout.Height(60)))
+                        _tagsScroll = _newImportScroll.scrollPosition;
+                        using (new GUILayout.HorizontalScope())
                         {
-                            using (new GUILayout.VerticalScope())
+                            foreach (var importFile in _asset.fileInfo.importFiles)
                             {
-                                if (_asset.fileInfo?.importFiles?.Count > 0)
+                                GUILayout.Button(Path.GetFileName(importFile), chipStyle);
+                            }
+                            if (_isEditMode)
+                            {
+                                GUILayout.FlexibleSpace();
+                                if (GUILayout.Button("+", GUILayout.Width(24), GUILayout.Height(24)))
                                 {
-                                    foreach (var importFile in _asset.fileInfo.importFiles)
-                                    {
-                                        using (new GUILayout.HorizontalScope())
-                                        {
-                                            GUILayout.Label("•", labelStyle, GUILayout.Width(10));
-                                            GUILayout.Label(Path.GetFileName(importFile), valueStyle);
-
-                                        }
-                                    }
-                                }
-                                else if (!_isEditMode)
-                                {
-                                    GUILayout.Label("No import files selected", EditorStyles.miniLabel);
+                                    ShowImportPathSelector();
                                 }
                             }
                         }
