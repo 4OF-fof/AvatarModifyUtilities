@@ -9,6 +9,7 @@ using AMU.Editor.Core.Api;
 using AMU.Editor.VrcAssetManager.Controller;
 using AMU.Editor.VrcAssetManager.Schema;
 using AMU.Editor.VrcAssetManager.UI;
+using AMU.Editor.VrcAssetManager.Helper;
 
 namespace AMU.Editor.VrcAssetManager.UI.Components
 {
@@ -195,8 +196,36 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 }
                 else
                 {
-                    Debug.Log($"Selected file for asset import: {selectedFile}");
+                    CreateNewAssetFromFile(selectedFile);
                 }
+            }
+        }
+
+        private static void CreateNewAssetFromFile(string sourceFilePath)
+        {
+            try
+            {
+                var controller = AssetLibraryController.Instance;
+                
+                string relativePath = AssetFileUtility.MoveToCoreSubDirectory(sourceFilePath, "VrcAssetManager/package", Path.GetFileName(sourceFilePath));
+                
+                var newAsset = new AssetSchema();
+
+                newAsset.fileInfo.SetFilePath(relativePath);
+                
+                string fileName = Path.GetFileNameWithoutExtension(sourceFilePath);
+                newAsset.metadata.SetName(fileName);
+                
+                controller.AddAsset(newAsset);
+                
+                Debug.Log($"新しいアセットを作成しました: {fileName} (ID: {newAsset.assetId})");
+                
+                AssetDetailWindow.ShowWindow(newAsset);
+            }
+            catch (Exception ex)
+            {
+                EditorUtility.DisplayDialog("エラー", $"アセットの作成に失敗しました: {ex.Message}", "OK");
+                Debug.LogError($"Failed to create asset from file: {ex}");
             }
         }
 
