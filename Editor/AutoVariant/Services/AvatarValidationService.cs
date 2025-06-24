@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 
 using AMU.Editor.Core.Api;
+using AMU.Editor.AutoVariant.Helper;
 
 namespace AMU.Editor.AutoVariant.Services
 {
@@ -25,7 +26,7 @@ namespace AMU.Editor.AutoVariant.Services
 
             foreach (var obj in allObjects)
             {
-                if (obj.activeInHierarchy && VRChatAPI.IsVRCAvatar(obj))
+                if (obj.activeInHierarchy && VRCObjectHelper.IsVRCAvatar(obj))
                 {
                     avatars.Add(obj);
                 }
@@ -58,7 +59,7 @@ namespace AMU.Editor.AutoVariant.Services
             if (obj == null)
                 return false;
 
-            return VRChatAPI.IsVRCAvatar(obj);
+            return VRCObjectHelper.IsVRCAvatar(obj);
         }
 
         private static void ShowMultipleAvatarsError()

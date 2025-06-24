@@ -1,10 +1,9 @@
 using System.Reflection;
-
 using UnityEngine;
 
-namespace AMU.Editor.Core.Api
+namespace AMU.Editor.AutoVariant.Helper
 {
-    public static class VRChatAPI
+    public static class VRCObjectHelper
     {
         public static string GetBlueprintId(GameObject go)
         {

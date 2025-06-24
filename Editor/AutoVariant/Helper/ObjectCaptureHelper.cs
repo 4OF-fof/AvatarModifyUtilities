@@ -1,13 +1,12 @@
 using System;
 using System.IO;
-
 using UnityEngine;
 using UnityEditor;
 using AMU.Editor.Core.Controller;
 
-namespace AMU.Editor.Core.Api
+namespace AMU.Editor.AutoVariant.Helper
 {
-    public static class ObjectCaptureAPI
+    public static class ObjectCaptureHelper
     {
         public static Texture2D CaptureObject(GameObject targetObject, string savePath, int width = 512, int height = 512)
         {

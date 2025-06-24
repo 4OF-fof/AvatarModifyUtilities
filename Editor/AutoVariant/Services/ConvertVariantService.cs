@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 
 using AMU.Editor.Core.Api;
+using AMU.Editor.AutoVariant.Helper;
 
 namespace AMU.Editor.AutoVariant.Services
 {
@@ -115,7 +116,7 @@ namespace AMU.Editor.AutoVariant.Services
             if (!SettingAPI.GetSetting<bool>("AutoVariant_enableAutoVariant"))
                 return;
 
-            var blueprintId = VRChatAPI.GetBlueprintId(go);
+            var blueprintId = VRCObjectHelper.GetBlueprintId(go);
             if (!string.IsNullOrEmpty(blueprintId))
                 return;
 

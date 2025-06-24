@@ -1,3 +1,4 @@
+using AMU.Editor.AutoVariant.Helper;
 using AMU.Editor.Core.Api;
 
 namespace AMU.Editor.Core.Helper
@@ -11,7 +12,7 @@ namespace AMU.Editor.Core.Helper
         [System.Obsolete("Use AMU.Editor.Core.API.ObjectCaptureAPI.CaptureObject instead", false)]
         public static UnityEngine.Texture2D CaptureObject(UnityEngine.GameObject targetObject, string savePath, int width = 512, int height = 512)
         {
-            return ObjectCaptureAPI.CaptureObject(targetObject, savePath, width, height);
+            return ObjectCaptureHelper.CaptureObject(targetObject, savePath, width, height);
         }
     }
 
@@ -21,16 +22,16 @@ namespace AMU.Editor.Core.Helper
     [System.Obsolete("Use AMU.Editor.Core.API.VRChatAPI instead", false)]
     public static class PipelineManagerHelper
     {
-        [System.Obsolete("Use AMU.Editor.Core.API.VRChatAPI.GetBlueprintId instead", false)]
+        [System.Obsolete("Use AMU.Editor.AutoVariant.Helper.VRCObjectHelper.GetBlueprintId instead", false)]
         public static string GetBlueprintId(UnityEngine.GameObject go)
         {
-            return VRChatAPI.GetBlueprintId(go);
+            return VRCObjectHelper.GetBlueprintId(go);
         }
 
-        [System.Obsolete("Use AMU.Editor.Core.API.VRChatAPI.IsVRCAvatar instead", false)]
+        [System.Obsolete("Use AMU.Editor.AutoVariant.Helper.VRCObjectHelper.IsVRCAvatar instead", false)]
         public static bool isVRCAvatar(UnityEngine.GameObject obj)
         {
-            return VRChatAPI.IsVRCAvatar(obj);
+            return VRCObjectHelper.IsVRCAvatar(obj);
         }
     }
 }

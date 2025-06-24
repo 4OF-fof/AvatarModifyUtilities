@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor;
 
 using AMU.Editor.Core.Api;
+using AMU.Editor.AutoVariant.Helper;
 
 namespace AMU.Editor.AutoVariant.Services
 {
@@ -59,7 +60,7 @@ namespace AMU.Editor.AutoVariant.Services
             try
             {
                 var imagePath = Path.ChangeExtension(unityPackagePath, ".png");
-                var capturedTexture = ObjectCaptureAPI.CaptureObject(avatar, imagePath, 512, 512);
+                var capturedTexture = ObjectCaptureHelper.CaptureObject(avatar, imagePath, 512, 512);
 
                 if (capturedTexture != null)
                 {
@@ -79,7 +80,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static string GenerateExportPath(GameObject avatar)
         {
-            var blueprintId = VRChatAPI.GetBlueprintId(avatar);
+            var blueprintId = VRCObjectHelper.GetBlueprintId(avatar);
             var exportDirectory = CreateExportDirectory(blueprintId);
             var fileName = GenerateUniqueFileName(exportDirectory, avatar.name, string.IsNullOrEmpty(blueprintId));
 
