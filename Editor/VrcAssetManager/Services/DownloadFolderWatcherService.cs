@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor;
 using AMU.Editor.VrcAssetManager.Schema;
 using AMU.Editor.VrcAssetManager.Controller;
+using AMU.Editor.VrcAssetManager.Helper;
 
 namespace AMU.Editor.VrcAssetManager.Services
 {
@@ -98,13 +99,10 @@ namespace AMU.Editor.VrcAssetManager.Services
                 Debug.Log($"[DownloadFolderWatcherService] ProcessFile called: {filePath}");
 
                 string originalFileName = System.Text.RegularExpressions.Regex.Replace(fileName, @" ?\([0-9]+\)(?=\.[^.]+$)", "");
-                if (originalFileName != fileName)
+                string assetFileName = originalFileName != fileName ? Path.GetFileName(originalFileName) : fileName;
+                if (_processedFiles.Contains(assetFileName))
                 {
-                    fileName = Path.GetFileName(originalFileName);
-                }
-                if (_processedFiles.Contains(fileName))
-                {
-                    Debug.Log($"[DownloadFolderWatcherService] Already processed: {fileName}");
+                    Debug.Log($"[DownloadFolderWatcherService] Already processed: {assetFileName}");
                     return;
                 }
                 if (!File.Exists(filePath))
@@ -112,22 +110,22 @@ namespace AMU.Editor.VrcAssetManager.Services
                     Debug.Log($"[DownloadFolderWatcherService] File does not exist: {filePath}");
                     return;
                 }
-                if (IsTemporaryFile(fileName))
+                if (IsTemporaryFile(assetFileName))
                 {
-                    Debug.Log($"[DownloadFolderWatcherService] Temporary file, skipping: {fileName}");
+                    Debug.Log($"[DownloadFolderWatcherService] Temporary file, skipping: {assetFileName}");
                     return;
                 }
                 var asset = AssetLibraryController.Instance.GetAllAssets()
-                    .FirstOrDefault(a => a.boothItem != null && a.boothItem.fileName == fileName);
+                    .FirstOrDefault(a => a.boothItem != null && a.boothItem.fileName == assetFileName);
                 if (asset == null)
                 {
-                    Debug.Log($"[DownloadFolderWatcherService] No matching asset for: {fileName}");
+                    Debug.Log($"[DownloadFolderWatcherService] No matching asset for: {assetFileName}");
                     return;
                 }
                 if (!string.IsNullOrEmpty(asset.fileInfo.filePath))
                 {
                     Debug.Log($"[DownloadFolderWatcherService] Asset '{asset.metadata.name}' already has a file path, skipping: {asset.fileInfo.filePath}");
-                    _processedFiles.Add(fileName);
+                    _processedFiles.Add(assetFileName);
                     return;
                 }
                 string coreDir = AMU.Editor.Core.Api.SettingAPI.GetSetting<string>("Core_dirPath");
@@ -135,23 +133,10 @@ namespace AMU.Editor.VrcAssetManager.Services
                 {
                     coreDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities");
                 }
-                string packageDir = Path.Combine(coreDir, "VrcAssetManager", "BoothItem", "package");
-                if (!Directory.Exists(packageDir))
-                {
-                    Directory.CreateDirectory(packageDir);
-                    Debug.Log($"[DownloadFolderWatcherService] Created packageDir: {packageDir}");
-                }
-                string targetPath = Path.Combine(packageDir, fileName);
-                if (File.Exists(targetPath))
-                {
-                    Debug.Log($"[DownloadFolderWatcherService] File already exists, skipping: {targetPath}");
-                    _processedFiles.Add(fileName);
-                    return;
-                }
-                File.Move(filePath, targetPath);
-                Debug.Log($"[DownloadFolderWatcherService] Moved file: {filePath} -> {targetPath}");
-
-                string relativePath = GetRelativePath(targetPath, coreDir);
+                // 移動後のファイル名もoriginalFileNameを使う
+                string relativePath = AssetFileUtility.MoveToCoreSubDirectory(filePath, coreDir, "VrcAssetManager/BoothItem/package", true, assetFileName);
+                string targetPath = Path.Combine(Path.GetFullPath(coreDir), relativePath.Replace('/', Path.DirectorySeparatorChar));
+                Debug.Log($"[DownloadFolderWatcherService] File processed: {filePath} -> {targetPath}");
                 try
                 {
                     asset.fileInfo.GetType().GetProperty("filePath").SetValue(asset.fileInfo, relativePath);

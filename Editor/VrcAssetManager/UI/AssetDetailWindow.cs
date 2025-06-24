@@ -7,6 +7,7 @@ using AMU.Editor.VrcAssetManager.UI.Components;
 using AMU.Editor.VrcAssetManager.Controller;
 using AMU.Editor.Core.Api;
 using System.IO;
+using AMU.Editor.VrcAssetManager.Helper;
 
 namespace AMU.Editor.VrcAssetManager.UI
 {
@@ -159,10 +160,22 @@ namespace AMU.Editor.VrcAssetManager.UI
                             string absNewFilePath = Path.GetFullPath(newFilePath);
                             if (!absNewFilePath.StartsWith(absCoreDir, StringComparison.OrdinalIgnoreCase))
                             {
-                                EditorUtility.DisplayDialog("エラー", $"ファイルパスはCoreディレクトリ({coreDir})以下のみ設定できます。", "OK");
-                                return;
+                                // Core_dirPath以下以外の場合はVrcAssetManager/packageに移動
+                                try
+                                {
+                                    string relPath = AssetFileUtility.MoveToCoreSubDirectory(absNewFilePath, coreDir, "VrcAssetManager/package");
+                                    newFilePath = relPath;
+                                }
+                                catch (Exception ex)
+                                {
+                                    EditorUtility.DisplayDialog("エラー", $"ファイルの移動に失敗しました: {ex.Message}", "OK");
+                                    return;
+                                }
                             }
-                            newFilePath = absNewFilePath.Substring(absCoreDir.Length).Replace('\\', '/');
+                            else
+                            {
+                                newFilePath = absNewFilePath.Substring(absCoreDir.Length).Replace('\\', '/');
+                            }
                         }
                         _asset.metadata.SetAuthorName(newAuthorName);
                         _asset.metadata.SetAssetType(newAssetType);
