@@ -208,7 +208,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             {
                 var menu = new GenericMenu();
                 
-                bool allImportable = _selectedAssets.All(a => AssetImportUtility.IsImportable(a.fileInfo.filePath));
+                bool allImportable = _selectedAssets.All(a => AssetImportUtility.IsImportable(a.fileInfo.filePath) || asset.fileInfo.importFiles.Count > 0);
                 if (allImportable && _selectedAssets.Count > 1)
                 {
                     menu.AddItem(new GUIContent("Import Selected Assets"), false, () => 
@@ -286,7 +286,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             {
                 var menu = new GenericMenu();
 
-                if (AssetImportUtility.IsImportable(asset.fileInfo.filePath))
+                if (AssetImportUtility.IsImportable(asset.fileInfo.filePath) || asset.fileInfo.importFiles.Count > 0)
                 {
                     menu.AddItem(new GUIContent("Import Asset"), false, () => 
                     {

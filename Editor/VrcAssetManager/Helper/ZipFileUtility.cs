@@ -13,9 +13,6 @@ namespace AMU.Editor.VrcAssetManager.Helper
     {
         private static Dictionary<string, string> _tempExtractionDirs = new Dictionary<string, string>();
 
-        /// <summary>
-        /// zipファイルが有効かどうかチェック
-        /// </summary>
         public static bool IsZipFile(string filePath)
         {
             if (string.IsNullOrEmpty(filePath)) return false;
@@ -23,9 +20,6 @@ namespace AMU.Editor.VrcAssetManager.Helper
             return extension == ".zip";
         }
 
-        /// <summary>
-        /// zipファイル内のファイル一覧を取得
-        /// </summary>
         public static List<string> GetZipFileList(string zipFilePath)
         {
             var fileList = new List<string>();
@@ -38,18 +32,15 @@ namespace AMU.Editor.VrcAssetManager.Helper
                     return fileList;
                 }
 
-                // システムのTempディレクトリに一時展開
                 string tempDir = ExtractZipToTemp(fullPath);
                 if (string.IsNullOrEmpty(tempDir))
                 {
                     return fileList;
                 }
 
-                // 展開されたファイル一覧を取得（日本語ファイル名も正しく取得される）
                 string[] files = Directory.GetFiles(tempDir, "*", SearchOption.AllDirectories);
                 foreach (string file in files)
                 {
-                    // tempDirからの相対パスを計算
                     string relativePath = Path.GetRelativePath(tempDir, file);
                     fileList.Add(relativePath.Replace('\\', '/'));
                 }
@@ -62,9 +53,6 @@ namespace AMU.Editor.VrcAssetManager.Helper
             return fileList;
         }
 
-        /// <summary>
-        /// zipファイルから指定されたファイルを展開
-        /// </summary>
         public static bool ExtractFileFromZip(string zipFilePath, string entryPath, string outputPath)
         {
             try
@@ -76,7 +64,6 @@ namespace AMU.Editor.VrcAssetManager.Helper
                     return false;
                 }
 
-                // 一時展開ディレクトリから該当ファイルを検索
                 string tempDir = GetTempExtractionDir(fullZipPath);
                 if (string.IsNullOrEmpty(tempDir))
                 {
@@ -84,11 +71,9 @@ namespace AMU.Editor.VrcAssetManager.Helper
                     return false;
                 }
 
-                // パスの正規化とファイル検索
                 string normalizedEntryPath = entryPath.Replace('/', Path.DirectorySeparatorChar);
                 string sourceFile = Path.Combine(tempDir, normalizedEntryPath);
 
-                // ファイルが見つからない場合、ディレクトリ内を再帰的に検索
                 if (!File.Exists(sourceFile))
                 {
                     string fileName = Path.GetFileName(entryPath);
@@ -96,7 +81,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
 
                     if (foundFiles.Length > 0)
                     {
-                        sourceFile = foundFiles[0]; // 最初に見つかったファイルを使用
+                        sourceFile = foundFiles[0];
                         Debug.Log($"[ZipFileUtility] Found file at alternative path: {sourceFile}");
                     }
                     else
@@ -106,14 +91,12 @@ namespace AMU.Editor.VrcAssetManager.Helper
                     }
                 }
 
-                // 出力ディレクトリが存在しない場合は作成
                 string outputDir = Path.GetDirectoryName(outputPath);
                 if (!Directory.Exists(outputDir))
                 {
                     Directory.CreateDirectory(outputDir);
                 }
 
-                // ファイルをコピー
                 File.Copy(sourceFile, outputPath, true);
                 Debug.Log($"[ZipFileUtility] Successfully extracted file: {entryPath} -> {outputPath}");
                 return true;
@@ -125,9 +108,6 @@ namespace AMU.Editor.VrcAssetManager.Helper
             }
         }
 
-        /// <summary>
-        /// VrcAssetManager用の展開先ディレクトリを取得
-        /// </summary>
         public static string GetUnzipDirectory()
         {
             string coreDir = GetCoreDirectory();
@@ -141,9 +121,6 @@ namespace AMU.Editor.VrcAssetManager.Helper
             return unzipDir;
         }
 
-        /// <summary>
-        /// 相対パスから絶対パスを取得
-        /// </summary>
         public static string GetFullPath(string relativePath)
         {
             if (Path.IsPathRooted(relativePath))
@@ -155,22 +132,15 @@ namespace AMU.Editor.VrcAssetManager.Helper
             return Path.Combine(coreDir, relativePath);
         }
 
-        /// <summary>
-        /// Coreディレクトリを取得
-        /// </summary>
         private static string GetCoreDirectory()
         {
             return SettingAPI.GetSetting<string>("Core_dirPath");
         }
 
-        /// <summary>
-        /// zipファイルを一時ディレクトリに展開
-        /// </summary>
         private static string ExtractZipToTemp(string zipFilePath)
         {
             try
             {
-                // 既に展開済みの場合はそのパスを返す
                 if (_tempExtractionDirs.TryGetValue(zipFilePath, out string existingTempDir))
                 {
                     if (Directory.Exists(existingTempDir))
@@ -184,14 +154,12 @@ namespace AMU.Editor.VrcAssetManager.Helper
                     }
                 }
 
-                // 新しい一時ディレクトリを作成
                 string tempDir = Path.Combine(Path.GetTempPath(), "VrcAssetManager_ZipExtract", Path.GetRandomFileName());
                 Directory.CreateDirectory(tempDir);
                 Debug.Log($"[ZipFileUtility] Created temp directory: {tempDir}");
 
                 int extractedCount = 0;
 
-                // Shift_JISエンコーディングでZIPファイルを展開
                 using (var fileStream = new FileStream(zipFilePath, FileMode.Open, FileAccess.Read))
                 {
                     using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Read, false, Encoding.GetEncoding("Shift_JIS")))
@@ -202,7 +170,6 @@ namespace AMU.Editor.VrcAssetManager.Helper
                         {
                             if (string.IsNullOrEmpty(entry.Name))
                             {
-                                // ディレクトリエントリをスキップ
                                 continue;
                             }
 
@@ -238,9 +205,6 @@ namespace AMU.Editor.VrcAssetManager.Helper
             }
         }
 
-        /// <summary>
-        /// 一時展開ディレクトリを取得
-        /// </summary>
         private static string GetTempExtractionDir(string zipFilePath)
         {
             if (_tempExtractionDirs.TryGetValue(zipFilePath, out string tempDir))
@@ -255,13 +219,9 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 }
             }
 
-            // まだ展開されていない場合は展開を実行
             return ExtractZipToTemp(zipFilePath);
         }
 
-        /// <summary>
-        /// 一時展開ディレクトリをクリーンアップ
-        /// </summary>
         public static void CleanupTempExtraction(string zipFilePath)
         {
             if (_tempExtractionDirs.TryGetValue(zipFilePath, out string tempDir))
@@ -281,9 +241,6 @@ namespace AMU.Editor.VrcAssetManager.Helper
             }
         }
 
-        /// <summary>
-        /// 全ての一時展開ディレクトリをクリーンアップ
-        /// </summary>
         public static void CleanupAllTempExtractions()
         {
             foreach (var kvp in _tempExtractionDirs.Keys.ToList())

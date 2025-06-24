@@ -605,7 +605,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 var filePath = _asset.fileInfo.filePath;
                 var ext = Path.GetExtension(filePath).ToLowerInvariant();
                 var excludedExts = SettingAPI.GetSetting<string>("AssetManager_excludedImportExtensions");
-                if (ZipFileUtility.IsZipFile(filePath))
+                if (ZipFileUtility.IsZipFile(filePath) && _asset.fileInfo.importFiles.Count == 0 || _asset.fileInfo.importFiles == null)
                 {
                     GUILayout.Space(3);
                     using (new GUILayout.HorizontalScope())
@@ -618,7 +618,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                         GUILayout.FlexibleSpace();
                     }
                 }
-                else if (excludedExts != null && !excludedExts.Contains(ext))
+                else if ((excludedExts != null && !excludedExts.Contains(ext)) || _asset.fileInfo.importFiles.Count > 0)
                 {
                     GUILayout.Space(3);
                     using (new GUILayout.HorizontalScope())
