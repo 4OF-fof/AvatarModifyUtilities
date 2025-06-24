@@ -207,7 +207,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             {
                 var controller = AssetLibraryController.Instance;
                 
-                string relativePath = AssetFileUtility.MoveToCoreSubDirectory(sourceFilePath, "VrcAssetManager/package", Path.GetFileName(sourceFilePath));
+                string relativePath = AssetFileUtility.MoveToCoreSubDirectory(sourceFilePath, "VrcAssetManager/Package", Path.GetFileName(sourceFilePath));
                 
                 var newAsset = new AssetSchema();
 

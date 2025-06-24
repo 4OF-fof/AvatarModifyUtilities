@@ -176,7 +176,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                             {
                                 try
                                 {
-                                    string relPath = AssetFileUtility.MoveToCoreSubDirectory(absNewFilePath, "VrcAssetManager/package", Path.GetFileName(absNewFilePath));
+                                    string relPath = AssetFileUtility.MoveToCoreSubDirectory(absNewFilePath, "VrcAssetManager/Package", Path.GetFileName(absNewFilePath));
                                     newFilePath = relPath;
                                 }
                                 catch (Exception ex)
