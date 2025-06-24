@@ -95,7 +95,8 @@ namespace AMU.Editor.VrcAssetManager.UI
             {
                 fontSize = 13,
                 fontStyle = FontStyle.Bold,
-                normal = { textColor = Color.white }
+                normal = { textColor = Color.white },
+                hover = { textColor = Color.white }
             };
             var dividerStyle = new GUIStyle(GUI.skin.box)
             {
