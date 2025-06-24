@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEngine;
 
 using AMU.Editor.Core.Api;
+using AMU.Editor.VrcAssetManager.Services;
 using AMU.Editor.VrcAssetManager.Controller;
 using AMU.Editor.VrcAssetManager.UI.Components;
 
@@ -23,11 +24,18 @@ namespace AMU.Editor.VrcAssetManager.UI
             window.Show();
         }
 
+        private static DownloadFolderWatcherService _downloadWatcher;
+
         void OnEnable()
         {
             string lang = SettingAPI.GetSetting<string>("Core_language");
             LocalizationAPI.LoadLanguage(lang);
             AssetLibraryController.Instance.InitializeLibrary();
+            if (_downloadWatcher == null)
+            {
+                _downloadWatcher = new DownloadFolderWatcherService();
+                Debug.Log("[VrcAssetManagerWindow] DownloadFolderWatcherService started.");
+            }
         }
 
         private void OnGUI()
@@ -45,6 +53,8 @@ namespace AMU.Editor.VrcAssetManager.UI
         private void OnDestroy()
         {
             ToolbarComponent.DestroyWindow();
+            _downloadWatcher?.Dispose();
+            _downloadWatcher = null;
         }
     }
 }
