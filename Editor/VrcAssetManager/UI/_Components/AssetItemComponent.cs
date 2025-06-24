@@ -93,34 +93,31 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
             if (asset.state.isFavorite)
             {
-                var starSize = 25;
                 var iconSize = 20;
-
                 var yOffset = asset.hasChildAssets ? 2 + iconSize + 2 : 2;
-                var starRect = new Rect(thumbnailRect.x + 2, thumbnailRect.y + yOffset, starSize, starSize);
+                var starRect = new Rect(thumbnailRect.x + 4, thumbnailRect.y + yOffset, iconSize, iconSize);
 
-                var originalColor = GUI.color;
-                var starStyle = new GUIStyle(GUI.skin.label)
+                var favoriteIcon = EditorGUIUtility.IconContent("Favorite Icon").image as Texture2D;
+                if (favoriteIcon != null)
                 {
-                    fontSize = Mathf.RoundToInt(starSize * 0.8f),
-                    alignment = TextAnchor.MiddleCenter
-                };
+                    var originalColor = GUI.color;
 
-                GUI.color = Color.black;
-                for (int x = -1; x <= 1; x++)
-                {
-                    for (int y = -1; y <= 1; y++)
+                    GUI.color = Color.black;
+                    for (int x = -1; x <= 1; x++)
                     {
-                        if (x == 0 && y == 0) continue;
-                        var outlineRect = new Rect(starRect.x + x, starRect.y + y, starRect.width, starRect.height);
-                        GUI.Label(outlineRect, "★", starStyle);
+                        for (int y = -1; y <= 1; y++)
+                        {
+                            if (x == 0 && y == 0) continue;
+                            var outlineRect = new Rect(starRect.x + x, starRect.y + y, starRect.width, starRect.height);
+                            GUI.DrawTexture(outlineRect, favoriteIcon, ScaleMode.ScaleToFit);
+                        }
                     }
+
+                    GUI.color = Color.yellow;
+                    GUI.DrawTexture(starRect, favoriteIcon, ScaleMode.ScaleToFit);
+
+                    GUI.color = originalColor;
                 }
-
-                GUI.color = Color.yellow;
-                GUI.Label(starRect, "★", starStyle);
-
-                GUI.color = originalColor;
             }
         }
 
