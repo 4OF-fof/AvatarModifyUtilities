@@ -33,6 +33,7 @@ namespace AMU.Editor.VrcAssetManager.UI
         private bool newIsArchived = false;
         private List<string> newTags = new List<string>();
         private List<string> newDependencies = new List<string>();
+        private List<string> newImportFiles = new List<string>();
 
         public static List<Guid> history { get => _history; set => _history = value; }
 
@@ -50,6 +51,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             window.newChildAssetIds = asset.childAssetIds.ToList();
             window.newTags = asset.metadata.tags.ToList();
             window.newDependencies = asset.metadata.dependencies.ToList();
+            window.newImportFiles = asset.fileInfo.importFiles.ToList();
             window.titleContent = new GUIContent("Asset Detail: " + asset.metadata.name);
             window.minSize = window.maxSize = new Vector2(800, 760);
             window.maximized = false;
@@ -159,6 +161,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                         newIsArchived = _asset.state != null ? _asset.state.isArchived : false;
                         newTags = _asset.metadata.tags.ToList();
                         newDependencies = _asset.metadata.dependencies.ToList();
+                        newImportFiles = _asset.fileInfo.importFiles.Select(f => Path.GetFileName(f)).ToList();
                         _isEditMode = true;
                     }
                 }
@@ -200,6 +203,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                         _asset.state.SetArchived(newIsArchived);
                         _asset.metadata.SetTags(newTags);
                         _asset.metadata.SetDependencies(newDependencies);
+                        _asset.fileInfo.SetImportFiles(newImportFiles);
                         controller.UpdateAsset(_asset);
                         _isEditMode = false;
                     }
@@ -461,7 +465,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                         _tagsScroll = _newImportScroll.scrollPosition;
                         using (new GUILayout.HorizontalScope())
                         {
-                            foreach (var importFile in _asset.fileInfo.importFiles)
+                            var importFilesToShow = _isEditMode ? newImportFiles : _asset.fileInfo.importFiles;
+                            foreach (var importFile in importFilesToShow)
                             {
                                 GUILayout.Button(Path.GetFileName(importFile), chipStyle);
                             }
@@ -682,20 +687,12 @@ namespace AMU.Editor.VrcAssetManager.UI
             {
                 if (selectedPaths != null && selectedPaths.Count > 0)
                 {
-                    _asset.fileInfo.ClearImportFiles();
-                    foreach (var path in selectedPaths)
-                    {
-                        _asset.fileInfo.AddImportFile(path);
-                    }
-
-                    var controller = AssetLibraryController.Instance;
-                    controller?.UpdateAsset(_asset);
-
-                    Debug.Log($"[AssetDetailWindow] Updated import paths for asset '{_asset.metadata.name}': {string.Join(", ", selectedPaths)}");
-                    EditorUtility.DisplayDialog("成功", $"{selectedPaths.Count}個のファイルがImport Pathに設定されました。", "OK");
+                    newImportFiles = selectedPaths.ToList();
+                    Debug.Log($"[AssetDetailWindow] Selected import paths for asset '{_asset.metadata.name}': {string.Join(", ", selectedPaths)}");
                 }
             },
-            _asset
+            _asset,
+            newImportFiles
             );
         }
     }

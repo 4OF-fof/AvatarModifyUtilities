@@ -429,6 +429,18 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _filePath = newFilePath?.Trim() ?? string.Empty;
         }
 
+        public void SetImportFiles(List<string> newImportFiles)
+        {
+            if (newImportFiles == null || newImportFiles.Count == 0)
+            {
+                _importFiles.Clear();
+            }
+            else
+            {
+                _importFiles = new List<string>(newImportFiles);
+            }
+        }
+
         public void AddImportFile(string importFile)
         {
             if (string.IsNullOrWhiteSpace(importFile))
