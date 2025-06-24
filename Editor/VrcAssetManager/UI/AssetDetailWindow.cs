@@ -23,6 +23,8 @@ namespace AMU.Editor.VrcAssetManager.UI
         private Vector2 _depsScroll = Vector2.zero;
         private Vector2 _childrenScroll = Vector2.zero;
 
+        private string newName = string.Empty;
+        private string newDescription = string.Empty;
         private string newAuthorName = string.Empty;
         private string newAssetType = string.Empty;
         private string newFilePath = string.Empty;
@@ -132,6 +134,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                     var editIcon = EditorGUIUtility.IconContent("editicon.sml");
                     if (GUILayout.Button(editIcon, GUILayout.Width(32), GUILayout.Height(32)))
                     {
+                        newName = _asset.metadata.name;
+                        newDescription = _asset.metadata.description;
                         newAuthorName = _asset.metadata.authorName;
                         newAssetType = _asset.metadata.assetType;
                         if (_asset.fileInfo != null && !string.IsNullOrEmpty(_asset.fileInfo.filePath))
@@ -177,6 +181,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                                 newFilePath = absNewFilePath.Substring(absCoreDir.Length).Replace('\\', '/');
                             }
                         }
+                        _asset.metadata.SetName(newName);
+                        _asset.metadata.SetDescription(newDescription);
                         _asset.metadata.SetAuthorName(newAuthorName);
                         _asset.metadata.SetAssetType(newAssetType);
                         _asset.fileInfo.SetFilePath(newFilePath);
@@ -207,28 +213,49 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 GUILayout.Space(8);
 
-                if (_asset.boothItem != null && !string.IsNullOrEmpty(_asset.boothItem.itemUrl))
+                if (_isEditMode)
                 {
-                    if (GUILayout.Button(_asset.metadata.name, titleStyle))
-                    {
-                        Application.OpenURL(_asset.boothItem.itemUrl);
-                    }
+                    newName = EditorGUILayout.TextField(newName, EditorStyles.textField);
                 }
                 else
                 {
-                    var normalTitleStyle = new GUIStyle(titleStyle);
-                    normalTitleStyle.normal.textColor = EditorStyles.label.normal.textColor;
-                    GUILayout.Label(_asset.metadata.name, normalTitleStyle);
+                    if (_asset.boothItem != null && !string.IsNullOrEmpty(_asset.boothItem.itemUrl))
+                    {
+                        if (GUILayout.Button(_asset.metadata.name, titleStyle))
+                        {
+                            Application.OpenURL(_asset.boothItem.itemUrl);
+                        }
+                    }
+                    else
+                    {
+                        var normalTitleStyle = new GUIStyle(titleStyle);
+                        normalTitleStyle.normal.textColor = EditorStyles.label.normal.textColor;
+                        GUILayout.Label(_asset.metadata.name, normalTitleStyle);
+                    }
                 }
 
                 if (!string.IsNullOrEmpty(_asset.metadata.description))
                 {
-                    using (new GUILayout.VerticalScope(sectionBoxStyle))
+                    if (_isEditMode)
                     {
-                        using (var _newDescScroll = new GUILayout.ScrollViewScope(_descScroll, GUILayout.Height(120)))
+                        using (new GUILayout.VerticalScope(sectionBoxStyle))
                         {
-                            _descScroll = _newDescScroll.scrollPosition;
-                            EditorGUILayout.LabelField(_asset.metadata.description, EditorStyles.wordWrappedLabel);
+                            using (var _newDescScroll = new GUILayout.ScrollViewScope(_descScroll, GUILayout.Height(120)))
+                            {
+                                _descScroll = _newDescScroll.scrollPosition;
+                                newDescription = EditorGUILayout.TextArea(newDescription, EditorStyles.textArea);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        using (new GUILayout.VerticalScope(sectionBoxStyle))
+                        {
+                            using (var _newDescScroll = new GUILayout.ScrollViewScope(_descScroll, GUILayout.Height(120)))
+                            {
+                                _descScroll = _newDescScroll.scrollPosition;
+                                EditorGUILayout.LabelField(_asset.metadata.description, EditorStyles.wordWrappedLabel);
+                            }
                         }
                     }
                 }
