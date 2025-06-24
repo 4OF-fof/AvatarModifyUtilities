@@ -276,7 +276,7 @@ namespace AMU.Editor.VrcAssetManager.UI
     public class AssetSelectorWindow : EditorWindow
     {
         private bool _allowMultipleSelection;
-        private bool _showOnlyRootAssets;
+        private int _filterMode = 0;
         private Action<List<string>> _onAssetsSelected;
         private List<AssetSchema> _availableAssets;
         private List<AssetSchema> _filteredAssets;
@@ -284,13 +284,14 @@ namespace AMU.Editor.VrcAssetManager.UI
         private Vector2 _scrollPosition = Vector2.zero;
         private string _searchText = "";
 
-        public static void ShowWindow(Action<List<string>> onAssetsSelected, List<string> initialSelectedAssets = null, bool allowMultipleSelection = false, bool showOnlyRootAssets = false)
+        // filterMode, 0: All, 1: noChild + noParent, 2: noChild
+        public static void ShowWindow(Action<List<string>> onAssetsSelected, List<string> initialSelectedAssets = null, bool allowMultipleSelection = false, int filterMode = 0)
         {
             var window = GetWindow<AssetSelectorWindow>("Asset Selector");
             window.minSize = window.maxSize = new Vector2(400, 500);
             window._allowMultipleSelection = allowMultipleSelection;
             window._onAssetsSelected = onAssetsSelected;
-            window._showOnlyRootAssets = showOnlyRootAssets;
+            window._filterMode = filterMode;
 
             try
             {
@@ -495,9 +496,13 @@ namespace AMU.Editor.VrcAssetManager.UI
         private void FilterAssets()
         {
             IEnumerable<AssetSchema> assets = _availableAssets;
-            if (_showOnlyRootAssets)
+            if (_filterMode == 1)
             {
                 assets = assets.Where(asset => string.IsNullOrEmpty(asset.parentGroupId) && (asset.childAssetIds == null || asset.childAssetIds.Count == 0));
+            }
+            else if (_filterMode == 2)
+            {
+                assets = assets.Where(asset => asset.childAssetIds == null || asset.childAssetIds.Count == 0);
             }
             if (string.IsNullOrEmpty(_searchText))
             {

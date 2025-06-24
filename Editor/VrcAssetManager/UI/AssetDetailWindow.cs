@@ -324,22 +324,25 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Label("File Path:", labelStyle, GUILayout.Width(70));
-                    if (!_isEditMode)
+                    if (_asset.childAssetIds == null || _asset.childAssetIds.Count == 0)
                     {
-                        GUILayout.Label(_asset.fileInfo.filePath, valueStyle);
-                    }
-                    else
-                    {
-                        newFilePath = EditorGUILayout.TextField(newFilePath, EditorStyles.textField);
-                        if (GUILayout.Button("...", GUILayout.Width(28)))
+                        GUILayout.Label("File Path:", labelStyle, GUILayout.Width(70));
+                        if (!_isEditMode)
                         {
-                            string defaultPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
-                            string downloads = Path.Combine(defaultPath, "Downloads");
-                            var selectedPath = EditorUtility.OpenFilePanel("ファイルを選択", downloads, "");
-                            if (!string.IsNullOrEmpty(selectedPath))
+                            GUILayout.Label(_asset.fileInfo.filePath, valueStyle);
+                        }
+                        else
+                        {
+                            newFilePath = EditorGUILayout.TextField(newFilePath, EditorStyles.textField);
+                            if (GUILayout.Button("...", GUILayout.Width(28)))
                             {
-                                newFilePath = selectedPath;
+                                string defaultPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
+                                string downloads = Path.Combine(defaultPath, "Downloads");
+                                var selectedPath = EditorUtility.OpenFilePanel("ファイルを選択", downloads, "");
+                                if (!string.IsNullOrEmpty(selectedPath))
+                                {
+                                    newFilePath = selectedPath;
+                                }
                             }
                         }
                     }
@@ -442,7 +445,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                                         },
                                         newChildAssetIds,
                                         true,
-                                        true
+                                        1
                                     );
                                 }
                             }
@@ -557,7 +560,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                                                 newDependencies = selectedDeps.ToList();
                                             },
                                             newDependencies,
-                                            true
+                                            true,
+                                            2
                                         );
                                     }
                                 }
