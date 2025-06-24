@@ -94,6 +94,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                 normal = { background = MakeTex(2, 2, new Color(0.3f, 0.3f, 0.3f, 0.7f)) }
             };
 
+            GUILayout.Space(8);
+
             using (new GUILayout.HorizontalScope())
             {
                 var backIcon = EditorGUIUtility.IconContent("ArrowNavigationLeft");
@@ -119,7 +121,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 
                 if (!_isEditMode)
                 {
-                    var editIcon = EditorGUIUtility.IconContent("d_editicon.sml");
+                    var editIcon = EditorGUIUtility.IconContent("editicon.sml");
                     if (GUILayout.Button(editIcon, GUILayout.Width(32), GUILayout.Height(32)))
                     {
                         _isEditMode = true;
@@ -127,7 +129,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 }
                 else
                 {
-                    var saveIcon = EditorGUIUtility.IconContent("d_SaveAs");
+                    var saveIcon = EditorGUIUtility.IconContent("SaveActive");
                     if (GUILayout.Button(saveIcon, GUILayout.Width(32), GUILayout.Height(32)))
                     {
                         _isEditMode = false;
@@ -383,7 +385,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 var excludedExts = SettingAPI.GetSetting<string>("AssetManager_excludedImportExtensions");
                 if (excludedExts != null && !excludedExts.Contains(ext))
                 {
-                    GUILayout.Space(5);
+                    GUILayout.Space(3);
                     using (new GUILayout.HorizontalScope())
                     {
                         GUILayout.FlexibleSpace();
