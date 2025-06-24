@@ -96,6 +96,12 @@ namespace AMU.Editor.VrcAssetManager.Services
             {
                 string fileName = Path.GetFileName(filePath);
                 Debug.Log($"[DownloadFolderWatcherService] ProcessFile called: {filePath}");
+
+                string originalFileName = System.Text.RegularExpressions.Regex.Replace(fileName, @" ?\([0-9]+\)(?=\.[^.]+$)", "");
+                if (originalFileName != fileName)
+                {
+                    fileName = Path.GetFileName(originalFileName);
+                }
                 if (_processedFiles.Contains(fileName))
                 {
                     Debug.Log($"[DownloadFolderWatcherService] Already processed: {fileName}");
