@@ -194,6 +194,28 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
 
             SyncAssetLibrary();
+
+            if (!string.IsNullOrEmpty(asset.parentGroupId) && Guid.TryParse(asset.parentGroupId, out var parentGuid))
+            {
+                if (library.assets.TryGetValue(parentGuid, out var parentGroup))
+                {
+                    if (!parentGroup.childAssetIds.Contains(asset.assetId.ToString()))
+                    {
+                        parentGroup.AddChildAssetId(asset.assetId.ToString());
+                    }
+                }
+            }
+
+            if (asset.childAssetIds != null)
+            {
+                foreach (var childId in asset.childAssetIds)
+                {
+                    if (Guid.TryParse(childId, out var childGuid) && library.assets.TryGetValue(childGuid, out var childAsset))
+                    {
+                        childAsset.SetParentGroupId(asset.assetId.ToString());
+                    }
+                }
+            }
             library.AddAsset(asset);
             _lastUpdated = DateTime.Now;
             SaveAssetLibrary();
@@ -218,6 +240,45 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
 
             SyncAssetLibrary();
+
+            var oldAsset = library.GetAsset(asset.assetId);
+            var oldParentId = oldAsset.parentGroupId;
+            var newParentId = asset.parentGroupId;
+            if (oldParentId != newParentId)
+            {
+                if (!string.IsNullOrEmpty(oldParentId) && Guid.TryParse(oldParentId, out var oldParentGuid))
+                {
+                    if (library.assets.TryGetValue(oldParentGuid, out var oldParent))
+                    {
+                        oldParent.RemoveChildAssetId(asset.assetId.ToString());
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(newParentId) && Guid.TryParse(newParentId, out var newParentGuid))
+                {
+                    if (library.assets.TryGetValue(newParentGuid, out var newParent))
+                    {
+                        if (!newParent.childAssetIds.Contains(asset.assetId.ToString()))
+                        {
+                            newParent.AddChildAssetId(asset.assetId.ToString());
+                        }
+                    }
+                }
+            }
+
+            if (asset.childAssetIds != null)
+            {
+                foreach (var childId in asset.childAssetIds)
+                {
+                    if (Guid.TryParse(childId, out var childGuid) && library.assets.TryGetValue(childGuid, out var childAsset))
+                    {
+                        if (childAsset.parentGroupId != asset.assetId.ToString())
+                        {
+                            childAsset.SetParentGroupId(asset.assetId.ToString());
+                        }
+                    }
+                }
+            }
             library.UpdateAsset(asset);
             _lastUpdated = DateTime.Now;
             SaveAssetLibrary();

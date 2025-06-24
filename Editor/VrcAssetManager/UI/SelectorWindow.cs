@@ -497,7 +497,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             IEnumerable<AssetSchema> assets = _availableAssets;
             if (_showOnlyRootAssets)
             {
-                assets = assets.Where(asset => string.IsNullOrEmpty(asset.parentGroupId));
+                assets = assets.Where(asset => string.IsNullOrEmpty(asset.parentGroupId) && (asset.childAssetIds == null || asset.childAssetIds.Count == 0));
             }
             if (string.IsNullOrEmpty(_searchText))
             {
