@@ -22,25 +22,14 @@ namespace AMU.Editor.VrcAssetManager.Helper
 
             try
             {
-                List<string> pathsToImport = new List<string>();
-
-                if (asset.fileInfo != null && asset.fileInfo.importFiles != null && asset.fileInfo.importFiles.Count > 0)
-                {
-                    pathsToImport.AddRange(asset.fileInfo.importFiles);
-                    Debug.Log($"[AssetImportUtility] Using importFiles for import: {string.Join(", ", asset.fileInfo.importFiles)}");
-                }
-                else if (asset.fileInfo != null && !string.IsNullOrEmpty(asset.fileInfo.filePath))
-                {
-                    pathsToImport.Add(asset.fileInfo.filePath);
-                    Debug.Log($"[AssetImportUtility] Using filePath for import: {asset.fileInfo.filePath}");
-                }
-                else
+                var pathsToImport = GetImportPaths(asset);
+                if (pathsToImport.Count == 0)
                 {
                     Debug.LogWarning("[AssetImportUtility] No valid file paths found for import");
                     return false;
                 }
 
-                return ImportAssetList(pathsToImport, showImportDialog);
+                return ImportFiles(pathsToImport, showImportDialog);
             }
             catch (Exception ex)
             {
@@ -49,7 +38,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
             }
         }
 
-        public static bool ImportAssetList(List<string> relativePaths, bool showImportDialog = true)
+        public static bool ImportFiles(List<string> relativePaths, bool showImportDialog = true)
         {
             if (relativePaths == null || relativePaths.Count == 0)
             {
@@ -57,142 +46,101 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 return false;
             }
 
+            string coreDir = SettingAPI.GetSetting<string>("Core_dirPath");
+            if (string.IsNullOrEmpty(coreDir))
+            {
+                Debug.LogError("[AssetImportUtility] Core_dirPath setting not found");
+                return false;
+            }
+
             bool allSuccess = true;
             int successCount = 0;
-            int totalCount = relativePaths.Count;
-
-            Debug.Log($"[AssetImportUtility] Starting import of {totalCount} assets");
+            Debug.Log($"[AssetImportUtility] Starting import of {relativePaths.Count} assets");
 
             foreach (string relativePath in relativePaths)
             {
-                if (ImportSingleAsset(relativePath, showImportDialog))
+                if (string.IsNullOrEmpty(relativePath))
                 {
+                    Debug.LogWarning("[AssetImportUtility] Relative path is null or empty");
+                    allSuccess = false;
+                    continue;
+                }
+
+                try
+                {
+                    string fullPath = Path.GetFullPath(Path.Combine(coreDir, relativePath.Replace('/', Path.DirectorySeparatorChar)));
+
+                    if (!File.Exists(fullPath))
+                    {
+                        Debug.LogError($"[AssetImportUtility] File not found: {fullPath}");
+                        allSuccess = false;
+                        continue;
+                    }
+
+                    bool isUnityPackage = Path.GetExtension(fullPath).ToLower() == ".unitypackage";
+                    
+                    if (isUnityPackage)
+                    {
+                        Debug.Log($"[AssetImportUtility] Importing Unity Package: {fullPath}");
+                        AssetDatabase.ImportPackage(fullPath, showImportDialog);
+                    }
+                    else
+                    {
+                        string fileName = Path.GetFileName(fullPath);
+                        string targetPath = Path.Combine(Application.dataPath, fileName);
+                        string assetPath = "Assets/" + fileName;
+
+                        if (File.Exists(targetPath))
+                        {
+                            Debug.Log($"[AssetImportUtility] File already exists in Assets folder: {assetPath}");
+                        }
+                        else
+                        {
+                            File.Copy(fullPath, targetPath, true);
+                            AssetDatabase.Refresh();
+                            Debug.Log($"[AssetImportUtility] File imported to Assets folder: {assetPath}");
+                        }
+
+                        EditorApplication.delayCall += () =>
+                        {
+                            var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath);
+                            if (obj != null)
+                            {
+                                Selection.activeObject = obj;
+                                EditorGUIUtility.PingObject(obj);
+                            }
+                        };
+                    }
+
                     successCount++;
                 }
-                else
+                catch (Exception ex)
                 {
+                    Debug.LogError($"[AssetImportUtility] Failed to import '{relativePath}': {ex.Message}");
                     allSuccess = false;
                 }
             }
 
-            Debug.Log($"[AssetImportUtility] Import completed: {successCount}/{totalCount} assets imported successfully");
+            Debug.Log($"[AssetImportUtility] Import completed: {successCount}/{relativePaths.Count} assets imported successfully");
             return allSuccess;
         }
 
-        public static bool ImportSingleAsset(string relativePath, bool showImportDialog = true)
+        private static List<string> GetImportPaths(AssetSchema asset)
         {
-            if (string.IsNullOrEmpty(relativePath))
+            var paths = new List<string>();
+            
+            if (asset.fileInfo?.importFiles?.Count > 0)
             {
-                Debug.LogWarning("[AssetImportUtility] Relative path is null or empty");
-                return false;
+                paths.AddRange(asset.fileInfo.importFiles);
+                Debug.Log($"[AssetImportUtility] Using importFiles: {string.Join(", ", asset.fileInfo.importFiles)}");
             }
-
-            try
+            else if (!string.IsNullOrEmpty(asset.fileInfo?.filePath))
             {
-                string coreDir = SettingAPI.GetSetting<string>("Core_dirPath");
-                if (string.IsNullOrEmpty(coreDir))
-                {
-                    Debug.LogError("[AssetImportUtility] Core_dirPath setting not found");
-                    return false;
-                }
-
-                string fullPath = Path.Combine(coreDir, relativePath.Replace('/', Path.DirectorySeparatorChar));
-                fullPath = Path.GetFullPath(fullPath);
-
-                if (!File.Exists(fullPath))
-                {
-                    Debug.LogError($"[AssetImportUtility] File not found: {fullPath}");
-                    return false;
-                }
-
-                string extension = Path.GetExtension(fullPath).ToLower();
-
-                if (extension == ".unitypackage")
-                {
-                    return ImportUnityPackage(fullPath, showImportDialog);
-                }
-                else
-                {
-                    return ImportFileToAssets(fullPath);
-                }
+                paths.Add(asset.fileInfo.filePath);
+                Debug.Log($"[AssetImportUtility] Using filePath: {asset.fileInfo.filePath}");
             }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[AssetImportUtility] Failed to import asset from relative path '{relativePath}': {ex.Message}");
-                return false;
-            }
-        }
-
-        private static bool ImportUnityPackage(string packagePath, bool showImportDialog)
-        {
-            try
-            {
-                Debug.Log($"[AssetImportUtility] Importing Unity Package: {packagePath}");
-                
-                AssetDatabase.ImportPackage(packagePath, showImportDialog);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[AssetImportUtility] Failed to import Unity Package '{packagePath}': {ex.Message}");
-                return false;
-            }
-        }
-
-        private static bool ImportFileToAssets(string sourceFilePath)
-        {
-            try
-            {
-                string fileName = Path.GetFileName(sourceFilePath);
-                string targetPath = Path.Combine(Application.dataPath, fileName);
-                string assetPath = "Assets/" + fileName;
-
-                if (File.Exists(targetPath))
-                {
-                    Debug.Log($"[AssetImportUtility] File already exists in Assets folder: {assetPath}");
-                    
-                    SelectAssetInProject(assetPath);
-                    return true;
-                }
-
-                File.Copy(sourceFilePath, targetPath, true);
-
-                AssetDatabase.Refresh();
-
-                Debug.Log($"[AssetImportUtility] File imported to Assets folder: {assetPath}");
-
-                SelectAssetInProject(assetPath);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[AssetImportUtility] Failed to import file to Assets '{sourceFilePath}': {ex.Message}");
-                return false;
-            }
-        }
-
-        private static void SelectAssetInProject(string assetPath)
-        {
-            EditorApplication.delayCall += () =>
-            {
-                var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath);
-                if (obj != null)
-                {
-                    Selection.activeObject = obj;
-                    EditorGUIUtility.PingObject(obj);
-                }
-            };
-        }
-
-        public static bool IsUnityPackage(string filePath)
-        {
-            if (string.IsNullOrEmpty(filePath))
-                return false;
-
-            string extension = Path.GetExtension(filePath).ToLower();
-            return extension == ".unitypackage";
+            
+            return paths;
         }
 
         public static bool IsImportable(string filePath)
@@ -200,15 +148,17 @@ namespace AMU.Editor.VrcAssetManager.Helper
             if (string.IsNullOrEmpty(filePath))
                 return false;
 
-            if (IsUnityPackage(filePath))
-                return true;
-
             string extension = Path.GetExtension(filePath).ToLower();
             
-            string excludedExtensions = SettingAPI.GetSetting<string>("AssetManager_excludedImportExtensions");
+            if (extension == ".unitypackage")
+                return true;
 
-            var separators = new char[] { ',', ' ', '\n', '\r', '\t' };
-            var excludedList = excludedExtensions.Split(separators, StringSplitOptions.RemoveEmptyEntries)
+            string excludedExtensions = SettingAPI.GetSetting<string>("AssetManager_excludedImportExtensions");
+            if (string.IsNullOrEmpty(excludedExtensions))
+                return true;
+
+            var excludedList = excludedExtensions
+                .Split(new char[] { ',', ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(ext => ext.Trim().ToLower())
                 .Where(ext => !string.IsNullOrEmpty(ext))
                 .Select(ext => ext.StartsWith(".") ? ext : "." + ext)
@@ -228,9 +178,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 if (string.IsNullOrEmpty(coreDir))
                     return false;
 
-                string fullPath = Path.Combine(coreDir, relativePath.Replace('/', Path.DirectorySeparatorChar));
-                fullPath = Path.GetFullPath(fullPath);
-
+                string fullPath = Path.GetFullPath(Path.Combine(coreDir, relativePath.Replace('/', Path.DirectorySeparatorChar)));
                 return File.Exists(fullPath);
             }
             catch
