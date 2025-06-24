@@ -204,6 +204,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         {
             AssetLibraryController.Instance.filterOptions.ClearFilter();
             _isUsingAdvancedSearch = false;
+            _isChildItem = false;
+            _currentFilter = AssetFilterType.All;
             var advWindows = Resources.FindObjectsOfTypeAll<AMU.Editor.VrcAssetManager.UI.AdvancedSearchWindow>();
             if (advWindows != null && advWindows.Length > 0)
             {
