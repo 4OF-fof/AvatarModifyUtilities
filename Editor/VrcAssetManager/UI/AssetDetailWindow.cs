@@ -44,20 +44,6 @@ namespace AMU.Editor.VrcAssetManager.UI
             window.titleContent = new GUIContent("Asset Detail: " + asset.metadata.name);
             window.minSize = window.maxSize = new Vector2(800, 760);
             window.maximized = false;
-            window.newAuthorName = asset.metadata.authorName;
-            window.newAssetType = asset.metadata.assetType;
-            if (asset.fileInfo != null && !string.IsNullOrEmpty(asset.fileInfo.filePath))
-            {
-                string coreDir = SettingAPI.GetSetting<string>("Core_dirPath");
-                string absPath = Path.Combine(Path.GetFullPath(coreDir), asset.fileInfo.filePath.Replace('/', Path.DirectorySeparatorChar));
-                window.newFilePath = absPath;
-            }
-            else
-            {
-                window.newFilePath = string.Empty;
-            }
-            window.newIsFavorite = asset.state != null ? asset.state.isFavorite : false;
-            window.newIsArchived = asset.state != null ? asset.state.isArchived : false;
             window.Show();
             _currentAsset = asset;
         }
@@ -145,6 +131,20 @@ namespace AMU.Editor.VrcAssetManager.UI
                     var editIcon = EditorGUIUtility.IconContent("editicon.sml");
                     if (GUILayout.Button(editIcon, GUILayout.Width(32), GUILayout.Height(32)))
                     {
+                        newAuthorName = _asset.metadata.authorName;
+                        newAssetType = _asset.metadata.assetType;
+                        if (_asset.fileInfo != null && !string.IsNullOrEmpty(_asset.fileInfo.filePath))
+                        {
+                            string coreDir = SettingAPI.GetSetting<string>("Core_dirPath");
+                            string absPath = Path.Combine(Path.GetFullPath(coreDir), _asset.fileInfo.filePath.Replace('/', Path.DirectorySeparatorChar));
+                            newFilePath = absPath;
+                        }
+                        else
+                        {
+                            newFilePath = string.Empty;
+                        }
+                        newIsFavorite = _asset.state != null ? _asset.state.isFavorite : false;
+                        newIsArchived = _asset.state != null ? _asset.state.isArchived : false;
                         _isEditMode = true;
                     }
                 }
