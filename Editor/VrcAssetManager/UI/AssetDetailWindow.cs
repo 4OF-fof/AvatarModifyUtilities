@@ -493,7 +493,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                             _depsScroll = _newDepsScroll.scrollPosition;
                             using (new GUILayout.HorizontalScope())
                             {
-                                foreach (var dep in _asset.metadata.dependencies)
+                                foreach (var dep in newDependencies)
                                 {
                                     string depName = dep;
                                     AssetSchema depAsset = null;
@@ -532,6 +532,14 @@ namespace AMU.Editor.VrcAssetManager.UI
                                     GUILayout.FlexibleSpace();
                                     if (GUILayout.Button("+", GUILayout.Width(24), GUILayout.Height(24)))
                                     {
+                                        AssetSelectorWindow.ShowWindow(
+                                            (selectedDeps) =>
+                                            {
+                                                newDependencies = selectedDeps.ToList();
+                                            },
+                                            newDependencies,
+                                            true
+                                        );
                                     }
                                 }
                             }

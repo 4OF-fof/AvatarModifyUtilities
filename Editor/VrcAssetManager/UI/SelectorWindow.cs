@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using AMU.Editor.VrcAssetManager.Controller;
+using AMU.Editor.VrcAssetManager.Schema;
 using AMU.Editor.Core.Api;
 
 namespace AMU.Editor.VrcAssetManager.UI
@@ -267,6 +268,237 @@ namespace AMU.Editor.VrcAssetManager.UI
             {
                 _filteredTags = _availableTags
                     .Where(tag => tag.IndexOf(_searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                    .ToList();
+            }
+        }
+    }
+    
+    public class AssetSelectorWindow : EditorWindow
+    {
+        private bool _allowMultipleSelection;
+        private Action<List<string>> _onAssetsSelected;
+        private List<AssetSchema> _availableAssets;
+        private List<AssetSchema> _filteredAssets;
+        private List<string> _selectedAssets = new List<string>();
+        private Vector2 _scrollPosition = Vector2.zero;
+        private string _searchText = "";
+
+        public static void ShowWindow(Action<List<string>> onAssetsSelected, List<string> initialSelectedAssets = null, bool allowMultipleSelection = false)
+        {
+            var window = GetWindow<AssetSelectorWindow>("Asset Selector");
+            window.minSize = window.maxSize = new Vector2(400, 500);
+            window._allowMultipleSelection = allowMultipleSelection;
+            window._onAssetsSelected = onAssetsSelected;
+
+            try
+            {
+                AssetLibraryController.Instance.OptimizeAssetLibrary();
+                AssetLibraryController.Instance.LoadAssetLibrary();
+                window._availableAssets = AssetLibraryController.Instance.GetAllAssets().ToList();
+                window._availableAssets.Sort((a, b) => string.Compare(a.metadata.name, b.metadata.name, StringComparison.OrdinalIgnoreCase));
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[AssetSelectorWindow] Failed to load assets: {ex.Message}");
+                window._availableAssets = new List<AssetSchema>();
+            }
+
+            window._selectedAssets.Clear();            if (initialSelectedAssets != null && initialSelectedAssets.Count > 0)
+            {
+                foreach (var assetId in initialSelectedAssets)
+                {
+                    if (Guid.TryParse(assetId, out var guid) && window._availableAssets.Any(a => a.assetId == guid))
+                    {
+                        if (window._allowMultipleSelection)
+                        {
+                            window._selectedAssets.Add(assetId);
+                        }
+                        else
+                        {
+                            window._selectedAssets.Add(assetId);
+                            break;
+                        }
+                    }
+                }
+            }
+            window.FilterAssets();
+            window.Show();
+        }
+
+        private void OnEnable()
+        {
+            var language = SettingAPI.GetSetting<string>("Core_language");
+            LocalizationAPI.LoadLanguage(language);
+        }
+
+        private void OnGUI()
+        {
+            using (new GUILayout.VerticalScope(GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
+            {
+                GUILayout.Space(10);
+
+                string headerText = _allowMultipleSelection
+                    ? LocalizationAPI.GetText("AssetSelector_selectMultipleAssets")
+                    : LocalizationAPI.GetText("AssetSelector_selectSingleAsset");
+
+                GUILayout.Label(headerText, EditorStyles.boldLabel);
+                GUILayout.Space(5);
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUILayout.Label(LocalizationAPI.GetText("AssetSelector_search"), GUILayout.Width(50));
+                    GUI.SetNextControlName("SearchField");
+                    var newSearchText = GUILayout.TextField(_searchText);
+                    if (newSearchText != _searchText)
+                    {
+                        _searchText = newSearchText;
+                        FilterAssets();
+                    }
+                    GUILayout.Space(25);
+                }
+
+                GUILayout.Space(10);
+
+                if (_filteredAssets == null || _filteredAssets.Count == 0)
+                {
+                    var message = string.IsNullOrEmpty(_searchText)
+                        ? LocalizationAPI.GetText("AssetSelector_noAssets")
+                        : LocalizationAPI.GetText("AssetSelector_noSearchResults");
+
+                    GUILayout.Label(message, EditorStyles.helpBox);
+                    return;
+                }
+
+                using (new GUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
+                    {
+                        _scrollPosition = scrollView.scrollPosition;
+                        using (new GUILayout.VerticalScope())
+                        {                            foreach (var asset in _filteredAssets)
+                            {
+                                bool isSelected = _selectedAssets.Contains(asset.assetId.ToString());
+
+                                if (isSelected)
+                                {
+                                    var originalColor = GUI.backgroundColor;
+                                    GUI.backgroundColor = new Color(0.3f, 0.6f, 1f, 1f);
+
+                                    if (GUILayout.Button(asset.metadata.name, GUI.skin.button, GUILayout.ExpandWidth(true), GUILayout.Height(30)))
+                                    {
+                                        if (_allowMultipleSelection)
+                                        {
+                                            if (_selectedAssets.Contains(asset.assetId.ToString()))
+                                            {
+                                                _selectedAssets.Remove(asset.assetId.ToString());
+                                            }
+                                            else
+                                            {
+                                                _selectedAssets.Add(asset.assetId.ToString());
+                                            }
+                                        }
+                                        else
+                                        {
+                                            _selectedAssets.Clear();
+                                            _selectedAssets.Add(asset.assetId.ToString());
+
+                                            CompleteSelection();
+                                        }
+                                    }
+
+                                    GUI.backgroundColor = originalColor;
+                                }
+                                else
+                                {
+                                    if (GUILayout.Button(asset.metadata.name, GUI.skin.button, GUILayout.ExpandWidth(true), GUILayout.Height(30)))
+                                    {
+                                        if (_allowMultipleSelection)
+                                        {
+                                            if (_selectedAssets.Contains(asset.assetId.ToString()))
+                                            {
+                                                _selectedAssets.Remove(asset.assetId.ToString());
+                                            }
+                                            else
+                                            {
+                                                _selectedAssets.Add(asset.assetId.ToString());
+                                            }
+                                        }
+                                        else
+                                        {
+                                            _selectedAssets.Clear();
+                                            _selectedAssets.Add(asset.assetId.ToString());
+
+                                            CompleteSelection();
+                                        }
+                                    }
+                                }
+                                GUILayout.Space(2);
+                            }
+                        }
+                    }
+                }
+
+                GUILayout.Space(10);
+
+                if (_allowMultipleSelection)
+                {                    string selectionInfo = _allowMultipleSelection
+                    ? $"{LocalizationAPI.GetText("AssetSelector_selectedCount")}: {_selectedAssets.Count}"
+                    : _selectedAssets.Count > 0
+                        ? $"{LocalizationAPI.GetText("AssetSelector_selected")}: {_availableAssets.FirstOrDefault(a => a.assetId.ToString() == _selectedAssets.First())?.metadata.name}"
+                        : LocalizationAPI.GetText("AssetSelector_noSelection");
+
+                    GUILayout.Label(selectionInfo, EditorStyles.miniLabel);
+
+                    GUILayout.Space(5);
+                }
+
+                if (_allowMultipleSelection)
+                {
+                    if (GUILayout.Button(LocalizationAPI.GetText("AssetSelector_clearAll")))
+                    {
+                        _selectedAssets.Clear();
+                    }
+                    GUILayout.Space(3);
+                }
+
+                using (new GUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button(LocalizationAPI.GetText("Common_cancel")))
+                    {
+                        Close();
+                    }
+
+                    if (GUILayout.Button(LocalizationAPI.GetText("Common_ok")))
+                    {
+                        CompleteSelection();
+                    }
+                }
+
+                GUILayout.Space(10);
+            }
+        }
+
+        private void CompleteSelection()
+        {
+            var selectedAssetsList = _selectedAssets.ToList();
+            _onAssetsSelected?.Invoke(selectedAssetsList);
+            Close();
+        }
+
+        private void OnDestroy()
+        {
+            _onAssetsSelected = null;
+        }
+
+        private void FilterAssets()
+        {
+            if (string.IsNullOrEmpty(_searchText))
+            {
+                _filteredAssets = new List<AssetSchema>(_availableAssets);
+            }
+            else
+            {
+                _filteredAssets = _availableAssets
+                    .Where(asset => asset.metadata.name.IndexOf(_searchText, StringComparison.OrdinalIgnoreCase) >= 0)
                     .ToList();
             }
         }
