@@ -5,12 +5,51 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using AMU.Editor.Core.Api;
+using AMU.Editor.VrcAssetManager.Helper;
+using AMU.Editor.VrcAssetManager.Schema;
 
 namespace AMU.Editor.VrcAssetManager.Helper
 {
     public static class AssetImportUtility
     {
-        public static bool ImportAssets(List<string> relativePaths, bool showImportDialog = true)
+        public static bool ImportAsset(AssetSchema asset, bool showImportDialog = true)
+        {
+            if (asset == null)
+            {
+                Debug.LogWarning("[AssetImportUtility] Asset is null");
+                return false;
+            }
+
+            try
+            {
+                List<string> pathsToImport = new List<string>();
+
+                if (asset.fileInfo != null && asset.fileInfo.importFiles != null && asset.fileInfo.importFiles.Count > 0)
+                {
+                    pathsToImport.AddRange(asset.fileInfo.importFiles);
+                    Debug.Log($"[AssetImportUtility] Using importFiles for import: {string.Join(", ", asset.fileInfo.importFiles)}");
+                }
+                else if (asset.fileInfo != null && !string.IsNullOrEmpty(asset.fileInfo.filePath))
+                {
+                    pathsToImport.Add(asset.fileInfo.filePath);
+                    Debug.Log($"[AssetImportUtility] Using filePath for import: {asset.fileInfo.filePath}");
+                }
+                else
+                {
+                    Debug.LogWarning("[AssetImportUtility] No valid file paths found for import");
+                    return false;
+                }
+
+                return ImportAssetList(pathsToImport, showImportDialog);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[AssetImportUtility] Failed to import asset '{asset.metadata.name}': {ex.Message}");
+                return false;
+            }
+        }
+
+        public static bool ImportAssetList(List<string> relativePaths, bool showImportDialog = true)
         {
             if (relativePaths == null || relativePaths.Count == 0)
             {
