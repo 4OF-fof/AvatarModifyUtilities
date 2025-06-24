@@ -28,6 +28,14 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
         public void InitializeLibrary()
         {
+            if (!File.Exists(_libraryPath))
+            {
+                Debug.Log($"Asset library file not found at {_libraryPath}. Creating a new one.");
+                library = new AssetLibrarySchema();
+                _lastUpdated = DateTime.Now;
+                ForceSaveAssetLibrary();
+                return;
+            }
             ForceLoadAssetLibrary();
             if (library != null)
             {
