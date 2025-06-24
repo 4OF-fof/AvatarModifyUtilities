@@ -160,7 +160,6 @@ namespace AMU.Editor.VrcAssetManager.UI
                             string absNewFilePath = Path.GetFullPath(newFilePath);
                             if (!absNewFilePath.StartsWith(absCoreDir, StringComparison.OrdinalIgnoreCase))
                             {
-                                // Core_dirPath以下以外の場合はVrcAssetManager/packageに移動
                                 try
                                 {
                                     string relPath = AssetFileUtility.MoveToCoreSubDirectory(absNewFilePath, coreDir, "VrcAssetManager/package");

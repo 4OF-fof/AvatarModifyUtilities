@@ -133,9 +133,9 @@ namespace AMU.Editor.VrcAssetManager.Services
                 {
                     coreDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities");
                 }
-                // 移動後のファイル名もoriginalFileNameを使う
-                string relativePath = AssetFileUtility.MoveToCoreSubDirectory(filePath, coreDir, "VrcAssetManager/BoothItem/package", true, assetFileName);
-                string targetPath = Path.Combine(Path.GetFullPath(coreDir), relativePath.Replace('/', Path.DirectorySeparatorChar));
+
+                string relativePath = AssetFileUtility.MoveToCoreSubDirectory(filePath, "VrcAssetManager/BoothItem/package", assetFileName);
+                string targetPath = Path.Combine(Path.GetFullPath(AMU.Editor.Core.Api.SettingAPI.GetSetting<string>("Core_dirPath")), relativePath.Replace('/', Path.DirectorySeparatorChar));
                 Debug.Log($"[DownloadFolderWatcherService] File processed: {filePath} -> {targetPath}");
                 try
                 {
