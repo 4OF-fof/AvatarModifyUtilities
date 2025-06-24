@@ -452,6 +452,36 @@ namespace AMU.Editor.VrcAssetManager.UI
                         }
                     }
                 }
+                if ((_asset.fileInfo?.importFiles?.Count > 0) || (_isEditMode && ZipFileUtility.IsZipFile(_asset.fileInfo.filePath)))
+                {
+                    GUILayout.Space(5);
+                    using (new GUILayout.VerticalScope(sectionBoxStyle))
+                    {
+                        GUILayout.Label("Import Files", labelStyle);
+                        using (var _newImportScroll = new GUILayout.ScrollViewScope(Vector2.zero, GUILayout.Height(60)))
+                        {
+                            using (new GUILayout.VerticalScope())
+                            {
+                                if (_asset.fileInfo?.importFiles?.Count > 0)
+                                {
+                                    foreach (var importFile in _asset.fileInfo.importFiles)
+                                    {
+                                        using (new GUILayout.HorizontalScope())
+                                        {
+                                            GUILayout.Label("•", labelStyle, GUILayout.Width(10));
+                                            GUILayout.Label(Path.GetFileName(importFile), valueStyle);
+
+                                        }
+                                    }
+                                }
+                                else if (!_isEditMode)
+                                {
+                                    GUILayout.Label("No import files selected", EditorStyles.miniLabel);
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             using (new GUILayout.HorizontalScope())
@@ -575,7 +605,20 @@ namespace AMU.Editor.VrcAssetManager.UI
                 var filePath = _asset.fileInfo.filePath;
                 var ext = Path.GetExtension(filePath).ToLowerInvariant();
                 var excludedExts = SettingAPI.GetSetting<string>("AssetManager_excludedImportExtensions");
-                if (excludedExts != null && !excludedExts.Contains(ext))
+                if (ZipFileUtility.IsZipFile(filePath))
+                {
+                    GUILayout.Space(3);
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.Button("Import Pathを選択", GUILayout.Width(240), GUILayout.Height(32)))
+                        {
+                            ShowImportPathSelector();
+                        }
+                        GUILayout.FlexibleSpace();
+                    }
+                }
+                else if (excludedExts != null && !excludedExts.Contains(ext))
                 {
                     GUILayout.Space(3);
                     using (new GUILayout.HorizontalScope())
@@ -625,6 +668,41 @@ namespace AMU.Editor.VrcAssetManager.UI
                 Debug.LogError($"[AssetDetailWindow] Failed to import asset: {ex.Message}");
                 EditorUtility.DisplayDialog("エラー", $"アセットのインポートに失敗しました: {ex.Message}", "OK");
             }
+        }
+
+        private void ShowImportPathSelector()
+        {
+            if (_asset == null || string.IsNullOrEmpty(_asset.fileInfo.filePath))
+            {
+                EditorUtility.DisplayDialog("エラー", "ファイルパスが設定されていません。", "OK");
+                return;
+            }
+
+            if (!ZipFileUtility.IsZipFile(_asset.fileInfo.filePath))
+            {
+                EditorUtility.DisplayDialog("エラー", "選択されたファイルはZipファイルではありません。", "OK");
+                return;
+            }
+
+            ImportPathSelectorWindow.ShowWindow(_asset, (selectedPaths) =>
+            {
+                if (selectedPaths != null && selectedPaths.Count > 0)
+                {
+                    // 既存のimportFilesをクリアして新しいパスを設定
+                    _asset.fileInfo.ClearImportFiles();
+                    foreach (var path in selectedPaths)
+                    {
+                        _asset.fileInfo.AddImportFile(path);
+                    }
+
+                    // アセットを更新
+                    var controller = AssetLibraryController.Instance;
+                    controller?.UpdateAsset(_asset);
+
+                    Debug.Log($"[AssetDetailWindow] Updated import paths for asset '{_asset.metadata.name}': {string.Join(", ", selectedPaths)}");
+                    EditorUtility.DisplayDialog("成功", $"{selectedPaths.Count}個のファイルがImport Pathに設定されました。", "OK");
+                }
+            });
         }
     }
 }

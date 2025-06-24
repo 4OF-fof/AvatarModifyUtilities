@@ -96,14 +96,33 @@
   "VrcAssetManager_message_error_fileInfoFailed": "Failed to get file info for {0}: {1}",  "VrcAssetManager_message_error_libraryValidationFailed": "Library validation failed for {0}: {1}",
 
   "TagSelector_selectMultipleTags": "Please select tags (multiple selection allowed)",
-  "TagSelector_selectSingleTag": "Please select a tag (single selection)",
-  "TagSelector_search": "Search",
+  "TagSelector_selectSingleTag": "Please select a tag (single selection)",  "TagSelector_search": "Search",
   "TagSelector_noTags": "No tags available",
   "TagSelector_noSearchResults": "No search results found",
   "TagSelector_selectedCount": "Selected",
   "TagSelector_selected": "Selected",
   "TagSelector_noSelection": "No selection",
   "TagSelector_clearAll": "Clear All",
+  
+  "ImportPathSelector_windowTitle": "Import Path Selection",
+  "ImportPathSelector_zipFile": "Zip File",
+  "ImportPathSelector_fileCount": "File Count",
+  "ImportPathSelector_selectedCount": "Selected",
+  "ImportPathSelector_filter": "Filter",
+  "ImportPathSelector_showAllFiles": "Show All Files",
+  "ImportPathSelector_selectAll": "Select All",
+  "ImportPathSelector_selectNone": "Select None",
+  "ImportPathSelector_selectFiles": "Select files to import",
+  "ImportPathSelector_noFilesFound": "No files found",
+  "ImportPathSelector_noFilesFoundFiltered": "No files found matching criteria",
+  "ImportPathSelector_noFilesSelected": "No files selected",
+  "ImportPathSelector_extractingFiles": "Extracting files...",
+  "ImportPathSelector_extractingFile": "Extracting file",
+  "ImportPathSelector_extractFailed": "Failed to extract files",
+  "ImportPathSelector_extractImport": "Extract and Set",
+  
   "Common_cancel": "Cancel",
-  "Common_ok": "OK"
+  "Common_ok": "OK",
+  "Common_clear": "Clear",
+  "Common_error": "Error"
 }

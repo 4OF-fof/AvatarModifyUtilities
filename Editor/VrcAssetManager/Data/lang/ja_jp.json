@@ -96,14 +96,33 @@
   "VrcAssetManager_message_error_fileInfoFailed": "ファイル情報の取得に失敗しました {0}: {1}",  "VrcAssetManager_message_error_libraryValidationFailed": "ライブラリの検証に失敗しました {0}: {1}",
 
   "TagSelector_selectMultipleTags": "タグを選択してください（複数選択可）",
-  "TagSelector_selectSingleTag": "タグを選択してください（単一選択）",
-  "TagSelector_search": "検索",
+  "TagSelector_selectSingleTag": "タグを選択してください（単一選択）",  "TagSelector_search": "検索",
   "TagSelector_noTags": "利用可能なタグがありません",
   "TagSelector_noSearchResults": "検索結果が見つかりません",
   "TagSelector_selectedCount": "選択済み",
   "TagSelector_selected": "選択中",
   "TagSelector_noSelection": "未選択",
   "TagSelector_clearAll": "全て解除",
+  
+  "ImportPathSelector_windowTitle": "Import Path選択",
+  "ImportPathSelector_zipFile": "Zipファイル",
+  "ImportPathSelector_fileCount": "ファイル数",
+  "ImportPathSelector_selectedCount": "選択中",
+  "ImportPathSelector_filter": "フィルター",
+  "ImportPathSelector_showAllFiles": "全てのファイルを表示",
+  "ImportPathSelector_selectAll": "全て選択",
+  "ImportPathSelector_selectNone": "選択解除",
+  "ImportPathSelector_selectFiles": "インポートするファイルを選択",
+  "ImportPathSelector_noFilesFound": "ファイルが見つかりません",
+  "ImportPathSelector_noFilesFoundFiltered": "条件に一致するファイルが見つかりません",
+  "ImportPathSelector_noFilesSelected": "ファイルが選択されていません",
+  "ImportPathSelector_extractingFiles": "ファイルを展開中...",
+  "ImportPathSelector_extractingFile": "ファイルを展開中",
+  "ImportPathSelector_extractFailed": "ファイルの展開に失敗しました",
+  "ImportPathSelector_extractImport": "展開して設定",
+  
   "Common_cancel": "キャンセル",
-  "Common_ok": "OK"
+  "Common_ok": "OK",
+  "Common_clear": "クリア",
+  "Common_error": "エラー"
 }
