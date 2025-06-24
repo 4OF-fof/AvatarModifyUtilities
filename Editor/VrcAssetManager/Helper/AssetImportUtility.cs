@@ -38,6 +38,34 @@ namespace AMU.Editor.VrcAssetManager.Helper
             }
         }
 
+        public static bool ImportAsset(List<AssetSchema> assets, bool showImportDialog = true)
+        {
+            if (assets == null || assets.Count == 0)
+            {
+                Debug.LogWarning("[AssetImportUtility] Assets list is null or empty");
+                return false;
+            }
+
+            bool allSuccess = true;
+            int successCount = 0;
+            Debug.Log($"[AssetImportUtility] Starting import of {assets.Count} assets");
+
+            foreach (var asset in assets)
+            {
+                if (ImportAsset(asset, showImportDialog))
+                {
+                    successCount++;
+                }
+                else
+                {
+                    allSuccess = false;
+                }
+            }
+
+            Debug.Log($"[AssetImportUtility] Batch import completed: {successCount}/{assets.Count} assets imported successfully");
+            return allSuccess;
+        }
+
         public static bool ImportFiles(List<string> relativePaths, bool showImportDialog = true)
         {
             if (relativePaths == null || relativePaths.Count == 0)
