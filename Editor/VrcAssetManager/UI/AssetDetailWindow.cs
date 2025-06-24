@@ -377,7 +377,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                         {
                             GUILayout.Label("親アセット:", labelStyle, GUILayout.Width(70));
 
-                            if (GUILayout.Button(parentAsset.metadata.name, chipStyle))
+                            if (GUILayout.Button(parentAsset.metadata.name, chipStyle) && !_isEditMode)
                             {
                                 if (_history.Count > 0 && _history[_history.Count - 1] == parentAsset.assetId)
                                 {
@@ -411,7 +411,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                                     var childAsset = controller.GetAsset(childGuid);
                                     if (childAsset != null)
                                     {
-                                        if (GUILayout.Button(childAsset.metadata.name, chipStyle))
+                                        if (GUILayout.Button(childAsset.metadata.name, chipStyle) && !_isEditMode)
                                         {
                                             if (_history.Count > 0 && _history[_history.Count - 1] == childAsset.assetId)
                                             {
@@ -446,7 +446,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                             {
                                 foreach (var tag in newTags)
                                 {
-                                    if (GUILayout.Button(tag, chipStyle))
+                                    if (GUILayout.Button(tag, chipStyle) && !_isEditMode)
                                     {
                                         if (controller != null)
                                         {
@@ -509,7 +509,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                                     if (depAsset != null)
                                     {
-                                        if (GUILayout.Button(depName, chipStyle))
+                                        if (GUILayout.Button(depName, chipStyle) && !_isEditMode)
                                         {
                                             if (_history.Count > 0 && _history[_history.Count - 1] == depAsset.assetId)
                                             {
