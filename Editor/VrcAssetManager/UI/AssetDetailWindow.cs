@@ -470,7 +470,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                                             {
                                                 newTags = selectedTags.ToList();
                                             },
-                                            newTags
+                                            newTags,
+                                            true
                                         );
                                     }
                                 }

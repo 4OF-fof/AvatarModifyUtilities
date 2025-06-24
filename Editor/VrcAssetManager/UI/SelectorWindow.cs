@@ -11,22 +11,26 @@ namespace AMU.Editor.VrcAssetManager.UI
     public class TagSelectorWindow : EditorWindow
     {
         private bool _allowMultipleSelection;
+        private bool _allowTagCreation;
         private Action<List<string>> _onTagsSelected;
         private List<string> _availableTags;
         private List<string> _filteredTags;
         private List<string> _selectedTags = new List<string>();
         private Vector2 _scrollPosition = Vector2.zero;
         private string _searchText = "";
+        private string _newTagInput = "";
 
-        public static void ShowWindow(bool allowMultipleSelection, Action<List<string>> onTagsSelected, List<string> initialSelectedTags = null)
+        public static void ShowWindow(bool allowMultipleSelection, Action<List<string>> onTagsSelected, List<string> initialSelectedTags = null, bool allowTagCreation = false)
         {
             var window = GetWindow<TagSelectorWindow>("Tag Selector");
             window.minSize = window.maxSize = new Vector2(300, 400);
             window._allowMultipleSelection = allowMultipleSelection;
             window._onTagsSelected = onTagsSelected;
+            window._allowTagCreation = allowTagCreation;
 
             try
             {
+                AssetLibraryController.Instance.OptimizeTags();
                 AssetLibraryController.Instance.LoadAssetLibrary();
                 window._availableTags = AssetLibraryController.Instance.GetAllTags().ToList();
                 window._availableTags.Sort();
@@ -82,17 +86,40 @@ namespace AMU.Editor.VrcAssetManager.UI
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label(LocalizationAPI.GetText("TagSelector_search"), GUILayout.Width(50));
-
                     GUI.SetNextControlName("SearchField");
                     var newSearchText = GUILayout.TextField(_searchText);
-
                     if (newSearchText != _searchText)
                     {
                         _searchText = newSearchText;
                         FilterTags();
                     }
-
                     GUILayout.Space(25);
+                }
+
+                if (_allowTagCreation)
+                {
+                    GUILayout.Space(5);
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        _newTagInput = GUILayout.TextField(_newTagInput, GUILayout.Width(150));
+                        GUI.enabled = !string.IsNullOrWhiteSpace(_newTagInput) && !_availableTags.Contains(_newTagInput.Trim());
+                        if (GUILayout.Button(LocalizationAPI.GetText("TagSelector_addNewTag"), GUILayout.Width(60)))
+                        {
+                            var tagName = _newTagInput.Trim();
+                            if (!string.IsNullOrEmpty(tagName) && !_availableTags.Contains(tagName))
+                            {
+                                AssetLibraryController.Instance.AddTag(tagName);
+                                _availableTags.Add(tagName);
+                                _availableTags.Sort();
+                                FilterTags();
+                            }
+                            else
+                            {
+                                EditorUtility.DisplayDialog(LocalizationAPI.GetText("Common_error"), LocalizationAPI.GetText("TagSelector_tagAlreadyExists"), LocalizationAPI.GetText("Common_ok"));
+                            }
+                        }
+                        GUI.enabled = true;
+                    }
                 }
 
                 GUILayout.Space(10);
