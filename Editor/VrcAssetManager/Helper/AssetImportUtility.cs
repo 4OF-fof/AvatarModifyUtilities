@@ -66,7 +66,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
             return allSuccess;
         }
 
-        public static bool ImportFiles(List<string> relativePaths, bool showImportDialog = true)
+        private static bool ImportFiles(List<string> relativePaths, bool showImportDialog = true)
         {
             if (relativePaths == null || relativePaths.Count == 0)
             {
@@ -193,26 +193,6 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 .ToArray();
 
             return !excludedList.Contains(extension);
-        }
-
-        public static bool FileExists(string relativePath)
-        {
-            if (string.IsNullOrEmpty(relativePath))
-                return false;
-
-            try
-            {
-                string coreDir = SettingAPI.GetSetting<string>("Core_dirPath");
-                if (string.IsNullOrEmpty(coreDir))
-                    return false;
-
-                string fullPath = Path.GetFullPath(Path.Combine(coreDir, relativePath.Replace('/', Path.DirectorySeparatorChar)));
-                return File.Exists(fullPath);
-            }
-            catch
-            {
-                return false;
-            }
         }
     }
 }

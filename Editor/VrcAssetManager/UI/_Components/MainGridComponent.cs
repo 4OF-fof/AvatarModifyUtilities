@@ -6,6 +6,7 @@ using UnityEngine;
 using AMU.Editor.Core.Api;
 using AMU.Editor.VrcAssetManager.Controller;
 using AMU.Editor.VrcAssetManager.Schema;
+using AMU.Editor.VrcAssetManager.Helper;
 
 namespace AMU.Editor.VrcAssetManager.UI.Components
 {
@@ -206,6 +207,17 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             if (_selectedAssets.Count > 1)
             {
                 var menu = new GenericMenu();
+                
+                bool allImportable = _selectedAssets.All(a => AssetImportUtility.IsImportable(a.fileInfo.filePath));
+                if (allImportable && _selectedAssets.Count > 1)
+                {
+                    menu.AddItem(new GUIContent("Import Selected Assets"), false, () => 
+                    {
+                        AssetImportUtility.ImportAsset(_selectedAssets);
+                    });
+
+                    menu.AddSeparator("");
+                }
 
                 bool allFavorite = _selectedAssets.All(a => a.state.isFavorite);
                 bool noneFavorite = _selectedAssets.All(a => !a.state.isFavorite);
@@ -273,6 +285,16 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             else
             {
                 var menu = new GenericMenu();
+
+                if (AssetImportUtility.IsImportable(asset.fileInfo.filePath))
+                {
+                    menu.AddItem(new GUIContent("Import Asset"), false, () => 
+                    {
+                        AssetImportUtility.ImportAsset(asset);
+                    });
+
+                    menu.AddSeparator("");
+                }
 
                 if (!asset.state.isFavorite) {
                     menu.AddItem(new GUIContent("お気に入り登録"), false, () => {
