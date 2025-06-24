@@ -397,6 +397,19 @@ namespace AMU.Editor.VrcAssetManager.UI
                     }
                 }
             }
+            else if ((_asset.fileInfo == null || string.IsNullOrEmpty(_asset.fileInfo.filePath)) && _asset.boothItem != null && !string.IsNullOrEmpty(_asset.boothItem.downloadUrl))
+            {
+                GUILayout.Space(3);
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.Button("ダウンロード", GUILayout.Width(240), GUILayout.Height(36)))
+                    {
+                        Application.OpenURL(_asset.boothItem.downloadUrl);
+                    }
+                    GUILayout.FlexibleSpace();
+                }
+            }
         }
     }
 }
