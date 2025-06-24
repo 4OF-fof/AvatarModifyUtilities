@@ -45,7 +45,16 @@ namespace AMU.Editor.VrcAssetManager.UI
             window.maximized = false;
             window.newAuthorName = asset.metadata.authorName;
             window.newAssetType = asset.metadata.assetType;
-            window.newFilePath = asset.fileInfo != null ? asset.fileInfo.filePath : string.Empty;
+            if (asset.fileInfo != null && !string.IsNullOrEmpty(asset.fileInfo.filePath))
+            {
+                string coreDir = SettingAPI.GetSetting<string>("Core_dirPath");
+                string absPath = Path.Combine(Path.GetFullPath(coreDir), asset.fileInfo.filePath.Replace('/', Path.DirectorySeparatorChar));
+                window.newFilePath = absPath;
+            }
+            else
+            {
+                window.newFilePath = string.Empty;
+            }
             window.newIsFavorite = asset.state != null ? asset.state.isFavorite : false;
             window.newIsArchived = asset.state != null ? asset.state.isArchived : false;
             window.Show();
@@ -143,6 +152,18 @@ namespace AMU.Editor.VrcAssetManager.UI
                     var saveIcon = EditorGUIUtility.IconContent("SaveActive");
                     if (GUILayout.Button(saveIcon, GUILayout.Width(32), GUILayout.Height(32)))
                     {
+                        if (!string.IsNullOrEmpty(newFilePath))
+                        {
+                            string coreDir = SettingAPI.GetSetting<string>("Core_dirPath");
+                            string absCoreDir = Path.GetFullPath(coreDir).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                            string absNewFilePath = Path.GetFullPath(newFilePath);
+                            if (!absNewFilePath.StartsWith(absCoreDir, StringComparison.OrdinalIgnoreCase))
+                            {
+                                EditorUtility.DisplayDialog("エラー", $"ファイルパスはCoreディレクトリ({coreDir})以下のみ設定できます。", "OK");
+                                return;
+                            }
+                            newFilePath = absNewFilePath.Substring(absCoreDir.Length).Replace('\\', '/');
+                        }
                         _asset.metadata.SetAuthorName(newAuthorName);
                         _asset.metadata.SetAssetType(newAssetType);
                         _asset.fileInfo.SetFilePath(newFilePath);
