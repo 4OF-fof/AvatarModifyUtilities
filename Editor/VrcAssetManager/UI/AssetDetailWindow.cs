@@ -32,10 +32,10 @@ namespace AMU.Editor.VrcAssetManager.UI
                     _history.Add(_currentAsset.assetId);
                 }
             }
-            var window = GetWindow<AssetDetailWindow>(typeof(VrcAssetManagerWindow));
+            var window = GetWindow<AssetDetailWindow>();
             window._asset = asset;
             window.titleContent = new GUIContent("Asset Detail: " + asset.metadata.name);
-            window.minSize = window.maxSize = new Vector2(1200, 800);
+            window.minSize = window.maxSize = new Vector2(800, 760);
             window.maximized = false;
             window.Show();
             _currentAsset = asset;
@@ -116,20 +116,23 @@ namespace AMU.Editor.VrcAssetManager.UI
                 }
 
                 GUILayout.FlexibleSpace();
-
-                var editIcon = EditorGUIUtility.IconContent("d_editicon.sml");
+                
                 if (!_isEditMode)
                 {
+                    var editIcon = EditorGUIUtility.IconContent("d_editicon.sml");
                     if (GUILayout.Button(editIcon, GUILayout.Width(32), GUILayout.Height(32)))
                     {
                         _isEditMode = true;
                     }
                 }
-
-                var closeIcon = EditorGUIUtility.IconContent("winbtn_win_close");
-                if (GUILayout.Button(closeIcon, GUILayout.Width(32), GUILayout.Height(32)))
+                else
                 {
-                    Close();
+                    var saveIcon = EditorGUIUtility.IconContent("d_SaveAs");
+                    if (GUILayout.Button(saveIcon, GUILayout.Width(32), GUILayout.Height(32)))
+                    {
+                        _isEditMode = false;
+                    }
+
                 }
             }
 
@@ -380,11 +383,11 @@ namespace AMU.Editor.VrcAssetManager.UI
                 var excludedExts = SettingAPI.GetSetting<string>("AssetManager_excludedImportExtensions");
                 if (excludedExts != null && !excludedExts.Contains(ext))
                 {
-                    GUILayout.FlexibleSpace();
+                    GUILayout.Space(5);
                     using (new GUILayout.HorizontalScope())
                     {
                         GUILayout.FlexibleSpace();
-                        if (GUILayout.Button("インポート", GUILayout.Width(120), GUILayout.Height(36)))
+                        if (GUILayout.Button("インポート", GUILayout.Width(240), GUILayout.Height(36)))
                         {
                             Debug.Log("Import clicked");
                         }
