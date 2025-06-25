@@ -244,5 +244,22 @@
   "VrcAssetManager_message_schema_assetNullOrExists": "アセットがnull、または既にライブラリに存在します。",
   "VrcAssetManager_message_schema_assetNullOrNotExists": "アセットがnull、またはライブラリに存在しません。",
   "VrcAssetManager_message_schema_assetIdInvalidOrNotExists": "アセットIDが無効、またはライブラリに存在しません。",
-  "VrcAssetManager_message_schema_tagNullOrExists": "タグがnull、空、または既にライブラリに存在します。"
+  "VrcAssetManager_message_schema_tagNullOrExists": "タグがnull、空、または既にライブラリに存在します。",
+
+  "VrcAssetManager_message_downloadWatcher_started": "ダウンロードフォルダの監視を開始: {0}",
+  "VrcAssetManager_message_downloadWatcher_failedToStart": "ダウンロードフォルダの監視開始に失敗: {0}",
+  "VrcAssetManager_message_downloadWatcher_stopped": "ダウンロードフォルダの監視を停止しました",
+  "VrcAssetManager_message_downloadWatcher_errorStopping": "監視停止時にエラー: {0}",
+  "VrcAssetManager_message_downloadWatcher_processFile": "ファイル処理開始: {0}",
+  "VrcAssetManager_message_downloadWatcher_alreadyProcessed": "既に処理済み: {0}",
+  "VrcAssetManager_message_downloadWatcher_fileNotExist": "ファイルが存在しません: {0}",
+  "VrcAssetManager_message_downloadWatcher_tempFileSkipped": "一時ファイルのためスキップ: {0}",
+  "VrcAssetManager_message_downloadWatcher_noMatchingAsset": "該当アセットがありません: {0}",
+  "VrcAssetManager_message_downloadWatcher_alreadyHasFilePath": "アセット '{0}' は既にファイルパスが設定されています: {1}",
+  "VrcAssetManager_message_downloadWatcher_fileProcessed": "ファイル処理完了: {0} → {1}",
+  "VrcAssetManager_message_downloadWatcher_setFilePath": "fileInfo.filePathを設定: {0}",
+  "VrcAssetManager_message_downloadWatcher_failedToSetFilePath": "fileInfo.filePathの設定に失敗: {0}",
+  "VrcAssetManager_message_downloadWatcher_updateAsset": "UpdateAsset呼び出し: {0}",
+  "VrcAssetManager_message_downloadWatcher_updateAssetFailed": "UpdateAssetに失敗: {0}",
+  "VrcAssetManager_message_downloadWatcher_errorProcessingFile": "ファイル処理中にエラー: {0} {1}\n{2}"
 }

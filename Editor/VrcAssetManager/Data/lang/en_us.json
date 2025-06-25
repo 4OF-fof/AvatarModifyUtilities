@@ -260,5 +260,22 @@
   "VrcAssetManager_message_schema_dependencyNullOrExists": "Dependency is null, empty, or already exists in the library.",
   "VrcAssetManager_message_schema_dependencyNullOrNotExists": "Dependency is null, empty, or does not exist in the library.",
   "VrcAssetManager_message_schema_importFileNullOrExists": "Import file is null, empty, or already exists in the library.",
-  "VrcAssetManager_message_schema_importFileNullOrNotExists": "Import file is null, empty, or does not exist in the library."
+  "VrcAssetManager_message_schema_importFileNullOrNotExists": "Import file is null, empty, or does not exist in the library.",
+
+  "VrcAssetManager_message_downloadWatcher_started": "Started watching download folder: {0}",
+  "VrcAssetManager_message_downloadWatcher_failedToStart": "Failed to start watching download folder: {0}",
+  "VrcAssetManager_message_downloadWatcher_stopped": "Stopped watching download folder",
+  "VrcAssetManager_message_downloadWatcher_errorStopping": "Error stopping watcher: {0}",
+  "VrcAssetManager_message_downloadWatcher_processFile": "ProcessFile called: {0}",
+  "VrcAssetManager_message_downloadWatcher_alreadyProcessed": "Already processed: {0}",
+  "VrcAssetManager_message_downloadWatcher_fileNotExist": "File does not exist: {0}",
+  "VrcAssetManager_message_downloadWatcher_tempFileSkipped": "Temporary file, skipping: {0}",
+  "VrcAssetManager_message_downloadWatcher_noMatchingAsset": "No matching asset for: {0}",
+  "VrcAssetManager_message_downloadWatcher_alreadyHasFilePath": "Asset '{0}' already has a file path, skipping: {1}",
+  "VrcAssetManager_message_downloadWatcher_fileProcessed": "File processed: {0} -> {1}",
+  "VrcAssetManager_message_downloadWatcher_setFilePath": "Set fileInfo.filePath: {0}",
+  "VrcAssetManager_message_downloadWatcher_failedToSetFilePath": "Failed to set fileInfo.filePath: {0}",
+  "VrcAssetManager_message_downloadWatcher_updateAsset": "UpdateAsset called for: {0}",
+  "VrcAssetManager_message_downloadWatcher_updateAssetFailed": "UpdateAsset failed: {0}",
+  "VrcAssetManager_message_downloadWatcher_errorProcessingFile": "Error processing file {0}: {1}\n{2}"
 }
