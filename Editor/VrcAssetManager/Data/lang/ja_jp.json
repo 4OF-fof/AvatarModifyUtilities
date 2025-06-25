@@ -348,6 +348,8 @@
   "VrcAssetManager_ui_assetDetail_parentAsset": "親アセット:",
   "VrcAssetManager_ui_assetDetail_childAssets": "子アセット:",
   "VrcAssetManager_ui_assetDetail_importFiles": "インポートファイル",
+  "VrcAssetManager_ui_tagSelector_title": "タグ選択",
+  "VrcAssetManager_ui_assetSelector_title": "アセット選択",
   "VrcAssetManager_ui_assetDetail_tags": "タグ",
   "VrcAssetManager_ui_assetDetail_dependencies": "依存関係",
   "VrcAssetManager_ui_assetDetail_selectImportPath": "Import Pathを選択",
@@ -378,5 +380,6 @@
   "VrcAssetManager_ui_assetSelector_selectedCount": "選択中",
   "VrcAssetManager_ui_assetSelector_selected": "選択済み",
   "VrcAssetManager_ui_assetSelector_noSelection": "未選択",
-  "VrcAssetManager_ui_assetSelector_clearAll": "全て解除"
+  "VrcAssetManager_ui_assetSelector_clearAll": "全て解除",
+  "VrcAssetManager_ui_moveFileFailed": "ファイルの移動に失敗しました: {0}"
 }

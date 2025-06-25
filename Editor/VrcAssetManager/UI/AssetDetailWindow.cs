@@ -177,7 +177,10 @@ namespace AMU.Editor.VrcAssetManager.UI
                                 }
                                 catch (Exception ex)
                                 {
-                                    EditorUtility.DisplayDialog("エラー", $"ファイルの移動に失敗しました: {ex.Message}", LocalizationAPI.GetText("VrcAssetManager_common_ok"));
+                                    EditorUtility.DisplayDialog(
+                                        LocalizationAPI.GetText("VrcAssetManager_ui_error"),
+                                        string.Format(LocalizationAPI.GetText("VrcAssetManager_ui_moveFileFailed"), ex.Message),
+                                        LocalizationAPI.GetText("VrcAssetManager_common_ok"));
                                     return;
                                 }
                             }
@@ -486,7 +489,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 if ((_asset.fileInfo.importFiles.Count > 0) || (_isEditMode && ZipFileUtility.IsZipFile(_asset.fileInfo.filePath)))
                 {
                     GUILayout.Space(4);
-                    GUILayout.Label("Import Files", labelStyle);
+                    GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_importFiles"), labelStyle);
                     using (var _newImportScroll = new GUILayout.ScrollViewScope(Vector2.zero, GUILayout.Height(40)))
                     {
                         _tagsScroll = _newImportScroll.scrollPosition;

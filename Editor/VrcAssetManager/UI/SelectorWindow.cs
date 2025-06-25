@@ -23,7 +23,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         public static void ShowWindow(Action<List<string>> onTagsSelected, List<string> initialSelectedTags = null, bool allowMultipleSelection = false, bool allowTagCreation = false)
         {
-            var window = GetWindow<TagSelectorWindow>("Tag Selector");
+            var window = GetWindow<TagSelectorWindow>(LocalizationAPI.GetText("VrcAssetManager_ui_tagSelector_title"));
             window.minSize = window.maxSize = new Vector2(300, 400);
             window._allowMultipleSelection = allowMultipleSelection;
             window._onTagsSelected = onTagsSelected;
@@ -292,7 +292,7 @@ namespace AMU.Editor.VrcAssetManager.UI
         // filterMode, 0: All, 1: noChild + noParent, 2: noChild
         public static void ShowWindow(Action<List<string>> onAssetsSelected, List<string> initialSelectedAssets = null, bool allowMultipleSelection = false, int filterMode = 0)
         {
-            var window = GetWindow<AssetSelectorWindow>("Asset Selector");
+            var window = GetWindow<AssetSelectorWindow>(LocalizationAPI.GetText("VrcAssetManager_ui_assetSelector_title"));
             window.minSize = window.maxSize = new Vector2(400, 500);
             window._allowMultipleSelection = allowMultipleSelection;
             window._onAssetsSelected = onAssetsSelected;

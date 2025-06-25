@@ -367,6 +367,8 @@
   "VrcAssetManager_ui_assetDetail_parentAsset": "Parent Asset:",
   "VrcAssetManager_ui_assetDetail_childAssets": "Child Assets:",
   "VrcAssetManager_ui_assetDetail_importFiles": "Import Files",
+  "VrcAssetManager_ui_tagSelector_title": "Tag Selector",
+  "VrcAssetManager_ui_assetSelector_title": "Asset Selector",
   "VrcAssetManager_ui_assetDetail_tags": "Tags",
   "VrcAssetManager_ui_assetDetail_dependencies": "Dependencies",
   "VrcAssetManager_ui_assetDetail_selectImportPath": "Select Import Path",
@@ -397,5 +399,6 @@
   "VrcAssetManager_ui_assetSelector_selectedCount": "Selected",
   "VrcAssetManager_ui_assetSelector_selected": "Selected",
   "VrcAssetManager_ui_assetSelector_noSelection": "No selection",
-  "VrcAssetManager_ui_assetSelector_clearAll": "Clear All"
+  "VrcAssetManager_ui_assetSelector_clearAll": "Clear All",
+  "VrcAssetManager_ui_moveFileFailed": "Failed to move file: {0}"
 }
