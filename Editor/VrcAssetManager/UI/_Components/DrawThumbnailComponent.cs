@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using AMU.Editor.VrcAssetManager.Schema;
 using AMU.Editor.Core.Api;
-using AMU.Editor.VrcAssetManager.Controllers;
+using AMU.Editor.VrcAssetManager.Controller;
 
 namespace AMU.Editor.VrcAssetManager.UI.Components
 {

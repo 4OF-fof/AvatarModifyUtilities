@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 
-namespace AMU.Editor.VrcAssetManager.Controllers
+namespace AMU.Editor.VrcAssetManager.Controller
 {
     public class ThumbnailCacheController
     {
