@@ -305,6 +305,14 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     menu.AddSeparator("");
                 }
 
+                menu.AddItem(new GUIContent("アセット詳細を表示"), false, () =>
+                {
+                    AssetDetailWindow.ShowWindow(asset);
+                    AssetDetailWindow.history.Clear();
+                });
+
+                menu.AddSeparator("");
+
                 if (!asset.state.isFavorite) {
                     menu.AddItem(new GUIContent("お気に入り登録"), false, () => {
                         asset.state.SetFavorite(true);
@@ -353,8 +361,20 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
         private static void HandleAssetDoubleClick(AssetSchema asset)
         {
-            AssetDetailWindow.ShowWindow(asset);
-            AssetDetailWindow.history.Clear();
+            var controller = AssetLibraryController.Instance;
+            
+            if (asset.hasChildAssets)
+            {
+                controller.filterOptions.ClearFilter();
+                controller.filterOptions.parentGroupId = asset.assetId.ToString();
+                controller.filterOptions.isChildItem = true;
+                ToolbarComponent.isUsingAdvancedSearch = true;
+            }
+            else
+            {
+                AssetDetailWindow.ShowWindow(asset);
+                AssetDetailWindow.history.Clear();
+            }
         }
     }
 }

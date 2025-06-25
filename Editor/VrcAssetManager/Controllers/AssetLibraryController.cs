@@ -456,6 +456,14 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 results.Add(library.GetAssetsByDescription(filterOptions.description));
             }
 
+            if (!string.IsNullOrEmpty(filterOptions.parentGroupId))
+            {
+                var childAssets = library.assets.Values
+                    .Where(asset => asset.parentGroupId == filterOptions.parentGroupId)
+                    .ToList();
+                results.Add(childAssets);
+            }
+
             if (filterOptions.tags != null && filterOptions.tags.Count > 0)
             {
                 var tagResults = new List<AssetSchema>();
