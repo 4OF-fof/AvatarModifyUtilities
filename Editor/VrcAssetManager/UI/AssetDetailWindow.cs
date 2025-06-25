@@ -52,7 +52,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             window.newTags = asset.metadata.tags.ToList();
             window.newDependencies = asset.metadata.dependencies.ToList();
             window.newImportFiles = asset.fileInfo.importFiles.ToList();
-            window.titleContent = new GUIContent("Asset Detail: " + asset.metadata.name);
+            window.titleContent = new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_title") + ": " + asset.metadata.name);
             window.minSize = window.maxSize = new Vector2(800, 760);
             window.maximized = false;
             window.Show();
@@ -119,7 +119,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             {
                 if (_isEditMode)
                 {
-                    if (GUILayout.Button("Cancel", GUILayout.Width(32), GUILayout.Height(32)))
+                    if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_ui_common_cancel"), GUILayout.Width(32), GUILayout.Height(32)))
                     {
                         InitEditData(_asset);
                         GUI.FocusControl(null);
@@ -177,7 +177,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                                 }
                                 catch (Exception ex)
                                 {
-                                    EditorUtility.DisplayDialog("エラー", $"ファイルの移動に失敗しました: {ex.Message}", "OK");
+                                    EditorUtility.DisplayDialog("エラー", $"ファイルの移動に失敗しました: {ex.Message}", LocalizationAPI.GetText("VrcAssetManager_common_ok"));
                                     return;
                                 }
                             }
@@ -208,7 +208,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
             if (_asset == null)
             {
-                EditorGUILayout.LabelField("No asset selected.");
+                EditorGUILayout.LabelField(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_noAsset"));
                 return;
             }
 
@@ -227,13 +227,13 @@ namespace AMU.Editor.VrcAssetManager.UI
                             80,
                             25
                         );
-                        if (GUI.Button(buttonRect, "サムネイル更新"))
+                        if (GUI.Button(buttonRect, LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_updateThumbnail")))
                         {
                             string defaultPath = Path.Combine(
                                 System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile),
                                 "Downloads"
                             );
-                            string selectedPath = EditorUtility.OpenFilePanel("サムネイル画像を選択", defaultPath, "png,jpg,jpeg");
+                            string selectedPath = EditorUtility.OpenFilePanel(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_selectThumbnail"), defaultPath, "png,jpg,jpeg");
                             if (!string.IsNullOrEmpty(selectedPath))
                             {
                                 string coreDir = SettingAPI.GetSetting<string>("Core_dirPath");
@@ -308,7 +308,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Label("Author:", labelStyle, GUILayout.Width(70));
+                    GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_author"), labelStyle, GUILayout.Width(70));
                     if (!_isEditMode)
                     {
                         GUILayout.Label(_asset.metadata.authorName, valueStyle);
@@ -321,7 +321,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Label("Asset Type:", labelStyle, GUILayout.Width(70));
+                    GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_assetType"), labelStyle, GUILayout.Width(70));
                     if (!_isEditMode)
                     {
                         GUILayout.Label(_asset.metadata.assetType, valueStyle);
@@ -344,13 +344,13 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Label("Created:", labelStyle, GUILayout.Width(70));
+                    GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_created"), labelStyle, GUILayout.Width(70));
                     GUILayout.Label(_asset.metadata.createdDate.ToString("yyyy-MM-dd HH:mm"), valueStyle);
                 }
 
                 using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Label("Modified:", labelStyle, GUILayout.Width(70));
+                    GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_modified"), labelStyle, GUILayout.Width(70));
                     GUILayout.Label(_asset.metadata.modifiedDate.ToString("yyyy-MM-dd HH:mm"), valueStyle);
                 }
 
@@ -358,7 +358,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 {
                     if (_asset.childAssetIds == null || _asset.childAssetIds.Count == 0)
                     {
-                        GUILayout.Label("File Path:", labelStyle, GUILayout.Width(70));
+                        GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_filePath"), labelStyle, GUILayout.Width(70));
                         if (!_isEditMode)
                         {
                             GUILayout.Label(_asset.fileInfo.filePath, valueStyle);
@@ -370,7 +370,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                             {
                                 string defaultPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
                                 string downloads = Path.Combine(defaultPath, "Downloads");
-                                var selectedPath = EditorUtility.OpenFilePanel("ファイルを選択", downloads, "");
+                                var selectedPath = EditorUtility.OpenFilePanel(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_selectFile"), downloads, "");
                                 if (!string.IsNullOrEmpty(selectedPath))
                                 {
                                     newFilePath = selectedPath;
@@ -384,19 +384,19 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Label("Favorite:", labelStyle, GUILayout.Width(60));
+                    GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_favorite"), labelStyle, GUILayout.Width(60));
                     if (!_isEditMode)
                     {
-                        GUILayout.Label(_asset.state.isFavorite ? "Yes" : "No", valueStyle);
+                        GUILayout.Label(_asset.state.isFavorite ? LocalizationAPI.GetText("VrcAssetManager_common_yes") : LocalizationAPI.GetText("VrcAssetManager_common_no"), valueStyle);
                     }
                     else
                     {
                         newIsFavorite = EditorGUILayout.Toggle(newIsFavorite, GUILayout.Width(20));
                     }
-                    GUILayout.Label("Archived:", labelStyle, GUILayout.Width(60));
+                    GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_archived"), labelStyle, GUILayout.Width(60));
                     if (!_isEditMode)
                     {
-                        GUILayout.Label(_asset.state.isArchived ? "Yes" : "No", valueStyle);
+                        GUILayout.Label(_asset.state.isArchived ? LocalizationAPI.GetText("VrcAssetManager_common_yes") : LocalizationAPI.GetText("VrcAssetManager_common_no"), valueStyle);
                     }
                     else
                     {
@@ -413,7 +413,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                         using (new GUILayout.VerticalScope())
                         {
-                            GUILayout.Label("親アセット:", labelStyle, GUILayout.Width(70));
+                            GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_parentAsset"), labelStyle, GUILayout.Width(70));
 
                             if (GUILayout.Button(parentAsset.metadata.name, chipStyle) && !_isEditMode)
                             {
@@ -435,7 +435,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 {
                     GUILayout.Space(4);
 
-                    GUILayout.Label("子アセット:", labelStyle);
+                    GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_childAssets"), labelStyle);
 
                     using (var _newChildrenScroll = new GUILayout.ScrollViewScope(_childrenScroll, GUILayout.Height(40)))
                     {
@@ -515,7 +515,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 {
                     using (new GUILayout.VerticalScope(sectionBoxStyle))
                     {
-                        GUILayout.Label("Tags", labelStyle);
+                        GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_tags"), labelStyle);
                         using (var _newTagsScroll = new GUILayout.ScrollViewScope(_tagsScroll, GUILayout.Height(40)))
                         {
                             _tagsScroll = _newTagsScroll.scrollPosition;
@@ -563,7 +563,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 {
                     using (new GUILayout.VerticalScope(sectionBoxStyle))
                     {
-                        GUILayout.Label("Dependencies", labelStyle);
+                        GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_dependencies"), labelStyle);
                         using (var _newDepsScroll = new GUILayout.ScrollViewScope(_depsScroll, GUILayout.Height(40)))
                         {
                             _depsScroll = _newDepsScroll.scrollPosition;
@@ -634,7 +634,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     using (new GUILayout.HorizontalScope())
                     {
                         GUILayout.FlexibleSpace();
-                        if (GUILayout.Button("Import Pathを選択", GUILayout.Width(240), GUILayout.Height(32)))
+                        if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_selectImportPath"), GUILayout.Width(240), GUILayout.Height(32)))
                         {
                             ShowImportPathSelector();
                         }
@@ -647,7 +647,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     using (new GUILayout.HorizontalScope())
                     {
                         GUILayout.FlexibleSpace();
-                        if (GUILayout.Button("インポート", GUILayout.Width(240), GUILayout.Height(36)))
+                        if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_import"), GUILayout.Width(240), GUILayout.Height(36)))
                         {
                             ImportAsset();
                         }
@@ -661,7 +661,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.FlexibleSpace();
-                    if (GUILayout.Button("ダウンロード", GUILayout.Width(240), GUILayout.Height(36)))
+                    if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_download"), GUILayout.Width(240), GUILayout.Height(36)))
                     {
                         Application.OpenURL(_asset.boothItem.downloadUrl);
                     }
@@ -678,18 +678,18 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 if (importSuccess)
                 {
-                    Debug.Log($"[AssetDetailWindow] Successfully imported asset '{_asset.metadata.name}'");
+                    Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_importSuccess"), _asset.metadata.name));
                 }
                 else
                 {
-                    Debug.LogWarning($"[AssetDetailWindow] Failed to import asset '{_asset.metadata.name}'");
-                    EditorUtility.DisplayDialog("警告", "アセットのインポートに失敗しました。詳細はコンソールを確認してください。", "OK");
+                    Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_importFailed"), _asset.metadata.name));
+                    EditorUtility.DisplayDialog(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_warning"), LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_importFailedDialog"), LocalizationAPI.GetText("VrcAssetManager_common_ok"));
                 }
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[AssetDetailWindow] Failed to import asset: {ex.Message}");
-                EditorUtility.DisplayDialog("エラー", $"アセットのインポートに失敗しました: {ex.Message}", "OK");
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_importFailedException"), ex.Message));
+                EditorUtility.DisplayDialog(LocalizationAPI.GetText("VrcAssetManager_ui_error"), string.Format(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_importFailedExceptionDialog"), ex.Message), LocalizationAPI.GetText("VrcAssetManager_common_ok"));
             }
         }
 
@@ -697,13 +697,13 @@ namespace AMU.Editor.VrcAssetManager.UI
         {
             if (_asset == null || string.IsNullOrEmpty(_asset.fileInfo.filePath))
             {
-                EditorUtility.DisplayDialog("エラー", "ファイルパスが設定されていません。", "OK");
+                EditorUtility.DisplayDialog(LocalizationAPI.GetText("VrcAssetManager_ui_error"), LocalizationAPI.GetText("VrcAssetManager_ui_filePathNotSet"), LocalizationAPI.GetText("VrcAssetManager_common_ok"));
                 return;
             }
 
             if (!ZipFileUtility.IsZipFile(_asset.fileInfo.filePath))
             {
-                EditorUtility.DisplayDialog("エラー", "選択されたファイルはZipファイルではありません。", "OK");
+                EditorUtility.DisplayDialog(LocalizationAPI.GetText("VrcAssetManager_ui_error"), LocalizationAPI.GetText("VrcAssetManager_ui_notZipFile"), LocalizationAPI.GetText("VrcAssetManager_common_ok"));
                 return;
             }
 

@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using AMU.Editor.VrcAssetManager.Controller;
 using AMU.Editor.VrcAssetManager.Schema;
+using AMU.Editor.Core.Api;
 
 namespace AMU.Editor.VrcAssetManager.UI
 {
@@ -21,7 +22,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         public static void ShowWindow(Action<bool> onClose)
         {
-            var window = GetWindow<AdvancedSearchWindow>("詳細検索");
+            var window = GetWindow<AdvancedSearchWindow>(LocalizationAPI.GetText("VrcAssetManager_ui_advancedSearch_title"));
             window._onClose = onClose;
             var controller = AssetLibraryController.Instance;
             if (controller != null && controller.filterOptions != null)
@@ -39,27 +40,27 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private void OnGUI()
         {
-            GUILayout.Label("詳細検索", EditorStyles.boldLabel);
+            GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_advancedSearch_title"), EditorStyles.boldLabel);
             GUILayout.Space(8);
 
             using (new GUILayout.VerticalScope(GUI.skin.box))
             {
-                EditorGUILayout.LabelField("検索条件", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(LocalizationAPI.GetText("VrcAssetManager_ui_advancedSearch_conditions"), EditorStyles.boldLabel);
                 GUILayout.Space(4);
 
                 using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Label("名前", GUILayout.Width(60));
+                    GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_advancedSearch_name"), GUILayout.Width(60));
                     _name = EditorGUILayout.TextField(_name, GUILayout.MinWidth(200));
                 }
                 using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Label("作者", GUILayout.Width(60));
+                    GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_advancedSearch_author"), GUILayout.Width(60));
                     _author = EditorGUILayout.TextField(_author, GUILayout.MinWidth(200));
                 }
                 using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Label("説明", GUILayout.Width(60));
+                    GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_advancedSearch_description"), GUILayout.Width(60));
                     _description = EditorGUILayout.TextField(_description, GUILayout.MinWidth(200));
                 }
             }
@@ -68,7 +69,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
             using (new GUILayout.VerticalScope(GUI.skin.box))
             {
-                GUILayout.Label("タグ", EditorStyles.boldLabel);
+                GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_advancedSearch_tags"), EditorStyles.boldLabel);
                 if (_tags.Count > 0)
                 {
                     using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition, GUILayout.Height(135)))
@@ -88,7 +89,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                             }
                         }
                     }
-                    if (GUILayout.Button("タグ選択", GUILayout.ExpandWidth(true)))
+                    if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_ui_advancedSearch_selectTags"), GUILayout.ExpandWidth(true)))
                     {
                         TagSelectorWindow.ShowWindow(tags =>
                         {
@@ -99,13 +100,13 @@ namespace AMU.Editor.VrcAssetManager.UI
                     using (new GUILayout.HorizontalScope())
                     {
                         GUILayout.FlexibleSpace();
-                        _tagsAnd = EditorGUILayout.ToggleLeft("タグをANDで絞り込む", _tagsAnd, GUILayout.Width(130));
+                        _tagsAnd = EditorGUILayout.ToggleLeft(LocalizationAPI.GetText("VrcAssetManager_ui_advancedSearch_tagsAnd"), _tagsAnd, GUILayout.Width(130));
                         GUILayout.FlexibleSpace();
                     }
                 }
                 else
                 {
-                    if (GUILayout.Button("タグ選択", GUILayout.ExpandWidth(true)))
+                    if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_ui_advancedSearch_selectTags"), GUILayout.ExpandWidth(true)))
                     {
                         TagSelectorWindow.ShowWindow(tags =>
                         {
@@ -117,15 +118,15 @@ namespace AMU.Editor.VrcAssetManager.UI
             }
 
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-            _filterAnd = EditorGUILayout.ToggleLeft("全体をANDで絞り込む", _filterAnd, GUILayout.Width(160));
+            _filterAnd = EditorGUILayout.ToggleLeft(LocalizationAPI.GetText("VrcAssetManager_ui_advancedSearch_filterAnd"), _filterAnd, GUILayout.Width(160));
             using (new GUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("キャンセル", GUILayout.Width(80)))
+                if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_ui_common_cancel"), GUILayout.Width(80)))
                 {
                     Close();
                 }
                 GUILayout.FlexibleSpace();
-                if (GUILayout.Button("検索", GUILayout.Width(150)))
+                if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_ui_advancedSearch_search"), GUILayout.Width(150)))
                 {
                     ApplySearch();
                     _closedBySearch = true;

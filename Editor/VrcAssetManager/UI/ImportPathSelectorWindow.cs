@@ -38,24 +38,24 @@ namespace AMU.Editor.VrcAssetManager.UI
 
             if (string.IsNullOrEmpty(asset.fileInfo.filePath))
             {
-                EditorUtility.DisplayDialog("エラー", "ファイルパスが設定されていません。", "OK");
+                EditorUtility.DisplayDialog(LocalizationAPI.GetText("VrcAssetManager_ui_error"), LocalizationAPI.GetText("VrcAssetManager_ui_filePathNotSet"), LocalizationAPI.GetText("VrcAssetManager_common_ok"));
                 return;
             }
 
             if (!ZipFileUtility.IsZipFile(asset.fileInfo.filePath))
             {
-                EditorUtility.DisplayDialog("エラー", "選択されたファイルはZipファイルではありません。", "OK");
+                EditorUtility.DisplayDialog(LocalizationAPI.GetText("VrcAssetManager_ui_error"), LocalizationAPI.GetText("VrcAssetManager_ui_notZipFile"), LocalizationAPI.GetText("VrcAssetManager_common_ok"));
                 return;
             }
 
             var zipFiles = ZipFileUtility.GetZipFileList(asset.fileInfo.filePath);
             if (zipFiles.Count == 0)
             {
-                EditorUtility.DisplayDialog("エラー", "Zipファイル内にファイルが見つかりません。", "OK");
+                EditorUtility.DisplayDialog(LocalizationAPI.GetText("VrcAssetManager_ui_error"), LocalizationAPI.GetText("VrcAssetManager_ui_noFilesInZip"), LocalizationAPI.GetText("VrcAssetManager_common_ok"));
                 return;
             }
 
-            var window = GetWindow<ImportPathSelectorWindow>("Import Path選択");
+            var window = GetWindow<ImportPathSelectorWindow>(LocalizationAPI.GetText("VrcAssetManager_ui_importPathSelector_title"));
             window.minSize = new Vector2(600, 500);
             window.maxSize = new Vector2(800, 700);
 
@@ -147,11 +147,11 @@ namespace AMU.Editor.VrcAssetManager.UI
 
             using (new GUILayout.VerticalScope(_boxStyle))
             {
-                GUILayout.Label($"Zipファイル: {Path.GetFileName(_asset.fileInfo.filePath)}", _headerStyle);
+                GUILayout.Label(string.Format(LocalizationAPI.GetText("VrcAssetManager_ui_zipFile"), Path.GetFileName(_asset.fileInfo.filePath)), _headerStyle);
 
                 var filteredFiles = GetFilteredFiles();
                 var selectedCount = _selectedFiles.Count(kvp => kvp.Value);
-                GUILayout.Label($"ファイル数: {filteredFiles.Count} | 選択中: {selectedCount}", EditorStyles.miniLabel);
+                GUILayout.Label(string.Format(LocalizationAPI.GetText("VrcAssetManager_ui_fileCount"), filteredFiles.Count, selectedCount), EditorStyles.miniLabel);
             }
 
             GUILayout.Space(5);
@@ -160,9 +160,9 @@ namespace AMU.Editor.VrcAssetManager.UI
             {
                 using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Label("フィルター", GUILayout.Width(50));
+                    GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_filter"), GUILayout.Width(50));
                     _searchFilter = EditorGUILayout.TextField(_searchFilter);
-                    if (GUILayout.Button("クリア", GUILayout.Width(60)))
+                    if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_ui_clear"), GUILayout.Width(60)))
                     {
                         _searchFilter = "";
                     }
@@ -172,7 +172,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 using (new GUILayout.HorizontalScope())
                 {
-                    var newShowAllFiles = EditorGUILayout.Toggle("全てのファイルを表示", _showAllFiles);
+                    var newShowAllFiles = EditorGUILayout.Toggle(LocalizationAPI.GetText("VrcAssetManager_ui_showAllFiles"), _showAllFiles);
                     if (newShowAllFiles != _showAllFiles)
                     {
                         _showAllFiles = newShowAllFiles;
@@ -181,11 +181,11 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                     GUILayout.FlexibleSpace();
 
-                    if (GUILayout.Button("全て選択", EditorStyles.miniButton, GUILayout.Width(80)))
+                    if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_ui_selectAll"), EditorStyles.miniButton, GUILayout.Width(80)))
                     {
                         SelectAllFiles(true);
                     }
-                    if (GUILayout.Button("選択解除", EditorStyles.miniButton, GUILayout.Width(80)))
+                    if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_ui_deselectAll"), EditorStyles.miniButton, GUILayout.Width(80)))
                     {
                         SelectAllFiles(false);
                     }
@@ -194,7 +194,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
             GUILayout.Space(5);
 
-            GUILayout.Label("インポートするファイルを選択", EditorStyles.boldLabel);
+            GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_selectFilesToImport"), EditorStyles.boldLabel);
 
             using (var scrollView = new GUILayout.ScrollViewScope(_scrollPosition, _boxStyle))
             {
@@ -208,7 +208,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                     using (new GUILayout.HorizontalScope())
                     {
                         GUILayout.FlexibleSpace();
-                        GUILayout.Label("条件に一致するファイルが見つかりません", EditorStyles.centeredGreyMiniLabel);
+                        GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_noFilesMatch"), EditorStyles.centeredGreyMiniLabel);
                         GUILayout.FlexibleSpace();
                     }
                     GUILayout.FlexibleSpace();
@@ -237,14 +237,14 @@ namespace AMU.Editor.VrcAssetManager.UI
                 GUILayout.FlexibleSpace();
 
                 GUI.enabled = !_isProcessing;
-                if (GUILayout.Button("キャンセル", _buttonStyle, GUILayout.Width(100)))
+                if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_ui_cancel"), _buttonStyle, GUILayout.Width(100)))
                 {
                     CancelAndClose();
                 }
 
                 var selectedFiles = _selectedFiles.Count(kvp => kvp.Value);
                 GUI.enabled = !_isProcessing && selectedFiles > 0;
-                var extractButtonText = _isProcessing ? "展開中..." : "展開して設定";
+                var extractButtonText = _isProcessing ? LocalizationAPI.GetText("VrcAssetManager_ui_extracting") : LocalizationAPI.GetText("VrcAssetManager_ui_extractAndSet");
                 if (GUILayout.Button(extractButtonText, _buttonStyle, GUILayout.Width(150)))
                 {
                     ExtractAndSetImportPaths();
@@ -276,12 +276,12 @@ namespace AMU.Editor.VrcAssetManager.UI
 
             if (selectedFiles.Count == 0)
             {
-                EditorUtility.DisplayDialog("エラー", "ファイルが選択されていません。", "OK");
+                EditorUtility.DisplayDialog(LocalizationAPI.GetText("VrcAssetManager_ui_error"), LocalizationAPI.GetText("VrcAssetManager_ui_noFileSelected"), LocalizationAPI.GetText("VrcAssetManager_common_ok"));
                 return;
             }
 
             _isProcessing = true;
-            SetStatus("ファイルを展開中...");
+            SetStatus(LocalizationAPI.GetText("VrcAssetManager_ui_extractionInProgress"));
 
             var extractedPaths = new List<string>();
             string unzipDir = ZipFileUtility.GetUnzipDirectory();
@@ -350,12 +350,12 @@ namespace AMU.Editor.VrcAssetManager.UI
 
             if (extractedPaths.Count > 0)
             {
-                SetStatus($"Successfully extracted {extractedPaths.Count} files");
+                SetStatus(string.Format(LocalizationAPI.GetText("VrcAssetManager_ui_extractionSuccess"), extractedPaths.Count));
                 _onSelectionComplete?.Invoke(extractedPaths);
             }
             else
             {
-                EditorUtility.DisplayDialog("エラー", "ファイルの展開に失敗しました。", "OK");
+                EditorUtility.DisplayDialog(LocalizationAPI.GetText("VrcAssetManager_ui_error"), LocalizationAPI.GetText("VrcAssetManager_ui_extractionFailed"), LocalizationAPI.GetText("VrcAssetManager_common_ok"));
             }
 
             if (_asset != null)
@@ -435,24 +435,24 @@ namespace AMU.Editor.VrcAssetManager.UI
             switch (extension.ToLower())
             {
                 case ".unitypackage":
-                    return "Unity Package";
+                    return LocalizationAPI.GetText("VrcAssetManager_ui_unityPackage");
                 case ".cs":
-                    return "C# Script";
+                    return LocalizationAPI.GetText("VrcAssetManager_ui_csharpScript");
                 case ".png":
                 case ".jpg":
                 case ".jpeg":
-                    return "Image";
+                    return LocalizationAPI.GetText("VrcAssetManager_ui_image");
                 case ".fbx":
                 case ".obj":
-                    return "3D Model";
+                    return LocalizationAPI.GetText("VrcAssetManager_ui_3dModel");
                 case ".mat":
-                    return "Material";
+                    return LocalizationAPI.GetText("VrcAssetManager_ui_material");
                 case ".txt":
-                    return "Text";
+                    return LocalizationAPI.GetText("VrcAssetManager_ui_text");
                 case ".md":
-                    return "Markdown";
+                    return LocalizationAPI.GetText("VrcAssetManager_ui_markdown");
                 case ".zip":
-                    return "Archive";
+                    return LocalizationAPI.GetText("VrcAssetManager_ui_archive");
                 default:
                     return extension.TrimStart('.').ToUpper();
             }

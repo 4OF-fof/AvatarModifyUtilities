@@ -347,14 +347,14 @@ namespace AMU.Editor.VrcAssetManager.UI
                 GUILayout.Space(10);
 
                 string headerText = _allowMultipleSelection
-                    ? LocalizationAPI.GetText("AssetSelector_selectMultipleAssets")
-                    : LocalizationAPI.GetText("AssetSelector_selectSingleAsset");
+                    ? LocalizationAPI.GetText("VrcAssetManager_ui_assetSelector_selectMultipleAssets")
+                    : LocalizationAPI.GetText("VrcAssetManager_ui_assetSelector_selectSingleAsset");
 
                 GUILayout.Label(headerText, EditorStyles.boldLabel);
                 GUILayout.Space(5);
                 using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Label(LocalizationAPI.GetText("AssetSelector_search"), GUILayout.Width(50));
+                    GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_assetSelector_search"), GUILayout.Width(50));
                     GUI.SetNextControlName("SearchField");
                     var newSearchText = GUILayout.TextField(_searchText);
                     if (newSearchText != _searchText)
@@ -370,8 +370,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                 if (_filteredAssets == null || _filteredAssets.Count == 0)
                 {
                     var message = string.IsNullOrEmpty(_searchText)
-                        ? LocalizationAPI.GetText("AssetSelector_noAssets")
-                        : LocalizationAPI.GetText("AssetSelector_noSearchResults");
+                        ? LocalizationAPI.GetText("VrcAssetManager_ui_assetSelector_noAssets")
+                        : LocalizationAPI.GetText("VrcAssetManager_ui_assetSelector_noSearchResults");
 
                     GUILayout.Label(message, EditorStyles.helpBox);
                     return;
@@ -450,10 +450,10 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 if (_allowMultipleSelection)
                 {                    string selectionInfo = _allowMultipleSelection
-                    ? $"{LocalizationAPI.GetText("AssetSelector_selectedCount")}: {_selectedAssets.Count}"
+                    ? $"{LocalizationAPI.GetText("VrcAssetManager_ui_assetSelector_selectedCount")}: {_selectedAssets.Count}"
                     : _selectedAssets.Count > 0
-                        ? $"{LocalizationAPI.GetText("AssetSelector_selected")}: {_availableAssets.FirstOrDefault(a => a.assetId.ToString() == _selectedAssets.First())?.metadata.name}"
-                        : LocalizationAPI.GetText("AssetSelector_noSelection");
+                        ? $"{LocalizationAPI.GetText("VrcAssetManager_ui_assetSelector_selected")}: {_availableAssets.FirstOrDefault(a => a.assetId.ToString() == _selectedAssets.First())?.metadata.name}"
+                        : LocalizationAPI.GetText("VrcAssetManager_ui_assetSelector_noSelection");
 
                     GUILayout.Label(selectionInfo, EditorStyles.miniLabel);
 
@@ -462,7 +462,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 if (_allowMultipleSelection)
                 {
-                    if (GUILayout.Button(LocalizationAPI.GetText("AssetSelector_clearAll")))
+                    if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_ui_assetSelector_clearAll")))
                     {
                         _selectedAssets.Clear();
                     }

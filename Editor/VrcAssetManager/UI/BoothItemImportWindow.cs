@@ -22,7 +22,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         public static void ShowWindowWithFile(string filePath)
         {
-            var window = GetWindow<BoothItemImportWindow>("Boothアイテム一括登録");
+            var window = GetWindow<BoothItemImportWindow>(LocalizationAPI.GetText("VrcAssetManager_ui_boothImport_title"));
             window._filePath = filePath;
             window.LoadBoothItems();
             window.minSize = new Vector2(600, 400);
@@ -67,25 +67,25 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private void OnGUI()
         {
-            EditorGUILayout.HelpBox($"インポート対象: {_filteredBoothItems?.Count ?? 0} 件", MessageType.Info);
+            EditorGUILayout.HelpBox(string.Format(LocalizationAPI.GetText("VrcAssetManager_ui_boothImport_targetCount"), _filteredBoothItems?.Count ?? 0), MessageType.Info);
             if (_filteredBoothItems == null || _filteredBoothItems.Count == 0)
             {
-                EditorGUILayout.HelpBox("Boothアイテムが見つかりません。", MessageType.Info);
+                EditorGUILayout.HelpBox(LocalizationAPI.GetText("VrcAssetManager_ui_boothImport_noItems"), MessageType.Info);
                 return;
             }
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
             foreach (var item in _filteredBoothItems)
             {
                 EditorGUILayout.BeginVertical(GUI.skin.box);
-                EditorGUILayout.LabelField("アイテム名", item.itemName);
-                EditorGUILayout.LabelField("作者", item.authorName);
-                EditorGUILayout.LabelField("URL", item.itemUrl);
-                EditorGUILayout.LabelField("ファイル名", item.fileName);
+                EditorGUILayout.LabelField(LocalizationAPI.GetText("VrcAssetManager_ui_boothImport_itemName"), item.itemName);
+                EditorGUILayout.LabelField(LocalizationAPI.GetText("VrcAssetManager_ui_boothImport_author"), item.authorName);
+                EditorGUILayout.LabelField(LocalizationAPI.GetText("VrcAssetManager_ui_boothImport_url"), item.itemUrl);
+                EditorGUILayout.LabelField(LocalizationAPI.GetText("VrcAssetManager_ui_boothImport_fileName"), item.fileName);
                 EditorGUILayout.EndVertical();
             }
             EditorGUILayout.EndScrollView();
             EditorGUILayout.Space();
-            if (GUILayout.Button("全てアセットとして登録"))
+            if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_ui_boothImport_registerAll")))
             {
                 RegisterAllAsAssets();
             }
@@ -158,7 +158,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             if (File.Exists(filePath)) return filePath;
             try
             {
-                EditorUtility.DisplayProgressBar("画像ダウンロード中", imageUrl, 0f);
+                EditorUtility.DisplayProgressBar(LocalizationAPI.GetText("VrcAssetManager_ui_boothImport_downloadingImage"), imageUrl, 0f);
                 System.Threading.Thread.Sleep(100);
                 using (var client = new WebClient())
                 {
@@ -170,7 +170,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             catch (Exception ex)
             {
                 EditorUtility.ClearProgressBar();
-                Debug.LogWarning($"画像ダウンロード失敗: {imageUrl}\n{ex.Message}");
+                Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_ui_boothImport_downloadImageFailed"), imageUrl, ex.Message));
                 return null;
             }
         }
@@ -188,7 +188,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 if (!string.IsNullOrEmpty(item.imageUrl))
                 {
                     float progress = (float)i / total;
-                    EditorUtility.DisplayProgressBar("画像ダウンロード中", item.itemName, progress);
+                    EditorUtility.DisplayProgressBar(LocalizationAPI.GetText("VrcAssetManager_ui_boothImport_downloadingImage"), item.itemName, progress);
                     localPath = DownloadImageIfNeeded(item.imageUrl);
                     if (!string.IsNullOrEmpty(localPath))
                     {
@@ -299,7 +299,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 _controller.AddAsset(parentAsset);
                 parentCount++;
             }
-            Debug.Log($"{parentCount}件の親アセットと{childCount}件の子アセットを登録しました。");
+            Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_ui_boothImport_registerResult"), parentCount, childCount));
             Close();
         }
     }
