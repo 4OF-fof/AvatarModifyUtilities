@@ -297,6 +297,27 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     menu.AddSeparator("");
                 }
 
+                bool anyHasParentGroup = _selectedAssets.Any(a => a.hasParentGroup);
+                if (anyHasParentGroup) {
+                    menu.AddItem(new GUIContent("グループから除外"), false, () => {
+                        foreach (var selectedAsset in _selectedAssets.Where(a => a.hasParentGroup))
+                        {
+                            if (Guid.TryParse(selectedAsset.parentGroupId, out var parentGuid))
+                            {
+                                var parentAsset = controller.GetAsset(parentGuid);
+                                if (parentAsset != null)
+                                {
+                                    parentAsset.RemoveChildAssetId(selectedAsset.assetId.ToString());
+                                    controller.UpdateAsset(parentAsset);
+                                }
+                            }
+                            selectedAsset.SetParentGroupId("");
+                            controller.UpdateAsset(selectedAsset);
+                        }
+                    });
+                    menu.AddSeparator("");
+                }
+
                 menu.AddItem(new GUIContent("Delete Selected Assets"), false, () => 
                 {
                     if (EditorUtility.DisplayDialog(
@@ -367,6 +388,25 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 }
 
                 menu.AddSeparator("");
+
+                if (asset.hasParentGroup) {
+                    menu.AddItem(new GUIContent("グループから除外"), false, () => {
+                        // 親グループから子アセットIDを削除
+                        if (Guid.TryParse(asset.parentGroupId, out var parentGuid))
+                        {
+                            var parentAsset = controller.GetAsset(parentGuid);
+                            if (parentAsset != null)
+                            {
+                                parentAsset.RemoveChildAssetId(asset.assetId.ToString());
+                                controller.UpdateAsset(parentAsset);
+                            }
+                        }
+                        // アセットの親グループIDをクリア
+                        asset.SetParentGroupId("");
+                        controller.UpdateAsset(asset);
+                    });
+                    menu.AddSeparator("");
+                }
 
                 menu.AddItem(new GUIContent("Delete Asset"), false, () => 
                 {
