@@ -165,6 +165,29 @@ public class LocalizeChecker : EditorWindow
                 }
             }
             EditorGUILayout.EndScrollView();
+
+            // --- 不足している値のあるキーを抽出し、改行区切りでTextArea表示 ---
+            var missingValueKeys = new List<string>();
+            foreach (var key in foundKeys)
+            {
+                foreach (var kv in langJsonContents)
+                {
+                    // jsonから値を抽出
+                    var match = Regex.Match(kv.Value, $@"""{Regex.Escape(key)}""\s*:\s*""(.*?)""");
+                    if (!match.Success || match.Groups.Count <= 1 || string.IsNullOrEmpty(match.Groups[1].Value))
+                    {
+                        missingValueKeys.Add(key);
+                        break; // 1つでも不足があれば追加
+                    }
+                }
+            }
+            if (missingValueKeys.Count > 0)
+            {
+                GUILayout.Space(8);
+                GUILayout.Label("値が不足しているキー (いずれかのjsonで空または未定義)", EditorStyles.boldLabel);
+                string missingKeysText = string.Join("\n", missingValueKeys);
+                EditorGUILayout.TextArea(missingKeysText, GUILayout.Height(80));
+            }
         }
     }
 
