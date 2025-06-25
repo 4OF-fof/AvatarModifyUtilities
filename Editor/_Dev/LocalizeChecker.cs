@@ -173,15 +173,16 @@ public class LocalizeChecker : EditorWindow
     {
         var result = new HashSet<string>();
         var files = Directory.GetFiles(rootFolder, "*.cs", SearchOption.AllDirectories);
-        var regex = new Regex(@"LocalizationAPI\.GetText\s*\(\s*""(.*?)""", RegexOptions.Compiled);
+        // LocalizationAPI.GetText("...") と LocalizationController.GetText("...") の両方を対象に
+        var regex = new Regex(@"(LocalizationAPI|LocalizationController)\.GetText\s*\(\s*\""(.*?)\""", RegexOptions.Compiled);
         foreach (var file in files)
         {
             string text = File.ReadAllText(file);
             foreach (Match m in regex.Matches(text))
             {
-                if (m.Groups.Count > 1)
+                if (m.Groups.Count > 2)
                 {
-                    result.Add(m.Groups[1].Value);
+                    result.Add(m.Groups[2].Value);
                 }
             }
             // Setting.cs内の文字列リテラルも追加
