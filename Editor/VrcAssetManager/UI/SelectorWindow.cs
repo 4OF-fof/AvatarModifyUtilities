@@ -101,9 +101,10 @@ namespace AMU.Editor.VrcAssetManager.UI
                     GUILayout.Space(5);
                     using (new GUILayout.HorizontalScope())
                     {
-                        _newTagInput = GUILayout.TextField(_newTagInput, GUILayout.Width(150));
+                        _newTagInput = GUILayout.TextField(_newTagInput, GUILayout.ExpandWidth(true));
                         GUI.enabled = !string.IsNullOrWhiteSpace(_newTagInput) && !_availableTags.Contains(_newTagInput.Trim());
-                        if (GUILayout.Button(LocalizationAPI.GetText("TagSelector_addNewTag"), GUILayout.Width(60)))
+                        var plusIcon = EditorGUIUtility.IconContent("Toolbar Plus");
+                        if (GUILayout.Button(plusIcon, GUILayout.Width(30), GUILayout.Height(18)))
                         {
                             var tagName = _newTagInput.Trim();
                             if (!string.IsNullOrEmpty(tagName) && !_availableTags.Contains(tagName))
