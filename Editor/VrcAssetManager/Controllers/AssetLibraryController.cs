@@ -30,7 +30,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (!File.Exists(_libraryPath))
             {
-                Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_warning_libraryFileNotFound", _libraryPath));
+                Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_warning_libraryFileNotFound"), _libraryPath));
                 library = new AssetLibrarySchema();
                 _lastUpdated = DateTime.Now;
                 ForceSaveAssetLibrary();
@@ -61,7 +61,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (!File.Exists(_libraryPath))
             {
-                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryFileNotFound", _libraryPath));
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryFileNotFound"), _libraryPath));
                 return;
             }
 
@@ -74,7 +74,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (!File.Exists(_libraryPath))
             {
-                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryFileNotFound", _libraryPath));
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryFileNotFound"), _libraryPath));
                 return;
             }
 
@@ -86,7 +86,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
             catch (Exception ex)
             {
-                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryLoadFailed", _libraryPath, ex.Message));
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryLoadFailed"), _libraryPath, ex.Message));
             }
         }
 
@@ -94,7 +94,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (File.GetLastWriteTime(_libraryPath) > _lastUpdated)
             {
-                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_warning_libraryFileNewer", _libraryPath));
+                Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_warning_libraryFileNewer"), _libraryPath));
                 return;
             }
 
@@ -114,11 +114,11 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 try
                 {
                     Directory.CreateDirectory(_libraryDir);
-                    Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_success_libraryDirCreated", _libraryDir));
+                    Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_success_libraryDirCreated"), _libraryDir));
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryDirCreateFailed", _libraryDir, ex.Message));
+                    Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryDirCreateFailed"), _libraryDir, ex.Message));
                     return;
                 }
             }
@@ -131,7 +131,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
             catch (Exception ex)
             {
-                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_librarySaveFailed", _libraryPath, ex.Message));
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_error_librarySaveFailed"), _libraryPath, ex.Message));
             }
         }
 
@@ -145,19 +145,19 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             if (!File.Exists(_libraryPath))
             {
-                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryFileNotFound", _libraryPath));
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryFileNotFound"), _libraryPath));
                 return;
             }
 
             var lastWriteTime = File.GetLastWriteTime(_libraryPath);
             if (lastWriteTime > _lastUpdated)
             {
-                Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_info_librarySyncLoad", lastWriteTime.ToString(), _lastUpdated.ToString()));
+                Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_info_librarySyncLoad"), lastWriteTime.ToString(), _lastUpdated.ToString()));
                 ForceLoadAssetLibrary();
             }
             else if (lastWriteTime < _lastUpdated)
             {
-                Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_info_librarySyncSave", lastWriteTime.ToString(), _lastUpdated.ToString()));
+                Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_info_librarySyncSave"), lastWriteTime.ToString(), _lastUpdated.ToString()));
                 ForceSaveAssetLibrary();
             }
         }
@@ -189,7 +189,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
             if (library.assets.ContainsKey(asset.assetId))
             {
-                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetExists", asset.assetId));
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_error_assetExists"), asset.assetId));
                 return;
             }
 
@@ -235,7 +235,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
             if (!library.assets.ContainsKey(asset.assetId))
             {
-                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetNotFound", asset.assetId));
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_error_assetNotFound"), asset.assetId));
                 return;
             }
 
@@ -289,7 +289,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             {
                 if (!updatedOldParent.hasChildAssets)
                 {
-                    Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_info_autoRemoveOldParent", updatedOldParent.metadata.name));
+                    Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_info_autoRemoveOldParent"), updatedOldParent.metadata.name));
                     RemoveAsset(oldParentGuidForCheck.Value);
                     return;
                 }
@@ -335,7 +335,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
                             }
                         }
                     }
-                    Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_warning_assetAlreadyInOtherGroup", asset.assetId, groupAsset.assetId));
+                    Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_warning_assetAlreadyInOtherGroup"), asset.assetId, groupAsset.assetId));
                 }
                 asset.SetParentGroupId(groupAsset.assetId.ToString());
             }
@@ -347,7 +347,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 {
                     if (!updatedOldParent.hasChildAssets)
                     {
-                        Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_info_autoRemoveOldParent", updatedOldParent.metadata.name));
+                        Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_info_autoRemoveOldParent"), updatedOldParent.metadata.name));
                         RemoveAsset(oldParentId);
                     }
                 }
@@ -370,7 +370,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
             if (!library.assets.ContainsKey(assetId))
             {
-                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetNotFound", assetId));
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_error_assetNotFound"), assetId));
                 return;
             }
 
@@ -407,7 +407,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             {
                 if (!updatedParent.hasChildAssets)
                 {
-                    Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_info_autoRemoveParent", updatedParent.metadata.name));
+                    Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_info_autoRemoveParent"), updatedParent.metadata.name));
                     RemoveAsset(parentGroupId.Value);
                     return;
                 }
@@ -450,7 +450,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             if (!parentAsset.hasChildAssets)
             {
-                Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_info_autoRemoveParent", parentAsset.metadata.name));
+                Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_info_autoRemoveParent"), parentAsset.metadata.name));
                 RemoveAsset(parentGroupId);
                 return;
             }
@@ -472,7 +472,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
             if (!library.assets.ContainsKey(assetId))
             {
-                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetNotFound", assetId));
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_error_assetNotFound"), assetId));
                 return null;
             }
 
@@ -680,7 +680,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
             if (library.tags.Contains(tag.Trim()))
             {
-                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_tagExists", tag));
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_error_tagExists"), tag));
                 return;
             }
 
@@ -704,7 +704,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
             if (!library.tags.Contains(tag.Trim()))
             {
-                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_tagNotFound", tag));
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_error_tagNotFound"), tag));
                 return;
             }
 
@@ -805,7 +805,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
             if (library.assetTypes.Contains(assetType.Trim()))
             {
-                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetTypeExists", assetType));
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_error_assetTypeExists"), assetType));
                 return;
             }
 
@@ -829,7 +829,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
             if (!library.assetTypes.Contains(assetType.Trim()))
             {
-                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetTypeNotFound", assetType));
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_error_assetTypeNotFound"), assetType));
                 return;
             }
 
