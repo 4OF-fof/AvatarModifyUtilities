@@ -7,7 +7,6 @@
   "VrcAssetManager_message_warning_assetExists": "アセットID {0} は既に存在します",
   "VrcAssetManager_message_success_assetAdded": "アセット '{0}' を追加しました",
   "VrcAssetManager_message_error_addAssetFailed": "アセットの追加に失敗しました: {0}",
-  "VrcAssetManager_message_error_assetNotFound": "アセットID {0} が見つかりません。",
   "VrcAssetManager_message_success_assetUpdated": "アセット '{0}' を更新しました",
   "VrcAssetManager_message_error_updateAssetFailed": "アセットの更新に失敗しました: {0}",
   "VrcAssetManager_message_success_assetRemoved": "アセット '{0}' を削除しました",
