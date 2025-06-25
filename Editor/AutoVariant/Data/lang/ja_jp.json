@@ -26,5 +26,10 @@
   "AutoVariant_message_info_export_no_blueprint": "Blueprint IDが見つからないため、ローカルディレクトリにエクスポートしています",
   
   "AutoVariant_message_error_build_cancelled_title": "ビルド中止",
-  "AutoVariant_message_error_multiple_avatars_detected": "Hierarchy内に複数のアバターが検出されました。1体のみがアクティブな状態にしてください。"
+  "AutoVariant_message_error_multiple_avatars_detected": "Hierarchy内に複数のアバターが検出されました。1体のみがアクティブな状態にしてください。",
+  "AutoVariant_message_error_target_null": "ターゲットがnullです",
+  "AutoVariant_message_error_save_path_required": "保存パスが必要です",
+  "AutoVariant_message_warning_no_renderable_bounds": "レンダリング可能なバウンズがありません",
+  "AutoVariant_message_error_save_image_failed": "画像の保存に失敗しました",
+  "AutoVariant_message_success_image_saved": "画像を保存しました"
 }

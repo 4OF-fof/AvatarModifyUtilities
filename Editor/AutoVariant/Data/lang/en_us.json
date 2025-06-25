@@ -26,5 +26,10 @@
   "AutoVariant_message_info_export_no_blueprint": "No blueprint ID found, exporting to local directory",
   
   "AutoVariant_message_error_build_cancelled_title": "Build Cancelled",
-  "AutoVariant_message_error_multiple_avatars_detected": "Multiple avatars detected. Please activate only one avatar."
+  "AutoVariant_message_error_multiple_avatars_detected": "Multiple avatars detected. Please activate only one avatar.",
+  "AutoVariant_message_error_target_null": "Target is null",
+  "AutoVariant_message_error_save_path_required": "Save path is required",
+  "AutoVariant_message_warning_no_renderable_bounds": "No renderable bounds",
+  "AutoVariant_message_error_save_image_failed": "Failed to save image",
+  "AutoVariant_message_success_image_saved": "Image saved"
 }
