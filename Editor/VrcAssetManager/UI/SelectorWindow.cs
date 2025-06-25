@@ -78,14 +78,14 @@ namespace AMU.Editor.VrcAssetManager.UI
                 GUILayout.Space(10);
 
                 string headerText = _allowMultipleSelection
-                    ? LocalizationAPI.GetText("TagSelector_selectMultipleTags")
-                    : LocalizationAPI.GetText("TagSelector_selectSingleTag");
+                    ? LocalizationAPI.GetText("VrcAssetManager_ui_tagSelector_selectMultipleTags")
+                    : LocalizationAPI.GetText("VrcAssetManager_ui_tagSelector_selectSingleTag");
 
                 GUILayout.Label(headerText, EditorStyles.boldLabel);
                 GUILayout.Space(5);
                 using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Label(LocalizationAPI.GetText("TagSelector_search"), GUILayout.Width(50));
+                    GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_tagSelector_search"), GUILayout.Width(50));
                     GUI.SetNextControlName("SearchField");
                     var newSearchText = GUILayout.TextField(_searchText);
                     if (newSearchText != _searchText)
@@ -121,7 +121,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                             }
                             else
                             {
-                                EditorUtility.DisplayDialog(LocalizationAPI.GetText("Common_error"), LocalizationAPI.GetText("TagSelector_tagAlreadyExists"), LocalizationAPI.GetText("Common_ok"));
+                                EditorUtility.DisplayDialog(LocalizationAPI.GetText("VrcAssetManager_common_error"), LocalizationAPI.GetText("VrcAssetManager_ui_tagSelector_tagAlreadyExists"), LocalizationAPI.GetText("VrcAssetManager_common_ok"));
                             }
                         }
                         GUI.enabled = true;
@@ -133,8 +133,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                 if (_filteredTags == null || _filteredTags.Count == 0)
                 {
                     var message = string.IsNullOrEmpty(_searchText)
-                        ? LocalizationAPI.GetText("TagSelector_noTags")
-                        : LocalizationAPI.GetText("TagSelector_noSearchResults");
+                        ? LocalizationAPI.GetText("VrcAssetManager_ui_tagSelector_noTags")
+                        : LocalizationAPI.GetText("VrcAssetManager_ui_tagSelector_noSearchResults");
 
                     GUILayout.Label(message, EditorStyles.helpBox);
                     return;
@@ -215,10 +215,10 @@ namespace AMU.Editor.VrcAssetManager.UI
                 if (_allowMultipleSelection)
                 {
                     string selectionInfo = _allowMultipleSelection
-                    ? $"{LocalizationAPI.GetText("TagSelector_selectedCount")}: {_selectedTags.Count}"
+                    ? $"{LocalizationAPI.GetText("VrcAssetManager_ui_tagSelector_selectedCount")}: {_selectedTags.Count}"
                     : _selectedTags.Count > 0
-                        ? $"{LocalizationAPI.GetText("TagSelector_selected")}: {_selectedTags.First()}"
-                        : LocalizationAPI.GetText("TagSelector_noSelection");
+                        ? $"{LocalizationAPI.GetText("VrcAssetManager_ui_tagSelector_selected")}: {_selectedTags.First()}"
+                        : LocalizationAPI.GetText("VrcAssetManager_ui_tagSelector_noSelection");
 
                     GUILayout.Label(selectionInfo, EditorStyles.miniLabel);
 
@@ -227,7 +227,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 if (_allowMultipleSelection)
                 {
-                    if (GUILayout.Button(LocalizationAPI.GetText("TagSelector_clearAll")))
+                    if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_ui_tagSelector_clearAll")))
                     {
                         _selectedTags.Clear();
                     }
@@ -236,12 +236,12 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 using (new GUILayout.HorizontalScope())
                 {
-                    if (GUILayout.Button(LocalizationAPI.GetText("Common_cancel")))
+                    if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_common_cancel")))
                     {
                         Close();
                     }
 
-                    if (GUILayout.Button(LocalizationAPI.GetText("Common_ok")))
+                    if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_common_ok")))
                     {
                         CompleteSelection();
                     }
@@ -471,12 +471,12 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                 using (new GUILayout.HorizontalScope())
                 {
-                    if (GUILayout.Button(LocalizationAPI.GetText("Common_cancel")))
+                    if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_common_cancel")))
                     {
                         Close();
                     }
 
-                    if (GUILayout.Button(LocalizationAPI.GetText("Common_ok")))
+                    if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_common_ok")))
                     {
                         CompleteSelection();
                     }

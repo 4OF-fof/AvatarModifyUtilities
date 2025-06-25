@@ -83,21 +83,21 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 {
                     GUI.enabled = !_isUsingAdvancedSearch;
 
-                    if (GUILayout.Toggle(_currentFilter == AssetFilterType.All, LocalizationAPI.GetText("AssetManager_filterAll"), EditorStyles.toolbarButton))
+                    if (GUILayout.Toggle(_currentFilter == AssetFilterType.All, LocalizationAPI.GetText("VrcAssetManager_ui_assetManager_filterAll"), EditorStyles.toolbarButton))
                     {
                         _currentFilter = AssetFilterType.All;
                         controller.filterOptions.isFavorite = null;
                         controller.filterOptions.isArchived = false;
                     }
 
-                    if (GUILayout.Toggle(_currentFilter == AssetFilterType.Favorites, LocalizationAPI.GetText("AssetManager_filterFavorite"), EditorStyles.toolbarButton))
+                    if (GUILayout.Toggle(_currentFilter == AssetFilterType.Favorites, LocalizationAPI.GetText("VrcAssetManager_ui_assetManager_filterFavorite"), EditorStyles.toolbarButton))
                     {
                         _currentFilter = AssetFilterType.Favorites;
                         controller.filterOptions.isFavorite = true;
                         controller.filterOptions.isArchived = false;
                     }
 
-                    if (GUILayout.Toggle(_currentFilter == AssetFilterType.ArchivedOnly, LocalizationAPI.GetText("AssetManager_filterArchived"), EditorStyles.toolbarButton))
+                    if (GUILayout.Toggle(_currentFilter == AssetFilterType.ArchivedOnly, LocalizationAPI.GetText("VrcAssetManager_ui_assetManager_filterArchived"), EditorStyles.toolbarButton))
                     {
                         _currentFilter = AssetFilterType.ArchivedOnly;
                         controller.filterOptions.isFavorite = null;

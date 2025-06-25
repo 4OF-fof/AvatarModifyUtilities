@@ -44,7 +44,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                 var rect = GUILayoutUtility.GetRect(125, 30);
 
-                var content = new GUIContent(LocalizationAPI.GetText("AssetManager_backToParent"));
+                var content = new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_assetManager_backToParent"));
                 GUI.Label(rect, content, nameStyle);
 
                 HandleSpecialItemEvents(thumbnailRect, onBackClick);
@@ -108,7 +108,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                 var rect = GUILayoutUtility.GetRect(125, 30);
 
-                var content = new GUIContent(LocalizationAPI.GetText("AssetManager_addToGroup"));
+                var content = new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_assetManager_addToGroup"));
                 GUI.Label(rect, content, nameStyle);
 
                 HandleSpecialItemEvents(thumbnailRect, onAddClick);

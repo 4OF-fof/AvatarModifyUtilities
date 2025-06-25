@@ -81,7 +81,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         using (new GUILayout.HorizontalScope())
                         {
                             GUILayout.FlexibleSpace();
-                            GUILayout.Label(LocalizationAPI.GetText("AssetManager_libraryNotInitialized"), EditorStyles.largeLabel);
+                            GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_assetManager_libraryNotInitialized"), EditorStyles.largeLabel);
                             GUILayout.FlexibleSpace();
                         }
                         GUILayout.FlexibleSpace();
@@ -94,7 +94,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         using (new GUILayout.HorizontalScope())
                         {
                             GUILayout.FlexibleSpace();
-                            GUILayout.Label(LocalizationAPI.GetText("AssetManager_noAssets"), EditorStyles.largeLabel);
+                            GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_assetManager_noAssets"), EditorStyles.largeLabel);
                             GUILayout.FlexibleSpace();
                         }
                         GUILayout.FlexibleSpace();
@@ -314,8 +314,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 menu.AddItem(new GUIContent("Delete Selected Assets"), false, () => 
                 {
                     if (EditorUtility.DisplayDialog(
-                        LocalizationAPI.GetText("AssetManager_deleteAssetsTitle"),
-                        LocalizationAPI.GetText(asset.hasChildAssets ? "AssetManager_deleteGroupAssetMessage" : "AssetManager_deleteAssetMessage"),
+                        LocalizationAPI.GetText("VrcAssetManager_ui_assetManager_deleteAssetsTitle"),
+                        LocalizationAPI.GetText(asset.hasChildAssets ? "VrcAssetManager_ui_assetManager_deleteGroupAssetMessage" : "VrcAssetManager_ui_assetManager_deleteAssetMessage"),
                         LocalizationAPI.GetText("Yes"),
                         LocalizationAPI.GetText("No")))
                     {
@@ -395,8 +395,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 menu.AddItem(new GUIContent("Delete Asset"), false, () => 
                 {
                     if (EditorUtility.DisplayDialog(
-                        LocalizationAPI.GetText("AssetManager_deleteAssetTitle"),
-                        LocalizationAPI.GetText(asset.hasChildAssets ? "AssetManager_deleteGroupAssetMessage" : "AssetManager_deleteAssetMessage"),
+                        LocalizationAPI.GetText("VrcAssetManager_ui_assetManager_deleteAssetTitle"),
+                        LocalizationAPI.GetText(asset.hasChildAssets ? "VrcAssetManager_ui_assetManager_deleteGroupAssetMessage" : "VrcAssetManager_ui_assetManager_deleteAssetMessage"),
                         LocalizationAPI.GetText("Yes"),
                         LocalizationAPI.GetText("No")))
                     {

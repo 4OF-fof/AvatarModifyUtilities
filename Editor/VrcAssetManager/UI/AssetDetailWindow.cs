@@ -627,7 +627,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             {
                 var filePath = _asset.fileInfo.filePath;
                 var ext = Path.GetExtension(filePath).ToLowerInvariant();
-                var excludedExts = SettingAPI.GetSetting<string>("AssetManager_excludedImportExtensions");
+                var excludedExts = SettingAPI.GetSetting<string>("VrcAssetManager_excludedImportExtensions");
                 if (ZipFileUtility.IsZipFile(filePath) && _asset.fileInfo.importFiles.Count == 0 || _asset.fileInfo.importFiles == null)
                 {
                     GUILayout.Space(3);

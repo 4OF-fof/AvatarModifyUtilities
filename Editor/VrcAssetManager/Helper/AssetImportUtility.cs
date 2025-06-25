@@ -230,7 +230,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
             if (extension == ".unitypackage")
                 return true;
 
-            string excludedExtensions = SettingAPI.GetSetting<string>("AssetManager_excludedImportExtensions");
+            string excludedExtensions = SettingAPI.GetSetting<string>("VrcAssetManager_excludedImportExtensions");
             if (string.IsNullOrEmpty(excludedExtensions))
                 return true;
 
