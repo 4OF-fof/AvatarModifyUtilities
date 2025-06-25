@@ -117,9 +117,19 @@ namespace AMU.Editor.VrcAssetManager.UI
 
             using (new GUILayout.HorizontalScope())
             {
-                var backIcon = EditorGUIUtility.IconContent("ArrowNavigationLeft");
-                if (_history.Count > 0)
+                if (_isEditMode)
                 {
+                    if (GUILayout.Button("Cancel", GUILayout.Width(32), GUILayout.Height(32)))
+                    {
+                        InitEditData(_asset);
+                        GUI.FocusControl(null);
+                        _isEditMode = false;
+                    }
+                }
+                
+                if (_history.Count > 0 && !_isEditMode)
+                {
+                    var backIcon = EditorGUIUtility.IconContent("ArrowNavigationLeft");
                     if (GUILayout.Button(backIcon, GUILayout.Width(32), GUILayout.Height(32)))
                     {
                         if (controller != null && _history.Count > 0)
@@ -143,25 +153,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                     var editIcon = EditorGUIUtility.IconContent("editicon.sml");
                     if (GUILayout.Button(editIcon, GUILayout.Width(32), GUILayout.Height(32)))
                     {
-                        newName = _asset.metadata.name;
-                        newDescription = _asset.metadata.description;
-                        newAuthorName = _asset.metadata.authorName;
-                        newAssetType = _asset.metadata.assetType;
-                        if (_asset.fileInfo != null && !string.IsNullOrEmpty(_asset.fileInfo.filePath))
-                        {
-                            string coreDir = SettingAPI.GetSetting<string>("Core_dirPath");
-                            string absPath = Path.Combine(Path.GetFullPath(coreDir), _asset.fileInfo.filePath.Replace('/', Path.DirectorySeparatorChar));
-                            newFilePath = absPath;
-                        }
-                        else
-                        {
-                            newFilePath = string.Empty;
-                        }
-                        newIsFavorite = _asset.state != null ? _asset.state.isFavorite : false;
-                        newIsArchived = _asset.state != null ? _asset.state.isArchived : false;
-                        newTags = _asset.metadata.tags.ToList();
-                        newDependencies = _asset.metadata.dependencies.ToList();
-                        newImportFiles = _asset.fileInfo.importFiles.Select(f => Path.GetFileName(f)).ToList();
+                        InitEditData(_asset);
+                        GUI.FocusControl(null);
                         _isEditMode = true;
                     }
                 }
@@ -205,6 +198,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                         _asset.metadata.SetDependencies(newDependencies);
                         _asset.fileInfo.SetImportFiles(newImportFiles);
                         controller.UpdateAsset(_asset);
+                        GUI.FocusControl(null);
                         _isEditMode = false;
                     }
 
@@ -694,6 +688,29 @@ namespace AMU.Editor.VrcAssetManager.UI
             _asset,
             newImportFiles
             );
+        }
+
+        private void InitEditData(AssetSchema asset)
+        {
+            newName = asset.metadata.name;
+            newDescription = asset.metadata.description;
+            newAuthorName = asset.metadata.authorName;
+            newAssetType = asset.metadata.assetType;
+            if (asset.fileInfo != null && !string.IsNullOrEmpty(asset.fileInfo.filePath))
+            {
+                string coreDir = SettingAPI.GetSetting<string>("Core_dirPath");
+                string absPath = Path.Combine(Path.GetFullPath(coreDir), asset.fileInfo.filePath.Replace('/', Path.DirectorySeparatorChar));
+                newFilePath = absPath;
+            }
+            else
+            {
+                newFilePath = string.Empty;
+            }
+            newIsFavorite = asset.state != null ? asset.state.isFavorite : false;
+            newIsArchived = asset.state != null ? asset.state.isArchived : false;
+            newTags = asset.metadata.tags.ToList();
+            newDependencies = asset.metadata.dependencies.ToList();
+            newImportFiles = asset.fileInfo.importFiles.Select(f => Path.GetFileName(f)).ToList();
         }
     }
 }
