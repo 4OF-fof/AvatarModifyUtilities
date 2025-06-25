@@ -8,6 +8,7 @@ using UnityEngine;
 using AMU.Editor.Core.Api;
 using AMU.Editor.VrcAssetManager.Helper;
 using AMU.Editor.VrcAssetManager.Schema;
+using AMU.Editor.VrcAssetManager.Controller;
 
 namespace AMU.Editor.VrcAssetManager.Helper
 {
@@ -15,12 +16,37 @@ namespace AMU.Editor.VrcAssetManager.Helper
     {
         private static bool isImporting = false;
         private static Queue<System.Action> importQueue = new Queue<System.Action>();
+
         public static bool ImportAsset(AssetSchema asset, bool showImportDialog = true)
         {
             if (asset == null)
             {
                 Debug.LogWarning("[AssetImportUtility] Asset is null");
                 return false;
+            }
+
+            var dependencies = asset.metadata?.dependencies;
+            if (dependencies != null && dependencies.Count > 0)
+            {
+                foreach (var depIdStr in dependencies)
+                {
+                    if (Guid.TryParse(depIdStr, out var depGuid))
+                    {
+                        var depAsset = AssetLibraryController.Instance.GetAsset(depGuid);
+                        if (depAsset != null)
+                        {
+                            ImportAsset(depAsset, showImportDialog);
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"[AssetImportUtility] Dependency asset not found: {depIdStr}");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[AssetImportUtility] Invalid dependency GUID: {depIdStr}");
+                    }
+                }
             }
 
             try
