@@ -11,6 +11,7 @@ public class LocalizeChecker : EditorWindow
     private List<string> foundKeys = new List<string>();
     private Dictionary<string, string> langJsonContents = new Dictionary<string, string>();
     private bool searched = false;
+    private Dictionary<string, string> keyEditBuffer = new Dictionary<string, string>(); // 追加: 編集用バッファ
 
     [MenuItem("Dev/Localize Checker")]
     public static void ShowWindow()
@@ -77,7 +78,24 @@ public class LocalizeChecker : EditorWindow
             foreach (var key in foundKeys)
             {
                 EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.TextField(key, GUILayout.Width(300)); // キー列を拡大
+                // 編集用TextField
+                if (!keyEditBuffer.ContainsKey(key)) keyEditBuffer[key] = key;
+                keyEditBuffer[key] = EditorGUILayout.TextField(keyEditBuffer[key], GUILayout.Width(220));
+                if (GUILayout.Button("置換", GUILayout.Width(60)))
+                {
+                    string newKey = keyEditBuffer[key];
+                    if (!string.IsNullOrEmpty(newKey) && newKey != key)
+                    {
+                        ReplaceKeyInAllJsonAndCs(key, newKey, folderPath);
+                        // 再検索して画面を更新
+                        foundKeys = FindLocalizationKeys(folderPath);
+                        langJsonContents = FindLangJsonFiles(folderPath);
+                        keyEditBuffer.Clear();
+                        GUI.FocusControl(null);
+                        GUIUtility.ExitGUI();
+                    }
+                }
+                EditorGUILayout.TextField(key, GUILayout.Width(80)); // 旧キー表示（参考用）
                 foreach (var kv in langJsonContents)
                 {
                     string value = "";
@@ -242,6 +260,43 @@ public class LocalizeChecker : EditorWindow
                 newContent = Regex.Replace(newContent, @",\s*([\}\]])", "$1");
                 newContent = Regex.Replace(newContent, @"([\{\[])[\s,]*", "$1");
                 File.WriteAllText(kv.Key, newContent);
+            }
+            catch { }
+        }
+    }
+
+    // --- 追加: キー名一括置換 ---
+    private void ReplaceKeyInAllJsonAndCs(string oldKey, string newKey, string rootFolder)
+    {
+        // 1. jsonファイル内のキー名を置換
+        foreach (var kv in langJsonContents)
+        {
+            try
+            {
+                // "oldKey": "value" → "newKey": "value"
+                string pattern = $@"""{Regex.Escape(oldKey)}""\s*:";
+                string replaced = Regex.Replace(kv.Value, pattern, $"\"{newKey}\":", RegexOptions.Multiline);
+                File.WriteAllText(kv.Key, replaced);
+            }
+            catch { }
+        }
+        // 2. csファイル内のキー名を置換
+        var files = Directory.GetFiles(rootFolder, "*.cs", SearchOption.AllDirectories);
+        foreach (var file in files)
+        {
+            try
+            {
+                string text = File.ReadAllText(file);
+                // LocalizationAPI.GetText("oldKey") → LocalizationAPI.GetText("newKey")
+                string pattern = $@"(LocalizationAPI\.GetText\s*\(\s*)""{Regex.Escape(oldKey)}""";
+                string replaced = Regex.Replace(text, pattern, $"$1\"{newKey}\"", RegexOptions.Multiline);
+                // Setting.cs内のリテラルも置換
+                if (Path.GetFileName(file).Equals("Setting.cs", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    string literalPattern = $@"""{Regex.Escape(oldKey)}""";
+                    replaced = Regex.Replace(replaced, literalPattern, $"\"{newKey}\"", RegexOptions.Multiline);
+                }
+                File.WriteAllText(file, replaced);
             }
             catch { }
         }
