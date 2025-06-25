@@ -31,7 +31,6 @@ namespace AMU.Editor.VrcAssetManager.UI
 
             try
             {
-                AssetLibraryController.Instance.OptimizeTags();
                 AssetLibraryController.Instance.LoadAssetLibrary();
                 window._availableTags = AssetLibraryController.Instance.GetAllTags().ToList();
                 window._availableTags.Sort();
@@ -112,6 +111,11 @@ namespace AMU.Editor.VrcAssetManager.UI
                                 AssetLibraryController.Instance.AddTag(tagName);
                                 _availableTags.Add(tagName);
                                 _availableTags.Sort();
+                                if (!_allowMultipleSelection)
+                                {
+                                    _selectedTags.Clear();
+                                }
+                                _selectedTags.Add(tagName);
                                 FilterTags();
                             }
                             else

@@ -198,6 +198,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                         _asset.metadata.SetDependencies(newDependencies);
                         _asset.fileInfo.SetImportFiles(newImportFiles);
                         controller.UpdateAsset(_asset);
+                        controller.OptimizeTags();
                         GUI.FocusControl(null);
                         _isEditMode = false;
                     }
