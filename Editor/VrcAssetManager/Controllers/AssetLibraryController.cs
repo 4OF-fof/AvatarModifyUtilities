@@ -244,6 +244,8 @@ namespace AMU.Editor.VrcAssetManager.Controller
             var oldAsset = library.GetAsset(asset.assetId);
             var oldParentId = oldAsset.parentGroupId;
             var newParentId = asset.parentGroupId;
+            Guid? oldParentGuidForCheck = null;
+            
             if (oldParentId != newParentId)
             {
                 if (!string.IsNullOrEmpty(oldParentId) && Guid.TryParse(oldParentId, out var oldParentGuid))
@@ -251,6 +253,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
                     if (library.assets.TryGetValue(oldParentGuid, out var oldParent))
                     {
                         oldParent.RemoveChildAssetId(asset.assetId.ToString());
+                        oldParentGuidForCheck = oldParentGuid;
                     }
                 }
 
@@ -281,6 +284,17 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
             library.UpdateAsset(asset);
             _lastUpdated = DateTime.Now;
+            
+            if (oldParentGuidForCheck.HasValue && library.assets.TryGetValue(oldParentGuidForCheck.Value, out var updatedOldParent))
+            {
+                if (!updatedOldParent.hasChildAssets)
+                {
+                    Debug.Log($"Old parent asset '{updatedOldParent.metadata.name}' has no child assets. Auto-removing.");
+                    RemoveAsset(oldParentGuidForCheck.Value);
+                    return;
+                }
+            }
+            
             SaveAssetLibrary();
         }
 
@@ -303,20 +317,42 @@ namespace AMU.Editor.VrcAssetManager.Controller
             groupAsset.metadata.SetName("Group Asset");
             groupAsset.SetChildAssetIds(assets.Select(a => a.assetId.ToString()).ToList());
 
+            var oldParentIdsToCheck = new List<Guid>();
+
             foreach (var asset in assets)
             {
                 if (!string.IsNullOrEmpty(asset.parentGroupId) && asset.parentGroupId != groupAsset.assetId.ToString())
                 {
-                    var OldParentAsset = GetAsset(new Guid(asset.parentGroupId));
-                    if (OldParentAsset != null)
+                    if (Guid.TryParse(asset.parentGroupId, out var oldParentGuid))
                     {
-                        OldParentAsset.RemoveChildAssetId(asset.assetId.ToString());
+                        var OldParentAsset = GetAsset(oldParentGuid);
+                        if (OldParentAsset != null)
+                        {
+                            OldParentAsset.RemoveChildAssetId(asset.assetId.ToString());
+                            if (!oldParentIdsToCheck.Contains(oldParentGuid))
+                            {
+                                oldParentIdsToCheck.Add(oldParentGuid);
+                            }
+                        }
                     }
                     Debug.LogWarning($"Asset {asset.assetId} already belongs to a different group. Updating parent group to {groupAsset.assetId}.");
                 }
                 asset.SetParentGroupId(groupAsset.assetId.ToString());
             }
             AddAsset(groupAsset);
+            
+            foreach (var oldParentId in oldParentIdsToCheck)
+            {
+                if (library.assets.TryGetValue(oldParentId, out var updatedOldParent))
+                {
+                    if (!updatedOldParent.hasChildAssets)
+                    {
+                        Debug.Log($"Old parent asset '{updatedOldParent.metadata.name}' has no child assets. Auto-removing.");
+                        RemoveAsset(oldParentId);
+                    }
+                }
+            }
+            
             return groupAsset.assetId;
         }
 
@@ -339,9 +375,12 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
 
             var asset = library.GetAsset(assetId);
+            Guid? parentGroupId = null;
+            
             if (!string.IsNullOrEmpty(asset.parentGroupId) && library.assets.TryGetValue(Guid.Parse(asset.parentGroupId), out var parentGroup))
             {
                 parentGroup.RemoveChildAssetId(assetId.ToString());
+                parentGroupId = Guid.Parse(asset.parentGroupId);
             }
 
             foreach (var childId in asset.childAssetIds)
@@ -363,6 +402,55 @@ namespace AMU.Editor.VrcAssetManager.Controller
             SyncAssetLibrary();
             library.RemoveAsset(assetId);
             _lastUpdated = DateTime.Now;
+
+            if (parentGroupId.HasValue && library.assets.TryGetValue(parentGroupId.Value, out var updatedParent))
+            {
+                if (!updatedParent.hasChildAssets)
+                {
+                    Debug.Log($"Parent asset '{updatedParent.metadata.name}' has no child assets. Auto-removing.");
+                    RemoveAsset(parentGroupId.Value);
+                    return;
+                }
+            }
+            
+            SaveAssetLibrary();
+        }
+
+        public void RemoveChildFromParent(Guid parentGroupId, Guid childAssetId)
+        {
+            if (library == null)
+            {
+                Debug.LogError("Asset library is not initialized. Cannot remove child from parent.");
+                return;
+            }
+            if (parentGroupId == Guid.Empty || childAssetId == Guid.Empty)
+            {
+                Debug.LogError("Parent group ID or child asset ID is invalid.");
+                return;
+            }
+            if (!library.assets.ContainsKey(parentGroupId) || !library.assets.ContainsKey(childAssetId))
+            {
+                Debug.LogError("Parent group or child asset does not exist in the library.");
+                return;
+            }
+
+            var parentAsset = library.GetAsset(parentGroupId);
+            var childAsset = library.GetAsset(childAssetId);
+
+            parentAsset.RemoveChildAssetId(childAssetId.ToString());
+            
+            childAsset.SetParentGroupId("");
+
+            SyncAssetLibrary();
+            _lastUpdated = DateTime.Now;
+
+            if (!parentAsset.hasChildAssets)
+            {
+                Debug.Log($"Parent asset '{parentAsset.metadata.name}' has no child assets. Auto-removing.");
+                RemoveAsset(parentGroupId);
+                return;
+            }
+
             SaveAssetLibrary();
         }
 

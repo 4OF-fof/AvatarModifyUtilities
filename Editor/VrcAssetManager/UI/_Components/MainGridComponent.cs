@@ -304,15 +304,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         {
                             if (Guid.TryParse(selectedAsset.parentGroupId, out var parentGuid))
                             {
-                                var parentAsset = controller.GetAsset(parentGuid);
-                                if (parentAsset != null)
-                                {
-                                    parentAsset.RemoveChildAssetId(selectedAsset.assetId.ToString());
-                                    controller.UpdateAsset(parentAsset);
-                                }
+                                controller.RemoveChildFromParent(parentGuid, selectedAsset.assetId);
                             }
-                            selectedAsset.SetParentGroupId("");
-                            controller.UpdateAsset(selectedAsset);
                         }
                     });
                     menu.AddSeparator("");
@@ -391,19 +384,10 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                 if (asset.hasParentGroup) {
                     menu.AddItem(new GUIContent("グループから除外"), false, () => {
-                        // 親グループから子アセットIDを削除
                         if (Guid.TryParse(asset.parentGroupId, out var parentGuid))
                         {
-                            var parentAsset = controller.GetAsset(parentGuid);
-                            if (parentAsset != null)
-                            {
-                                parentAsset.RemoveChildAssetId(asset.assetId.ToString());
-                                controller.UpdateAsset(parentAsset);
-                            }
+                            controller.RemoveChildFromParent(parentGuid, asset.assetId);
                         }
-                        // アセットの親グループIDをクリア
-                        asset.SetParentGroupId("");
-                        controller.UpdateAsset(asset);
                     });
                     menu.AddSeparator("");
                 }
