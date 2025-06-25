@@ -117,9 +117,19 @@ namespace AMU.Editor.VrcAssetManager.UI
 
             using (new GUILayout.HorizontalScope())
             {
-                var backIcon = EditorGUIUtility.IconContent("ArrowNavigationLeft");
-                if (_history.Count > 0)
+                if (_isEditMode)
                 {
+                    if (GUILayout.Button("Cancel", GUILayout.Width(32), GUILayout.Height(32)))
+                    {
+                        InitEditData(_asset);
+                        GUI.FocusControl(null);
+                        _isEditMode = false;
+                    }
+                }
+                
+                if (_history.Count > 0 && !_isEditMode)
+                {
+                    var backIcon = EditorGUIUtility.IconContent("ArrowNavigationLeft");
                     if (GUILayout.Button(backIcon, GUILayout.Width(32), GUILayout.Height(32)))
                     {
                         if (controller != null && _history.Count > 0)
@@ -143,25 +153,8 @@ namespace AMU.Editor.VrcAssetManager.UI
                     var editIcon = EditorGUIUtility.IconContent("editicon.sml");
                     if (GUILayout.Button(editIcon, GUILayout.Width(32), GUILayout.Height(32)))
                     {
-                        newName = _asset.metadata.name;
-                        newDescription = _asset.metadata.description;
-                        newAuthorName = _asset.metadata.authorName;
-                        newAssetType = _asset.metadata.assetType;
-                        if (_asset.fileInfo != null && !string.IsNullOrEmpty(_asset.fileInfo.filePath))
-                        {
-                            string coreDir = SettingAPI.GetSetting<string>("Core_dirPath");
-                            string absPath = Path.Combine(Path.GetFullPath(coreDir), _asset.fileInfo.filePath.Replace('/', Path.DirectorySeparatorChar));
-                            newFilePath = absPath;
-                        }
-                        else
-                        {
-                            newFilePath = string.Empty;
-                        }
-                        newIsFavorite = _asset.state != null ? _asset.state.isFavorite : false;
-                        newIsArchived = _asset.state != null ? _asset.state.isArchived : false;
-                        newTags = _asset.metadata.tags.ToList();
-                        newDependencies = _asset.metadata.dependencies.ToList();
-                        newImportFiles = _asset.fileInfo.importFiles.Select(f => Path.GetFileName(f)).ToList();
+                        InitEditData(_asset);
+                        GUI.FocusControl(null);
                         _isEditMode = true;
                     }
                 }
@@ -205,6 +198,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                         _asset.metadata.SetDependencies(newDependencies);
                         _asset.fileInfo.SetImportFiles(newImportFiles);
                         controller.UpdateAsset(_asset);
+                        GUI.FocusControl(null);
                         _isEditMode = false;
                     }
 
@@ -224,6 +218,39 @@ namespace AMU.Editor.VrcAssetManager.UI
                     GUILayout.FlexibleSpace();
                     Rect thumbRect = GUILayoutUtility.GetRect(128, 128, GUILayout.Width(128), GUILayout.Height(128));
                     DrawThumbnailComponent.Draw(thumbRect, _asset);
+                    if (_isEditMode)
+                    {
+                        var buttonRect = new Rect(
+                            thumbRect.x + (thumbRect.width - 80) / 2,
+                            thumbRect.y + (thumbRect.height - 25) / 2 + 45,
+                            80,
+                            25
+                        );
+                        if (GUI.Button(buttonRect, "サムネイル更新"))
+                        {
+                            string defaultPath = Path.Combine(
+                                System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile),
+                                "Downloads"
+                            );
+                            string selectedPath = EditorUtility.OpenFilePanel("サムネイル画像を選択", defaultPath, "png,jpg,jpeg");
+                            if (!string.IsNullOrEmpty(selectedPath))
+                            {
+                                string coreDir = SettingAPI.GetSetting<string>("Core_dirPath");
+                                string absCoreDir = Path.GetFullPath(coreDir).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                                string absSelectedPath = Path.GetFullPath(selectedPath);
+                                string relThumbPath;
+                                if (absSelectedPath.StartsWith(absCoreDir, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    relThumbPath = absSelectedPath.Substring(absCoreDir.Length).Replace('\\', '/');
+                                }
+                                else
+                                {
+                                    relThumbPath = AssetFileUtility.MoveToCoreSubDirectory(absSelectedPath, "VrcAssetManager/Thumbnail");
+                                }
+                                _asset.metadata.SetThumbnailPath(relThumbPath);
+                            }
+                        }
+                    }
                     GUILayout.FlexibleSpace();
                 }
 
@@ -439,8 +466,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                             }
                             if (_isEditMode)
                                 {
-                                GUILayout.FlexibleSpace();
-                                if (GUILayout.Button("+", GUILayout.Width(24), GUILayout.Height(24)))
+                                if (GUILayout.Button(EditorGUIUtility.IconContent("Toolbar Plus"), GUILayout.Width(24), GUILayout.Height(24)))
                                 {
                                     AssetSelectorWindow.ShowWindow(
                                         (selectedChildAssetIds) =>
@@ -472,8 +498,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                             }
                             if (_isEditMode)
                             {
-                                GUILayout.FlexibleSpace();
-                                if (GUILayout.Button("+", GUILayout.Width(24), GUILayout.Height(24)))
+                                if (GUILayout.Button(EditorGUIUtility.IconContent("Toolbar Plus"), GUILayout.Width(24), GUILayout.Height(24)))
                                 {
                                     ShowImportPathSelector();
                                 }
@@ -512,8 +537,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                                 }
                                 if (_isEditMode)
                                 {
-                                    GUILayout.FlexibleSpace();
-                                    if (GUILayout.Button("+", GUILayout.Width(24), GUILayout.Height(24)))
+                                    if (GUILayout.Button(EditorGUIUtility.IconContent("Toolbar Plus"), GUILayout.Width(24), GUILayout.Height(24)))
                                     {
                                         TagSelectorWindow.ShowWindow(
                                             (selectedTags) =>
@@ -580,8 +604,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                                 }
                                 if (_isEditMode)
                                 {
-                                    GUILayout.FlexibleSpace();
-                                    if (GUILayout.Button("+", GUILayout.Width(24), GUILayout.Height(24)))
+                                    if (GUILayout.Button(EditorGUIUtility.IconContent("Toolbar Plus"), GUILayout.Width(24), GUILayout.Height(24)))
                                     {
                                         AssetSelectorWindow.ShowWindow(
                                             (selectedDeps) =>
@@ -694,6 +717,29 @@ namespace AMU.Editor.VrcAssetManager.UI
             _asset,
             newImportFiles
             );
+        }
+
+        private void InitEditData(AssetSchema asset)
+        {
+            newName = asset.metadata.name;
+            newDescription = asset.metadata.description;
+            newAuthorName = asset.metadata.authorName;
+            newAssetType = asset.metadata.assetType;
+            if (asset.fileInfo != null && !string.IsNullOrEmpty(asset.fileInfo.filePath))
+            {
+                string coreDir = SettingAPI.GetSetting<string>("Core_dirPath");
+                string absPath = Path.Combine(Path.GetFullPath(coreDir), asset.fileInfo.filePath.Replace('/', Path.DirectorySeparatorChar));
+                newFilePath = absPath;
+            }
+            else
+            {
+                newFilePath = string.Empty;
+            }
+            newIsFavorite = asset.state != null ? asset.state.isFavorite : false;
+            newIsArchived = asset.state != null ? asset.state.isArchived : false;
+            newTags = asset.metadata.tags.ToList();
+            newDependencies = asset.metadata.dependencies.ToList();
+            newImportFiles = asset.fileInfo.importFiles.Select(f => Path.GetFileName(f)).ToList();
         }
     }
 }
