@@ -9,7 +9,6 @@ namespace AMU.Editor.Setting
         public static readonly Dictionary<string, SettingItem[]> SettingItems = new Dictionary<string, SettingItem[]>
         {
             { "VrcAssetManager_category", new SettingItem[] {
-                new BoolSettingItem("AssetManager_watchDownloadFolder", false),
                 new TextAreaSettingItem("AssetManager_excludedImportExtensions", ".zip\n.psd", false, 3, 8)
             } },
         };
