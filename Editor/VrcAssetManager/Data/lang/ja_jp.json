@@ -291,5 +291,15 @@
   "VrcAssetManager_message_assetSelector_loadAssetsFailed": "アセットの読み込みに失敗: {0}",
   "VrcAssetManager_message_boothImport_loadFailed": "BoothItemの読み込みに失敗: {0}\n{1}",
   "VrcAssetManager_message_vrcAssetManagerWindow_downloadWatcherStarted": "DownloadFolderWatcherServiceを開始しました。",
-  "VrcAssetManager_message_assetDetailWindow_selectedImportPaths": "アセット '{0}' のインポートパス選択: {1}"
+  "VrcAssetManager_message_assetDetailWindow_selectedImportPaths": "アセット '{0}' のインポートパス選択: {1}",
+  "VrcAssetManager_message_schema_tagNullOrNotExists": "タグがnull、空、またはライブラリに存在しません。",
+  "VrcAssetManager_message_schema_assetTypeNullOrExists": "アセットタイプがnull、空、または既にライブラリに存在します。",
+  "VrcAssetManager_message_schema_assetTypeNullOrNotExists": "アセットタイプがnull、空、またはライブラリに存在しません。",
+  "VrcAssetManager_ui_tagSelector_tagAlreadyExists": "このタグは既に存在します",
+  "VrcAssetManager_common_delete": "削除",
+  "VrcAssetManager_ui_assetManager_filterAll": "すべて",
+  "VrcAssetManager_ui_assetManager_filterFavorite": "お気に入り",
+  "VrcAssetManager_ui_assetManager_filterArchived": "アーカイブ",
+  "VrcAssetManager_message_toolbar_refreshRequested": "リフレッシュが要求されました",
+  "VrcAssetManager_message_toolbar_createAssetFailed": "ファイルからアセットの作成に失敗しました: {0}"
 }

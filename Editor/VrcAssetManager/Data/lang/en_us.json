@@ -298,5 +298,12 @@
   "VrcAssetManager_message_assetSelector_loadAssetsFailed": "Failed to load assets: {0}",
   "VrcAssetManager_message_boothImport_loadFailed": "Failed to load BoothItem: {0}\n{1}",
   "VrcAssetManager_message_vrcAssetManagerWindow_downloadWatcherStarted": "DownloadFolderWatcherService started.",
-  "VrcAssetManager_message_assetDetailWindow_selectedImportPaths": "Selected import paths for asset '{0}': {1}"
+  "VrcAssetManager_message_assetDetailWindow_selectedImportPaths": "Selected import paths for asset '{0}': {1}",
+  "VrcAssetManager_message_schema_assetTypeNullOrExists": "Asset type is null, empty, or already exists in the library.",
+  "VrcAssetManager_message_schema_assetTypeNullOrNotExists": "Asset type is null, empty, or does not exist in the library.",
+  "VrcAssetManager_ui_tagSelector_tagAlreadyExists": "This tag already exists.",
+  "VrcAssetManager_common_delete": "Delete",
+  "VrcAssetManager_ui_assetManager_filterAll": "All",
+  "VrcAssetManager_ui_assetManager_filterFavorite": "Favorites",
+  "VrcAssetManager_ui_assetManager_filterArchived": "Archived"
 }
