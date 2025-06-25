@@ -284,6 +284,42 @@ namespace AMU.Editor.VrcAssetManager.Controller
             SaveAssetLibrary();
         }
 
+        public Guid CreateGroupAsset(List<AssetSchema> assets)
+        {
+            if (library == null)
+            {
+                Debug.LogError("Asset library is not initialized. Cannot create group asset.");
+                return Guid.Empty;
+            }
+            if (assets == null || assets.Count == 0)
+            {
+                Debug.LogError("Asset list is null or empty. Cannot create group asset.");
+                return Guid.Empty;
+            }
+
+            SyncAssetLibrary();
+
+            var groupAsset = new AssetSchema();
+            groupAsset.metadata.SetName("Group Asset");
+            groupAsset.SetChildAssetIds(assets.Select(a => a.assetId.ToString()).ToList());
+
+            foreach (var asset in assets)
+            {
+                if (!string.IsNullOrEmpty(asset.parentGroupId) && asset.parentGroupId != groupAsset.assetId.ToString())
+                {
+                    var OldParentAsset = GetAsset(new Guid(asset.parentGroupId));
+                    if (OldParentAsset != null)
+                    {
+                        OldParentAsset.RemoveChildAssetId(asset.assetId.ToString());
+                    }
+                    Debug.LogWarning($"Asset {asset.assetId} already belongs to a different group. Updating parent group to {groupAsset.assetId}.");
+                }
+                asset.SetParentGroupId(groupAsset.assetId.ToString());
+            }
+            AddAsset(groupAsset);
+            return groupAsset.assetId;
+        }
+
         public void RemoveAsset(Guid assetId)
         {
             if (library == null)

@@ -263,6 +263,15 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                 menu.AddSeparator("");
 
+                bool allNotParentOrChild = !_selectedAssets.Any(a => a.hasChildAssets || a.hasParentGroup);
+                if (allNotParentOrChild && _selectedAssets.Count > 1) {
+                    menu.AddItem(new GUIContent("グループを作成"), false, () => {
+                        var groupId = controller.CreateGroupAsset(_selectedAssets);
+                        AssetDetailWindow.ShowWindow(controller.GetAsset(groupId));
+                    });
+                    menu.AddSeparator("");
+                }
+
                 menu.AddItem(new GUIContent("Delete Selected Assets"), false, () => 
                 {
                     if (EditorUtility.DisplayDialog(
