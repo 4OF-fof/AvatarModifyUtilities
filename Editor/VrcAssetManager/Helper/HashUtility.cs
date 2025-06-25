@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using AMU.Editor.Core.Api;
 
 namespace AMU.Editor.VrcAssetManager.Helper
 {
@@ -14,7 +15,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 byte[] bytes;
                 if (isFile)
                 {
-                    if (!File.Exists(input)) throw new FileNotFoundException($"ファイルが見つかりません: {input}");
+                    if (!File.Exists(input)) throw new FileNotFoundException(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_hashUtility_fileNotFound"), input));
                     bytes = File.ReadAllBytes(input);
                 }
                 else

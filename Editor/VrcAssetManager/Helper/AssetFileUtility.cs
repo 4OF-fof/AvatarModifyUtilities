@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using AMU.Editor.Core.Api;
 
 namespace AMU.Editor.VrcAssetManager.Helper
 {
@@ -8,7 +9,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
         public static string MoveToCoreSubDirectory(string sourceFilePath, string subDir, string targetFileName = null)
         {
             if (string.IsNullOrEmpty(sourceFilePath) || !File.Exists(sourceFilePath))
-                throw new FileNotFoundException($"File not found: {sourceFilePath}");
+                throw new FileNotFoundException(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_assetFileUtility_fileNotFound"), sourceFilePath));
 
             string coreDir = AMU.Editor.Core.Api.SettingAPI.GetSetting<string>("Core_dirPath");
 

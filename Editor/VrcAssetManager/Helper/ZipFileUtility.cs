@@ -29,12 +29,14 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 string fullPath = GetFullPath(zipFilePath);
                 if (!File.Exists(fullPath) || !IsZipFile(fullPath))
                 {
+                    Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_zipFileUtility_zipFileNotFoundOrInvalid"), fullPath));
                     return fileList;
                 }
 
                 string tempDir = ExtractZipToTemp(fullPath);
                 if (string.IsNullOrEmpty(tempDir))
                 {
+                    Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_zipFileUtility_failedToGetTempExtractionDir"), fullPath));
                     return fileList;
                 }
 
@@ -47,7 +49,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ZipFileUtility] Failed to read zip file {zipFilePath}: {ex.Message}");
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_zipFileUtility_failedToReadZipFile"), zipFilePath, ex.Message));
             }
 
             return fileList;
@@ -60,14 +62,14 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 string fullZipPath = GetFullPath(zipFilePath);
                 if (!File.Exists(fullZipPath) || !IsZipFile(fullZipPath))
                 {
-                    Debug.LogError($"[ZipFileUtility] Zip file not found or invalid: {fullZipPath}");
+                    Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_zipFileUtility_zipFileNotFoundOrInvalid"), fullZipPath));
                     return false;
                 }
 
                 string tempDir = GetTempExtractionDir(fullZipPath);
                 if (string.IsNullOrEmpty(tempDir))
                 {
-                    Debug.LogError($"[ZipFileUtility] Failed to get temp extraction directory for: {fullZipPath}");
+                    Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_zipFileUtility_failedToGetTempExtractionDir"), fullZipPath));
                     return false;
                 }
 
@@ -82,11 +84,11 @@ namespace AMU.Editor.VrcAssetManager.Helper
                     if (foundFiles.Length > 0)
                     {
                         sourceFile = foundFiles[0];
-                        Debug.Log($"[ZipFileUtility] Found file at alternative path: {sourceFile}");
+                        Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_zipFileUtility_foundFileAtAlternativePath") + $": {sourceFile}");
                     }
                     else
                     {
-                        Debug.LogError($"[ZipFileUtility] Source file not found in temp directory: {sourceFile}");
+                        Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_zipFileUtility_sourceFileNotFoundInTemp"), sourceFile));
                         return false;
                     }
                 }
@@ -98,12 +100,12 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 }
 
                 File.Copy(sourceFile, outputPath, true);
-                Debug.Log($"[ZipFileUtility] Successfully extracted file: {entryPath} -> {outputPath}");
+                Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_zipFileUtility_successfullyExtractedFile"), entryPath, outputPath));
                 return true;
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ZipFileUtility] Failed to extract file {entryPath} from {zipFilePath}: {ex.Message}");
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_zipFileUtility_failedToExtractFile"), entryPath, zipFilePath, ex.Message));
                 return false;
             }
         }
@@ -145,7 +147,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 {
                     if (Directory.Exists(existingTempDir))
                     {
-                        Debug.Log($"[ZipFileUtility] Using existing temp directory: {existingTempDir}");
+                        Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_zipFileUtility_usingExistingTempDirectory") + $": {existingTempDir}");
                         return existingTempDir;
                     }
                     else
@@ -156,7 +158,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
 
                 string tempDir = Path.Combine(Path.GetTempPath(), "VrcAssetManager_ZipExtract", Path.GetRandomFileName());
                 Directory.CreateDirectory(tempDir);
-                Debug.Log($"[ZipFileUtility] Created temp directory: {tempDir}");
+                Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_zipFileUtility_createdTempDirectory") + $": {tempDir}");
 
                 int extractedCount = 0;
 
@@ -164,7 +166,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 {
                     using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Read, false, Encoding.GetEncoding("Shift_JIS")))
                     {
-                        Debug.Log($"[ZipFileUtility] Archive contains {archive.Entries.Count} entries");
+                        Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_zipFileUtility_archiveContainsEntries") + $": {archive.Entries.Count}");
 
                         foreach (var entry in archive.Entries)
                         {
@@ -185,22 +187,22 @@ namespace AMU.Editor.VrcAssetManager.Helper
 
                                 entry.ExtractToFile(entryPath, true);
                                 extractedCount++;
-                                Debug.Log($"[ZipFileUtility] Extracted: {entry.FullName} -> {entryPath}");
+                                Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_zipFileUtility_extracted"), entry.FullName, entryPath));
                             }
                             catch (Exception entryEx)
                             {
-                                Debug.LogWarning($"[ZipFileUtility] Failed to extract entry {entry.FullName}: {entryEx.Message}");
+                                Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_zipFileUtility_failedToExtractEntry"), entry.FullName, entryEx.Message));
                             }
                         }
                     }
                 }
-                Debug.Log($"[ZipFileUtility] Successfully extracted {extractedCount} files to temp directory");
+                Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_zipFileUtility_successfullyExtractedFiles"), extractedCount));
                 _tempExtractionDirs[zipFilePath] = tempDir;
                 return tempDir;
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ZipFileUtility] Failed to extract zip to temp: {ex.Message}");
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_zipFileUtility_failedToExtractZipToTemp"), ex.Message));
                 return null;
             }
         }
@@ -235,7 +237,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogWarning($"[ZipFileUtility] Failed to cleanup temp directory {tempDir}: {ex.Message}");
+                    Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_zipFileUtility_failedToCleanupTempDirectory"), tempDir, ex.Message));
                 }
                 _tempExtractionDirs.Remove(zipFilePath);
             }

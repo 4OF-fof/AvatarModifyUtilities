@@ -21,7 +21,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
         {
             if (asset == null)
             {
-                Debug.LogWarning("[AssetImportUtility] Asset is null");
+                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_assetNull"));
                 return false;
             }
 
@@ -32,7 +32,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
             
             if (processingAssets.Contains(asset.assetId))
             {
-                Debug.LogWarning($"[AssetImportUtility] Circular dependency detected for asset '{asset.metadata.name}' (ID: {asset.assetId})");
+                Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_circularDependency"), asset.metadata.name, asset.assetId));
                 return false;
             }
 
@@ -54,12 +54,12 @@ namespace AMU.Editor.VrcAssetManager.Helper
                             }
                             else
                             {
-                                Debug.LogWarning($"[AssetImportUtility] Dependency asset not found: {depIdStr}");
+                                Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_dependencyNotFound"), depIdStr));
                             }
                         }
                         else
                         {
-                            Debug.LogWarning($"[AssetImportUtility] Invalid dependency GUID: {depIdStr}");
+                            Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_invalidDependencyGuid"), depIdStr));
                         }
                     }
                 }
@@ -74,7 +74,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 var pathsToImport = GetImportPaths(asset);
                 if (pathsToImport.Count == 0)
                 {
-                    Debug.LogWarning("[AssetImportUtility] No valid file paths found for import");
+                    Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_noValidFilePaths"));
                     return false;
                 }
 
@@ -82,7 +82,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[AssetImportUtility] Failed to import asset '{asset.metadata.name}': {ex.Message}");
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_importFailed"), asset.metadata.name, ex.Message));
                 return false;
             }
         }
@@ -91,13 +91,13 @@ namespace AMU.Editor.VrcAssetManager.Helper
         {
             if (assets == null || assets.Count == 0)
             {
-                Debug.LogWarning("[AssetImportUtility] Assets list is null or empty");
+                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_assetsListNullOrEmpty"));
                 return false;
             }
 
             bool allSuccess = true;
             int successCount = 0;
-            Debug.Log($"[AssetImportUtility] Starting import of {assets.Count} assets");
+            Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_startingBatchImport"), assets.Count));
 
             foreach (var asset in assets)
             {
@@ -111,7 +111,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 }
             }
 
-            Debug.Log($"[AssetImportUtility] Batch import completed: {successCount}/{assets.Count} assets imported successfully");
+            Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_batchImportCompleted"), successCount, assets.Count));
             return allSuccess;
         }
 
@@ -119,26 +119,26 @@ namespace AMU.Editor.VrcAssetManager.Helper
         {
             if (relativePaths == null || relativePaths.Count == 0)
             {
-                Debug.LogWarning("[AssetImportUtility] Relative paths list is null or empty");
+                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_relativePathsNullOrEmpty"));
                 return false;
             }
 
             string coreDir = SettingAPI.GetSetting<string>("Core_dirPath");
             if (string.IsNullOrEmpty(coreDir))
             {
-                Debug.LogError("[AssetImportUtility] Core_dirPath setting not found");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_coreDirPathNotFound"));
                 return false;
             }
 
             bool allSuccess = true;
             int successCount = 0;
-            Debug.Log($"[AssetImportUtility] Starting import of {relativePaths.Count} assets");
+            Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_startingImport"), relativePaths.Count));
 
             foreach (string relativePath in relativePaths)
             {
                 if (string.IsNullOrEmpty(relativePath))
                 {
-                    Debug.LogWarning("[AssetImportUtility] Relative path is null or empty");
+                    Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_relativePathNullOrEmpty"));
                     allSuccess = false;
                     continue;
                 }
@@ -149,7 +149,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
 
                     if (!File.Exists(fullPath))
                     {
-                        Debug.LogError($"[AssetImportUtility] File not found: {fullPath}");
+                        Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_fileNotFound"), fullPath));
                         allSuccess = false;
                         continue;
                     }
@@ -158,7 +158,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
                     
                     if (isUnityPackage)
                     {
-                        Debug.Log($"[AssetImportUtility] Importing Unity Package: {fullPath}");
+                        Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_importingUnityPackage"), fullPath));
                         ImportPackageWithQueue(fullPath, showImportDialog);
                     }
                     else
@@ -169,13 +169,13 @@ namespace AMU.Editor.VrcAssetManager.Helper
 
                         if (File.Exists(targetPath))
                         {
-                            Debug.Log($"[AssetImportUtility] File already exists in Assets folder: {assetPath}");
+                            Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_fileAlreadyExists"), assetPath));
                         }
                         else
                         {
                             File.Copy(fullPath, targetPath, true);
                             AssetDatabase.Refresh();
-                            Debug.Log($"[AssetImportUtility] File imported to Assets folder: {assetPath}");
+                            Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_fileImported"), assetPath));
                         }
 
                         EditorApplication.delayCall += () =>
@@ -193,12 +193,12 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"[AssetImportUtility] Failed to import '{relativePath}': {ex.Message}");
+                    Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_importFailedForPath"), relativePath, ex.Message));
                     allSuccess = false;
                 }
             }
 
-            Debug.Log($"[AssetImportUtility] Import completed: {successCount}/{relativePaths.Count} assets imported successfully");
+            Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_importCompleted"), successCount, relativePaths.Count));
             return allSuccess;
         }
 
@@ -209,12 +209,12 @@ namespace AMU.Editor.VrcAssetManager.Helper
             if (asset.fileInfo?.importFiles?.Count > 0)
             {
                 paths.AddRange(asset.fileInfo.importFiles);
-                Debug.Log($"[AssetImportUtility] Using importFiles: {string.Join(", ", asset.fileInfo.importFiles)}");
+                Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_usingImportFiles"), string.Join(", ", asset.fileInfo.importFiles)));
             }
             else if (!string.IsNullOrEmpty(asset.fileInfo?.filePath))
             {
                 paths.Add(asset.fileInfo.filePath);
-                Debug.Log($"[AssetImportUtility] Using filePath: {asset.fileInfo.filePath}");
+                Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_usingFilePath"), asset.fileInfo.filePath));
             }
             
             return paths;
@@ -264,7 +264,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 AssetDatabase.importPackageCancelled -= onImportCancelled;
                 AssetDatabase.importPackageFailed -= onImportFailed;
                 
-                Debug.Log($"[AssetImportUtility] Package import completed: {packageName}");
+                Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_packageImportCompleted"), packageName));
                 OnImportComplete();
             };
 
@@ -274,7 +274,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 AssetDatabase.importPackageCancelled -= onImportCancelled;
                 AssetDatabase.importPackageFailed -= onImportFailed;
                 
-                Debug.Log($"[AssetImportUtility] Package import cancelled: {packageName}");
+                Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_packageImportCancelled"), packageName));
                 OnImportComplete();
             };
 
@@ -284,7 +284,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 AssetDatabase.importPackageCancelled -= onImportCancelled;
                 AssetDatabase.importPackageFailed -= onImportFailed;
                 
-                Debug.LogError($"[AssetImportUtility] Package import failed: {packageName}, Error: {errorMessage}");
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_packageImportFailed"), packageName, errorMessage));
                 OnImportComplete();
             };
 

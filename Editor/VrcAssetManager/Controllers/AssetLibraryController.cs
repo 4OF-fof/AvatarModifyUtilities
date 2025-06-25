@@ -6,7 +6,6 @@ using UnityEngine;
 using AMU.Editor.VrcAssetManager.Schema;
 using Newtonsoft.Json;
 using AMU.Editor.Core.Api;
-using AMU.Editor.VrcAssetManager.api;
 
 namespace AMU.Editor.VrcAssetManager.Controller
 {
