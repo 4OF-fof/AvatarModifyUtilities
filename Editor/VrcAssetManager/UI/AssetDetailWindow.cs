@@ -218,6 +218,19 @@ namespace AMU.Editor.VrcAssetManager.UI
                     GUILayout.FlexibleSpace();
                     Rect thumbRect = GUILayoutUtility.GetRect(128, 128, GUILayout.Width(128), GUILayout.Height(128));
                     DrawThumbnailComponent.Draw(thumbRect, _asset);
+                    if (_isEditMode)
+                    {
+                        var buttonRect = new Rect(
+                            thumbRect.x + (thumbRect.width - 80) / 2,
+                            thumbRect.y + (thumbRect.height - 25) / 2 + 45,
+                            80,
+                            25
+                        );
+                        if (GUI.Button(buttonRect, "サムネイル更新"))
+                        {
+
+                        }
+                    }
                     GUILayout.FlexibleSpace();
                 }
 
