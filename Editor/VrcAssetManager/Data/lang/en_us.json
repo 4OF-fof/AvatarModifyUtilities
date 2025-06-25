@@ -205,7 +205,7 @@
   "VrcAssetManager_ui_assetTypePanel_header": "Asset Types",
   "VrcAssetManager_ui_assetTypePanel_all": "All",
   "VrcAssetManager_ui_assetTypePanel_uncategorized": "Uncategorized",
-  "VrcAssetManager_ui_assetTypePanel_addNewType": "Add New Type",
+  "VrcAssetManager_ui_assetTypePanel_addNewType": "Add New Category",
   "VrcAssetManager_ui_assetTypePanel_typeAlreadyExists": "This type already exists",
   "VrcAssetManager_ui_assetTypePanel_typeNameRequired": "Please enter a type name",
   "VrcAssetManager_ui_assetTypePanel_showDeleteButtons": "Show Delete Buttons",

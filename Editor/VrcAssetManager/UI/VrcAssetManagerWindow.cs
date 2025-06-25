@@ -13,7 +13,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 {
     public class VrcAssetManagerWindow : EditorWindow
     {
-        [MenuItem("AMU/VRC Asset Manager", priority = 10000)]
+        [MenuItem("AMU/VRC Asset Manager", priority = 1)]
         public static void ShowWindow()
         {
             string lang = SettingAPI.GetSetting<string>("Core_language");
