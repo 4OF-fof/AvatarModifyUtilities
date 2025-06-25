@@ -123,7 +123,7 @@ namespace AMU.Editor.AutoVariant.Services
             var prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(go);
             var prefabPath = AssetDatabase.GetAssetPath(prefabAsset);
 
-            Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("message_info_prefab_added"), go.name)}");
+            Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("AutoVariant_message_info_prefab_added"), go.name)}");
 
             if (string.IsNullOrEmpty(prefabPath))
                 return;
@@ -140,7 +140,7 @@ namespace AMU.Editor.AutoVariant.Services
             if (isPrefabChild)
             {
                 CopyAndReplaceMaterials(go, materialDir);
-                Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("message_info_materials_processed"), go.name)}");
+                Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("AutoVariant_message_info_materials_processed"), go.name)}");
             }
             else
             {
@@ -152,7 +152,7 @@ namespace AMU.Editor.AutoVariant.Services
                 if (!File.Exists(variantPath))
                 {
                     PrefabUtility.SaveAsPrefabAssetAndConnect(go, variantPath, InteractionMode.UserAction);
-                    Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("message_info_variant_created"), variantPath)}");
+                    Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("AutoVariant_message_info_variant_created"), variantPath)}");
                 }
 
                 ReplaceWithVariant(go, variantPath);
@@ -195,14 +195,14 @@ namespace AMU.Editor.AutoVariant.Services
                     if (!File.Exists(matCopyPath))
                     {
                         AssetDatabase.CopyAsset(matPath, matCopyPath);
-                        Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("message_info_material_copied"), matPath, matCopyPath)}");
+                        Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("AutoVariant_message_info_material_copied"), matPath, matCopyPath)}");
                     }
                     var matCopy = AssetDatabase.LoadAssetAtPath<Material>(matCopyPath);
                     if (matCopy != null)
                     {
                         materials[i] = matCopy;
                         changed = true;
-                        Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("message_info_material_replaced"), renderer.name, mat.name, matCopy.name)}");
+                        Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("AutoVariant_message_info_material_replaced"), renderer.name, mat.name, matCopy.name)}");
                     }
                 }
                 if (changed)
@@ -245,7 +245,7 @@ namespace AMU.Editor.AutoVariant.Services
             newInstance.transform.localScale = scale;
             newInstance.transform.SetSiblingIndex(siblingIndex);
 
-            Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("message_info_scene_object_replaced"), variantPrefab.name)}");
+            Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("AutoVariant_message_info_scene_object_replaced"), variantPrefab.name)}");
         }
     }
 }

@@ -12,13 +12,13 @@ namespace AMU.Editor.AutoVariant.Helper
         {
             if (targetObject == null)
             {
-                Debug.LogError(LocalizationController.GetText("message_error_target_null"));
+                Debug.LogError(LocalizationController.GetText("AutoVariant_message_error_target_null"));
                 return null;
             }
 
             if (string.IsNullOrEmpty(savePath))
             {
-                Debug.LogError(LocalizationController.GetText("message_error_save_path_required"));
+                Debug.LogError(LocalizationController.GetText("AutoVariant_message_error_save_path_required"));
                 return null;
             }
 
@@ -30,7 +30,7 @@ namespace AMU.Editor.AutoVariant.Helper
                 Bounds bounds = GetObjectBounds(targetObject);
                 if (bounds.size == Vector3.zero)
                 {
-                    Debug.LogWarning(LocalizationController.GetText("message_warning_no_renderable_bounds"));
+                    Debug.LogWarning(LocalizationController.GetText("AutoVariant_message_warning_no_renderable_bounds"));
                     bounds = new Bounds(targetObject.transform.position, Vector3.one);
                 }
 
@@ -61,7 +61,7 @@ namespace AMU.Editor.AutoVariant.Helper
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(string.Format(LocalizationController.GetText("message_error_save_image_failed"), e.Message));
+                    Debug.LogError(string.Format(LocalizationController.GetText("AutoVariant_message_error_save_image_failed"), e.Message));
                     UnityEngine.Object.DestroyImmediate(capturedTexture);
                     return null;
                 }
@@ -121,11 +121,11 @@ namespace AMU.Editor.AutoVariant.Helper
                     AssetDatabase.ImportAsset(relativePath);
                 }
 
-                Debug.Log(string.Format(LocalizationController.GetText("message_success_image_saved"), path));
+                Debug.Log(string.Format(LocalizationController.GetText("AutoVariant_message_success_image_saved"), path));
             }
             catch (Exception e)
             {
-                throw new Exception(LocalizationController.GetText("message_error_save_image_failed"), e);
+                throw new Exception(LocalizationController.GetText("AutoVariant_message_error_save_image_failed"), e);
             }
         }
     }

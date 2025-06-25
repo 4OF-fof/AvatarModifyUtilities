@@ -16,7 +16,7 @@ namespace AMU.Editor.AutoVariant.Services
         {
             if (avatar == null)
             {
-                Debug.LogError($"[AvatarExportService] {LocalizationAPI.GetText("message_error_avatar_null")}");
+                Debug.LogError($"[AvatarExportService] {LocalizationAPI.GetText("AutoVariant_message_error_avatar_null")}");
                 return false;
             }
 
@@ -102,7 +102,7 @@ namespace AMU.Editor.AutoVariant.Services
 
             if (string.IsNullOrEmpty(blueprintId))
             {
-                Debug.Log($"[AvatarExportService] {LocalizationAPI.GetText("message_info_export_no_blueprint")}");
+                Debug.Log($"[AvatarExportService] {LocalizationAPI.GetText("AutoVariant_message_info_export_no_blueprint")}");
             }
 
             return avatarDir;

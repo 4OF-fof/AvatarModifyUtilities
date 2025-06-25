@@ -95,7 +95,6 @@ public class LocalizeChecker : EditorWindow
                         GUIUtility.ExitGUI();
                     }
                 }
-                EditorGUILayout.TextField(key, GUILayout.Width(80)); // 旧キー表示（参考用）
                 foreach (var kv in langJsonContents)
                 {
                     string value = "";
