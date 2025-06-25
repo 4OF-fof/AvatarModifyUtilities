@@ -6,6 +6,7 @@ using UnityEngine;
 using AMU.Editor.VrcAssetManager.Schema;
 using Newtonsoft.Json;
 using AMU.Editor.Core.Api;
+using AMU.Editor.VrcAssetManager.api;
 
 namespace AMU.Editor.VrcAssetManager.Controller
 {
@@ -30,7 +31,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (!File.Exists(_libraryPath))
             {
-                Debug.Log($"Asset library file not found at {_libraryPath}. Creating a new one.");
+                Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_warning_libraryFileNotFound", _libraryPath));
                 library = new AssetLibrarySchema();
                 _lastUpdated = DateTime.Now;
                 ForceSaveAssetLibrary();
@@ -50,7 +51,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library != null)
             {
-                Debug.LogWarning("Asset library is already initialized. Forcing re-initialization.");
+                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_warning_libraryAlreadyInitialized"));
             }
             library = new AssetLibrarySchema();
             _lastUpdated = DateTime.Now;
@@ -61,7 +62,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (!File.Exists(_libraryPath))
             {
-                Debug.LogError($"Asset library file not found at {_libraryPath}.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryFileNotFound", _libraryPath));
                 return;
             }
 
@@ -74,7 +75,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (!File.Exists(_libraryPath))
             {
-                Debug.LogError($"Asset library file not found at {_libraryPath}.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryFileNotFound", _libraryPath));
                 return;
             }
 
@@ -86,7 +87,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Failed to load asset library from {_libraryPath}: {ex.Message}");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryLoadFailed", _libraryPath, ex.Message));
             }
         }
 
@@ -94,7 +95,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (File.GetLastWriteTime(_libraryPath) > _lastUpdated)
             {
-                Debug.LogWarning($"Asset library file at {_libraryPath} is newer than the current library. Skipping save.");
+                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_warning_libraryFileNewer", _libraryPath));
                 return;
             }
 
@@ -105,7 +106,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot save.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitialized"));
                 return;
             }
 
@@ -114,11 +115,11 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 try
                 {
                     Directory.CreateDirectory(_libraryDir);
-                    Debug.Log($"Created library directory: {_libraryDir}");
+                    Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_success_libraryDirCreated", _libraryDir));
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Failed to create library directory {_libraryDir}: {ex.Message}");
+                    Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryDirCreateFailed", _libraryDir, ex.Message));
                     return;
                 }
             }
@@ -131,7 +132,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Failed to save asset library to {_libraryPath}: {ex.Message}");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_librarySaveFailed", _libraryPath, ex.Message));
             }
         }
 
@@ -139,25 +140,25 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot sync.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitializedForSync"));
                 return;
             }
 
             if (!File.Exists(_libraryPath))
             {
-                Debug.LogError($"Asset library file not found at {_libraryPath}.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryFileNotFound", _libraryPath));
                 return;
             }
 
             var lastWriteTime = File.GetLastWriteTime(_libraryPath);
             if (lastWriteTime > _lastUpdated)
             {
-                Debug.Log($"Last write time of asset library: {lastWriteTime}, Last updated time: {_lastUpdated}");
+                Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_info_librarySyncLoad", lastWriteTime.ToString(), _lastUpdated.ToString()));
                 ForceLoadAssetLibrary();
             }
             else if (lastWriteTime < _lastUpdated)
             {
-                Debug.Log($"Last write time of asset library: {lastWriteTime}, Last updated time: {_lastUpdated}");
+                Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_info_librarySyncSave", lastWriteTime.ToString(), _lastUpdated.ToString()));
                 ForceSaveAssetLibrary();
             }
         }
@@ -166,7 +167,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot optimize.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitializedForOptimize"));
                 return;
             }
             OptimizeTags();
@@ -179,17 +180,17 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot add asset.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitializedForAddAsset"));
                 return;
             }
             if (asset == null)
             {
-                Debug.LogError("Asset is null. Cannot add asset.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetNull"));
                 return;
             }
             if (library.assets.ContainsKey(asset.assetId))
             {
-                Debug.LogError($"Asset with ID {asset.assetId} already exists in the library.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetExists", asset.assetId));
                 return;
             }
 
@@ -225,17 +226,17 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot update asset.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitializedForUpdateAsset"));
                 return;
             }
             if (asset == null)
             {
-                Debug.LogError("Asset is null. Cannot update asset.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetNull"));
                 return;
             }
             if (!library.assets.ContainsKey(asset.assetId))
             {
-                Debug.LogError($"Asset with ID {asset.assetId} does not exist in the library.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetNotFound", asset.assetId));
                 return;
             }
 
@@ -289,7 +290,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             {
                 if (!updatedOldParent.hasChildAssets)
                 {
-                    Debug.Log($"Old parent asset '{updatedOldParent.metadata.name}' has no child assets. Auto-removing.");
+                    Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_info_autoRemoveOldParent", updatedOldParent.metadata.name));
                     RemoveAsset(oldParentGuidForCheck.Value);
                     return;
                 }
@@ -302,19 +303,19 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot create group asset.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitializedForCreateGroupAsset"));
                 return Guid.Empty;
             }
             if (assets == null || assets.Count == 0)
             {
-                Debug.LogError("Asset list is null or empty. Cannot create group asset.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetListNullOrEmpty"));
                 return Guid.Empty;
             }
 
             SyncAssetLibrary();
 
             var groupAsset = new AssetSchema();
-            groupAsset.metadata.SetName("Group Asset");
+            groupAsset.metadata.SetName(LocalizationAPI.GetText("VrcAssetManager_message_info_groupAssetName"));
             groupAsset.SetChildAssetIds(assets.Select(a => a.assetId.ToString()).ToList());
 
             var oldParentIdsToCheck = new List<Guid>();
@@ -335,7 +336,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
                             }
                         }
                     }
-                    Debug.LogWarning($"Asset {asset.assetId} already belongs to a different group. Updating parent group to {groupAsset.assetId}.");
+                    Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_warning_assetAlreadyInOtherGroup", asset.assetId, groupAsset.assetId));
                 }
                 asset.SetParentGroupId(groupAsset.assetId.ToString());
             }
@@ -347,7 +348,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 {
                     if (!updatedOldParent.hasChildAssets)
                     {
-                        Debug.Log($"Old parent asset '{updatedOldParent.metadata.name}' has no child assets. Auto-removing.");
+                        Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_info_autoRemoveOldParent", updatedOldParent.metadata.name));
                         RemoveAsset(oldParentId);
                     }
                 }
@@ -360,17 +361,17 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot remove asset.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitializedForRemoveAsset"));
                 return;
             }
             if (assetId == Guid.Empty)
             {
-                Debug.LogError("Asset ID is invalid. Cannot remove asset.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetIdInvalid"));
                 return;
             }
             if (!library.assets.ContainsKey(assetId))
             {
-                Debug.LogError($"Asset with ID {assetId} does not exist in the library.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetNotFound", assetId));
                 return;
             }
 
@@ -407,7 +408,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
             {
                 if (!updatedParent.hasChildAssets)
                 {
-                    Debug.Log($"Parent asset '{updatedParent.metadata.name}' has no child assets. Auto-removing.");
+                    Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_info_autoRemoveParent", updatedParent.metadata.name));
                     RemoveAsset(parentGroupId.Value);
                     return;
                 }
@@ -420,17 +421,17 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot remove child from parent.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitializedForRemoveChild"));
                 return;
             }
             if (parentGroupId == Guid.Empty || childAssetId == Guid.Empty)
             {
-                Debug.LogError("Parent group ID or child asset ID is invalid.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_parentOrChildIdInvalid"));
                 return;
             }
             if (!library.assets.ContainsKey(parentGroupId) || !library.assets.ContainsKey(childAssetId))
             {
-                Debug.LogError("Parent group or child asset does not exist in the library.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_parentOrChildNotFound"));
                 return;
             }
 
@@ -450,7 +451,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
 
             if (!parentAsset.hasChildAssets)
             {
-                Debug.Log($"Parent asset '{parentAsset.metadata.name}' has no child assets. Auto-removing.");
+                Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_info_autoRemoveParent", parentAsset.metadata.name));
                 RemoveAsset(parentGroupId);
                 return;
             }
@@ -462,17 +463,17 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot get asset.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitializedForGetAsset"));
                 return null;
             }
             if (assetId == Guid.Empty)
             {
-                Debug.LogError("Asset ID is invalid. Cannot get asset.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetIdInvalidForGetAsset"));
                 return null;
             }
             if (!library.assets.ContainsKey(assetId))
             {
-                Debug.LogError($"Asset with ID {assetId} does not exist in the library.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetNotFound", assetId));
                 return null;
             }
 
@@ -484,7 +485,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogWarning("Asset library is not initialized. Cannot get all assets.");
+                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_warning_libraryNotInitializedForGetAllAssets"));
                 return new List<AssetSchema>();
             }
 
@@ -496,7 +497,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogWarning("Asset library is not initialized. Cannot get assets by name.");
+                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_warning_libraryNotInitializedForHasUnCategorizedAssets"));
                 return false;
             }
 
@@ -508,7 +509,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogWarning("Asset library is not initialized. Cannot get filtered assets.");
+                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_warning_libraryNotInitializedForGetFilteredAssets"));
                 return new List<AssetSchema>();
             }
 
@@ -642,7 +643,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot clear assets.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitializedForClearAssets"));
                 return;
             }
 
@@ -656,7 +657,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogWarning("Asset library is not initialized. Cannot get asset count.");
+                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_warning_libraryNotInitializedForGetAssetCount"));
                 return 0;
             }
 
@@ -670,17 +671,17 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot add tag.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitializedForAddTag"));
                 return;
             }
             if (string.IsNullOrWhiteSpace(tag))
             {
-                Debug.LogError("Tag is null or empty. Cannot add tag.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_tagNullOrEmpty"));
                 return;
             }
             if (library.tags.Contains(tag.Trim()))
             {
-                Debug.LogError($"Tag '{tag}' already exists in the library.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_tagExists", tag));
                 return;
             }
 
@@ -694,17 +695,17 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot remove tag.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitializedForRemoveTag"));
                 return;
             }
             if (string.IsNullOrWhiteSpace(tag))
             {
-                Debug.LogError("Tag is null or empty. Cannot remove tag.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_tagNullOrEmpty"));
                 return;
             }
             if (!library.tags.Contains(tag.Trim()))
             {
-                Debug.LogError($"Tag '{tag}' does not exist in the library.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_tagNotFound", tag));
                 return;
             }
 
@@ -718,12 +719,12 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogWarning("Asset library is not initialized. Cannot check tag existence.");
+                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_warning_libraryNotInitializedForTagExists"));
                 return false;
             }
             if (string.IsNullOrWhiteSpace(tag))
             {
-                Debug.LogWarning("Tag is null or empty. Cannot check tag existence.");
+                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_warning_tagNullOrEmptyForExists"));
                 return false;
             }
 
@@ -735,7 +736,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogWarning("Asset library is not initialized. Cannot get all tags.");
+                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_warning_libraryNotInitializedForGetAllTags"));
                 return new List<string>();
             }
 
@@ -747,7 +748,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot clear tags.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitializedForClearTags"));
                 return;
             }
 
@@ -761,7 +762,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogWarning("Asset library is not initialized. Cannot get tag count.");
+                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_warning_libraryNotInitializedForGetTagCount"));
                 return 0;
             }
 
@@ -773,7 +774,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot optimize tags.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitializedForOptimizeTags"));
                 return;
             }
 
@@ -795,17 +796,17 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot add asset type.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitializedForAddAssetType"));
                 return;
             }
             if (string.IsNullOrWhiteSpace(assetType))
             {
-                Debug.LogError("Asset type is null or empty. Cannot add asset type.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetTypeNullOrEmpty"));
                 return;
             }
             if (library.assetTypes.Contains(assetType.Trim()))
             {
-                Debug.LogError($"Asset type '{assetType}' already exists in the library.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetTypeExists", assetType));
                 return;
             }
 
@@ -819,17 +820,17 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot remove asset type.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitializedForRemoveAssetType"));
                 return;
             }
             if (string.IsNullOrWhiteSpace(assetType))
             {
-                Debug.LogError("Asset type is null or empty. Cannot remove asset type.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetTypeNullOrEmpty"));
                 return;
             }
             if (!library.assetTypes.Contains(assetType.Trim()))
             {
-                Debug.LogError($"Asset type '{assetType}' does not exist in the library.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_assetTypeNotFound", assetType));
                 return;
             }
 
@@ -854,12 +855,12 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogWarning("Asset library is not initialized. Cannot check asset type existence.");
+                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_warning_libraryNotInitializedForAssetTypeExists"));
                 return false;
             }
             if (string.IsNullOrWhiteSpace(assetType))
             {
-                Debug.LogWarning("Asset type is null or empty. Cannot check asset type existence.");
+                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_warning_assetTypeNullOrEmptyForExists"));
                 return false;
             }
 
@@ -871,7 +872,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogWarning("Asset library is not initialized. Cannot get all asset types.");
+                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_warning_libraryNotInitializedForGetAllAssetTypes"));
                 return new List<string>();
             }
 
@@ -883,7 +884,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot clear asset types.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitializedForClearAssetTypes"));
                 return;
             }
 
@@ -897,7 +898,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogWarning("Asset library is not initialized. Cannot get asset type count.");
+                Debug.LogWarning(LocalizationAPI.GetText("VrcAssetManager_message_warning_libraryNotInitializedForGetAssetTypeCount"));
                 return 0;
             }
 
@@ -909,7 +910,7 @@ namespace AMU.Editor.VrcAssetManager.Controller
         {
             if (library == null)
             {
-                Debug.LogError("Asset library is not initialized. Cannot optimize asset types.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_error_libraryNotInitializedForOptimizeAssetTypes"));
                 return;
             }
 
