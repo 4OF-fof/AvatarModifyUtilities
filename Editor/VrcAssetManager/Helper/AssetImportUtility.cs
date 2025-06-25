@@ -17,7 +17,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
         private static bool isImporting = false;
         private static Queue<System.Action> importQueue = new Queue<System.Action>();
 
-        public static bool ImportAsset(AssetSchema asset, bool showImportDialog = true)
+        public static bool ImportAsset(AssetSchema asset, bool showImportDialog = true, HashSet<Guid> processingAssets = null)
         {
             if (asset == null)
             {
@@ -25,28 +25,48 @@ namespace AMU.Editor.VrcAssetManager.Helper
                 return false;
             }
 
-            var dependencies = asset.metadata?.dependencies;
-            if (dependencies != null && dependencies.Count > 0)
+            if (processingAssets == null)
             {
-                foreach (var depIdStr in dependencies)
+                processingAssets = new HashSet<Guid>();
+            }
+            
+            if (processingAssets.Contains(asset.assetId))
+            {
+                Debug.LogWarning($"[AssetImportUtility] Circular dependency detected for asset '{asset.metadata.name}' (ID: {asset.assetId})");
+                return false;
+            }
+
+            processingAssets.Add(asset.assetId);
+
+            try
+            {
+                var dependencies = asset.metadata?.dependencies;
+                if (dependencies != null && dependencies.Count > 0)
                 {
-                    if (Guid.TryParse(depIdStr, out var depGuid))
+                    foreach (var depIdStr in dependencies)
                     {
-                        var depAsset = AssetLibraryController.Instance.GetAsset(depGuid);
-                        if (depAsset != null)
+                        if (Guid.TryParse(depIdStr, out var depGuid))
                         {
-                            ImportAsset(depAsset, showImportDialog);
+                            var depAsset = AssetLibraryController.Instance.GetAsset(depGuid);
+                            if (depAsset != null)
+                            {
+                                ImportAsset(depAsset, showImportDialog, processingAssets);
+                            }
+                            else
+                            {
+                                Debug.LogWarning($"[AssetImportUtility] Dependency asset not found: {depIdStr}");
+                            }
                         }
                         else
                         {
-                            Debug.LogWarning($"[AssetImportUtility] Dependency asset not found: {depIdStr}");
+                            Debug.LogWarning($"[AssetImportUtility] Invalid dependency GUID: {depIdStr}");
                         }
                     }
-                    else
-                    {
-                        Debug.LogWarning($"[AssetImportUtility] Invalid dependency GUID: {depIdStr}");
-                    }
                 }
+            }
+            finally
+            {
+                processingAssets.Remove(asset.assetId);
             }
 
             try
