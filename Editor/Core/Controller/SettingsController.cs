@@ -34,12 +34,12 @@ namespace AMU.Editor.Core.Controller
                         }
                     }
                 }
-                Debug.Log(LocalizationController.GetText("message_success_settings_initialized"));
+                Debug.Log(LocalizationController.GetText("Core_message_success_settings_initialized"));
                 _isInitialized = true;
             }
             catch (Exception ex)
             {
-                Debug.LogError(string.Format(LocalizationController.GetText("message_error_settings_failed"), ex.Message));
+                Debug.LogError(string.Format(LocalizationController.GetText("Core_message_error_settings_failed"), ex.Message));
             }
         }
 

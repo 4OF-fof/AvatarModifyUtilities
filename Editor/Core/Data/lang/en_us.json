@@ -5,11 +5,11 @@
   "Core_versionInfo": "Version",
   "Core_repositoryUrl": "Repository URL",
 
-  "ui_empty_result": "No results found",
-  "message_info_initialization_starting": "[InitializationService] Starting AMU initialization...",
-  "message_success_initialization_completed": "[InitializationService] AMU initialization completed successfully.",
-  "message_error_initialization_failed": "[InitializationService] AMU initialization failed: {0}",
-  "message_success_localization_initialized": "[InitializationService] Localization initialized successfully.",
-  "message_error_localization_failed": "[InitializationService] Localization initialization failed: {0}",
-  "message_success_settings_initialized": "[SettingsController] EditorPrefs initialized successfully.",
-  "message_error_settings_failed": "[SettingsController] EditorPrefs initialization failed: {0}"}
+  "Core_ui_empty_result": "No results found",
+  "Core_message_info_initialization_starting": "[InitializationService] Starting AMU initialization...",
+  "Core_message_success_initialization_completed": "[InitializationService] AMU initialization completed successfully.",
+  "Core_message_error_initialization_failed": "[InitializationService] AMU initialization failed: {0}",
+  "Core_message_success_localization_initialized": "[InitializationService] Localization initialized successfully.",
+  "Core_message_error_localization_failed": "[InitializationService] Localization initialization failed: {0}",
+  "Core_message_success_settings_initialized": "[SettingsController] EditorPrefs initialized successfully.",
+  "Core_message_error_settings_failed": "[SettingsController] EditorPrefs initialization failed: {0}"}

@@ -45,7 +45,7 @@ namespace AMU.Editor.Core.UI.Components
                 }
                 else
                 {
-                    GUILayout.Label(LocalizationController.GetText("ui_empty_result"), titleStyle);
+                    GUILayout.Label(LocalizationController.GetText("Core_ui_empty_result"), titleStyle);
                 }
             }
         }
@@ -84,7 +84,7 @@ namespace AMU.Editor.Core.UI.Components
             EditorGUIUtility.labelWidth = prevLabelWidth;
 
             if (!hasResult)
-                GUILayout.Label(LocalizationController.GetText("ui_empty_result"));
+                GUILayout.Label(LocalizationController.GetText("Core_ui_empty_result"));
         }
 
         public System.Action OnLanguageChanged { get; set; }

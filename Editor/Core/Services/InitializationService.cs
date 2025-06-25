@@ -19,17 +19,17 @@ namespace AMU.Editor.Core.Services
         {
             try
             {
-                Debug.Log(LocalizationController.GetText("message_info_initialization_starting"));
+                Debug.Log(LocalizationController.GetText("Core_message_info_initialization_starting"));
 
                 InitializeEditorPrefs();
 
                 InitializeLocalization();
 
-                Debug.Log(LocalizationController.GetText("message_success_initialization_completed"));
+                Debug.Log(LocalizationController.GetText("Core_message_success_initialization_completed"));
             }
             catch (Exception ex)
             {
-                Debug.LogError(string.Format(LocalizationController.GetText("message_error_initialization_failed"), ex.Message));
+                Debug.LogError(string.Format(LocalizationController.GetText("Core_message_error_initialization_failed"), ex.Message));
             }
         }
 
@@ -43,11 +43,11 @@ namespace AMU.Editor.Core.Services
             try
             {
                 LocalizationController.LoadLanguage("en_us");
-                Debug.Log(LocalizationController.GetText("message_success_localization_initialized"));
+                Debug.Log(LocalizationController.GetText("Core_message_success_localization_initialized"));
             }
             catch (Exception ex)
             {
-                Debug.LogError(string.Format(LocalizationController.GetText("message_error_localization_failed"), ex.Message));
+                Debug.LogError(string.Format(LocalizationController.GetText("Core_message_error_localization_failed"), ex.Message));
             }
         }
     }
