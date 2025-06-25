@@ -228,7 +228,27 @@ namespace AMU.Editor.VrcAssetManager.UI
                         );
                         if (GUI.Button(buttonRect, "サムネイル更新"))
                         {
-
+                            string defaultPath = Path.Combine(
+                                System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile),
+                                "Downloads"
+                            );
+                            string selectedPath = EditorUtility.OpenFilePanel("サムネイル画像を選択", defaultPath, "png,jpg,jpeg");
+                            if (!string.IsNullOrEmpty(selectedPath))
+                            {
+                                string coreDir = SettingAPI.GetSetting<string>("Core_dirPath");
+                                string absCoreDir = Path.GetFullPath(coreDir).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                                string absSelectedPath = Path.GetFullPath(selectedPath);
+                                string relThumbPath;
+                                if (absSelectedPath.StartsWith(absCoreDir, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    relThumbPath = absSelectedPath.Substring(absCoreDir.Length).Replace('\\', '/');
+                                }
+                                else
+                                {
+                                    relThumbPath = AssetFileUtility.MoveToCoreSubDirectory(absSelectedPath, "VrcAssetManager/Thumbnail");
+                                }
+                                _asset.metadata.SetThumbnailPath(relThumbPath);
+                            }
                         }
                     }
                     GUILayout.FlexibleSpace();
