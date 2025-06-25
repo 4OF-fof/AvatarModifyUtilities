@@ -7,6 +7,7 @@ using UnityEditor;
 using AMU.Editor.VrcAssetManager.Schema;
 using AMU.Editor.VrcAssetManager.Controller;
 using AMU.Editor.VrcAssetManager.Helper;
+using AMU.Editor.Core.Api;
 
 namespace AMU.Editor.VrcAssetManager.Services
 {

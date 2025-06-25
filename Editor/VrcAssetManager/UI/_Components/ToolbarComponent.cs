@@ -53,7 +53,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         };
 
                         var rect = GUILayoutUtility.GetRect(GUIContent.none, statusStyle, GUILayout.ExpandWidth(true));
-                        GUI.Label(rect, "詳細検索中", statusStyle);
+                        GUI.Label(rect, LocalizationAPI.GetText("VrcAssetManager_ui_toolbar_advancedSearch"), statusStyle);
 
                         var closeIcon = EditorGUIUtility.IconContent("winbtn_win_close");
                         if (GUILayout.Button(closeIcon, EditorStyles.toolbarButton, GUILayout.Width(20)))
@@ -126,8 +126,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         {
                             switch (name)
                             {
-                                case "Name": return "名前";
-                                case "Date": return "日付";
+                                case "Name": return LocalizationAPI.GetText("VrcAssetManager_ui_toolbar_sortName");
+                                case "Date": return LocalizationAPI.GetText("VrcAssetManager_ui_toolbar_sortDate");
                                 default: return name;
                             }
                         })
@@ -158,7 +158,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                             fontStyle = FontStyle.Bold,
                             alignment = TextAnchor.MiddleCenter
                         };
-                        string selectedText = $"{MainGridComponent.selectedAssetCount} 件選択中";
+                        string selectedText = string.Format(LocalizationAPI.GetText("VrcAssetManager_ui_toolbar_selectedCount"), MainGridComponent.selectedAssetCount);
                         GUILayout.Label(selectedText, selectedCountStyle, GUILayout.MinWidth(80));
                     }
                     else
@@ -172,7 +172,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         if (GUILayout.Button(refreshIcon, EditorStyles.toolbarButton, GUILayout.Width(40)))
                         {
                             controller.SyncAssetLibrary();
-                            Debug.Log("Refresh requested");
+                            Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_toolbar_refreshRequested"));
                         }
                     }
                 }
@@ -184,7 +184,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             string downloadPath = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile),
                                                "Downloads");
 
-            string selectedFile = EditorUtility.OpenFilePanel("ファイルを選択", downloadPath, "json,unitypackage,zip,*");
+            string selectedFile = EditorUtility.OpenFilePanel(LocalizationAPI.GetText("VrcAssetManager_ui_toolbar_selectFileTitle"), downloadPath, "json,unitypackage,zip,*");
 
             if (!string.IsNullOrEmpty(selectedFile))
             {
@@ -218,14 +218,14 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 
                 controller.AddAsset(newAsset);
                 
-                Debug.Log($"新しいアセットを作成しました: {fileName} (ID: {newAsset.assetId})");
+                Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_ui_toolbar_assetCreated"), fileName, newAsset.assetId));
                 
                 AssetDetailWindow.ShowWindow(newAsset);
             }
             catch (Exception ex)
             {
-                EditorUtility.DisplayDialog("エラー", $"アセットの作成に失敗しました: {ex.Message}", "OK");
-                Debug.LogError($"Failed to create asset from file: {ex}");
+                EditorUtility.DisplayDialog(LocalizationAPI.GetText("VrcAssetManager_common_error"), string.Format(LocalizationAPI.GetText("VrcAssetManager_ui_toolbar_createAssetFailed"), ex.Message), LocalizationAPI.GetText("VrcAssetManager_common_ok"));
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_toolbar_createAssetFailed"), ex));
             }
         }
 

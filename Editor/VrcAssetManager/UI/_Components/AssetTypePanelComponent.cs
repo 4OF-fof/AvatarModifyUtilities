@@ -30,7 +30,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         alignment = TextAnchor.MiddleCenter,
                         padding = new RectOffset(8, 8, 8, 8)
                     };
-                    GUILayout.Label("Asset Types", typeHeaderStyle);
+                    GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_assetTypePanel_header"), typeHeaderStyle);
                     GUILayout.FlexibleSpace();
                 }
                 GUILayout.Space(5);
@@ -67,7 +67,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 };
 
                 bool isAllSelected = string.IsNullOrEmpty(_selectedAssetType);
-                bool allPressed = GUILayout.Toggle(isAllSelected, LocalizationAPI.GetText("AssetType_all"),
+                bool allPressed = GUILayout.Toggle(isAllSelected, LocalizationAPI.GetText("VrcAssetManager_ui_assetTypePanel_all"),
                     isAllSelected ? selectedTypeButtonStyle : typeButtonStyle,
                     GUILayout.ExpandWidth(true), GUILayout.Height(36));
 
@@ -83,7 +83,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 {
                     bool isUnCategorizedSelected = _selectedAssetType == "UNCATEGORIZED";
                     bool unCategorizedPressed = GUILayout.Toggle(isUnCategorizedSelected,
-                        LocalizationAPI.GetText("AssetType_uncategorized"),
+                        LocalizationAPI.GetText("VrcAssetManager_ui_assetTypePanel_uncategorized"),
                         isUnCategorizedSelected ? selectedTypeButtonStyle : typeButtonStyle,
                         GUILayout.ExpandWidth(true), GUILayout.Height(36));
 
@@ -138,10 +138,10 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                             if (GUI.Button(deleteRect, EditorGUIUtility.IconContent("d_winbtn_win_close"), deleteButtonStyle))
                             {
                                 if (EditorUtility.DisplayDialog(
-                                    LocalizationAPI.GetText("AssetType_confirmDelete_title"),
-                                    LocalizationAPI.GetText("AssetType_confirmDelete_message"),
-                                    LocalizationAPI.GetText("Common_delete"),
-                                    LocalizationAPI.GetText("Common_cancel")))
+                                    LocalizationAPI.GetText("VrcAssetManager_ui_assetTypePanel_confirmDeleteTitle"),
+                                    LocalizationAPI.GetText("VrcAssetManager_ui_assetTypePanel_confirmDeleteMessage"),
+                                    LocalizationAPI.GetText("VrcAssetManager_common_delete"),
+                                    LocalizationAPI.GetText("VrcAssetManager_common_cancel")))
                                 {
                                     controller.RemoveAssetType(assetType);
                                     if (_selectedAssetType == assetType)
@@ -171,7 +171,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         fontStyle = FontStyle.Bold,
                         alignment = TextAnchor.MiddleCenter
                     };
-                    GUILayout.Label(LocalizationAPI.GetText("AssetType_addNewType"), labelStyle);
+                    GUILayout.Label(LocalizationAPI.GetText("VrcAssetManager_ui_assetTypePanel_addNewType"), labelStyle);
 
                     GUILayout.Space(4);
 
@@ -219,11 +219,11 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         string errorMessage = "";
                         if (controller.GetAllAssetTypes().Contains(trimmedName))
                         {
-                            errorMessage = LocalizationAPI.GetText("AssetType_typeAlreadyExists");
+                            errorMessage = LocalizationAPI.GetText("VrcAssetManager_ui_assetTypePanel_typeAlreadyExists");
                         }
                         else if (string.IsNullOrWhiteSpace(trimmedName))
                         {
-                            errorMessage = LocalizationAPI.GetText("AssetType_typeNameRequired");
+                            errorMessage = LocalizationAPI.GetText("VrcAssetManager_ui_assetTypePanel_typeNameRequired");
                         }
 
                         if (!string.IsNullOrEmpty(errorMessage))
@@ -240,7 +240,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 {
                     GUILayout.FlexibleSpace();
                     bool newShowDeleteButtons = GUILayout.Toggle(_showDeleteButtons,
-                        LocalizationAPI.GetText("AssetType_showDeleteButtons"),
+                        LocalizationAPI.GetText("VrcAssetManager_ui_assetTypePanel_showDeleteButtons"),
                         GUILayout.Width(150));
 
                     if (newShowDeleteButtons != _showDeleteButtons)

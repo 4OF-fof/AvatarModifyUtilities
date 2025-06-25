@@ -108,9 +108,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         {
                             GUILayout.Space(5);
 
-                            // グループフィルタが有効な場合は特別なボタンを含めて計算
                             bool isGroupFiltered = !string.IsNullOrEmpty(controller.filterOptions.parentGroupId);
-                            int specialItemsCount = isGroupFiltered ? 2 : 0; // 戻るボタンと追加ボタン
+                            int specialItemsCount = isGroupFiltered ? 2 : 0;
                             int totalItems = assets.Count + specialItemsCount;
                             
                             _maxPage = Mathf.Max(1, Mathf.CeilToInt((float)totalItems / 35));
@@ -236,7 +235,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 bool allImportable = _selectedAssets.All(a => AssetImportUtility.IsImportable(a.fileInfo.filePath) || asset.fileInfo.importFiles.Count > 0);
                 if (allImportable && _selectedAssets.Count > 1)
                 {
-                    menu.AddItem(new GUIContent("Import Selected Assets"), false, () => 
+                    menu.AddItem(new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_mainGrid_importSelectedAssets")), false, () => 
                     {
                         AssetImportUtility.ImportAsset(_selectedAssets);
                     });
@@ -247,7 +246,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 bool allFavorite = _selectedAssets.All(a => a.state.isFavorite);
                 bool noneFavorite = _selectedAssets.All(a => !a.state.isFavorite);
                 if (!allFavorite) {
-                    menu.AddItem(new GUIContent("お気に入り登録"), false, () => {
+                    menu.AddItem(new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_mainGrid_favoriteAdd")), false, () => {
                         foreach (var selectedAsset in _selectedAssets.Where(a => !a.state.isFavorite))
                         {
                             selectedAsset.state.SetFavorite(true);
@@ -256,7 +255,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     });
                 }
                 if (!noneFavorite) {
-                    menu.AddItem(new GUIContent("お気に入り解除"), false, () => {
+                    menu.AddItem(new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_mainGrid_favoriteRemove")), false, () => {
                         foreach (var selectedAsset in _selectedAssets.Where(a => a.state.isFavorite))
                         {
                             selectedAsset.state.SetFavorite(false);
@@ -268,7 +267,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 bool allArchived = _selectedAssets.All(a => a.state.isArchived);
                 bool noneArchived = _selectedAssets.All(a => !a.state.isArchived);
                 if (!allArchived) {
-                    menu.AddItem(new GUIContent("アーカイブ"), false, () => {
+                    menu.AddItem(new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_mainGrid_archive")), false, () => {
                         foreach (var selectedAsset in _selectedAssets.Where(a => !a.state.isArchived))
                         {
                             selectedAsset.state.SetArchived(true);
@@ -277,7 +276,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     });
                 }
                 if (!noneArchived) {
-                    menu.AddItem(new GUIContent("アーカイブ解除"), false, () => {
+                    menu.AddItem(new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_mainGrid_archiveRemove")), false, () => {
                         foreach (var selectedAsset in _selectedAssets.Where(a => a.state.isArchived))
                         {
                             selectedAsset.state.SetArchived(false);
@@ -290,7 +289,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                 bool allNotParentOrChild = !_selectedAssets.Any(a => a.hasChildAssets || a.hasParentGroup);
                 if (allNotParentOrChild && _selectedAssets.Count > 1) {
-                    menu.AddItem(new GUIContent("グループを作成"), false, () => {
+                    menu.AddItem(new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_mainGrid_createGroup")), false, () => {
                         var groupId = controller.CreateGroupAsset(_selectedAssets);
                         AssetDetailWindow.ShowWindow(controller.GetAsset(groupId));
                     });
@@ -299,7 +298,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                 bool anyHasParentGroup = _selectedAssets.Any(a => a.hasParentGroup);
                 if (anyHasParentGroup) {
-                    menu.AddItem(new GUIContent("グループから除外"), false, () => {
+                    menu.AddItem(new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_mainGrid_removeFromGroup")), false, () => {
                         foreach (var selectedAsset in _selectedAssets.Where(a => a.hasParentGroup))
                         {
                             if (Guid.TryParse(selectedAsset.parentGroupId, out var parentGuid))
@@ -311,13 +310,13 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     menu.AddSeparator("");
                 }
 
-                menu.AddItem(new GUIContent("Delete Selected Assets"), false, () => 
+                menu.AddItem(new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_mainGrid_deleteSelectedAssets")), false, () => 
                 {
                     if (EditorUtility.DisplayDialog(
                         LocalizationAPI.GetText("VrcAssetManager_ui_assetManager_deleteAssetsTitle"),
                         LocalizationAPI.GetText(asset.hasChildAssets ? "VrcAssetManager_ui_assetManager_deleteGroupAssetMessage" : "VrcAssetManager_ui_assetManager_deleteAssetMessage"),
-                        LocalizationAPI.GetText("Yes"),
-                        LocalizationAPI.GetText("No")))
+                        LocalizationAPI.GetText("VrcAssetManager_common_yes"),
+                        LocalizationAPI.GetText("VrcAssetManager_common_no")))
                     {
                         foreach (var selectedAsset in _selectedAssets)
                         {
@@ -336,7 +335,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                 if (AssetImportUtility.IsImportable(asset.fileInfo.filePath) || asset.fileInfo.importFiles.Count > 0)
                 {
-                    menu.AddItem(new GUIContent("Import Asset"), false, () => 
+                    menu.AddItem(new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_mainGrid_importAsset")), false, () => 
                     {
                         AssetImportUtility.ImportAsset(asset);
                     });
@@ -344,7 +343,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     menu.AddSeparator("");
                 }
 
-                menu.AddItem(new GUIContent("アセット詳細を表示"), false, () =>
+                menu.AddItem(new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_mainGrid_showAssetDetail")), false, () =>
                 {
                     AssetDetailWindow.ShowWindow(asset);
                     AssetDetailWindow.history.Clear();
@@ -353,28 +352,28 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 menu.AddSeparator("");
 
                 if (!asset.state.isFavorite) {
-                    menu.AddItem(new GUIContent("お気に入り登録"), false, () => {
+                    menu.AddItem(new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_mainGrid_favoriteAdd")), false, () => {
                         asset.state.SetFavorite(true);
                         controller.UpdateAsset(asset);
                     });
                 }
                 else
                 {
-                    menu.AddItem(new GUIContent("お気に入り解除"), false, () => {
+                    menu.AddItem(new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_mainGrid_favoriteRemove")), false, () => {
                         asset.state.SetFavorite(false);
                         controller.UpdateAsset(asset);
                     });
                 }
 
                 if (!asset.state.isArchived) {
-                    menu.AddItem(new GUIContent("アーカイブ"), false, () => {
+                    menu.AddItem(new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_mainGrid_archive")), false, () => {
                         asset.state.SetArchived(true);
                         controller.UpdateAsset(asset);
                     });
                 }
                 else
                 {
-                    menu.AddItem(new GUIContent("アーカイブ解除"), false, () => {
+                    menu.AddItem(new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_mainGrid_archiveRemove")), false, () => {
                         asset.state.SetArchived(false);
                         controller.UpdateAsset(asset);
                     });
@@ -383,7 +382,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 menu.AddSeparator("");
 
                 if (asset.hasParentGroup) {
-                    menu.AddItem(new GUIContent("グループから除外"), false, () => {
+                    menu.AddItem(new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_mainGrid_removeFromGroup")), false, () => {
                         if (Guid.TryParse(asset.parentGroupId, out var parentGuid))
                         {
                             controller.RemoveChildFromParent(parentGuid, asset.assetId);
@@ -392,13 +391,13 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     menu.AddSeparator("");
                 }
 
-                menu.AddItem(new GUIContent("Delete Asset"), false, () => 
+                menu.AddItem(new GUIContent(LocalizationAPI.GetText("VrcAssetManager_ui_mainGrid_deleteAsset")), false, () => 
                 {
                     if (EditorUtility.DisplayDialog(
                         LocalizationAPI.GetText("VrcAssetManager_ui_assetManager_deleteAssetTitle"),
                         LocalizationAPI.GetText(asset.hasChildAssets ? "VrcAssetManager_ui_assetManager_deleteGroupAssetMessage" : "VrcAssetManager_ui_assetManager_deleteAssetMessage"),
-                        LocalizationAPI.GetText("Yes"),
-                        LocalizationAPI.GetText("No")))
+                        LocalizationAPI.GetText("VrcAssetManager_common_yes"),
+                        LocalizationAPI.GetText("VrcAssetManager_common_no")))
                     {
                         controller.RemoveAsset(asset.assetId);
                     }
