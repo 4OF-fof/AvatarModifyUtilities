@@ -433,8 +433,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                             }
                             if (_isEditMode)
                                 {
-                                GUILayout.FlexibleSpace();
-                                if (GUILayout.Button("+", GUILayout.Width(24), GUILayout.Height(24)))
+                                if (GUILayout.Button(EditorGUIUtility.IconContent("Toolbar Plus"), GUILayout.Width(24), GUILayout.Height(24)))
                                 {
                                     AssetSelectorWindow.ShowWindow(
                                         (selectedChildAssetIds) =>
@@ -466,8 +465,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                             }
                             if (_isEditMode)
                             {
-                                GUILayout.FlexibleSpace();
-                                if (GUILayout.Button("+", GUILayout.Width(24), GUILayout.Height(24)))
+                                if (GUILayout.Button(EditorGUIUtility.IconContent("Toolbar Plus"), GUILayout.Width(24), GUILayout.Height(24)))
                                 {
                                     ShowImportPathSelector();
                                 }
@@ -506,8 +504,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                                 }
                                 if (_isEditMode)
                                 {
-                                    GUILayout.FlexibleSpace();
-                                    if (GUILayout.Button("+", GUILayout.Width(24), GUILayout.Height(24)))
+                                    if (GUILayout.Button(EditorGUIUtility.IconContent("Toolbar Plus"), GUILayout.Width(24), GUILayout.Height(24)))
                                     {
                                         TagSelectorWindow.ShowWindow(
                                             (selectedTags) =>
@@ -574,8 +571,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                                 }
                                 if (_isEditMode)
                                 {
-                                    GUILayout.FlexibleSpace();
-                                    if (GUILayout.Button("+", GUILayout.Width(24), GUILayout.Height(24)))
+                                    if (GUILayout.Button(EditorGUIUtility.IconContent("Toolbar Plus"), GUILayout.Width(24), GUILayout.Height(24)))
                                     {
                                         AssetSelectorWindow.ShowWindow(
                                             (selectedDeps) =>
