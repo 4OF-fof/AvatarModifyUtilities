@@ -434,14 +434,18 @@ namespace AMU.Editor.VrcAssetManager.Controller
                 return;
             }
 
+            SyncAssetLibrary();
+
             var parentAsset = library.GetAsset(parentGroupId);
             var childAsset = library.GetAsset(childAssetId);
 
-            parentAsset.RemoveChildAssetId(childAssetId.ToString());
+            if (parentAsset.childAssetIds.Contains(childAssetId.ToString()))
+            {
+                parentAsset.RemoveChildAssetId(childAssetId.ToString());
+            }
             
             childAsset.SetParentGroupId("");
 
-            SyncAssetLibrary();
             _lastUpdated = DateTime.Now;
 
             if (!parentAsset.hasChildAssets)
