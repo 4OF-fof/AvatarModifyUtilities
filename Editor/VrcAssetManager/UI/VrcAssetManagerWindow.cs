@@ -34,7 +34,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             if (_downloadWatcher == null)
             {
                 _downloadWatcher = new DownloadFolderWatcherService();
-                Debug.Log("[VrcAssetManagerWindow] DownloadFolderWatcherService started.");
+                Debug.Log(LocalizationAPI.GetText("VrcAssetManager_message_vrcAssetManagerWindow_downloadWatcherStarted"));
             }
         }
 

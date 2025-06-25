@@ -381,5 +381,20 @@
   "VrcAssetManager_ui_assetSelector_selected": "選択済み",
   "VrcAssetManager_ui_assetSelector_noSelection": "未選択",
   "VrcAssetManager_ui_assetSelector_clearAll": "全て解除",
-  "VrcAssetManager_ui_moveFileFailed": "ファイルの移動に失敗しました: {0}"
+  "VrcAssetManager_ui_moveFileFailed": "ファイルの移動に失敗しました: {0}",
+  "VrcAssetManager_message_importPathSelector_assetNull": "アセットがnullです",
+  "VrcAssetManager_message_importPathSelector_targetDir": "展開先ディレクトリ: {0}",
+  "VrcAssetManager_message_importPathSelector_createdDir": "展開ディレクトリを作成: {0}",
+  "VrcAssetManager_message_importPathSelector_fileExists": "既存ファイルを使用: {0}",
+  "VrcAssetManager_message_importPathSelector_extractingFile": "ファイルを展開中: {0} → {1}",
+  "VrcAssetManager_message_importPathSelector_extracted": "展開成功: {0}",
+  "VrcAssetManager_message_importPathSelector_fileNotCreated": "展開後にファイルが作成されませんでした: {0}",
+  "VrcAssetManager_message_importPathSelector_extractFailed": "ファイルの展開に失敗: {0}",
+  "VrcAssetManager_message_importPathSelector_extractException": "ファイル展開中にエラー: {0} {1}",
+  "VrcAssetManager_message_importPathSelector_completed": "展開完了: {0}/{1}件成功",
+  "VrcAssetManager_message_tagSelector_loadTagsFailed": "タグの読み込みに失敗: {0}",
+  "VrcAssetManager_message_assetSelector_loadAssetsFailed": "アセットの読み込みに失敗: {0}",
+  "VrcAssetManager_message_boothImport_loadFailed": "BoothItemの読み込みに失敗: {0}\n{1}",
+  "VrcAssetManager_message_vrcAssetManagerWindow_downloadWatcherStarted": "DownloadFolderWatcherServiceを開始しました。",
+  "VrcAssetManager_message_assetDetailWindow_selectedImportPaths": "アセット '{0}' のインポートパス選択: {1}"
 }

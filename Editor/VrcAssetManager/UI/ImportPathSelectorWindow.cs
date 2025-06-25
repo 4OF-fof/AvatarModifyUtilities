@@ -32,7 +32,7 @@ namespace AMU.Editor.VrcAssetManager.UI
         {
             if (asset == null)
             {
-                Debug.LogError("[ImportPathSelectorWindow] Asset is null");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_importPathSelector_assetNull"));
                 return;
             }
 
@@ -288,12 +288,12 @@ namespace AMU.Editor.VrcAssetManager.UI
             string zipFileName = Path.GetFileNameWithoutExtension(_asset.fileInfo.filePath);
             string assetUnzipDir = Path.Combine(unzipDir, zipFileName);
 
-            Debug.Log($"[ImportPathSelectorWindow] Target extraction directory: {assetUnzipDir}");
+            Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_importPathSelector_targetDir"), assetUnzipDir));
 
             if (!Directory.Exists(assetUnzipDir))
             {
                 Directory.CreateDirectory(assetUnzipDir);
-                Debug.Log($"[ImportPathSelectorWindow] Created extraction directory: {assetUnzipDir}");
+                Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_importPathSelector_createdDir"), assetUnzipDir));
             }
 
             int processedCount = 0;
@@ -310,14 +310,14 @@ namespace AMU.Editor.VrcAssetManager.UI
 
                     if (File.Exists(outputPath))
                     {
-                        Debug.Log($"[ImportPathSelectorWindow] File already exists, using existing file: {outputPath}");
+                        Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_importPathSelector_fileExists"), outputPath));
                         string relativePath = $"VrcAssetManager/Unzip/{zipFileName}/{Path.GetFileName(outputPath)}";
                         extractedPaths.Add(relativePath);
                         successCount++;
                         continue;
                     }
 
-                    Debug.Log($"[ImportPathSelectorWindow] Extracting file: {file} -> {outputPath}");
+                    Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_importPathSelector_extractingFile"), file, outputPath));
 
                     if (ZipFileUtility.ExtractFileFromZip(_asset.fileInfo.filePath, file, outputPath))
                     {
@@ -326,27 +326,27 @@ namespace AMU.Editor.VrcAssetManager.UI
                             string relativePath = $"VrcAssetManager/Unzip/{zipFileName}/{Path.GetFileName(outputPath)}";
                             extractedPaths.Add(relativePath);
                             successCount++;
-                            Debug.Log($"[ImportPathSelectorWindow] Successfully extracted: {relativePath}");
+                            Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_importPathSelector_extracted"), relativePath));
                         }
                         else
                         {
-                            Debug.LogError($"[ImportPathSelectorWindow] File was not created after extraction: {outputPath}");
+                            Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_importPathSelector_fileNotCreated"), outputPath));
                         }
                     }
                     else
                     {
-                        Debug.LogWarning($"[ImportPathSelectorWindow] Failed to extract file: {file}");
+                        Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_importPathSelector_extractFailed"), file));
                     }
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"[ImportPathSelectorWindow] Error extracting file {file}: {ex.Message}");
+                    Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_importPathSelector_extractException"), file, ex.Message));
                 }
             }
 
             _isProcessing = false;
 
-            Debug.Log($"[ImportPathSelectorWindow] Extraction completed. Success: {successCount}/{selectedFiles.Count}");
+            Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_importPathSelector_completed"), successCount, selectedFiles.Count));
 
             if (extractedPaths.Count > 0)
             {

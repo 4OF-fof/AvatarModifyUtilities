@@ -56,7 +56,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             }
             catch (Exception ex)
             {
-                Debug.LogError($"BoothItemの読み込みに失敗: {_filePath}\n{ex.Message}");
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_boothImport_loadFailed"), _filePath, ex.Message));
             }
         }
 

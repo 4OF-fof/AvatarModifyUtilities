@@ -715,7 +715,7 @@ namespace AMU.Editor.VrcAssetManager.UI
                 if (selectedPaths != null && selectedPaths.Count > 0)
                 {
                     newImportFiles = selectedPaths.ToList();
-                    Debug.Log($"[AssetDetailWindow] Selected import paths for asset '{_asset.metadata.name}': {string.Join(", ", selectedPaths)}");
+                    Debug.Log(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_assetDetailWindow_selectedImportPaths"), _asset.metadata.name, string.Join(", ", selectedPaths)));
                 }
             },
             _asset,

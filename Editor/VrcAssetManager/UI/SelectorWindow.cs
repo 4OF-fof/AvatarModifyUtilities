@@ -37,7 +37,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[TagSelectorWindow] Failed to load tags: {ex.Message}");
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_tagSelector_loadTagsFailed"), ex.Message));
                 window._availableTags = new List<string>();
             }
 
@@ -307,7 +307,7 @@ namespace AMU.Editor.VrcAssetManager.UI
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[AssetSelectorWindow] Failed to load assets: {ex.Message}");
+                Debug.LogError(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_assetSelector_loadAssetsFailed"), ex.Message));
                 window._availableAssets = new List<AssetSchema>();
             }
 
