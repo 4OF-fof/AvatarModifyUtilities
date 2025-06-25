@@ -4,6 +4,7 @@ using System.ComponentModel;
 using Newtonsoft.Json;
 using System.IO;
 using UnityEngine;
+using AMU.Editor.Core.Api;
 
 namespace AMU.Editor.VrcAssetManager.Schema
 {
@@ -131,11 +132,11 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             if (string.IsNullOrWhiteSpace(childAssetId))
             {
-                Debug.LogError("Cannot add an empty or whitespace child asset ID.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_schema_childAssetIdEmpty"));
             }
             else if (_childAssetIds.Contains(childAssetId))
             {
-                Debug.LogWarning($"Child asset ID '{childAssetId}' already exists in the list.");
+                Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_schema_childAssetIdExists"), childAssetId));
             }
             else
             {
@@ -153,7 +154,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             }
             else
             {
-                Debug.LogWarning($"Child asset ID '{childAssetId}' does not exist in the list.");
+                Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_schema_childAssetIdNotExists"), childAssetId));
             }
         }
 
@@ -310,11 +311,11 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             if (string.IsNullOrWhiteSpace(tag))
             {
-                Debug.LogError("Cannot add an empty or whitespace tag.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_schema_tagEmpty"));
             }
             else if (_tags.Contains(tag))
             {
-                Debug.LogWarning($"Tag '{tag}' already exists in the list.");
+                Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_schema_tagExists"), tag));
             }
             else
             {
@@ -332,7 +333,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             }
             else
             {
-                Debug.LogWarning($"Tag '{tag}' does not exist in the list.");
+                Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_schema_tagNotExists"), tag));
             }
         }
 
@@ -359,11 +360,11 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             if (string.IsNullOrWhiteSpace(dependency))
             {
-                Debug.LogError("Cannot add an empty or whitespace dependency.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_schema_dependencyEmpty"));
             }
             else if (_dependencies.Contains(dependency))
             {
-                Debug.LogWarning($"Dependency '{dependency}' already exists in the list.");
+                Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_schema_dependencyExists"), dependency));
             }
             else
             {
@@ -381,7 +382,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             }
             else
             {
-                Debug.LogWarning($"Dependency '{dependency}' does not exist in the list.");
+                Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_schema_dependencyNotExists"), dependency));
             }
         }
 
@@ -445,11 +446,11 @@ namespace AMU.Editor.VrcAssetManager.Schema
         {
             if (string.IsNullOrWhiteSpace(importFile))
             {
-                Debug.LogError("Cannot add an empty or whitespace import file.");
+                Debug.LogError(LocalizationAPI.GetText("VrcAssetManager_message_schema_importFileEmpty"));
             }
             else if (_importFiles.Contains(importFile))
             {
-                Debug.LogWarning($"Import file '{importFile}' already exists in the list.");
+                Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_schema_importFileExists"), importFile));
             }
             else
             {
@@ -465,7 +466,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
             }
             else
             {
-                Debug.LogWarning($"Import file '{importFile}' does not exist in the list.");
+                Debug.LogWarning(string.Format(LocalizationAPI.GetText("VrcAssetManager_message_schema_importFileNotExists"), importFile));
             }
         }
 

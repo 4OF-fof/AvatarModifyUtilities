@@ -238,5 +238,27 @@
   "VrcAssetManager_message_zipFileUtility_failedToReadZipFile": "Failed to read zip file {0}: {1}",
   "VrcAssetManager_message_zipFileUtility_zipFileNotFoundOrInvalid": "Zip file not found or invalid: {0}",
   "VrcAssetManager_message_zipFileUtility_failedToGetTempExtractionDir": "Failed to get temp extraction directory for: {0}",
-  "VrcAssetManager_message_relativePathNullOrEmpty": "Relative path is null or empty."
+  "VrcAssetManager_message_relativePathNullOrEmpty": "Relative path is null or empty.",
+
+  "VrcAssetManager_message_schema_childAssetIdEmpty": "Cannot add an empty or whitespace child asset ID.",
+  "VrcAssetManager_message_schema_childAssetIdExists": "Child asset ID '{0}' already exists in the list.",
+  "VrcAssetManager_message_schema_childAssetIdNotExists": "Child asset ID '{0}' does not exist in the list.",
+  "VrcAssetManager_message_schema_tagEmpty": "Cannot add an empty or whitespace tag.",
+  "VrcAssetManager_message_schema_tagExists": "Tag '{0}' already exists in the list.",
+  "VrcAssetManager_message_schema_tagNotExists": "Tag '{0}' does not exist in the list.",
+  "VrcAssetManager_message_schema_dependencyEmpty": "Cannot add an empty or whitespace dependency.",
+  "VrcAssetManager_message_schema_dependencyExists": "Dependency '{0}' already exists in the list.",
+  "VrcAssetManager_message_schema_dependencyNotExists": "Dependency '{0}' does not exist in the list.",
+  "VrcAssetManager_message_schema_importFileEmpty": "Cannot add an empty or whitespace import file.",
+  "VrcAssetManager_message_schema_importFileExists": "Import file '{0}' already exists in the list.",
+  "VrcAssetManager_message_schema_importFileNotExists": "Import file '{0}' does not exist in the list.",
+  "VrcAssetManager_message_schema_assetNullOrExists": "Asset is null or already exists in the library.",
+  "VrcAssetManager_message_schema_assetNullOrNotExists": "Asset is null or does not exist in the library.",
+  "VrcAssetManager_message_schema_assetIdInvalidOrNotExists": "Asset ID is invalid or does not exist in the library.",
+  "VrcAssetManager_message_schema_tagNullOrExists": "Tag is null, empty, or already exists in the library.",
+  "VrcAssetManager_message_schema_tagNullOrNotExists": "Tag is null, empty, or does not exist in the library.",
+  "VrcAssetManager_message_schema_dependencyNullOrExists": "Dependency is null, empty, or already exists in the library.",
+  "VrcAssetManager_message_schema_dependencyNullOrNotExists": "Dependency is null, empty, or does not exist in the library.",
+  "VrcAssetManager_message_schema_importFileNullOrExists": "Import file is null, empty, or already exists in the library.",
+  "VrcAssetManager_message_schema_importFileNullOrNotExists": "Import file is null, empty, or does not exist in the library."
 }

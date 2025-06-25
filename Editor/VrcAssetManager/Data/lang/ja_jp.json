@@ -228,5 +228,21 @@
   "VrcAssetManager_message_zipFileUtility_failedToReadZipFile": "zipファイルの読み込みに失敗しました: {0}: {1}",
   "VrcAssetManager_message_zipFileUtility_zipFileNotFoundOrInvalid": "zipファイルが見つからないか不正です: {0}",
   "VrcAssetManager_message_zipFileUtility_failedToGetTempExtractionDir": "一時展開ディレクトリの取得に失敗しました: {0}",
-  "VrcAssetManager_message_relativePathNullOrEmpty": "相対パスがnullまたは空です。"
+  "VrcAssetManager_message_relativePathNullOrEmpty": "相対パスがnullまたは空です。",
+  "VrcAssetManager_message_schema_childAssetIdEmpty": "空または空白の子アセットIDは追加できません。",
+  "VrcAssetManager_message_schema_childAssetIdExists": "子アセットID '{0}' は既にリストに存在します。",
+  "VrcAssetManager_message_schema_childAssetIdNotExists": "子アセットID '{0}' はリストに存在しません。",
+  "VrcAssetManager_message_schema_tagEmpty": "空または空白のタグは追加できません。",
+  "VrcAssetManager_message_schema_tagExists": "タグ '{0}' は既にリストに存在します。",
+  "VrcAssetManager_message_schema_tagNotExists": "タグ '{0}' はリストに存在しません。",
+  "VrcAssetManager_message_schema_dependencyEmpty": "空または空白の依存関係は追加できません。",
+  "VrcAssetManager_message_schema_dependencyExists": "依存関係 '{0}' は既にリストに存在します。",
+  "VrcAssetManager_message_schema_dependencyNotExists": "依存関係 '{0}' はリストに存在しません。",
+  "VrcAssetManager_message_schema_importFileEmpty": "空または空白のインポートファイルは追加できません。",
+  "VrcAssetManager_message_schema_importFileExists": "インポートファイル '{0}' は既にリストに存在します。",
+  "VrcAssetManager_message_schema_importFileNotExists": "インポートファイル '{0}' はリストに存在しません。",
+  "VrcAssetManager_message_schema_assetNullOrExists": "アセットがnull、または既にライブラリに存在します。",
+  "VrcAssetManager_message_schema_assetNullOrNotExists": "アセットがnull、またはライブラリに存在しません。",
+  "VrcAssetManager_message_schema_assetIdInvalidOrNotExists": "アセットIDが無効、またはライブラリに存在しません。",
+  "VrcAssetManager_message_schema_tagNullOrExists": "タグがnull、空、または既にライブラリに存在します。"
 }

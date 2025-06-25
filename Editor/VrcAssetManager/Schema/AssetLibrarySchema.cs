@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Newtonsoft.Json;
+using AMU.Editor.Core.Api;
 
 namespace AMU.Editor.VrcAssetManager.Schema
 {
@@ -55,7 +56,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public void AddAsset(AssetSchema asset)
         {
             if (asset == null || _assets.ContainsKey(asset.assetId))
-                throw new ArgumentException("Asset is null or already exists in the library.");
+                throw new ArgumentException(LocalizationAPI.GetText("VrcAssetManager_message_schema_assetNullOrExists"));
 
             _assets[asset.assetId] = asset;
             _lastUpdated = DateTime.Now;
@@ -64,7 +65,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public void UpdateAsset(AssetSchema asset)
         {
             if (asset == null || !_assets.ContainsKey(asset.assetId))
-                throw new ArgumentException("Asset is null or does not exist in the library.");
+                throw new ArgumentException(LocalizationAPI.GetText("VrcAssetManager_message_schema_assetNullOrNotExists"));
 
             _assets[asset.assetId] = asset;
             _lastUpdated = DateTime.Now;
@@ -73,7 +74,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public void RemoveAsset(Guid assetId)
         {
             if (assetId == Guid.Empty || !_assets.ContainsKey(assetId))
-                throw new ArgumentException("Asset ID is invalid or does not exist in the library.");
+                throw new ArgumentException(LocalizationAPI.GetText("VrcAssetManager_message_schema_assetIdInvalidOrNotExists"));
 
             _assets.Remove(assetId);
             _lastUpdated = DateTime.Now;
@@ -153,7 +154,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public void AddTag(string tag)
         {
             if (string.IsNullOrWhiteSpace(tag) || _tags.Contains(tag))
-                throw new ArgumentException("Tag is null, empty, or already exists in the library.");
+                throw new ArgumentException(LocalizationAPI.GetText("VrcAssetManager_message_schema_tagNullOrExists"));
 
             _tags.Add(tag.Trim());
             _lastUpdated = DateTime.Now;
@@ -162,7 +163,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public void RemoveTag(string tag)
         {
             if (string.IsNullOrWhiteSpace(tag) || !_tags.Contains(tag))
-                throw new ArgumentException("Tag is null, empty, or does not exist in the library.");
+                throw new ArgumentException(LocalizationAPI.GetText("VrcAssetManager_message_schema_tagNullOrNotExists"));
             _tags.Remove(tag);
             _lastUpdated = DateTime.Now;
         }
@@ -188,7 +189,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public void AddAssetType(string assetType)
         {
             if (string.IsNullOrWhiteSpace(assetType) || _assetTypes.Contains(assetType))
-                throw new ArgumentException("Asset type is null, empty, or already exists in the library.");
+                throw new ArgumentException(LocalizationAPI.GetText("VrcAssetManager_message_schema_assetTypeNullOrExists"));
 
             _assetTypes.Add(assetType.Trim());
             _lastUpdated = DateTime.Now;
@@ -197,7 +198,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public void RemoveAssetType(string assetType)
         {
             if (string.IsNullOrWhiteSpace(assetType) || !_assetTypes.Contains(assetType))
-                throw new ArgumentException("Asset type is null, empty, or does not exist in the library.");
+                throw new ArgumentException(LocalizationAPI.GetText("VrcAssetManager_message_schema_assetTypeNullOrNotExists"));
 
             _assetTypes.Remove(assetType);
             _lastUpdated = DateTime.Now;
