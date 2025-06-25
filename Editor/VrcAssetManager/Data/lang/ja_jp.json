@@ -1,5 +1,6 @@
 {
   "VrcAssetManager_category": "VRC Asset Manager",
+  "VrcAssetManager_title": "VRC Asset Manager",
   "VrcAssetManager_watchDownloadFolder": "ダウンロードフォルダ監視",
   "VrcAssetManager_excludedImportExtensions": "インポートボタンを非表示にする拡張子",
 
@@ -104,6 +105,15 @@
   "TagSelector_noSelection": "未選択",
   "TagSelector_clearAll": "全て解除",
   
+  "AssetManager_libraryNotInitialized": "ライブラリが初期化されていません",
+  "AssetManager_noAssets": "アセットがありません",
+  "AssetManager_backToParent": "上に戻る",
+  "AssetManager_addToGroup": "グループに追加",
+  "AssetManager_deleteAssetTitle": "アセットの削除",
+  "AssetManager_deleteAssetsTitle": "選択されたアセットの削除",
+  "AssetManager_deleteAssetMessage": "このアセットを削除してもよろしいですか？",
+  "AssetManager_deleteGroupAssetMessage": "このグループアセットとその子アセットをすべて削除してもよろしいですか？",
+  
   "ImportPathSelector_windowTitle": "Import Path選択",
   "ImportPathSelector_zipFile": "Zipファイル",
   "ImportPathSelector_fileCount": "ファイル数",
@@ -124,5 +134,7 @@
   "Common_cancel": "キャンセル",
   "Common_ok": "OK",
   "Common_clear": "クリア",
-  "Common_error": "エラー"
+  "Common_error": "エラー",
+  "Yes": "はい",
+  "No": "いいえ"
 }

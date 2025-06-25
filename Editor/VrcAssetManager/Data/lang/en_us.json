@@ -1,5 +1,6 @@
 {
   "VrcAssetManager_category": "VRC Asset Manager",
+  "VrcAssetManager_title": "VRC Asset Manager",
   "VrcAssetManager_watchDownloadFolder": "Watch Download Folder",
   "VrcAssetManager_excludedImportExtensions": "Extensions to Hide Import Button",
 
@@ -104,6 +105,15 @@
   "TagSelector_noSelection": "No selection",
   "TagSelector_clearAll": "Clear All",
   
+  "AssetManager_libraryNotInitialized": "Library not initialized",
+  "AssetManager_noAssets": "No assets available",
+  "AssetManager_backToParent": "Back to Parent",
+  "AssetManager_addToGroup": "Add to Group",
+  "AssetManager_deleteAssetTitle": "Delete Asset",
+  "AssetManager_deleteAssetsTitle": "Delete Selected Assets",
+  "AssetManager_deleteAssetMessage": "Are you sure you want to delete this asset?",
+  "AssetManager_deleteGroupAssetMessage": "Are you sure you want to delete this group asset and all its child assets?",
+  
   "ImportPathSelector_windowTitle": "Import Path Selection",
   "ImportPathSelector_zipFile": "Zip File",
   "ImportPathSelector_fileCount": "File Count",
@@ -124,5 +134,7 @@
   "Common_cancel": "Cancel",
   "Common_ok": "OK",
   "Common_clear": "Clear",
-  "Common_error": "Error"
+  "Common_error": "Error",
+  "Yes": "Yes",
+  "No": "No"
 }

@@ -7,6 +7,7 @@ using AMU.Editor.Core.Api;
 using AMU.Editor.VrcAssetManager.Controller;
 using AMU.Editor.VrcAssetManager.Schema;
 using AMU.Editor.VrcAssetManager.Helper;
+using AMU.Editor.VrcAssetManager.UI;
 
 namespace AMU.Editor.VrcAssetManager.UI.Components
 {
@@ -16,6 +17,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         private static AssetSchema _selectedAsset;
         private static List<AssetSchema> _selectedAssets = new List<AssetSchema>();
         private static AssetItemComponent _assetItemComponent = new AssetItemComponent();
+        private static SpecialAssetItemComponent _specialAssetItemComponent = new SpecialAssetItemComponent();
         private static int _currentPage = 1;
         private static int _maxPage = 1;
 
@@ -105,28 +107,51 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                         using (new GUILayout.VerticalScope())
                         {
                             GUILayout.Space(5);
-                            _maxPage = Mathf.Max(1, Mathf.CeilToInt((float)assets.Count / 35));
+
+                            // グループフィルタが有効な場合は特別なボタンを含めて計算
+                            bool isGroupFiltered = !string.IsNullOrEmpty(controller.filterOptions.parentGroupId);
+                            int specialItemsCount = isGroupFiltered ? 2 : 0; // 戻るボタンと追加ボタン
+                            int totalItems = assets.Count + specialItemsCount;
+                            
+                            _maxPage = Mathf.Max(1, Mathf.CeilToInt((float)totalItems / 35));
                             _currentPage = Mathf.Clamp(_currentPage, 1, _maxPage);
                             int _startIndex = (_currentPage - 1) * 35;
-                            int _endIndex = Mathf.Min(_startIndex + 35, assets.Count);
+                            int _endIndex = Mathf.Min(_startIndex + 35, totalItems);
 
-                            for (int i = _startIndex; i < _endIndex && i < assets.Count; i += 7)
+                            int currentIndex = _startIndex;
+                            
+                            for (int row = 0; currentIndex < _endIndex; row++)
                             {
                                 using (new GUILayout.HorizontalScope())
                                 {
-                                    for (int j = 0; j < 7 && i+j < assets.Count; j++)
+                                    for (int col = 0; col < 7 && currentIndex < _endIndex; col++, currentIndex++)
                                     {
-                                        var asset = assets[i + j];
-                                        bool isSelected = _selectedAsset == asset;
-                                        bool isMultiSelected = _selectedAssets.Contains(asset);
-                                        _assetItemComponent.Draw(
-                                            asset,
-                                            isSelected,
-                                            isMultiSelected && _selectedAssets.Count > 1,
-                                            HandleAssetLeftClick,
-                                            HandleAssetRightClick,
-                                            HandleAssetDoubleClick
-                                        );
+                                        if (isGroupFiltered && currentIndex == 0)
+                                        {
+                                            _specialAssetItemComponent.DrawBackButton(HandleBackClick);
+                                        }
+                                        else if (isGroupFiltered && currentIndex == totalItems - 1)
+                                        {
+                                            _specialAssetItemComponent.DrawAddButton(HandleAddClick);
+                                        }
+                                        else
+                                        {
+                                            int assetIndex = currentIndex - (isGroupFiltered && currentIndex > 0 ? 1 : 0);
+                                            if (assetIndex < assets.Count)
+                                            {
+                                                var asset = assets[assetIndex];
+                                                bool isSelected = _selectedAsset == asset;
+                                                bool isMultiSelected = _selectedAssets.Contains(asset);
+                                                _assetItemComponent.Draw(
+                                                    asset,
+                                                    isSelected,
+                                                    isMultiSelected && _selectedAssets.Count > 1,
+                                                    HandleAssetLeftClick,
+                                                    HandleAssetRightClick,
+                                                    HandleAssetDoubleClick
+                                                );
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -374,6 +399,43 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             {
                 AssetDetailWindow.ShowWindow(asset);
                 AssetDetailWindow.history.Clear();
+            }
+        }
+
+        private static void HandleBackClick()
+        {
+            var controller = AssetLibraryController.Instance;
+            controller.filterOptions.ClearFilter();
+            _currentPage = 1;
+        }
+
+        private static void HandleAddClick()
+        {
+            var controller = AssetLibraryController.Instance;
+            var currentGroupId = controller.filterOptions.parentGroupId;
+            
+            if (!string.IsNullOrEmpty(currentGroupId))
+            {
+                AssetSelectorWindow.ShowWindow(
+                    (selectedAssetIds) =>
+                    {
+                        foreach (var assetId in selectedAssetIds)
+                        {
+                            if (Guid.TryParse(assetId, out var guid))
+                            {
+                                var asset = controller.GetAsset(guid);
+                                if (asset != null)
+                                {
+                                    asset.SetParentGroupId(currentGroupId);
+                                    controller.UpdateAsset(asset);
+                                }
+                            }
+                        }
+                    },
+                    null,
+                    true,
+                    1
+                );
             }
         }
     }

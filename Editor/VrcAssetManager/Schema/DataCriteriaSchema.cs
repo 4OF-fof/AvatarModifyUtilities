@@ -15,7 +15,7 @@ namespace AMU.Editor.VrcAssetManager.Schema
         public bool? isFavorite;
         public bool isArchived;
         public bool isChildItem;
-        public string parentGroupId; // 親グループIDでフィルタリング
+        public string parentGroupId;
 
         public FilterOptions()
         {
