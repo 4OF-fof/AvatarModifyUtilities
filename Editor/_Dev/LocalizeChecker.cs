@@ -124,15 +124,12 @@ public class LocalizeChecker : EditorWindow
                 GUILayout.Label("jsonにのみ存在するキー", EditorStyles.boldLabel);
                 if (GUILayout.Button("一括削除", GUILayout.Width(100)))
                 {
-                    foreach (var k in onlyInJson)
-                    {
-                        RemoveKeyFromAllJson(k);
-                    }
+                    RemoveKeysFromAllJson(onlyInJson);
                     // 再検索して画面を更新
                     foundKeys = FindLocalizationKeys(folderPath);
                     langJsonContents = FindLangJsonFiles(folderPath);
                     GUI.FocusControl(null);
-                    return; // 一括削除後は再描画
+                    GUIUtility.ExitGUI(); // レイアウトエラー防止
                 }
                 foreach (var k in onlyInJson)
                 {
@@ -145,7 +142,7 @@ public class LocalizeChecker : EditorWindow
                         foundKeys = FindLocalizationKeys(folderPath);
                         langJsonContents = FindLangJsonFiles(folderPath);
                         GUI.FocusControl(null); // フォーカスを外して即時反映
-                        break;
+                        GUIUtility.ExitGUI(); // レイアウトエラー防止
                     }
                     EditorGUILayout.EndHorizontal();
                 }
@@ -221,6 +218,27 @@ public class LocalizeChecker : EditorWindow
                 string pattern = $@"[\r\n\s]*""{Regex.Escape(key)}""\s*:\s*"".*?""\s*,?";
                 string newContent = Regex.Replace(kv.Value, pattern, "", RegexOptions.Multiline);
                 // 先頭や末尾のカンマや余分な改行も整理
+                newContent = Regex.Replace(newContent, @",\s*([\}\]])", "$1");
+                newContent = Regex.Replace(newContent, @"([\{\[])[\s,]*", "$1");
+                File.WriteAllText(kv.Key, newContent);
+            }
+            catch { }
+        }
+    }
+
+    // 複数キーをまとめて削除
+    private void RemoveKeysFromAllJson(List<string> keys)
+    {
+        foreach (var kv in langJsonContents)
+        {
+            try
+            {
+                string newContent = kv.Value;
+                foreach (var key in keys)
+                {
+                    string pattern = $@"[\r\n\s]*""{Regex.Escape(key)}""\s*:\s*"".*?""\s*,?";
+                    newContent = Regex.Replace(newContent, pattern, "", RegexOptions.Multiline);
+                }
                 newContent = Regex.Replace(newContent, @",\s*([\}\]])", "$1");
                 newContent = Regex.Replace(newContent, @"([\{\[])[\s,]*", "$1");
                 File.WriteAllText(kv.Key, newContent);
