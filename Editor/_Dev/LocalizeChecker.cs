@@ -288,9 +288,11 @@ public class LocalizeChecker : EditorWindow
             try
             {
                 string text = File.ReadAllText(file);
-                // LocalizationAPI.GetText("oldKey") → LocalizationAPI.GetText("newKey")
-                string pattern = $@"(LocalizationAPI\.GetText\s*\(\s*)""{Regex.Escape(oldKey)}""";
-                string replaced = Regex.Replace(text, pattern, $"$1\"{newKey}\"", RegexOptions.Multiline);
+                // LocalizationAPI.GetText("oldKey") と LocalizationController.GetText("oldKey") の両方を置換
+                string patternApi = $@"(LocalizationAPI\.GetText\s*\(\s*)""{Regex.Escape(oldKey)}""";
+                string patternCtrl = $@"(LocalizationController\.GetText\s*\(\s*)""{Regex.Escape(oldKey)}""";
+                string replaced = Regex.Replace(text, patternApi, $"$1\"{newKey}\"", RegexOptions.Multiline);
+                replaced = Regex.Replace(replaced, patternCtrl, $"$1\"{newKey}\"", RegexOptions.Multiline);
                 // Setting.cs内のリテラルも置換
                 if (Path.GetFileName(file).Equals("Setting.cs", System.StringComparison.OrdinalIgnoreCase))
                 {
