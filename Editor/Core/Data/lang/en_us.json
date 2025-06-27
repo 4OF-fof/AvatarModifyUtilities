@@ -1,8 +1,15 @@
-{
-  "Core_setting": "Setting",
+{"Core_setting": "Setting",
   "Core_general": "General",
   "Core_language": "Language",
   "Core_dirPath": "Data Folder",
   "Core_versionInfo": "Version",
-  "Core_repositoryUrl": "Repository URL"
-}
+  "Core_repositoryUrl": "Repository URL",
+
+  "Core_ui_empty_result": "No results found",
+  "Core_message_info_initialization_starting": "[InitializationService] Starting AMU initialization...",
+  "Core_message_success_initialization_completed": "[InitializationService] AMU initialization completed successfully.",
+  "Core_message_error_initialization_failed": "[InitializationService] AMU initialization failed: {0}",
+  "Core_message_success_localization_initialized": "[InitializationService] Localization initialized successfully.",
+  "Core_message_error_localization_failed": "[InitializationService] Localization initialization failed: {0}",
+  "Core_message_success_settings_initialized": "[SettingsController] EditorPrefs initialized successfully.",
+  "Core_message_error_settings_failed": "[SettingsController] EditorPrefs initialization failed: {0}"}

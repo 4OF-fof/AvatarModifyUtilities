@@ -1,8 +1,15 @@
-{
-  "Core_setting": "設定",
+{"Core_setting": "設定",
   "Core_general": "一般",
   "Core_language": "表示言語",
   "Core_dirPath": "データ保存フォルダ",
   "Core_versionInfo": "バージョン情報",
-  "Core_repositoryUrl": "リポジトリURL"
-}
+  "Core_repositoryUrl": "リポジトリURL",
+  
+  "Core_ui_empty_result": "検索結果がありません",
+  "Core_message_info_initialization_starting": "[InitializationService] AMUの初期化を開始しています...",
+  "Core_message_success_initialization_completed": "[InitializationService] AMUの初期化が正常に完了しました。",
+  "Core_message_error_initialization_failed": "[InitializationService] AMUの初期化に失敗しました: {0}",
+  "Core_message_success_localization_initialized": "[InitializationService] ローカライゼーションが正常に初期化されました。",
+  "Core_message_error_localization_failed": "[InitializationService] ローカライゼーションの初期化に失敗しました: {0}",
+  "Core_message_success_settings_initialized": "[SettingsController] EditorPrefsが正常に初期化されました。",
+  "Core_message_error_settings_failed": "[SettingsController] EditorPrefsの初期化に失敗しました: {0}"}

@@ -1,5 +1,35 @@
 {
+  "AutoVariant_category": "Auto Variant",
   "AutoVariant_enableAutoVariant": "Create Variants Automatically",
   "AutoVariant_enablePrebuild": "Save current avatar before building",
-  "AutoVariant_includeAllAssets": "Include All Related Assets"
+  "AutoVariant_includeAllAssets": "Include All Related Assets",
+  
+  "AutoVariant_message_error_avatar_null": "Avatar is null",
+  "AutoVariant_message_error_not_prefab_instance": "Object is not a prefab instance",
+  "AutoVariant_message_error_prefab_asset_not_found": "Could not find corresponding prefab asset",
+  "AutoVariant_message_warning_not_variant": "This prefab doesn't seem to be a variant",
+  "AutoVariant_message_warning_material_count_mismatch": "Material count mismatch in {0}",
+  "AutoVariant_message_info_material_optimized": "Optimized material {1} in {0}",
+  "AutoVariant_message_info_override_applied": "Applied override to variant prefab for {0}",
+  "AutoVariant_message_error_override_failed": "Error applying override for {0}: {1}",
+  "AutoVariant_message_info_optimization_completed": "Optimized materials for VRC Avatar: {0}",
+  "AutoVariant_message_info_material_states_saved": "Saved material states for {1} renderers in {0}",
+  "AutoVariant_message_info_materials_restored": "Restored materials for {0} renderers",
+  "AutoVariant_message_info_prefab_added": "Prefab added to scene: {0}",
+  "AutoVariant_message_info_materials_processed": "Materials processed for prefab child: {0}",
+  "AutoVariant_message_info_variant_created": "Prefab Variant created: {0}",
+  "AutoVariant_message_info_material_copied": "Material copied: {0} -> {1}",
+  "AutoVariant_message_info_material_replaced": "Material replaced on {0}: {1} -> {2}",
+  "AutoVariant_message_info_scene_object_replaced": "Scene object replaced with variant: {0}",
+  "AutoVariant_message_warning_no_active_avatars": "No active avatars found",
+  "AutoVariant_message_warning_multiple_avatars": "Multiple active avatars found",
+  "AutoVariant_message_info_export_no_blueprint": "No blueprint ID found, exporting to local directory",
+  
+  "AutoVariant_message_error_build_cancelled_title": "Build Cancelled",
+  "AutoVariant_message_error_multiple_avatars_detected": "Multiple avatars detected. Please activate only one avatar.",
+  "AutoVariant_message_error_target_null": "Target is null",
+  "AutoVariant_message_error_save_path_required": "Save path is required",
+  "AutoVariant_message_warning_no_renderable_bounds": "No renderable bounds",
+  "AutoVariant_message_error_save_image_failed": "Failed to save image",
+  "AutoVariant_message_success_image_saved": "Image saved"
 }

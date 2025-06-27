@@ -1,9 +1,9 @@
-using System.Collections.Generic;
 using System;
-using AMU.Data.Lang;
-using AMU.Data.Setting;
+using System.Collections.Generic;
 
-namespace AMU.Data.Setting
+using AMU.Editor.Core.Schema;
+
+namespace AMU.Editor.Setting
 {
     public static class SettingData
     {
@@ -15,12 +15,12 @@ namespace AMU.Data.Setting
                     {
                         { "ja_jp", "日本語" },
                         { "en_us", "English" },
-                    }, "ja_jp"),
+                    }, "en_us"),
                 new FilePathSettingItem(
                     "Core_dirPath",
                     System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AvatarModifyUtilities"),
                     true),
-                new StringSettingItem("Core_versionInfo", "0.2.1", true),
+                new StringSettingItem("Core_versionInfo", "0.3.0", true),
                 new StringSettingItem("Core_repositoryUrl", "https://github.com/4OF-fof/AvatarModifyUtilities", true),
             } },
         };
