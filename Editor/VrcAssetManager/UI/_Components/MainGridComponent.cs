@@ -18,6 +18,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         private static List<AssetSchema> _selectedAssets = new List<AssetSchema>();
         private static AssetItemComponent _assetItemComponent = new AssetItemComponent();
         private static SpecialAssetItemComponent _specialAssetItemComponent = new SpecialAssetItemComponent();
+        private static string nowAssetType = "";
         private static int _currentPage = 1;
         private static int _maxPage = 1;
 
@@ -413,6 +414,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             
             if (asset.hasChildAssets)
             {
+                nowAssetType = controller.filterOptions.assetType;
                 controller.filterOptions.ClearFilter();
                 controller.filterOptions.parentGroupId = asset.assetId.ToString();
                 controller.filterOptions.isChildItem = true;
@@ -428,8 +430,10 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         private static void HandleBackClick()
         {
             var controller = AssetLibraryController.Instance;
-            controller.filterOptions.ClearFilter();
-            _currentPage = 1;
+            controller.filterOptions.assetType = nowAssetType;
+            controller.filterOptions.parentGroupId = string.Empty;
+            controller.filterOptions.isChildItem = false;
+            ToolbarComponent.isUsingAdvancedSearch = false;
         }
 
         private static void HandleAddClick()
