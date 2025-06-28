@@ -639,6 +639,9 @@ namespace AMU.Editor.VrcAssetManager.UI
                         GUILayout.FlexibleSpace();
                         if (GUILayout.Button(LocalizationAPI.GetText("VrcAssetManager_ui_assetDetail_selectImportPath"), GUILayout.Width(240), GUILayout.Height(32)))
                         {
+                            InitEditData(_asset);
+                            GUI.FocusControl(null);
+                            _isEditMode = true;
                             ShowImportPathSelector();
                         }
                         GUILayout.FlexibleSpace();
