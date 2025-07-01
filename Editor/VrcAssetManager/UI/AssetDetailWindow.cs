@@ -189,6 +189,23 @@ namespace AMU.Editor.VrcAssetManager.UI
                                 newFilePath = absNewFilePath.Substring(absCoreDir.Length).Replace('\\', '/');
                             }
                         }
+
+                        if (controller != null && newChildAssetIds != null && !string.IsNullOrEmpty(newAssetType))
+                        {
+                            foreach (var childId in newChildAssetIds)
+                            {
+                                if (Guid.TryParse(childId, out var childGuid))
+                                {
+                                    var childAsset = controller.GetAsset(childGuid);
+                                    if (childAsset != null && string.IsNullOrEmpty(childAsset.metadata.assetType))
+                                    {
+                                        childAsset.metadata.SetAssetType(newAssetType);
+                                        controller.UpdateAsset(childAsset);
+                                    }
+                                }
+                            }
+                        }
+
                         _asset.metadata.SetName(newName);
                         _asset.metadata.SetDescription(newDescription);
                         _asset.metadata.SetAuthorName(newAuthorName);
