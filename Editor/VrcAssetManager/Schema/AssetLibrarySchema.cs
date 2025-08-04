@@ -219,6 +219,21 @@ namespace AMU.Editor.VrcAssetManager.Schema
             _assetTypes.Clear();
             _lastUpdated = DateTime.Now;
         }
+
+        public void ReorderAssetType(int fromIndex, int toIndex)
+        {
+            if (fromIndex < 0 || fromIndex >= _assetTypes.Count ||
+                toIndex < 0 || toIndex >= _assetTypes.Count ||
+                fromIndex == toIndex)
+            {
+                return;
+            }
+
+            var assetType = _assetTypes[fromIndex];
+            _assetTypes.RemoveAt(fromIndex);
+            _assetTypes.Insert(toIndex, assetType);
+            _lastUpdated = DateTime.Now;
+        }
         #endregion
     }
 }

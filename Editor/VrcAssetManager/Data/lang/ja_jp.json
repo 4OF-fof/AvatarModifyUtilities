@@ -202,7 +202,7 @@
   "VrcAssetManager_ui_assetTypePanel_addNewType": "新しい分類を追加",
   "VrcAssetManager_ui_assetTypePanel_typeAlreadyExists": "このタイプは既に存在します",
   "VrcAssetManager_ui_assetTypePanel_typeNameRequired": "タイプ名を入力してください",
-  "VrcAssetManager_ui_assetTypePanel_showDeleteButtons": "削除ボタンを表示",
+  "VrcAssetManager_ui_assetTypePanel_showDeleteButtons": "編集",
   "VrcAssetManager_ui_assetTypePanel_confirmDeleteTitle": "タイプ削除の確認",
   "VrcAssetManager_ui_assetTypePanel_confirmDeleteMessage": "本当にこのタイプを削除しますか？",
   "VrcAssetManager_ui_mainGrid_importSelectedAssets": "選択アセットをインポート",
