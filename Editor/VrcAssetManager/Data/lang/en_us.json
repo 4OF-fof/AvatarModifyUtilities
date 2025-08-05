@@ -28,7 +28,7 @@
 
   "VrcAssetManager_ui_assetManager_libraryNotInitialized": "Library not initialized",
   "VrcAssetManager_ui_assetManager_noAssets": "No assets available",
-  "VrcAssetManager_ui_assetManager_backToParent": "Back to Parent",
+  "VrcAssetManager_ui_assetManager_backToParent": "Back",
   "VrcAssetManager_ui_assetManager_addToGroup": "Add to Group",
   "VrcAssetManager_ui_assetManager_deleteAssetTitle": "Delete Asset",
   "VrcAssetManager_ui_assetManager_deleteAssetsTitle": "Delete Selected Assets",

@@ -44,7 +44,7 @@
   
   "VrcAssetManager_ui_assetManager_libraryNotInitialized": "ライブラリが初期化されていません",
   "VrcAssetManager_ui_assetManager_noAssets": "アセットがありません",
-  "VrcAssetManager_ui_assetManager_backToParent": "上に戻る",
+  "VrcAssetManager_ui_assetManager_backToParent": "戻る",
   "VrcAssetManager_ui_assetManager_addToGroup": "グループに追加",
   "VrcAssetManager_ui_assetManager_deleteAssetTitle": "アセットの削除",
   "VrcAssetManager_ui_assetManager_deleteAssetsTitle": "選択されたアセットの削除",
