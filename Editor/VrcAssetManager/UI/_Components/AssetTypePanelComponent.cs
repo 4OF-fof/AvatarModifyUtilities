@@ -73,8 +73,13 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                 if (allPressed && !isAllSelected)
                 {
+                    if (ToolbarComponent.isUsingAdvancedSearch)
+                    {
+                        controller.filterOptions.ClearFilter();
+                        ToolbarComponent.isUsingAdvancedSearch = false;
+                    }
+                    
                     _selectedAssetType = controller.filterOptions.assetType = "";
-
                 }
 
                 GUILayout.Space(5);
@@ -89,6 +94,12 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                     if (unCategorizedPressed && !isUnCategorizedSelected)
                     {
+                        if (ToolbarComponent.isUsingAdvancedSearch)
+                        {
+                            controller.filterOptions.ClearFilter();
+                            ToolbarComponent.isUsingAdvancedSearch = false;
+                        }
+                        
                         _selectedAssetType = controller.filterOptions.assetType = "UNCATEGORIZED";
                     }
                 }
@@ -165,10 +176,15 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                         if (pressed && !isSelected)
                         {
+                            if (ToolbarComponent.isUsingAdvancedSearch)
+                            {
+                                controller.filterOptions.ClearFilter();
+                                ToolbarComponent.isUsingAdvancedSearch = false;
+                            }
+                            
                             _selectedAssetType = controller.filterOptions.assetType = assetType;
                         }
 
-                        // 削除ボタン
                         if (_showDeleteButtons)
                         {
                             var deleteButtonStyle = new GUIStyle(GUI.skin.button)
