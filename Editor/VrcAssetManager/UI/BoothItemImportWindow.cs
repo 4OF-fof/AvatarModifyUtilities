@@ -62,7 +62,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private string GetBoothItemKey(BoothItemSchema b)
         {
-            return $"{b.itemName}\0{b.authorName}\0{b.itemUrl}\0{b.imageUrl}\0{b.fileName}\0{b.downloadUrl}";
+            return b.downloadUrl;
         }
 
         private void OnGUI()
