@@ -15,8 +15,7 @@ namespace AMU.Editor.AutoVariant.Services
     public static class ConvertVariantService
     {
         private static bool isProcessing = false;
-        private static HashSet<int> processedInstanceIds =
-            new HashSet<int>();
+        private static HashSet<int> processedInstanceIds = new HashSet<int>();
         private static double lastClearTime = 0;
 
         static ConvertVariantService()
