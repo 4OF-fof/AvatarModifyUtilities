@@ -1,4 +1,5 @@
 using System.IO;
+using System.Collections.Generic;
 
 using UnityEngine;
 using UnityEditor;
@@ -13,8 +14,8 @@ namespace AMU.Editor.AutoVariant.Services
     public static class ConvertVariantService
     {
         private static bool isProcessing = false;
-        private static System.Collections.Generic.HashSet<int> processedInstanceIds =
-            new System.Collections.Generic.HashSet<int>();
+        private static HashSet<int> processedInstanceIds =
+            new HashSet<int>();
         private static double lastClearTime = 0;
 
         static ConvertVariantService()
@@ -76,17 +77,17 @@ namespace AMU.Editor.AutoVariant.Services
             }
         }
 
-        private static System.Collections.Generic.List<GameObject> FindAddedPrefabRoots()
+        private static List<GameObject> FindAddedPrefabRoots()
         {
             if (!SettingAPI.GetSetting<bool>("AutoVariant_enableAutoVariant"))
-                return new System.Collections.Generic.List<GameObject>();
+                return new List<GameObject>();
 
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
             {
-                return new System.Collections.Generic.List<GameObject>();
+                return new List<GameObject>();
             }
 
-            var result = new System.Collections.Generic.List<GameObject>();
+            var result = new List<GameObject>();
             foreach (GameObject go in Resources.FindObjectsOfTypeAll<GameObject>())
             {
                 if (!go.scene.IsValid()) continue;
