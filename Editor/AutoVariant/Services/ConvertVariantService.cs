@@ -116,6 +116,8 @@ namespace AMU.Editor.AutoVariant.Services
             if (!SettingAPI.GetSetting<bool>("AutoVariant_enableAutoVariant"))
                 return;
 
+            if (!VRCObjectHelper.IsVRCAvatar(go)) return;
+
             var blueprintId = VRCObjectHelper.GetBlueprintId(go);
             if (!string.IsNullOrEmpty(blueprintId))
                 return;
