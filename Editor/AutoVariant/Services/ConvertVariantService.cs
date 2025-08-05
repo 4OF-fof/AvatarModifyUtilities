@@ -120,10 +120,6 @@ namespace AMU.Editor.AutoVariant.Services
 
             if (!VRCObjectHelper.IsVRCAvatar(go)) return;
 
-            var blueprintId = VRCObjectHelper.GetBlueprintId(go);
-            if (!string.IsNullOrEmpty(blueprintId))
-                return;
-
             var prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(go);
             var prefabPath = AssetDatabase.GetAssetPath(prefabAsset);
 
