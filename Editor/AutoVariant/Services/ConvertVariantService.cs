@@ -7,6 +7,7 @@ using UnityEditor.SceneManagement;
 
 using AMU.Editor.Core.Api;
 using AMU.Editor.AutoVariant.Helper;
+using AMU.AutoVariant.Data;
 
 namespace AMU.Editor.AutoVariant.Services
 {
@@ -40,7 +41,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static void ClearProcessedIds()
         {
-            if (EditorApplication.timeSinceStartup - lastClearTime > 5.0)
+            if (EditorApplication.timeSinceStartup - lastClearTime > 1.0)
             {
                 processedInstanceIds.Clear();
                 lastClearTime = EditorApplication.timeSinceStartup;
@@ -109,7 +110,7 @@ namespace AMU.Editor.AutoVariant.Services
 
         private static bool IsAMUPrefab(GameObject go, Object prefabAsset)
         {
-            return go.name.StartsWith("AMU_") || (prefabAsset != null && prefabAsset.name.StartsWith("AMU_"));
+            return go.GetComponent<AMUAutoVariantComponent>() != null;
         }
 
         private static void HandlePrefabAddition(GameObject go)
@@ -149,13 +150,25 @@ namespace AMU.Editor.AutoVariant.Services
             {
                 CopyAndReplaceMaterials(go, materialDir);
 
-                string variantName = "AMU_" + go.name + ".prefab";
+                string variantName = go.name + ".prefab";
                 string variantPath = Path.Combine(variantDir, variantName).Replace("\\", "/");
 
                 if (!File.Exists(variantPath))
                 {
+                    if (go.GetComponent<AMUAutoVariantComponent>() == null)
+                    {
+                        go.AddComponent<AMUAutoVariantComponent>();
+                    }
+                    
                     PrefabUtility.SaveAsPrefabAssetAndConnect(go, variantPath, InteractionMode.UserAction);
                     Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("AutoVariant_message_info_variant_created"), variantPath)}");
+                }
+                else
+                {
+                    if (go.GetComponent<AMUAutoVariantComponent>() == null)
+                    {
+                        go.AddComponent<AMUAutoVariantComponent>();
+                    }
                 }
 
                 ReplaceWithVariant(go, variantPath);
@@ -247,6 +260,13 @@ namespace AMU.Editor.AutoVariant.Services
             newInstance.transform.SetPositionAndRotation(position, rotation);
             newInstance.transform.localScale = scale;
             newInstance.transform.SetSiblingIndex(siblingIndex);
+
+            if (newInstance.GetComponent<AMUAutoVariantComponent>() == null)
+            {
+                newInstance.AddComponent<AMUAutoVariantComponent>();
+            }
+
+            processedInstanceIds.Add(newInstance.GetInstanceID());
 
             Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("AutoVariant_message_info_scene_object_replaced"), variantPrefab.name)}");
         }
