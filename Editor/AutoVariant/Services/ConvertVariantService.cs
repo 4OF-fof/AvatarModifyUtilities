@@ -133,18 +133,16 @@ namespace AMU.Editor.AutoVariant.Services
             string materialDir = Path.Combine(variantDir, "Material").Replace("\\", "/");
             EnsureVariantDirectoryExists(materialDir);
 
-            bool isPrefabChild = go.transform.parent != null &&
-                               PrefabUtility.IsPartOfAnyPrefab(go.transform.parent.gameObject);
+            bool isPrefabChild = go.transform.parent != null && PrefabUtility.IsPartOfAnyPrefab(go.transform.parent.gameObject);
+
+            CopyAndReplaceMaterials(go, materialDir);
 
             if (isPrefabChild)
             {
-                CopyAndReplaceMaterials(go, materialDir);
                 Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("AutoVariant_message_info_materials_processed"), go.name)}");
             }
             else
             {
-                CopyAndReplaceMaterials(go, materialDir);
-
                 string variantName = go.name + ".prefab";
                 string variantPath = Path.Combine(variantDir, variantName).Replace("\\", "/");
 
