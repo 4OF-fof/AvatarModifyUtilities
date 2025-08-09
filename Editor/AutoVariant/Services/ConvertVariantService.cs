@@ -14,8 +14,6 @@ namespace AMU.Editor.AutoVariant.Services
     [InitializeOnLoad]
     public static class ConvertVariantService
     {
-        private static bool isProcessing = false;
-        private static HashSet<int> processedInstanceIds = new HashSet<int>();
         private static double lastClearTime = 0;
 
         static ConvertVariantService()
@@ -42,7 +40,6 @@ namespace AMU.Editor.AutoVariant.Services
         {
             if (EditorApplication.timeSinceStartup - lastClearTime > 1.0)
             {
-                processedInstanceIds.Clear();
                 lastClearTime = EditorApplication.timeSinceStartup;
             }
         }
@@ -51,29 +48,24 @@ namespace AMU.Editor.AutoVariant.Services
         {
             if (!SettingAPI.GetSetting<bool>("AutoVariant_enableAutoVariant"))
                 return;
-            if (isProcessing)
-                return;
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
             {
                 return;
             }
 
-            isProcessing = true;
+            EditorApplication.hierarchyChanged -= OnHierarchyChanged;
             try
             {
                 var addedPrefabs = FindAddedPrefabRoots();
                 foreach (var go in addedPrefabs)
                 {
                     int instanceId = go.GetInstanceID();
-                    if (processedInstanceIds.Contains(instanceId))
-                        continue;
-                    processedInstanceIds.Add(instanceId);
                     HandlePrefabAddition(go);
                 }
             }
             finally
             {
-                isProcessing = false;
+                EditorApplication.hierarchyChanged += OnHierarchyChanged;
             }
         }
 
@@ -119,10 +111,24 @@ namespace AMU.Editor.AutoVariant.Services
 
             if (!VRCObjectHelper.IsVRCAvatar(go)) return;
 
-            var prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(go);
-            var prefabPath = AssetDatabase.GetAssetPath(prefabAsset);
+            if (go.GetComponent<AMUAutoVariantComponent>() == null)
+            {
+                go.AddComponent<AMUAutoVariantComponent>();
+                EditorUtility.SetDirty(go);
+            }
 
             Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("AutoVariant_message_info_prefab_added"), go.name)}");
+
+            EditorApplication.delayCall += () => ProcessPrefabAsync(go);
+        }
+
+        private static void ProcessPrefabAsync(GameObject go)
+        {
+            if (go == null) return;
+            if (!SettingAPI.GetSetting<bool>("AutoVariant_enableAutoVariant")) return;
+
+            var prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(go);
+            var prefabPath = AssetDatabase.GetAssetPath(prefabAsset);
 
             if (string.IsNullOrEmpty(prefabPath))
                 return;
@@ -146,26 +152,32 @@ namespace AMU.Editor.AutoVariant.Services
                 string variantName = go.name + ".prefab";
                 string variantPath = Path.Combine(variantDir, variantName).Replace("\\", "/");
 
-                if (!File.Exists(variantPath))
-                {
-                    if (go.GetComponent<AMUAutoVariantComponent>() == null)
-                    {
-                        go.AddComponent<AMUAutoVariantComponent>();
-                    }
-                    
-                    PrefabUtility.SaveAsPrefabAssetAndConnect(go, variantPath, InteractionMode.UserAction);
-                    Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("AutoVariant_message_info_variant_created"), variantPath)}");
-                }
-                else
-                {
-                    if (go.GetComponent<AMUAutoVariantComponent>() == null)
-                    {
-                        go.AddComponent<AMUAutoVariantComponent>();
-                    }
-                }
-
-                ReplaceWithVariant(go, variantPath);
+                EditorApplication.delayCall += () => CreateAndReplaceVariant(go, variantPath);
             }
+        }
+
+        private static void CreateAndReplaceVariant(GameObject go, string variantPath)
+        {
+            if (!SettingAPI.GetSetting<bool>("AutoVariant_enableAutoVariant")) return;
+
+            if (!File.Exists(variantPath))
+            {
+                if (go.GetComponent<AMUAutoVariantComponent>() == null)
+                {
+                    go.AddComponent<AMUAutoVariantComponent>();
+                }
+                
+                PrefabUtility.SaveAsPrefabAssetAndConnect(go, variantPath, InteractionMode.UserAction);
+                Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("AutoVariant_message_info_variant_created"), variantPath)}");
+            }
+            else
+            {
+                if (go.GetComponent<AMUAutoVariantComponent>() == null)
+                {
+                    go.AddComponent<AMUAutoVariantComponent>();
+                }
+            }
+            ReplaceWithVariant(go, variantPath);
         }
 
         private static void EnsureVariantDirectoryExists(string variantDir)
@@ -258,8 +270,6 @@ namespace AMU.Editor.AutoVariant.Services
             {
                 newInstance.AddComponent<AMUAutoVariantComponent>();
             }
-
-            processedInstanceIds.Add(newInstance.GetInstanceID());
 
             Debug.Log($"[ConvertVariantService] {string.Format(LocalizationAPI.GetText("AutoVariant_message_info_scene_object_replaced"), variantPrefab.name)}");
         }
