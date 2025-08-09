@@ -28,6 +28,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         private static bool _sortDescending = true;
         private static bool _isUsingAdvancedSearch = false;
         private static bool _isChildItem = false;
+        private static string _lastParentGroupId = "";
+        private static bool _lastIsChildItemState = false;
 
         public static bool isUsingAdvancedSearch
         {
@@ -109,6 +111,16 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                     GUILayout.FlexibleSpace();
 
+                    var currentParentGroupId = controller.filterOptions.parentGroupId ?? "";
+                    var currentIsChildItemState = controller.filterOptions.isChildItem;
+                    
+                    if (currentParentGroupId != _lastParentGroupId || currentIsChildItemState != _lastIsChildItemState)
+                    {
+                        _isChildItem = currentIsChildItemState && !string.IsNullOrEmpty(currentParentGroupId);
+                        _lastParentGroupId = currentParentGroupId;
+                        _lastIsChildItemState = currentIsChildItemState;
+                    }
+                    
                     var folderIcon = _isChildItem ? EditorGUIUtility.IconContent("FolderOpened Icon") : EditorGUIUtility.IconContent("Folder Icon");
                     var folderContent = new GUIContent(folderIcon.image);
 
@@ -117,6 +129,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     {
                         _isChildItem = newIsChildItem;
                         controller.filterOptions.isChildItem = _isChildItem;
+                        
+                        _lastIsChildItemState = _isChildItem;
                     }
 
                     GUILayout.Space(5);
@@ -235,6 +249,8 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             _isUsingAdvancedSearch = false;
             _isChildItem = false;
             _currentFilter = AssetFilterType.All;
+            _lastParentGroupId = "";
+            _lastIsChildItemState = false;
             var advWindows = Resources.FindObjectsOfTypeAll<AMU.Editor.VrcAssetManager.UI.AdvancedSearchWindow>();
             if (advWindows != null && advWindows.Length > 0)
             {
