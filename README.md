@@ -2,6 +2,9 @@
 
 **AMU**は、VRChatアバター改変を効率化するUnityエディタ拡張ツールです。プレハブのVariant自動作成、ビルド前の自動保存機能、アセットの管理画面を提供します。
 
+## 前提
+- [NDMF](https://github.com/bdunderscore/ndmf)
+
 ## 主な機能
 
 ### 自動Variant作成システム
