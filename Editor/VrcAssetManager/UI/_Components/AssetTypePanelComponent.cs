@@ -73,8 +73,13 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                 if (allPressed && !isAllSelected)
                 {
+                    if (ToolbarComponent.isUsingAdvancedSearch)
+                    {
+                        controller.filterOptions.ClearFilter();
+                        ToolbarComponent.isUsingAdvancedSearch = false;
+                    }
+                    
                     _selectedAssetType = controller.filterOptions.assetType = "";
-
                 }
 
                 GUILayout.Space(5);
@@ -89,6 +94,12 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
 
                     if (unCategorizedPressed && !isUnCategorizedSelected)
                     {
+                        if (ToolbarComponent.isUsingAdvancedSearch)
+                        {
+                            controller.filterOptions.ClearFilter();
+                            ToolbarComponent.isUsingAdvancedSearch = false;
+                        }
+                        
                         _selectedAssetType = controller.filterOptions.assetType = "UNCATEGORIZED";
                     }
                 }
@@ -107,21 +118,70 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                 {
                     _scrollPosition = scrollView.scrollPosition;
 
-                    foreach (var assetType in controller.GetAllAssetTypes())
+                    var assetTypes = controller.GetAllAssetTypes().ToList();
+                    for (int i = 0; i < assetTypes.Count; i++)
                     {
+                        var assetType = assetTypes[i];
                         bool isSelected = _selectedAssetType == assetType;
 
                         var rowRect = GUILayoutUtility.GetRect(1, 36, GUILayout.ExpandWidth(true));
-                        float deleteButtonWidth = (_showDeleteButtons ? 24f : 0f); // 余白も考慮
-                        float spacing = (_showDeleteButtons ? 4f : 0f);
-                        var typeRect = new Rect(rowRect.x, rowRect.y, rowRect.width - deleteButtonWidth - spacing, rowRect.height);
-                        var deleteRect = new Rect(rowRect.x + rowRect.width - deleteButtonWidth, rowRect.y + (rowRect.height - 28) / 2, 20, 28);
+                        float deleteButtonWidth = (_showDeleteButtons ? 24f : 0f);
+                        float arrowButtonsWidth = (_showDeleteButtons ? 48f : 0f); // 上下2つのボタン分
+                        float spacing = (_showDeleteButtons ? 8f : 0f);
+                        float totalWidth = deleteButtonWidth + arrowButtonsWidth + spacing;
+                        
+                        var typeRect = new Rect(rowRect.x + arrowButtonsWidth + (_showDeleteButtons ? 4f : 0f), rowRect.y, 
+                            rowRect.width - totalWidth, rowRect.height);
+                        var deleteRect = new Rect(rowRect.x + rowRect.width - deleteButtonWidth, 
+                            rowRect.y + (rowRect.height - 28) / 2, 20, 28);
+                        var upArrowRect = new Rect(rowRect.x, rowRect.y + 2, 20, 16);
+                        var downArrowRect = new Rect(rowRect.x + 22, rowRect.y + 2, 20, 16);
+
+                        if (_showDeleteButtons)
+                        {
+                            var arrowButtonStyle = new GUIStyle(GUI.skin.button)
+                            {
+                                fontSize = 10,
+                                fixedWidth = 20,
+                                fixedHeight = 16,
+                                margin = new RectOffset(1, 1, 1, 1),
+                                padding = new RectOffset(0, 0, 0, 0)
+                            };
+
+                            GUI.enabled = i > 0;
+                            if (GUI.Button(upArrowRect, "▲", arrowButtonStyle))
+                            {
+                                controller.ReorderAssetType(i, i - 1);
+                                if (_selectedAssetType == assetType)
+                                {
+                                    _selectedAssetType = controller.filterOptions.assetType = assetType;
+                                }
+                            }
+
+                            GUI.enabled = i < assetTypes.Count - 1;
+                            if (GUI.Button(downArrowRect, "▼", arrowButtonStyle))
+                            {
+                                controller.ReorderAssetType(i, i + 1);
+                                if (_selectedAssetType == assetType)
+                                {
+                                    _selectedAssetType = controller.filterOptions.assetType = assetType;
+                                }
+                            }
+
+                            GUI.enabled = true;
+                        }
 
                         bool pressed = GUI.Toggle(typeRect, isSelected, assetType,
                             isSelected ? selectedTypeButtonStyle : typeButtonStyle);
 
                         if (pressed && !isSelected)
                         {
+                            if (ToolbarComponent.isUsingAdvancedSearch)
+                            {
+                                controller.filterOptions.ClearFilter();
+                                ToolbarComponent.isUsingAdvancedSearch = false;
+                            }
+                            
                             _selectedAssetType = controller.filterOptions.assetType = assetType;
                         }
 
@@ -234,14 +294,11 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     }
                 }
 
-                GUILayout.Space(5);
-
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.FlexibleSpace();
                     bool newShowDeleteButtons = GUILayout.Toggle(_showDeleteButtons,
-                        LocalizationAPI.GetText("VrcAssetManager_ui_assetTypePanel_showDeleteButtons"),
-                        GUILayout.Width(150));
+                        LocalizationAPI.GetText("VrcAssetManager_ui_assetTypePanel_showDeleteButtons"));
 
                     if (newShowDeleteButtons != _showDeleteButtons)
                     {
@@ -249,7 +306,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
                     }
                     GUILayout.FlexibleSpace();
                 }
-                GUILayout.Space(5);
+                GUILayout.Space(10);
             }
         }
 

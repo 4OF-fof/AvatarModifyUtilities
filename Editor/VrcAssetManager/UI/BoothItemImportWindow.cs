@@ -62,7 +62,7 @@ namespace AMU.Editor.VrcAssetManager.UI
 
         private string GetBoothItemKey(BoothItemSchema b)
         {
-            return $"{b.itemName}\0{b.authorName}\0{b.itemUrl}\0{b.imageUrl}\0{b.fileName}\0{b.downloadUrl}";
+            return b.downloadUrl;
         }
 
         private void OnGUI()
@@ -243,6 +243,10 @@ namespace AMU.Editor.VrcAssetManager.UI
                         foreach (var boothItem in group)
                         {
                             var childAsset = CreateAssetFromBoothItem(boothItem, parent.assetId.ToString(), imagePathDict.ContainsKey(boothItem) ? imagePathDict[boothItem] : null);
+                            if (string.IsNullOrEmpty(childAsset.metadata.assetType) && !string.IsNullOrEmpty(parent.metadata.assetType))
+                            {
+                                childAsset.metadata.SetAssetType(parent.metadata.assetType);
+                            }
                             parent.AddChildAssetId(childAsset.assetId.ToString());
                             _controller.AddAsset(childAsset);
                             childCount++;
@@ -267,6 +271,10 @@ namespace AMU.Editor.VrcAssetManager.UI
                         foreach (var boothItem in group)
                         {
                             var childAsset = CreateAssetFromBoothItem(boothItem, newParent.assetId.ToString(), imagePathDict.ContainsKey(boothItem) ? imagePathDict[boothItem] : null);
+                            if (string.IsNullOrEmpty(childAsset.metadata.assetType) && !string.IsNullOrEmpty(newParent.metadata.assetType))
+                            {
+                                childAsset.metadata.SetAssetType(newParent.metadata.assetType);
+                            }
                             newParent.AddChildAssetId(childAsset.assetId.ToString());
                             _controller.AddAsset(childAsset);
                             childCount++;
@@ -292,6 +300,10 @@ namespace AMU.Editor.VrcAssetManager.UI
                 foreach (var boothItem in group)
                 {
                     var childAsset = CreateAssetFromBoothItem(boothItem, parentAsset.assetId.ToString(), imagePathDict.ContainsKey(boothItem) ? imagePathDict[boothItem] : null);
+                    if (string.IsNullOrEmpty(childAsset.metadata.assetType) && !string.IsNullOrEmpty(parentAsset.metadata.assetType))
+                    {
+                        childAsset.metadata.SetAssetType(parentAsset.metadata.assetType);
+                    }
                     parentAsset.AddChildAssetId(childAsset.assetId.ToString());
                     _controller.AddAsset(childAsset);
                     childCount++;

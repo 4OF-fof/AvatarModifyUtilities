@@ -879,6 +879,19 @@ namespace AMU.Editor.VrcAssetManager.Controller
             return library.assetTypes.ToList();
         }
 
+        public void ReorderAssetType(int fromIndex, int toIndex)
+        {
+            if (library == null)
+            {
+                Debug.LogError("Library not initialized for ReorderAssetType");
+                return;
+            }
+
+            SyncAssetLibrary();
+            library.ReorderAssetType(fromIndex, toIndex);
+            SaveAssetLibrary();
+        }
+
         public void ClearAssetTypes()
         {
             if (library == null)
