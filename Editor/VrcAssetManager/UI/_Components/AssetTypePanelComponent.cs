@@ -18,6 +18,9 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
         public static void Draw()
         {
             var controller = AssetLibraryController.Instance;
+            
+            _selectedAssetType = controller.filterOptions.assetType;
+            
             using (new GUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Width(236f)))
             {
                 using (new GUILayout.HorizontalScope())

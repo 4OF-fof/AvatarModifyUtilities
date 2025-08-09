@@ -416,6 +416,7 @@ namespace AMU.Editor.VrcAssetManager.UI.Components
             {
                 nowAssetType = controller.filterOptions.assetType;
                 controller.filterOptions.ClearFilter();
+                controller.filterOptions.assetType = "";
                 controller.filterOptions.parentGroupId = asset.assetId.ToString();
                 controller.filterOptions.isChildItem = true;
                 ToolbarComponent.isUsingAdvancedSearch = true;
