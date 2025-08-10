@@ -50,7 +50,7 @@ namespace AMU.Editor.VrcAssetManager.Helper
                             var depAsset = AssetLibraryController.Instance.GetAsset(depGuid);
                             if (depAsset != null)
                             {
-                                ImportAsset(depAsset, showImportDialog, processingAssets);
+                                ImportAsset(depAsset, false, processingAssets);
                             }
                             else
                             {
