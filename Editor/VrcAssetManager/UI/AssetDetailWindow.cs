@@ -547,7 +547,9 @@ namespace AMU.Editor.VrcAssetManager.UI
                                     {
                                         if (controller != null)
                                         {
+                                            var currentAssetType = controller.filterOptions.assetType;
                                             controller.filterOptions.ClearFilter();
+                                            controller.filterOptions.assetType = currentAssetType;
                                             controller.filterOptions.tags = new List<string> { tag };
                                             controller.filterOptions.tagsAnd = false;
                                         }
